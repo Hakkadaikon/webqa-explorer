@@ -1,0 +1,255 @@
+BASE	-	PASS	108695	14537	-
+gt->ge#0@229	L6	PASS	108695	14537	COMMENT	equivalent: コメント内の字面
+gt->ge#1@255	L6	PASS	108695	14537	COMMENT	equivalent: コメント内の字面
+gt->ge#2@3251	L86	INV:Inv	69659	6541	CODE
+gt->ge#3@3276	L87	INV:Inv	2315	480	CODE
+eq->neq#0@2694	L67	OTHER_ERROR:In evaluation, the identifier phase is either undefined or not an operator.	0	0	CODE
+eq->neq#1@2721	L68	OTHER_ERROR:In evaluation, the identifier proposedOp is either undefined or not an operator.	0	0	CODE
+eq->neq#2@2752	L69	OTHER_ERROR:In evaluation, the identifier proposedTarget is either undefined or not an opera	0	0	CODE
+eq->neq#3@2784	L70	OTHER_ERROR:In evaluation, the identifier proposedLowConf is either undefined or not an oper	0	0	CODE
+eq->neq#4@2809	L71	OTHER_ERROR:In evaluation, the identifier isPaywall is either undefined or not an operator.	0	0	CODE
+eq->neq#5@2837	L72	OTHER_ERROR:In evaluation, the identifier targetExists is either undefined or not an operato	0	0	CODE
+eq->neq#6@2865	L73	OTHER_ERROR:In evaluation, the identifier screenChanged is either undefined or not an operat	0	0	CODE
+eq->neq#7@2887	L74	OTHER_ERROR:In evaluation, the identifier visited is either undefined or not an operator.	0	0	CODE
+eq->neq#8@2911	L75	OTHER_ERROR:In evaluation, the identifier idleCounter is either undefined or not an operator	0	0	CODE
+eq->neq#9@2935	L76	OTHER_ERROR:In evaluation, the identifier stuckCounter is either undefined or not an operato	0	0	CODE
+eq->neq#10@2962	L77	OTHER_ERROR:In evaluation, the identifier inAllowedDomain is either undefined or not an oper	0	0	CODE
+eq->neq#11@2991	L78	OTHER_ERROR:In evaluation, the identifier decisionBudget is either undefined or not an opera	0	0	CODE
+eq->neq#12@3027	L79	OTHER_ERROR:In evaluation, the identifier requestBudget is either undefined or not an operat	0	0	CODE
+eq->neq#13@3059	L80	OTHER_ERROR:In evaluation, the identifier exitReason is either undefined or not an operator.	0	0	CODE
+eq->neq#14@3220	L85	TEMPORAL	1	1	CODE
+eq->neq#15@3317	L89	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#16@3362	L90	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#17@3405	L91	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#18@3542	L93	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#19@3574	L94	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#20@3606	L95	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#21@3633	L96	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#22@3663	L97	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#23@3859	L102	OTHER_ERROR:Action property TerminalAbsorbing is violated.	3087	1007	CODE
+eq->neq#24@3889	L103	TEMPORAL	180124	18880	CODE
+eq->neq#25@3915	L104	OTHER_ERROR:TLC threw an unexpected exception.	2459	574	CODE
+eq->neq#26@4378	L113	OTHER_ERROR:Action property TerminalAbsorbing is violated.	332	308	CODE
+eq->neq#27@4443	L115	OTHER_ERROR:TLC threw an unexpected exception.	223	221	CODE
+eq->neq#28@4479	L116	OTHER_ERROR:TLC threw an unexpected exception.	222	220	CODE
+eq->neq#29@4601	L119	TEMPORAL	124173	15467	CODE
+eq->neq#30@4671	L121	OTHER_ERROR:TLC threw an unexpected exception.	222	221	CODE
+eq->neq#31@4806	L124	OTHER_ERROR:TLC threw an unexpected exception.	305	305	CODE
+eq->neq#32@4918	L127	OTHER_ERROR:TLC threw an unexpected exception.	104	104	CODE
+eq->neq#33@4959	L128	INV:Inv	513	317	CODE
+eq->neq#34@5124	L130	OTHER_ERROR:TLC threw an unexpected exception.	98	98	CODE
+eq->neq#35@5622	L140	INV:Inv	229	226	CODE
+eq->neq#36@5692	L142	OTHER_ERROR:TLC threw an unexpected exception.	204	203	CODE
+eq->neq#37@5723	L143	OTHER_ERROR:TLC threw an unexpected exception.	351	231	CODE
+eq->neq#38@5754	L144	OTHER_ERROR:TLC threw an unexpected exception.	224	221	CODE
+eq->neq#39@5782	L145	OTHER_ERROR:TLC threw an unexpected exception.	208	207	CODE
+eq->neq#40@5821	L146	OTHER_ERROR:TLC threw an unexpected exception.	215	214	CODE
+eq->neq#41@6081	L152	INV:Inv	321	315	CODE
+eq->neq#42@6151	L154	OTHER_ERROR:TLC threw an unexpected exception.	215	214	CODE
+eq->neq#43@6182	L155	OTHER_ERROR:TLC threw an unexpected exception.	115	114	CODE
+eq->neq#44@6213	L156	OTHER_ERROR:TLC threw an unexpected exception.	215	214	CODE
+eq->neq#45@6240	L157	OTHER_ERROR:TLC threw an unexpected exception.	213	212	CODE
+eq->neq#46@6265	L158	OTHER_ERROR:TLC threw an unexpected exception.	338	225	CODE
+eq->neq#47@6538	L164	INV:Inv	235	229	CODE
+eq->neq#48@6608	L166	OTHER_ERROR:TLC threw an unexpected exception.	316	218	CODE
+eq->neq#49@6639	L167	OTHER_ERROR:TLC threw an unexpected exception.	327	223	CODE
+eq->neq#50@6670	L168	OTHER_ERROR:TLC threw an unexpected exception.	350	231	CODE
+eq->neq#51@6697	L169	OTHER_ERROR:TLC threw an unexpected exception.	338	226	CODE
+eq->neq#52@6722	L170	OTHER_ERROR:TLC threw an unexpected exception.	336	226	CODE
+eq->neq#53@6750	L171	OTHER_ERROR:TLC threw an unexpected exception.	343	227	CODE
+eq->neq#54@6986	L177	OTHER_ERROR:Action property TerminalAbsorbing is violated.	58470	6755	CODE
+eq->neq#55@7043	L179	OTHER_ERROR:TLC threw an unexpected exception.	534	332	CODE
+eq->neq#56@7423	L187	TEMPORAL	110663	15029	CODE
+eq->neq#57@7452	L188	TEMPORAL	110345	15285	CODE
+eq->neq#58@7475	L189	OTHER_ERROR:TLC threw an unexpected exception.	336	226	CODE
+eq->neq#59@7503	L190	OTHER_ERROR:TLC threw an unexpected exception.	238	224	CODE
+eq->neq#60@7516	L190	INV:Inv	230	224	CODE
+eq->neq#61@7888	L197	TEMPORAL	110663	15029	CODE
+eq->neq#62@7917	L198	TEMPORAL	110171	15111	CODE
+eq->neq#63@7941	L199	OTHER_ERROR:TLC threw an unexpected exception.	337	232	CODE
+eq->neq#64@7970	L200	OTHER_ERROR:TLC threw an unexpected exception.	328	224	CODE
+eq->neq#65@8295	L207	OTHER_ERROR:Action property TerminalAbsorbing is violated.	25524	4524	CODE
+eq->neq#66@8354	L209	OTHER_ERROR:TLC threw an unexpected exception.	4869	1024	CODE
+eq->neq#67@8395	L210	OTHER_ERROR:TLC threw an unexpected exception.	9104	1667	CODE
+eq->neq#68@8415	L211	OTHER_ERROR:TLC threw an unexpected exception.	9683	1667	CODE
+eq->neq#69@8655	L216	OTHER_ERROR:Action property TerminalAbsorbing is violated.	2186	588	CODE
+eq->neq#70@8690	L217	OTHER_ERROR:TLC threw an unexpected exception.	16164	2773	CODE
+eq->neq#71@9026	L224	OTHER_ERROR:Action property TerminalAbsorbing is violated.	38657	4641	CODE
+eq->neq#72@9050	L225	INV:Inv	223	221	CODE
+eq->neq#73@9077	L226	OTHER_ERROR:TLC threw an unexpected exception.	19646	3314	CODE
+eq->neq#74@9105	L227	OTHER_ERROR:TLC threw an unexpected exception.	19646	3314	CODE
+eq->neq#75@9426	L234	OTHER_ERROR:Action property TerminalAbsorbing is violated.	38790	4971	CODE
+eq->neq#76@9487	L236	OTHER_ERROR:TLC threw an unexpected exception.	12777	2055	CODE
+eq->neq#77@9516	L237	OTHER_ERROR:TLC threw an unexpected exception.	9645	1431	CODE
+eq->neq#78@9828	L244	OTHER_ERROR:Action property TerminalAbsorbing is violated.	70363	7043	CODE
+eq->neq#79@9859	L245	TEMPORAL	107785	14082	CODE
+eq->neq#80@9877	L246	OTHER_ERROR:TLC threw an unexpected exception.	48058	4912	CODE
+eq->neq#81@9911	L247	OTHER_ERROR:TLC threw an unexpected exception.	30578	4352	CODE
+eq->neq#82@10625	L271	PASS	108695	14537	COMMENT	equivalent: コメント内の字面
+eq->neq#83@10696	L273	INV:Inv			CODE
+eq->neq#84@10791	L277	INV:Inv	28	27	CODE
+eq->neq#85@10830	L277	INV:Inv	210	209	CODE
+eq->neq#86@10941	L281	INV:Inv			CODE
+eq->neq#87@10970	L281	INV:Inv	25982	4133	CODE
+and->or#0@2187	L51	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#1@2211	L52	PARSE_ERROR			CODE
+and->or#2@2258	L53	PARSE_ERROR			CODE
+and->or#3@2307	L54	PARSE_ERROR			CODE
+and->or#4@2342	L55	PARSE_ERROR			CODE
+and->or#5@2371	L56	PARSE_ERROR			CODE
+and->or#6@2403	L57	PARSE_ERROR			CODE
+and->or#7@2436	L58	PARSE_ERROR			CODE
+and->or#8@2470	L59	PARSE_ERROR			CODE
+and->or#9@2497	L60	PARSE_ERROR			CODE
+and->or#10@2525	L61	PARSE_ERROR			CODE
+and->or#11@2560	L62	PARSE_ERROR			CODE
+and->or#12@2602	L63	PARSE_ERROR			CODE
+and->or#13@2642	L64	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#14@2685	L67	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#15@2707	L68	PARSE_ERROR			CODE
+and->or#16@2734	L69	PARSE_ERROR			CODE
+and->or#17@2765	L70	PARSE_ERROR			CODE
+and->or#18@2796	L71	PARSE_ERROR			CODE
+and->or#19@2821	L72	PARSE_ERROR			CODE
+and->or#20@2848	L73	PARSE_ERROR			CODE
+and->or#21@2876	L74	PARSE_ERROR			CODE
+and->or#22@2896	L75	PARSE_ERROR			CODE
+and->or#23@2919	L76	PARSE_ERROR			CODE
+and->or#24@2943	L77	PARSE_ERROR			CODE
+and->or#25@2973	L78	PARSE_ERROR			CODE
+and->or#26@3010	L79	PARSE_ERROR			CODE
+and->or#27@3045	L80	OTHER_ERROR:current state is not a legal state			CODE
+and->or#28@3211	L85	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#29@3233	L86	PARSE_ERROR			CODE
+and->or#30@3259	L87	PARSE_ERROR			CODE
+and->or#31@3284	L88	PARSE_ERROR			CODE
+and->or#32@3307	L89	PARSE_ERROR			CODE
+and->or#33@3343	L90	PARSE_ERROR			CODE
+and->or#34@3387	L91	PARSE_ERROR			CODE
+and->or#35@3429	L92	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE
+and->or#36@3527	L93	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#37@3555	L94	PARSE_ERROR			CODE
+and->or#38@3586	L95	PARSE_ERROR			CODE
+and->or#39@3619	L96	PARSE_ERROR			CODE
+and->or#40@3646	L97	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE
+and->or#41@3672	L98	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE
+and->or#42@3850	L102	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#43@3872	L103	PARSE_ERROR			CODE
+and->or#44@3897	L104	PARSE_ERROR			CODE
+and->or#45@3933	L105	OTHER_ERROR:Successor state is not completely specified by action ResetRequestWindow of the	101	97	CODE
+and->or#46@4369	L113	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#47@4404	L114	PARSE_ERROR			CODE
+and->or#48@4410	L114	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#49@4433	L115	PARSE_ERROR			CODE
+and->or#50@4464	L116	PARSE_ERROR			CODE
+and->or#51@4498	L117	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	97	CODE
+and->or#52@4557	L118	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#53@4581	L119	PARSE_ERROR			CODE
+and->or#54@4587	L119	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#55@4626	L120	PARSE_ERROR			CODE
+and->or#56@4661	L121	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	417	218	CODE
+and->or#57@4696	L122	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#58@4740	L123	PARSE_ERROR			CODE
+and->or#59@4796	L124	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	322	220	CODE
+and->or#60@4831	L125	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#61@4875	L126	PARSE_ERROR			CODE
+and->or#62@4908	L127	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	294	197	CODE
+and->or#63@4943	L128	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#64@4968	L128	TEMPORAL	81015	11257	CODE
+and->or#65@5004	L129	PARSE_ERROR			CODE
+and->or#66@5080	L129	INV:Inv	2695	898	CODE
+and->or#67@5114	L130	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	102	99	CODE
+and->or#68@5145	L131	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	97	CODE
+and->or#69@5210	L132	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	101	97	CODE
+and->or#70@5613	L140	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#71@5637	L141	PARSE_ERROR			CODE
+and->or#72@5680	L142	PARSE_ERROR			CODE
+and->or#73@5713	L143	PARSE_ERROR			CODE
+and->or#74@5736	L144	PARSE_ERROR			CODE
+and->or#75@5766	L145	PARSE_ERROR			CODE
+and->or#76@5804	L146	PARSE_ERROR			CODE
+and->or#77@5844	L147	OTHER_ERROR:Successor state is not completely specified by action ExecuteNoChange of the nex	104	100	CODE
+and->or#78@6072	L152	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#79@6096	L153	PARSE_ERROR			CODE
+and->or#80@6139	L154	PARSE_ERROR			CODE
+and->or#81@6172	L155	PARSE_ERROR			CODE
+and->or#82@6195	L156	PARSE_ERROR			CODE
+and->or#83@6224	L157	PARSE_ERROR			CODE
+and->or#84@6248	L158	PARSE_ERROR			CODE
+and->or#85@6273	L159	OTHER_ERROR:Successor state is not completely specified by action ExecuteChange of the next-	104	100	CODE
+and->or#86@6529	L164	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#87@6553	L165	PARSE_ERROR			CODE
+and->or#88@6596	L166	PARSE_ERROR			CODE
+and->or#89@6629	L167	PARSE_ERROR			CODE
+and->or#90@6652	L168	PARSE_ERROR			CODE
+and->or#91@6681	L169	PARSE_ERROR			CODE
+and->or#92@6705	L170	PARSE_ERROR			CODE
+and->or#93@6730	L171	PARSE_ERROR			CODE
+and->or#94@6762	L172	OTHER_ERROR:Successor state is not completely specified by action ExecuteOutOfDomain of the	199	195	CODE
+and->or#95@6977	L177	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#96@6999	L178	PARSE_ERROR			CODE
+and->or#97@7023	L179	PARSE_ERROR			CODE
+and->or#98@7054	L180	OTHER_ERROR:Successor state is not completely specified by action ReturnToAllowedDomain of t	104	100	CODE
+and->or#99@7414	L187	OTHER_ERROR:TLC threw an unexpected exception.	227	222	CODE
+and->or#100@7438	L188	PARSE_ERROR			CODE
+and->or#101@7465	L189	PARSE_ERROR			CODE
+and->or#102@7488	L190	OTHER_ERROR:TLC threw an unexpected exception.	195	195	CODE
+and->or#103@7575	L191	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalDone of th	104	100	CODE
+and->or#104@7879	L197	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#105@7903	L198	PARSE_ERROR			CODE
+and->or#106@7931	L199	PARSE_ERROR			CODE
+and->or#107@7955	L200	PARSE_ERROR			CODE
+and->or#108@7984	L201	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalStuck of t	104	100	CODE
+and->or#109@8286	L207	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#110@8308	L208	PARSE_ERROR			CODE
+and->or#111@8344	L209	PARSE_ERROR			CODE
+and->or#112@8379	L210	PARSE_ERROR			CODE
+and->or#113@8403	L211	PARSE_ERROR			CODE
+and->or#114@8424	L212	OTHER_ERROR:Successor state is not completely specified by action RecoverFromFreeze of the n	104	100	CODE
+and->or#115@8646	L216	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#116@8680	L217	PARSE_ERROR			CODE
+and->or#117@8703	L218	OTHER_ERROR:Successor state is not completely specified by action ResumeAfterRecovery of the	104	100	CODE
+and->or#118@9017	L224	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#119@9039	L225	PARSE_ERROR			CODE
+and->or#120@9067	L226	PARSE_ERROR			CODE
+and->or#121@9090	L227	PARSE_ERROR			CODE
+and->or#122@9127	L228	OTHER_ERROR:Successor state is not completely specified by action FinishNormally of the next	104	100	CODE
+and->or#123@9417	L234	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#124@9439	L235	PARSE_ERROR			CODE
+and->or#125@9477	L236	PARSE_ERROR			CODE
+and->or#126@9501	L237	PARSE_ERROR			CODE
+and->or#127@9530	L238	OTHER_ERROR:Successor state is not completely specified by action FinishStuck of the next-st	104	100	CODE
+and->or#128@9819	L244	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#129@9841	L245	PARSE_ERROR			CODE
+and->or#130@9867	L246	PARSE_ERROR			CODE
+and->or#131@9896	L247	PARSE_ERROR			CODE
+and->or#132@9935	L248	OTHER_ERROR:Successor state is not completely specified by action ExceedDecisionBudget of th	104	100	CODE
+and->or#133@10543	L267	OTHER_ERROR:Successor state is not completely specified by action Next of the next-state rel	1186	374	CODE
+and->or#134@10802	L277	PARSE_ERROR			CODE
+and->or#135@10816	L277	PARSE_ERROR			CODE
+and->or#136@11107	L288	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#137@11121	L289	PARSE_ERROR			CODE
+and->or#138@11151	L290	PARSE_ERROR			CODE
+and->or#139@11186	L291	PARSE_ERROR			CODE
+and->or#140@11212	L292	PASS	108695	14537	CODE	equivalent: 連言リスト先頭の/\を\/にしても1項の選言で意味不変(到達状態数が元と一致)
+and->or#141@11483	L304	PARSE_ERROR			CODE
+and->or#142@11513	L305	PARSE_ERROR			CODE
+and->or#143@11541	L305	PARSE_ERROR			CODE
+and->or#144@11572	L305	PARSE_ERROR			CODE
+and->or#145@11613	L306	PARSE_ERROR			CODE
+and->or#146@11641	L306	PARSE_ERROR			CODE
+and->or#147@11667	L306	PARSE_ERROR			CODE
+and->or#148@11711	L307	PARSE_ERROR			CODE
+and->or#149@11758	L308	PARSE_ERROR			CODE
+and->or#150@11791	L308	PARSE_ERROR			CODE
+and->or#151@11838	L309	PARSE_ERROR			CODE
+and->or#152@11868	L309	PARSE_ERROR			CODE
+and->or#153@11913	L310	PARSE_ERROR			CODE
+and->or#154@11940	L310	PARSE_ERROR			CODE
+and->or#155@11964	L310	PARSE_ERROR			CODE
+plus->minus#0@5555	L138	PASS	108695	14537	COMMENT	equivalent: コメント内の字面
+plus->minus#1@5796	L145	INV:Inv	218	216	CODE
+plus->minus#2@5836	L146	INV:Inv	236	224	CODE
+plus->minus#3@6448	L162	PASS	108695	14537	COMMENT	equivalent: コメント内の字面
+plus->minus#4@6463	L162	PASS	108695	14537	COMMENT	equivalent: コメント内の字面
+plus->minus#5@7295	L184	PASS	108695	14537	COMMENT	equivalent: コメント内の字面

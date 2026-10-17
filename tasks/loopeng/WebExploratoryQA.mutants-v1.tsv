@@ -1,0 +1,255 @@
+BASE	-	PASS	72618	7151	-
+gt->ge#0@235	L6	PASS	72618	7151	COMMENT
+gt->ge#1@261	L6	PASS	72618	7151	COMMENT
+gt->ge#2@3432	L89	INV:Inv	16604	1775	CODE
+gt->ge#3@3457	L90	PASS	72618	7151	CODE
+eq->neq#0@299	L7	PASS	72618	7151	COMMENT
+eq->neq#1@2708	L67	OTHER_ERROR:In evaluation, the identifier phase is either undefined or not an operator.	0	0	CODE
+eq->neq#2@2735	L68	OTHER_ERROR:In evaluation, the identifier proposedOp is either undefined or not an operator.	0	0	CODE
+eq->neq#3@2766	L69	OTHER_ERROR:In evaluation, the identifier proposedTarget is either undefined or not an opera	0	0	CODE
+eq->neq#4@2802	L70	OTHER_ERROR:In evaluation, the identifier proposedLowConfBack is either undefined or not an	0	0	CODE
+eq->neq#5@2827	L71	OTHER_ERROR:In evaluation, the identifier isPaywall is either undefined or not an operator.	0	0	CODE
+eq->neq#6@2855	L72	OTHER_ERROR:In evaluation, the identifier targetExists is either undefined or not an operato	0	0	CODE
+eq->neq#7@2883	L73	OTHER_ERROR:In evaluation, the identifier screenChanged is either undefined or not an operat	0	0	CODE
+eq->neq#8@2905	L74	OTHER_ERROR:In evaluation, the identifier visited is either undefined or not an operator.	0	0	CODE
+eq->neq#9@2929	L75	OTHER_ERROR:In evaluation, the identifier idleCounter is either undefined or not an operator	0	0	CODE
+eq->neq#10@2953	L76	OTHER_ERROR:In evaluation, the identifier stuckCounter is either undefined or not an operato	0	0	CODE
+eq->neq#11@2980	L77	OTHER_ERROR:In evaluation, the identifier inAllowedDomain is either undefined or not an oper	0	0	CODE
+eq->neq#12@3009	L78	OTHER_ERROR:In evaluation, the identifier decisionBudget is either undefined or not an opera	0	0	CODE
+eq->neq#13@3045	L79	OTHER_ERROR:In evaluation, the identifier requestBudget is either undefined or not an operat	0	0	CODE
+eq->neq#14@3077	L80	OTHER_ERROR:In evaluation, the identifier exitReason is either undefined or not an operator.	0	0	CODE
+eq->neq#15@3401	L88	TEMPORAL	1	1	CODE
+eq->neq#16@3498	L92	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#17@3543	L93	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#18@3704	L96	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#19@3736	L97	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#20@3772	L98	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#21@3778	L98	PASS	79177	9393	CODE
+eq->neq#22@3825	L99	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#23@3855	L100	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE
+eq->neq#24@4363	L111	TEMPORAL	216350	117510	CODE
+eq->neq#25@4484	L113	OTHER_ERROR:TLC threw an unexpected exception.	228	153	CODE
+eq->neq#26@4520	L114	OTHER_ERROR:TLC threw an unexpected exception.	215	140	CODE
+eq->neq#27@4563	L115	OTHER_ERROR:TLC threw an unexpected exception.	213	139	CODE
+eq->neq#28@4667	L118	TEMPORAL	60210	6611	CODE
+eq->neq#29@4748	L119	OTHER_ERROR:TLC threw an unexpected exception.	212	137	CODE
+eq->neq#30@4992	L123	OTHER_ERROR:TLC threw an unexpected exception.	218	141	CODE
+eq->neq#31@5223	L127	OTHER_ERROR:TLC threw an unexpected exception.	103	67	CODE
+eq->neq#32@5345	L129	INV:Inv	224	149	CODE
+eq->neq#33@5543	L132	OTHER_ERROR:TLC threw an unexpected exception.	194	122	CODE
+eq->neq#34@6094	L142	PASS	27513	2551	CODE
+eq->neq#35@6121	L143	OTHER_ERROR:TLC threw an unexpected exception.	205	132	CODE
+eq->neq#36@6530	L149	PASS	27513	2551	CODE
+eq->neq#37@6799	L155	TIMEOUT			CODE
+eq->neq#38@6867	L157	OTHER_ERROR:TLC threw an unexpected exception.	222	140	CODE
+eq->neq#39@6898	L158	OTHER_ERROR:TLC threw an unexpected exception.	223	146	CODE
+eq->neq#40@6926	L159	OTHER_ERROR:TLC threw an unexpected exception.	216	139	CODE
+eq->neq#41@6965	L160	OTHER_ERROR:TLC threw an unexpected exception.	321	140	CODE
+eq->neq#42@7258	L166	PASS	119666	9735	CODE
+eq->neq#43@7326	L168	OTHER_ERROR:TLC threw an unexpected exception.	309	198	CODE
+eq->neq#44@7357	L169	OTHER_ERROR:TLC threw an unexpected exception.	325	144	CODE
+eq->neq#45@7384	L170	OTHER_ERROR:TLC threw an unexpected exception.	309	198	CODE
+eq->neq#46@7409	L171	OTHER_ERROR:TLC threw an unexpected exception.	229	143	CODE
+eq->neq#47@7785	L178	PASS	72618	7151	COMMENT
+eq->neq#48@7847	L180	TEMPORAL	121648	10498	CODE
+eq->neq#49@7915	L182	OTHER_ERROR:TLC threw an unexpected exception.	215	139	CODE
+eq->neq#50@7946	L183	OTHER_ERROR:TLC threw an unexpected exception.	226	150	CODE
+eq->neq#51@7973	L184	OTHER_ERROR:TLC threw an unexpected exception.	317	144	CODE
+eq->neq#52@7998	L185	OTHER_ERROR:TLC threw an unexpected exception.	214	140	CODE
+eq->neq#53@8026	L186	OTHER_ERROR:TLC threw an unexpected exception.	309	198	CODE
+eq->neq#54@8232	L190	PASS	72618	7151	COMMENT
+eq->neq#55@8444	L194	TEMPORAL	73602	7397	CODE
+eq->neq#56@8473	L195	TEMPORAL	73692	7637	CODE
+eq->neq#57@8496	L196	OTHER_ERROR:TLC threw an unexpected exception.	305	194	CODE
+eq->neq#58@8524	L197	OTHER_ERROR:TLC threw an unexpected exception.	312	140	CODE
+eq->neq#59@8807	L202	PASS	72618	7151	COMMENT
+eq->neq#60@8948	L205	TEMPORAL	73602	7397	CODE
+eq->neq#61@8977	L206	TEMPORAL	73568	7513	CODE
+eq->neq#62@9001	L207	OTHER_ERROR:TLC threw an unexpected exception.	329	147	CODE
+eq->neq#63@9030	L208	OTHER_ERROR:TLC threw an unexpected exception.	443	223	CODE
+eq->neq#64@9353	L215	TEMPORAL	77159	7623	CODE
+eq->neq#65@9400	L217	OTHER_ERROR:TLC threw an unexpected exception.	746	289	CODE
+eq->neq#66@9433	L218	OTHER_ERROR:TLC threw an unexpected exception.	1007	263	CODE
+eq->neq#67@9751	L225	PASS	93425	9731	CODE
+eq->neq#68@9810	L227	OTHER_ERROR:TLC threw an unexpected exception.	10811	1049	CODE
+eq->neq#69@9851	L228	OTHER_ERROR:TLC threw an unexpected exception.	9241	794	CODE
+eq->neq#70@9871	L229	OTHER_ERROR:TLC threw an unexpected exception.	8539	771	CODE
+eq->neq#71@10134	L234	TEMPORAL	316953	18077	CODE
+eq->neq#72@10169	L235	OTHER_ERROR:TLC threw an unexpected exception.	16367	1625	CODE
+eq->neq#73@10459	L240	PASS	72618	7151	COMMENT
+eq->neq#74@10522	L242	PASS	73932	7347	CODE
+eq->neq#75@10546	L243	PASS	74536	8110	CODE
+eq->neq#76@10591	L244	OTHER_ERROR:TLC threw an unexpected exception.	55543	4307	CODE
+eq->neq#77@10619	L245	OTHER_ERROR:TLC threw an unexpected exception.	56734	4693	CODE
+eq->neq#78@10958	L252	PASS	75972	7625	CODE
+eq->neq#79@11019	L254	OTHER_ERROR:TLC threw an unexpected exception.	10524	932	CODE
+eq->neq#80@11048	L255	OTHER_ERROR:TLC threw an unexpected exception.	10430	813	CODE
+eq->neq#81@11362	L262	TEMPORAL	76778	7897	CODE
+eq->neq#82@11393	L263	TEMPORAL	72816	7250	CODE
+eq->neq#83@11411	L264	OTHER_ERROR:TLC threw an unexpected exception.	16875	1921	CODE
+eq->neq#84@11445	L265	OTHER_ERROR:TLC threw an unexpected exception.	16880	1916	CODE
+eq->neq#85@12210	L289	PASS	72618	7151	COMMENT
+eq->neq#86@12269	L290	PASS	72618	7151	COMMENT
+eq->neq#87@12455	L294	INV:Inv			CODE
+eq->neq#88@12624	L299	PASS	72618	7151	CODE
+and->or#0@2204	L50	PASS	72618	7151	CODE
+and->or#1@2228	L51	PARSE_ERROR			CODE
+and->or#2@2275	L52	PARSE_ERROR			CODE
+and->or#3@2324	L53	PARSE_ERROR			CODE
+and->or#4@2363	L54	PARSE_ERROR			CODE
+and->or#5@2392	L55	PARSE_ERROR			CODE
+and->or#6@2424	L56	PARSE_ERROR			CODE
+and->or#7@2457	L57	PARSE_ERROR			CODE
+and->or#8@2491	L58	PARSE_ERROR			CODE
+and->or#9@2518	L59	PARSE_ERROR			CODE
+and->or#10@2546	L60	PARSE_ERROR			CODE
+and->or#11@2581	L61	PARSE_ERROR			CODE
+and->or#12@2611	L62	PARSE_ERROR			CODE
+and->or#13@2640	L63	PASS	72618	7151	CODE
+and->or#14@2699	L67	PASS	72618	7151	CODE
+and->or#15@2721	L68	PARSE_ERROR			CODE
+and->or#16@2748	L69	PARSE_ERROR			CODE
+and->or#17@2779	L70	PARSE_ERROR			CODE
+and->or#18@2814	L71	PARSE_ERROR			CODE
+and->or#19@2839	L72	PARSE_ERROR			CODE
+and->or#20@2866	L73	PARSE_ERROR			CODE
+and->or#21@2894	L74	PARSE_ERROR			CODE
+and->or#22@2914	L75	PARSE_ERROR			CODE
+and->or#23@2937	L76	PARSE_ERROR			CODE
+and->or#24@2961	L77	PARSE_ERROR			CODE
+and->or#25@2991	L78	PARSE_ERROR			CODE
+and->or#26@3028	L79	PARSE_ERROR			CODE
+and->or#27@3063	L80	OTHER_ERROR:current state is not a legal state			CODE
+and->or#28@3392	L88	PASS	72618	7151	CODE
+and->or#29@3414	L89	PARSE_ERROR			CODE
+and->or#30@3440	L90	PARSE_ERROR			CODE
+and->or#31@3465	L91	PARSE_ERROR			CODE
+and->or#32@3488	L92	PARSE_ERROR			CODE
+and->or#33@3524	L93	PARSE_ERROR			CODE
+and->or#34@3568	L94	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE
+and->or#35@3689	L96	PASS	72618	7151	CODE
+and->or#36@3717	L97	PARSE_ERROR			CODE
+and->or#37@3748	L98	PARSE_ERROR			CODE
+and->or#38@3787	L98	PASS	71217	8757	CODE
+and->or#39@3811	L99	PARSE_ERROR			CODE
+and->or#40@3838	L100	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE
+and->or#41@3868	L101	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE
+and->or#42@4354	L111	PASS	72618	7151	CODE
+and->or#43@4389	L112	PARSE_ERROR			CODE
+and->or#44@4395	L112	PASS	72618	7151	CODE
+and->or#45@4474	L113	PARSE_ERROR			CODE
+and->or#46@4505	L114	PARSE_ERROR			CODE
+and->or#47@4539	L115	PARSE_ERROR			CODE
+and->or#48@4581	L116	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	61	CODE
+and->or#49@4623	L117	PASS	72618	7151	CODE
+and->or#50@4647	L118	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	61	CODE
+and->or#51@4653	L118	PASS	72618	7151	CODE
+and->or#52@4676	L118	PASS	73158	7187	CODE
+and->or#53@4738	L119	PARSE_ERROR			CODE
+and->or#54@4773	L120	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	61	CODE
+and->or#55@4854	L121	PASS	72618	7151	CODE
+and->or#56@4907	L122	PARSE_ERROR			CODE
+and->or#57@4982	L123	PARSE_ERROR			CODE
+and->or#58@5017	L124	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	61	CODE
+and->or#59@5098	L125	PASS	72618	7151	CODE
+and->or#60@5151	L126	PARSE_ERROR			CODE
+and->or#61@5213	L127	PARSE_ERROR			CODE
+and->or#62@5248	L128	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	61	CODE
+and->or#63@5329	L129	PASS	72618	7151	CODE
+and->or#64@5354	L129	TEMPORAL	52250	5975	CODE
+and->or#65@5394	L130	PARSE_ERROR			CODE
+and->or#66@5499	L131	INV:Inv	3045	608	CODE
+and->or#67@5533	L132	PARSE_ERROR			CODE
+and->or#68@5570	L133	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	101	62	CODE
+and->or#69@5639	L134	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	101	61	CODE
+and->or#70@6085	L142	OTHER_ERROR:TLC threw an unexpected exception.	209	136	CODE
+and->or#71@6109	L143	OTHER_ERROR:Successor state is not completely specified by action ExecuteOperation of the ne	101	64	CODE
+and->or#72@6160	L143	INV:Inv	589	252	CODE
+and->or#73@6279	L146	PARSE_ERROR			CODE
+and->or#74@6520	L149	OTHER_ERROR:Successor state is not completely specified by action ExecuteOperation of the ne	104	64	CODE
+and->or#75@6790	L155	PASS	72618	7151	CODE
+and->or#76@6814	L156	PARSE_ERROR			CODE
+and->or#77@6857	L157	PARSE_ERROR			CODE
+and->or#78@6880	L158	PARSE_ERROR			CODE
+and->or#79@6910	L159	PARSE_ERROR			CODE
+and->or#80@6948	L160	PARSE_ERROR			CODE
+and->or#81@6988	L161	OTHER_ERROR:Successor state is not completely specified by action ObserveNoChange of the nex	199	123	CODE
+and->or#82@7249	L166	PASS	72618	7151	CODE
+and->or#83@7273	L167	PARSE_ERROR			CODE
+and->or#84@7316	L168	PARSE_ERROR			CODE
+and->or#85@7339	L169	PARSE_ERROR			CODE
+and->or#86@7368	L170	PARSE_ERROR			CODE
+and->or#87@7392	L171	PARSE_ERROR			CODE
+and->or#88@7417	L172	OTHER_ERROR:Successor state is not completely specified by action ObserveChange of the next-	104	64	CODE
+and->or#89@7838	L180	PASS	72618	7151	CODE
+and->or#90@7862	L181	PARSE_ERROR			CODE
+and->or#91@7905	L182	PARSE_ERROR			CODE
+and->or#92@7928	L183	PARSE_ERROR			CODE
+and->or#93@7957	L184	PARSE_ERROR			CODE
+and->or#94@7981	L185	PARSE_ERROR			CODE
+and->or#95@8006	L186	PARSE_ERROR			CODE
+and->or#96@8038	L187	OTHER_ERROR:Successor state is not completely specified by action ObserveOutOfDomain of the	104	64	CODE
+and->or#97@8435	L194	PASS	72618	7151	CODE
+and->or#98@8459	L195	PARSE_ERROR			CODE
+and->or#99@8486	L196	PARSE_ERROR			CODE
+and->or#100@8509	L197	PARSE_ERROR			CODE
+and->or#101@8546	L198	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalDone of th	104	64	CODE
+and->or#102@8939	L205	PASS	72618	7151	CODE
+and->or#103@8963	L206	PARSE_ERROR			CODE
+and->or#104@8991	L207	PARSE_ERROR			CODE
+and->or#105@9015	L208	PARSE_ERROR			CODE
+and->or#106@9044	L209	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalStuck of t	104	64	CODE
+and->or#107@9344	L215	PASS	72618	7151	CODE
+and->or#108@9366	L216	PARSE_ERROR			CODE
+and->or#109@9390	L217	PARSE_ERROR			CODE
+and->or#110@9413	L218	PARSE_ERROR			CODE
+and->or#111@9444	L219	OTHER_ERROR:Successor state is not completely specified by action ReturnToAllowedDomain of t	104	64	CODE
+and->or#112@9742	L225	PASS	72618	7151	CODE
+and->or#113@9764	L226	PARSE_ERROR			CODE
+and->or#114@9800	L227	PARSE_ERROR			CODE
+and->or#115@9835	L228	PARSE_ERROR			CODE
+and->or#116@9859	L229	PARSE_ERROR			CODE
+and->or#117@9899	L230	OTHER_ERROR:Successor state is not completely specified by action RecoverFromFreeze of the n	104	64	CODE
+and->or#118@10125	L234	PASS	72618	7151	CODE
+and->or#119@10159	L235	PARSE_ERROR			CODE
+and->or#120@10182	L236	OTHER_ERROR:Successor state is not completely specified by action ResumeAfterRecovery of the	104	64	CODE
+and->or#121@10513	L242	PASS	72618	7151	CODE
+and->or#122@10535	L243	PARSE_ERROR			CODE
+and->or#123@10581	L244	PARSE_ERROR			CODE
+and->or#124@10604	L245	PARSE_ERROR			CODE
+and->or#125@10641	L246	OTHER_ERROR:Successor state is not completely specified by action FinishNormally of the next	199	123	CODE
+and->or#126@10949	L252	PASS	72618	7151	CODE
+and->or#127@10971	L253	PARSE_ERROR			CODE
+and->or#128@11009	L254	PARSE_ERROR			CODE
+and->or#129@11033	L255	PARSE_ERROR			CODE
+and->or#130@11062	L256	OTHER_ERROR:Successor state is not completely specified by action FinishStuck of the next-st	104	64	CODE
+and->or#131@11353	L262	PASS	72618	7151	CODE
+and->or#132@11375	L263	PARSE_ERROR			CODE
+and->or#133@11401	L264	PARSE_ERROR			CODE
+and->or#134@11430	L265	PARSE_ERROR			CODE
+and->or#135@11469	L266	OTHER_ERROR:Successor state is not completely specified by action ExceedDecisionBudget of th	104	64	CODE
+and->or#136@12102	L285	OTHER_ERROR:Successor state is not completely specified by action Next of the next-state rel	876	248	CODE
+and->or#137@12633	L299	INV:Inv	199	127	CODE
+and->or#138@13046	L314	PASS	72618	7151	CODE
+and->or#139@13060	L315	PARSE_ERROR			CODE
+and->or#140@13090	L316	PARSE_ERROR			CODE
+and->or#141@13125	L317	PARSE_ERROR			CODE
+and->or#142@13148	L318	PARSE_ERROR			CODE
+and->or#143@13178	L319	PASS	72618	7151	CODE
+and->or#144@13405	L326	PARSE_ERROR			CODE
+and->or#145@13435	L327	PARSE_ERROR			CODE
+and->or#146@13463	L327	PARSE_ERROR			CODE
+and->or#147@13491	L327	PARSE_ERROR			CODE
+and->or#148@13533	L328	PARSE_ERROR			CODE
+and->or#149@13561	L328	PARSE_ERROR			CODE
+and->or#150@13600	L329	PARSE_ERROR			CODE
+and->or#151@13631	L329	PARSE_ERROR			CODE
+and->or#152@13678	L330	PARSE_ERROR			CODE
+and->or#153@13711	L330	PARSE_ERROR			CODE
+and->or#154@13758	L331	PARSE_ERROR			CODE
+and->or#155@13785	L331	PARSE_ERROR			CODE
+and->or#156@13809	L331	PARSE_ERROR			CODE
+and->or#157@13855	L332	PARSE_ERROR			CODE
+and->or#158@13885	L332	PARSE_ERROR			CODE
+plus->minus#0@6940	L159	INV:Inv	215	139	CODE
+plus->minus#1@6980	L160	INV:Inv	211	137	CODE

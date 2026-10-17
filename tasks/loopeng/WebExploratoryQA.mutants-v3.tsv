@@ -1,0 +1,373 @@
+BASE	-	PASS	158363	19539	-
+lt->le#0@4109	L102	ACTION:StuckPreempts	13335	2506	CODE	
+lt->le#1@4391	L109	ACTION:FreezePreemptsDecision	31702	5026	CODE	
+lt->le#2@5180	L129	PASS	159300	19539	CODE	equivalent: 予算満タンでもリセットが発火するだけで requestBudget'=MaxRequests, requestsInWindow'=0 は既にその値(冪等な自己ループ)。-fp 0 -dump dot で自己ループを除いた辺/節点行の sha256 が原本と一致(原本 b297f42d3c4de5064f2233646e27f1f8b073d8bc4283c722a28113ce549e7dfb / 変異 b297f42d3c4de5064f2233646e27f1f8b073d8bc4283c722a28113ce549e7dfb、自己ループ込みは原本 2ba8b394…a9f93 と変異 cc82d5e6…6b47 で自己ループ 937 本分だけ差)
+lt->le#3@12040	L279	ACTION:StuckPreempts	102618	13213	CODE	
+lt->le#4@15907	L387	ACTION:BudgetStops	101649	12649	CODE	
+gt->ge#0@229	L6	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+gt->ge#1@255	L6	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+gt->ge#2@477	L11	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+gt->ge#3@487	L11	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+gt->ge#4@496	L11	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+gt->ge#5@523	L11	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+gt->ge#6@4144	L102	ACTION:BudgetStops	65052	9054	CODE	
+gt->ge#7@4428	L110	INV:TypeOK	204	204	CODE	
+gt->ge#8@17667	L426	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+gt->ge#9@17701	L426	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+gt->ge#10@17721	L426	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+eq->neq#0@3488	L82	OTHER_ERROR:In evaluation, the identifier phase is either undefined or not an operator.	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[phase = v (≠ "idle")] 6値すべて性質で kill(ExitReasonMatchesPhase, ProposalWellFormed, RecoveryOnlyAfterFreeze)
+eq->neq#1@3515	L83	OTHER_ERROR:In evaluation, the identifier proposedOp is either undefined or not an operator.	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[proposedOp = v (≠ "none")] 4値中 kill 0、緑 4値["click", "back", "done", "stuck"] → equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+eq->neq#2@3546	L84	OTHER_ERROR:In evaluation, the identifier proposedTarget is either undefined or not an opera	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[proposedTarget = v (≠ "none")] 3値中 kill 0、緑 3値[e1, e2, e3] → equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+eq->neq#3@3578	L85	OTHER_ERROR:In evaluation, the identifier proposedLowConf is either undefined or not an oper	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[proposedLowConf = v (≠ FALSE)] 1値中 kill 0、緑 1値[TRUE] → equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+eq->neq#4@3603	L86	OTHER_ERROR:In evaluation, the identifier isPaywall is either undefined or not an operator.	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[isPaywall = v (≠ FALSE)] 1値中 kill 0、緑 1値[TRUE] → equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+eq->neq#5@3631	L87	OTHER_ERROR:In evaluation, the identifier targetExists is either undefined or not an operato	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[targetExists = v (≠ TRUE)] 1値中 kill 0、緑 1値[FALSE] → equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+eq->neq#6@3659	L88	OTHER_ERROR:In evaluation, the identifier screenChanged is either undefined or not an operat	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[screenChanged = v (≠ TRUE)] 1値中 kill 0、緑 1値[FALSE] → equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+eq->neq#7@3681	L89	OTHER_ERROR:In evaluation, the identifier visited is either undefined or not an operator.	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[visited = v (≠ {})] 7値すべて性質で kill(NeverOperatesForbidden, VisitedOnlyByOps)
+eq->neq#8@3705	L90	OTHER_ERROR:In evaluation, the identifier idleCounter is either undefined or not an operator	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[idleCounter = v (≠ 0)] 3値すべて性質で kill(CountersBoundedByOps)
+eq->neq#9@3729	L91	OTHER_ERROR:In evaluation, the identifier stuckCounter is either undefined or not an operato	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[stuckCounter = v (≠ 0)] 3値すべて性質で kill(CountersBoundedByOps)
+eq->neq#10@3756	L92	OTHER_ERROR:In evaluation, the identifier inAllowedDomain is either undefined or not an oper	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[inAllowedDomain = v (≠ TRUE)] 1値すべて性質で kill(DomainRecordAccurate)
+eq->neq#11@3782	L93	OTHER_ERROR:In evaluation, the identifier pageOutside is either undefined or not an operator	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[pageOutside = v (≠ FALSE)] 1値すべて性質で kill(DomainRecordAccurate)
+eq->neq#12@3812	L94	OTHER_ERROR:In evaluation, the identifier decisionBudget is either undefined or not an opera	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[decisionBudget = v (≠ MaxDecisions)] 4値すべて性質で kill(BudgetAccounting)
+eq->neq#13@3848	L95	OTHER_ERROR:In evaluation, the identifier decisionsMade is either undefined or not an operat	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[decisionsMade = v (≠ 0)] 5値すべて性質で kill(BudgetAccounting, DecisionsWithinCap)
+eq->neq#14@3873	L96	OTHER_ERROR:In evaluation, the identifier requestBudget is either undefined or not an operat	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[requestBudget = v (≠ MaxRequests)] 2値すべて性質で kill(BudgetAccounting)
+eq->neq#15@3911	L97	OTHER_ERROR:In evaluation, the identifier requestsInWindow is either undefined or not an ope	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[requestsInWindow = v (≠ 0)] 3値すべて性質で kill(BudgetAccounting, RequestsWithinWindowCap)
+eq->neq#16@3933	L98	OTHER_ERROR:In evaluation, the identifier exitReason is either undefined or not an operator.	0	0	CODE	エラーkillは証拠でない→値ごとの再検査[exitReason = v (≠ "none")] 4値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)
+eq->neq#17@3992	L101	TEMPORAL	1	1	CODE	
+eq->neq#18@4469	L112	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "awaiting_decision")] 6値すべて性質で kill(AwaitingOnlyByDecision, DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze)
+eq->neq#19@4514	L113	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[decisionBudget' = v (≠ decisionBudget - 1)] 5値すべて性質で kill(BudgetAccounting, TEMPORAL)
+eq->neq#20@4557	L114	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[decisionsMade' = v (≠ decisionsMade + 1)] 6値すべて性質で kill(BudgetAccounting, DecisionsWithinCap, TEMPORAL)
+eq->neq#21@4599	L115	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[requestBudget' = v (≠ requestBudget - 1)] 3値すべて性質で kill(BudgetAccounting, TEMPORAL)
+eq->neq#22@4644	L116	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[requestsInWindow' = v (≠ requestsInWindow + 1)] 4値すべて性質で kill(BudgetAccounting, RequestsWithinWindowCap, TEMPORAL)
+eq->neq#23@4784	L118	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[proposedOp' = v (≠ op)] 5値中 kill 1(ProposalWellFormed)、緑 4値["click", "back", "done", "stuck"] → abstraction-limited(環境入力の絞り込み: 判断モデルの出力/画面観測を1値に固定するだけで系の振る舞いは追加されない。可能性の要求は LTL で書けない)
+eq->neq#24@4816	L119	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[proposedTarget' = v (≠ t)] 4値中 kill 1(ProposalWellFormed)、緑 3値[e1, e2, e3] → abstraction-limited(環境入力の絞り込み: 判断モデルの出力/画面観測を1値に固定するだけで系の振る舞いは追加されない。可能性の要求は LTL で書けない)
+eq->neq#25@4848	L120	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[proposedLowConf' = v (≠ lc)] 2値中 kill 0、緑 2値[TRUE, FALSE] → abstraction-limited(環境入力の絞り込み: 判断モデルの出力/画面観測を1値に固定するだけで系の振る舞いは追加されない。可能性の要求は LTL で書けない)
+eq->neq#26@4875	L121	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[isPaywall' = v (≠ pw)] 2値中 kill 0、緑 2値[TRUE, FALSE] → abstraction-limited(環境入力の絞り込み: 判断モデルの出力/画面観測を1値に固定するだけで系の振る舞いは追加されない。可能性の要求は LTL で書けない)
+eq->neq#27@4905	L122	OTHER_ERROR:TLC threw an unexpected exception.	1	1	CODE	エラーkillは証拠でない→値ごとの再検査[targetExists' = v (≠ ex)] 2値中 kill 0、緑 2値[TRUE, FALSE] → abstraction-limited(環境入力の絞り込み: 判断モデルの出力/画面観測を1値に固定するだけで系の振る舞いは追加されない。可能性の要求は LTL で書けない)
+eq->neq#28@5216	L130	OTHER_ERROR:TLC threw an unexpected exception.	414	317	CODE	エラーkillは証拠でない→値ごとの再検査[requestBudget' = v (≠ MaxRequests)] 2値すべて性質で kill(BudgetAccounting)
+eq->neq#29@5255	L131	OTHER_ERROR:TLC threw an unexpected exception.	319	222	CODE	エラーkillは証拠でない→値ごとの再検査[requestsInWindow' = v (≠ 0)] 3値すべて性質で kill(BudgetAccounting, RequestsWithinWindowCap)
+eq->neq#30@5736	L140	INV:ProposalWellFormed	98	98	CODE	
+eq->neq#31@5801	L142	OTHER_ERROR:TLC threw an unexpected exception.	648	449	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "acting")] 6値すべて性質で kill(ExitReasonMatchesPhase, PaywallForcesBack)
+eq->neq#32@5837	L143	OTHER_ERROR:TLC threw an unexpected exception.	558	457	CODE	エラーkillは証拠でない→値ごとの再検査[proposedOp' = v (≠ "back")] 4値すべて性質で kill(PaywallForcesBack, ProposalWellFormed)
+eq->neq#33@5959	L146	ACTION:SafeProposalProceeds	329	229	CODE	
+eq->neq#34@6029	L148	OTHER_ERROR:TLC threw an unexpected exception.	531	431	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "idle")] 6値すべて性質で kill(ExitReasonMatchesPhase, LowConfidenceBackNeverActed, RecoveryOnlyAfterFreeze, TEMPORAL)
+eq->neq#35@6164	L151	OTHER_ERROR:TLC threw an unexpected exception.	410	409	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "idle")] 6値すべて性質で kill(DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze, TEMPORAL)
+eq->neq#36@6276	L154	OTHER_ERROR:TLC threw an unexpected exception.	198	198	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "idle")] 6値すべて性質で kill(DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze, TEMPORAL)
+eq->neq#37@6317	L155	INV:LowConfidenceBackNeverActed	331	329	CODE	
+eq->neq#38@6482	L157	OTHER_ERROR:TLC threw an unexpected exception.	195	195	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "acting")] 6値すべて性質で kill(ExitReasonMatchesPhase, SafeProposalProceeds, TEMPORAL)
+eq->neq#39@7031	L166	ACTION:StuckCounterTracksNewElements	213	212	CODE	
+eq->neq#40@7160	L170	ACTION:VisitedChangesOnlyByExecution	202	201	CODE	
+eq->neq#41@7230	L172	OTHER_ERROR:TLC threw an unexpected exception.	206	206	CODE	エラーkillは証拠でない→値ごとの再検査[visited' = v (≠ VisitedAfterOp)] 8値すべて性質で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)
+eq->neq#42@7261	L173	OTHER_ERROR:TLC threw an unexpected exception.	318	316	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "idle")] 6値すべて性質で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, ProposalOutcome, RecoveryResetsPageState)
+eq->neq#43@7292	L174	OTHER_ERROR:TLC threw an unexpected exception.	217	216	CODE	エラーkillは証拠でない→値ごとの再検査[screenChanged' = v (≠ FALSE)] 1値すべて性質で kill(IdleCounterTracksScreen)
+eq->neq#44@7320	L175	OTHER_ERROR:TLC threw an unexpected exception.	208	208	CODE	エラーkillは証拠でない→値ごとの再検査[idleCounter' = v (≠ idleCounter + 1)] 4値中 kill 3(CountersBoundedByOps, IdleCounterTracksScreen)、緑 1値[1] → abstraction-limited(per-value の x'#(元の式) が到達しうる全前状態で偽になりアクションが無効化=環境の結果(この Execute の観測)を除くだけ)
+eq->neq#45@7359	L176	OTHER_ERROR:TLC threw an unexpected exception.	218	216	CODE	エラーkillは証拠でない→値ごとの再検査[stuckCounter' = v (≠ StuckAfterOp)] 4値すべて性質で kill(CountersBoundedByOps, StuckCounterTracksNewElements)
+eq->neq#46@7661	L182	ACTION:VisitedChangesOnlyByExecution	200	199	CODE	
+eq->neq#47@7731	L184	OTHER_ERROR:TLC threw an unexpected exception.	301	301	CODE	エラーkillは証拠でない→値ごとの再検査[visited' = v (≠ VisitedAfterOp)] 8値すべて性質で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)
+eq->neq#48@7762	L185	OTHER_ERROR:TLC threw an unexpected exception.	202	202	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "idle")] 6値すべて性質で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, ProposalOutcome, RecoveryOnlyAfterFreeze)
+eq->neq#49@7793	L186	OTHER_ERROR:TLC threw an unexpected exception.	305	208	CODE	エラーkillは証拠でない→値ごとの再検査[screenChanged' = v (≠ TRUE)] 1値すべて性質で kill(IdleCounterTracksScreen)
+eq->neq#50@7820	L187	OTHER_ERROR:TLC threw an unexpected exception.	218	217	CODE	エラーkillは証拠でない→値ごとの再検査[idleCounter' = v (≠ 0)] 3値すべて性質で kill(CountersBoundedByOps, IdleCounterTracksScreen)
+eq->neq#51@7845	L188	OTHER_ERROR:TLC threw an unexpected exception.	219	217	CODE	エラーkillは証拠でない→値ごとの再検査[stuckCounter' = v (≠ StuckAfterOp)] 4値すべて性質で kill(CountersBoundedByOps, StuckCounterTracksNewElements)
+eq->neq#52@8179	L194	ACTION:VisitedChangesOnlyByExecution	200	199	CODE	
+eq->neq#53@8249	L196	OTHER_ERROR:TLC threw an unexpected exception.	209	208	CODE	エラーkillは証拠でない→値ごとの再検査[visited' = v (≠ VisitedAfterOp)] 8値すべて性質で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)
+eq->neq#54@8280	L197	OTHER_ERROR:TLC threw an unexpected exception.	207	207	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "idle")] 6値すべて性質で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, ProposalOutcome, RecoveryResetsPageState)
+eq->neq#55@8311	L198	OTHER_ERROR:TLC threw an unexpected exception.	224	222	CODE	エラーkillは証拠でない→値ごとの再検査[screenChanged' = v (≠ TRUE)] 1値すべて性質で kill(IdleCounterTracksScreen)
+eq->neq#56@8338	L199	OTHER_ERROR:TLC threw an unexpected exception.	310	309	CODE	エラーkillは証拠でない→値ごとの再検査[idleCounter' = v (≠ 0)] 3値すべて性質で kill(CountersBoundedByOps, IdleCounterTracksScreen)
+eq->neq#57@8363	L200	OTHER_ERROR:TLC threw an unexpected exception.	302	302	CODE	エラーkillは証拠でない→値ごとの再検査[stuckCounter' = v (≠ StuckAfterOp)] 4値すべて性質で kill(CountersBoundedByOps, StuckCounterTracksNewElements)
+eq->neq#58@8398	L201	OTHER_ERROR:TLC threw an unexpected exception.	215	213	CODE	エラーkillは証拠でない→値ごとの再検査[pageOutside' = v (≠ TRUE)] 1値すべて性質で kill(DomainRecordAccurate)
+eq->neq#59@8429	L202	OTHER_ERROR:TLC threw an unexpected exception.	306	305	CODE	エラーkillは証拠でない→値ごとの再検査[inAllowedDomain' = v (≠ FALSE)] 1値すべて性質で kill(DomainRecordAccurate)
+eq->neq#60@8747	L210	OTHER_ERROR:TLC threw an unexpected exception.	423	421	CODE	エラーkillは証拠でない→値ごとの再検査[pageOutside' = v (≠ FALSE)] 1値すべて性質で kill(DomainRecordAccurate)
+eq->neq#61@8779	L211	OTHER_ERROR:TLC threw an unexpected exception.	847	450	CODE	エラーkillは証拠でない→値ごとの再検査[inAllowedDomain' = v (≠ TRUE)] 1値すべて性質で kill(DomainRecordAccurate)
+eq->neq#62@9227	L219	ACTION:SafeProposalProceeds	202	202	CODE	
+eq->neq#63@9256	L220	ACTION:ProposalOutcome	217	216	CODE	
+eq->neq#64@9279	L221	OTHER_ERROR:TLC threw an unexpected exception.	323	225	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "done")] 6値すべて性質で kill(ExitReasonMatchesPhase)
+eq->neq#65@9307	L222	OTHER_ERROR:TLC threw an unexpected exception.	306	209	CODE	エラーkillは証拠でない→値ごとの再検査[exitReason' = v (≠ "reported_done")] 4値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)
+eq->neq#66@9688	L229	ACTION:SafeProposalProceeds	204	204	CODE	
+eq->neq#67@9717	L230	ACTION:ProposalOutcome	311	310	CODE	
+eq->neq#68@9741	L231	OTHER_ERROR:TLC threw an unexpected exception.	328	326	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "stuck")] 6値すべて性質で kill(ExitReasonMatchesPhase)
+eq->neq#69@9770	L232	OTHER_ERROR:TLC threw an unexpected exception.	262	254	CODE	エラーkillは証拠でない→値ごとの再検査[exitReason' = v (≠ "stuck")] 4値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)
+eq->neq#70@10329	L243	OTHER_ERROR:TLC threw an unexpected exception.	11804	2513	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "frozen_recovered")] 6値すべて性質で kill(ActingOnlyAfterGuardrails, ExitReasonMatchesPhase, FreezePreemptsDecision, FreezeRecoveryRecorded)
+eq->neq#71@10370	L244	OTHER_ERROR:TLC threw an unexpected exception.	12042	2451	CODE	エラーkillは証拠でない→値ごとの再検査[idleCounter' = v (≠ 0)] 3値すべて性質で kill(CountersBoundedByOps, RecoveryResetsPageState)
+eq->neq#72@10683	L250	ACTION:SafeProposalProceeds	108	105	CODE	
+eq->neq#73@10718	L251	OTHER_ERROR:TLC threw an unexpected exception.	26371	4169	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "idle")] 6値すべて性質で kill(ActingOnlyAfterGuardrails, AwaitingOnlyByDecision, ExitReasonMatchesPhase, TEMPORAL)
+eq->neq#74@11113	L258	TEMPORAL	158171	19443	CODE	
+eq->neq#75@11137	L259	INV:GoalOnlyByDoneWhen	412	316	CODE	
+eq->neq#76@11164	L260	OTHER_ERROR:TLC threw an unexpected exception.	52961	8673	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "done")] 6値すべて性質で kill(ExitReasonMatchesPhase)
+eq->neq#77@11192	L261	OTHER_ERROR:TLC threw an unexpected exception.	58796	8655	CODE	エラーkillは証拠でない→値ごとの再検査[exitReason' = v (≠ "goal_achieved")] 4値すべて性質で kill(ExitReasonMatchesPhase, ReportedDoneOnlyWithoutDoneWhen)
+eq->neq#78@11629	L270	OTHER_ERROR:TLC threw an unexpected exception.	12849	2503	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "stuck")] 6値すべて性質で kill(ExitReasonMatchesPhase)
+eq->neq#79@11658	L271	OTHER_ERROR:TLC threw an unexpected exception.	4970	1723	CODE	エラーkillは証拠でない→値ごとの再検査[exitReason' = v (≠ "stuck")] 4値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)
+eq->neq#80@12079	L280	INV:BudgetExceededOnlyWhenSpent	336	233	CODE	
+eq->neq#81@12097	L281	OTHER_ERROR:TLC threw an unexpected exception.	23058	4254	CODE	エラーkillは証拠でない→値ごとの再検査[phase' = v (≠ "error_exit")] 6値すべて性質で kill(DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase)
+eq->neq#82@12131	L282	OTHER_ERROR:TLC threw an unexpected exception.	60582	7916	CODE	エラーkillは証拠でない→値ごとの再検査[exitReason' = v (≠ "budget_exceeded")] 4値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)
+eq->neq#83@12891	L306	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+eq->neq#84@12962	L308	INV:NeverOperatesForbidden			CODE	
+eq->neq#85@13057	L312	INV:LowConfidenceBackNeverActed	48	47	CODE	
+eq->neq#86@13096	L312	INV:LowConfidenceBackNeverActed	215	214	CODE	
+eq->neq#87@13233	L316	INV:DirectOpActedOnlyOnSafeTarget	2	2	CODE	
+eq->neq#88@13437	L321	INV:GoalOnlyByDoneWhen			CODE	
+eq->neq#89@13466	L321	INV:GoalOnlyByDoneWhen	44932	7181	CODE	
+eq->neq#90@13596	L325	INV:ReportedDoneOnlyWithoutDoneWhen	37743	5863	CODE	
+eq->neq#91@13728	L329	INV:ExitReasonMatchesPhase			CODE	
+eq->neq#92@13803	L330	INV:ExitReasonMatchesPhase			CODE	
+eq->neq#93@13827	L330	INV:ExitReasonMatchesPhase	317	220	CODE	
+eq->neq#94@13850	L331	INV:ExitReasonMatchesPhase			CODE	
+eq->neq#95@13879	L331	INV:ExitReasonMatchesPhase	65059	9054	CODE	
+eq->neq#96@13942	L332	INV:ExitReasonMatchesPhase			CODE	
+eq->neq#97@14250	L344	INV:BudgetAccounting			CODE	
+eq->neq#98@14305	L345	INV:BudgetAccounting			CODE	
+eq->neq#99@14403	L349	INV:BudgetExceededOnlyWhenSpent			CODE	
+eq->neq#100@14441	L349	INV:BudgetExceededOnlyWhenSpent	31449	4888	CODE	
+eq->neq#101@14794	L361	INV:RecoveryOnlyAfterFreeze			CODE	
+eq->neq#102@14944	L365	INV:RecoveryResetsPageState	216	215	CODE	
+eq->neq#103@14981	L365	INV:RecoveryResetsPageState	10910	2509	CODE	
+eq->neq#104@15108	L369	INV:DomainRecordAccurate			CODE	
+eq->neq#105@15475	L379	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+eq->neq#106@15495	L379	ACTION:GoalPreempts	2	2	CODE	
+eq->neq#107@15520	L379	ACTION:GoalPreempts	53007	8329	CODE	
+eq->neq#108@15544	L379	ACTION:GoalPreempts	44210	7017	CODE	
+eq->neq#109@15676	L383	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+eq->neq#110@15755	L383	ACTION:StuckPreempts	7977	2026	CODE	
+eq->neq#111@15858	L387	ACTION:BudgetStops	8056	2138	CODE	
+eq->neq#112@15942	L387	ACTION:BudgetStops	2	2	CODE	
+eq->neq#113@15966	L388	ACTION:BudgetStops	43284	7114	CODE	
+eq->neq#114@16066	L392	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+eq->neq#115@16300	L397	ACTION:SafeProposalProceeds	2	2	CODE	
+eq->neq#116@16368	L399	ACTION:SafeProposalProceeds	312	215	CODE	
+eq->neq#117@16516	L401	ACTION:SafeProposalProceeds	197	197	CODE	
+eq->neq#118@16680	L405	ACTION:AwaitingOnlyByDecision	2	2	CODE	
+eq->neq#119@16723	L405	ACTION:AwaitingOnlyByDecision	2	2	CODE	
+eq->neq#120@16881	L409	ACTION:ActingOnlyAfterGuardrails	2	2	CODE	
+eq->neq#121@16903	L409	ACTION:ActingOnlyAfterGuardrails	198	198	CODE	
+eq->neq#122@17037	L413	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+eq->neq#123@17094	L413	ACTION:FreezeRecoveryRecorded	13239	2506	CODE	
+eq->neq#124@17110	L413	ACTION:FreezeRecoveryRecorded	18562	3482	CODE	
+eq->neq#125@17266	L417	ACTION:VisitedChangesOnlyByExecution	2439	991	CODE	
+eq->neq#126@17287	L417	ACTION:VisitedChangesOnlyByExecution	2474	1205	CODE	
+eq->neq#127@17400	L421	ACTION:PaywallForcesBack	2344	1085	CODE	
+eq->neq#128@17447	L421	ACTION:PaywallForcesBack	331	233	CODE	
+eq->neq#129@17473	L421	ACTION:PaywallForcesBack	431	237	CODE	
+eq->neq#130@17608	L425	ACTION:ProposalOutcome	2	2	CODE	
+eq->neq#131@17639	L426	ACTION:ProposalOutcome	208	207	CODE	
+eq->neq#132@17657	L426	ACTION:ProposalOutcome	205	205	CODE	
+eq->neq#133@17690	L426	ACTION:ProposalOutcome	315	313	CODE	
+eq->neq#134@17840	L430	ACTION:IdleCounterTracksScreen	948	413	CODE	
+eq->neq#135@17861	L430	ACTION:IdleCounterTracksScreen	7291	1879	CODE	
+eq->neq#136@17896	L431	ACTION:IdleCounterTracksScreen	225	223	CODE	
+eq->neq#137@18177	L439	ACTION:StuckCounterTracksNewElements	207	207	CODE	
+eq->neq#138@18198	L439	ACTION:StuckCounterTracksNewElements	212	212	CODE	
+eq->neq#139@18234	L440	ACTION:StuckCounterTracksNewElements	212	210	CODE	
+eq->neq#140@18248	L440	ACTION:StuckCounterTracksNewElements	211	210	CODE	
+eq->neq#141@18383	L444	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+eq->neq#142@18402	L444	ACTION:NoDecisionOutsideDomain	511	414	CODE	
+and->or#0@2881	L63	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#1@2905	L64	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#2@2960	L65	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#3@3009	L66	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#4@3044	L67	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#5@3073	L68	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#6@3105	L69	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#7@3138	L70	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#8@3172	L71	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#9@3199	L72	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#10@3227	L73	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#11@3262	L74	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#12@3293	L75	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#13@3335	L76	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#14@3364	L77	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#15@3404	L78	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#16@3436	L79	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#17@3479	L82	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#18@3501	L83	PARSE_ERROR			CODE	parse kill(証拠でない)。Init の連言を外す=初期値が任意。equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+and->or#19@3528	L84	PARSE_ERROR			CODE	parse kill(証拠でない)。Init の連言を外す=初期値が任意。equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+and->or#20@3559	L85	PARSE_ERROR			CODE	parse kill(証拠でない)。Init の連言を外す=初期値が任意。equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+and->or#21@3590	L86	PARSE_ERROR			CODE	parse kill(証拠でない)。Init の連言を外す=初期値が任意。equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+and->or#22@3615	L87	PARSE_ERROR			CODE	parse kill(証拠でない)。Init の連言を外す=初期値が任意。equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+and->or#23@3642	L88	PARSE_ERROR			CODE	parse kill(証拠でない)。Init の連言を外す=初期値が任意。equivalent(初期値が読まれる前に必ず上書き: 提案系は awaiting/acting でしか読まれず、そこへ入る唯一の RequestDecision が全て代入。screenChanged は IdleCounterTracksScreen が screenChanged' としてのみ読む)
+and->or#24@3670	L89	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=visited が任意値。同じ行の値ごとの変異のうち 7 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#25@3690	L90	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=idleCounter が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#26@3713	L91	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=stuckCounter が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#27@3737	L92	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=inAllowedDomain が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#28@3767	L93	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=pageOutside が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#29@3794	L94	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=decisionBudget が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#30@3831	L95	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=decisionsMade が任意値。同じ行の値ごとの変異のうち 5 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#31@3856	L96	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=requestBudget が任意値。同じ行の値ごとの変異のうち 2 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#32@3891	L97	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=requestsInWindow が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#33@3919	L98	OTHER_ERROR:current state is not a legal state			CODE	parse kill(証拠でない)。連言を外す=exitReason が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#34@4001	L101	ACTION:AwaitingOnlyByDecision	196	98	CODE	
+and->or#35@4093	L102	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[Continuing without stuckCounter < StuckThreshold]: ACTION:StuckPreempts で kill
+and->or#36@4126	L102	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[Continuing without decisionBudget > 0]: ACTION:BudgetStops で kill
+and->or#37@4358	L108	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#38@4376	L109	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: idleCounter < IdleThreshold]: ACTION:FreezePreemptsDecision で kill
+and->or#39@4411	L110	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: requestBudget > 0]: INV:TypeOK で kill
+and->or#40@4436	L111	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: inAllowedDomain]: ACTION:NoDecisionOutsideDomain で kill
+and->or#41@4459	L112	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#42@4495	L113	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=decisionBudget が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#43@4539	L114	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=decisionsMade が任意値。同じ行の値ごとの変異のうち 5 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#44@4581	L115	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=requestBudget が任意値。同じ行の値ごとの変異のうち 2 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#45@4623	L116	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=requestsInWindow が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#46@4671	L117	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE	eval kill(証拠でない)。ガードと提案選択の間の \/。意味は「ガード無視」で、個別のガード削除と提案値の変異で検査済み
+and->or#47@4769	L118	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#48@4797	L119	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=proposedTarget が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#49@4828	L120	PARSE_ERROR			CODE	parse kill(証拠でない)。代入を外す=値が任意の BOOLEAN で、\E で既に全値を回しているので同値(equivalent)
+and->or#50@4861	L121	PARSE_ERROR			CODE	parse kill(証拠でない)。代入を外す=値が任意の BOOLEAN で、\E で既に全値を回しているので同値(equivalent)
+and->or#51@4888	L122	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE	parse kill(証拠でない)。代入を外す=値が任意の BOOLEAN で、\E で既に全値を回しているので同値(equivalent)
+and->or#52@4914	L123	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	2	1	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen, TEMPORAL)
+and->or#53@5145	L128	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#54@5163	L129	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: requestBudget < MaxRequests]は緑 → equivalent: 予算満タンでのリセットは冪等な自己ループのみ。-fp 0 -dump dot の自己ループ除外 sha256 が原本と一致(原本 b297f42d3c4de5064f2233646e27f1f8b073d8bc4283c722a28113ce549e7dfb / 変異 b297f42d3c4de5064f2233646e27f1f8b073d8bc4283c722a28113ce549e7dfb)
+and->or#55@5198	L130	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=requestBudget が任意値。同じ行の値ごとの変異のうち 2 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#56@5234	L131	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=requestsInWindow が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#57@5263	L132	OTHER_ERROR:Successor state is not completely specified by action ResetRequestWindow of the	101	97	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen, TEMPORAL)
+and->or#58@5727	L140	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#59@5762	L141	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: isPaywall]: INV:LowConfidenceBackNeverActed で kill
+and->or#60@5768	L141	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#61@5791	L142	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#62@5822	L143	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=proposedOp が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#63@5856	L144	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	97	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: proposedTarget' = v (≠ proposedTarget)] 4値すべて性質で kill(ProposalWellFormed, TEMPORAL)
+and->or#64@5915	L145	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#65@5939	L146	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedOp = "back"]: ACTION:SafeProposalProceeds で kill
+and->or#66@5945	L146	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#67@5984	L147	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedLowConf]: ACTION:SafeProposalProceeds で kill
+and->or#68@6019	L148	ACTION:SafeProposalProceeds	200	198	CODE	
+and->or#69@6054	L149	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#70@6098	L150	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedTarget \in ForbiddenElements]: ACTION:SafeProposalProceeds で kill
+and->or#71@6154	L151	ACTION:SafeProposalProceeds	198	197	CODE	
+and->or#72@6189	L152	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#73@6233	L153	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: ~targetExists]: ACTION:SafeProposalProceeds で kill
+and->or#74@6266	L154	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	99	CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 5 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#75@6301	L155	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#76@6326	L155	TEMPORAL	78819	10080	CODE	
+and->or#77@6362	L156	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: (proposedOp \notin DirectOps \/ (proposedTarget \notin ForbiddenElements /\ targetExists))]: INV:DirectOpActedOnlyOnSafeTarget で kill
+and->or#78@6438	L156	INV:DirectOpActedOnlyOnSafeTarget	204	201	CODE	
+and->or#79@6472	L157	INV:DirectOpActedOnlyOnSafeTarget	197	196	CODE	
+and->or#80@6503	L158	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	100	97	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: proposedTarget' = v (≠ proposedTarget)] 4値すべて性質で kill(DirectOpActedOnlyOnSafeTarget, ProposalWellFormed, TEMPORAL)
+and->or#81@6568	L159	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	101	97	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen, TEMPORAL)
+and->or#82@7151	L170	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#83@7175	L171	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedOp \notin {"done", "stuck"}]: ACTION:ProposalOutcome で kill
+and->or#84@7218	L172	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=visited が任意値。同じ行の値ごとの変異のうち 8 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#85@7251	L173	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#86@7274	L174	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=screenChanged が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#87@7304	L175	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=idleCounter が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#88@7342	L176	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=stuckCounter が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#89@7378	L177	OTHER_ERROR:Successor state is not completely specified by action ExecuteNoChange of the nex	200	196	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値中 kill 4(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)、緑 1値["none"] → abstraction-limited(per-value の x'#(元の式) が到達しうる全前状態で偽になりアクションが無効化=環境の結果(この Execute の観測)を除くだけ)
+and->or#90@7652	L182	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#91@7676	L183	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedOp \notin {"done", "stuck"}]: ACTION:ProposalOutcome で kill
+and->or#92@7719	L184	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=visited が任意値。同じ行の値ごとの変異のうち 8 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#93@7752	L185	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#94@7775	L186	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=screenChanged が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#95@7804	L187	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=idleCounter が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#96@7828	L188	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=stuckCounter が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#97@7864	L189	OTHER_ERROR:Successor state is not completely specified by action ExecuteChange of the next-	200	196	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値中 kill 4(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)、緑 1値["none"] → abstraction-limited(per-value の x'#(元の式) が到達しうる全前状態で偽になりアクションが無効化=環境の結果(この Execute の観測)を除くだけ)
+and->or#98@8170	L194	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#99@8194	L195	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedOp \notin {"done", "stuck"}]: ACTION:ProposalOutcome で kill
+and->or#100@8237	L196	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=visited が任意値。同じ行の値ごとの変異のうち 8 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#101@8270	L197	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#102@8293	L198	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=screenChanged が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#103@8322	L199	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=idleCounter が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#104@8346	L200	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=stuckCounter が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#105@8382	L201	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=pageOutside が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#106@8409	L202	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=inAllowedDomain が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#107@8441	L203	OTHER_ERROR:Successor state is not completely specified by action ExecuteOutOfDomain of the	104	100	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値中 kill 4(ExitReasonMatchesPhase, GoalOnlyByDoneWhen)、緑 1値["none"] → abstraction-limited(per-value の x'#(元の式) が到達しうる全前状態で偽になりアクションが無効化=環境の結果(この Execute の観測)を除くだけ)
+and->or#108@8689	L208	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#109@8707	L209	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: ~inAllowedDomain]は緑 → equivalent: ドメイン内での復帰は値不変の自己ループのみ。-fp 0 -dump dot の自己ループ除外 sha256 が原本と一致(原本 b297f42d3c4de5064f2233646e27f1f8b073d8bc4283c722a28113ce549e7dfb / 変異 b297f42d3c4de5064f2233646e27f1f8b073d8bc4283c722a28113ce549e7dfb)
+and->or#110@8731	L210	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=pageOutside が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#111@8759	L211	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=inAllowedDomain が任意値。同じ行の値ごとの変異のうち 1 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#112@8790	L212	OTHER_ERROR:Successor state is not completely specified by action ReturnToAllowedDomain of t	200	196	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen, TEMPORAL)
+and->or#113@9218	L219	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#114@9242	L220	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedOp = "done"]: ACTION:ProposalOutcome で kill
+and->or#115@9269	L221	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#116@9292	L222	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=exitReason が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#117@9329	L223	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalDone of th	104	100	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: visited' = v (≠ visited)] 8値すべて性質で kill(NeverOperatesForbidden, ReportedDoneOnlyWithoutDoneWhen, VisitedChangesOnlyByExecution)
+and->or#118@9679	L229	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#119@9703	L230	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: proposedOp = "stuck"]: ACTION:ProposalOutcome で kill
+and->or#120@9731	L231	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#121@9755	L232	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=exitReason が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#122@9784	L233	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalStuck of t	200	196	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: visited' = v (≠ visited)] 8値すべて性質で kill(NeverOperatesForbidden, VisitedChangesOnlyByExecution, VisitedOnlyByOps)
+and->or#123@10265	L241	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#124@10283	L242	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: idleCounter >= IdleThreshold]: INV:RecoveryOnlyAfterFreeze で kill
+and->or#125@10319	L243	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#126@10354	L244	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=idleCounter が任意値。同じ行の値ごとの変異のうち 3 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#127@10378	L245	OTHER_ERROR:Successor state is not completely specified by action RecoverFromFreeze of the n	200	196	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen, TEMPORAL)
+and->or#128@10674	L250	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#129@10708	L251	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 5 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#130@10731	L252	OTHER_ERROR:Successor state is not completely specified by action ResumeAfterRecovery of the	200	196	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: exitReason' = v (≠ exitReason)] 5値すべて性質で kill(ExitReasonMatchesPhase, GoalOnlyByDoneWhen, TEMPORAL)
+and->or#131@11104	L258	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#132@11126	L259	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: visited = Explorable]: INV:GoalOnlyByDoneWhen で kill
+and->or#133@11154	L260	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#134@11177	L261	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=exitReason が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#135@11214	L262	OTHER_ERROR:Successor state is not completely specified by action FinishNormally of the next	104	100	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: visited' = v (≠ visited)] 8値すべて性質で kill(GoalOnlyByDoneWhen, NeverOperatesForbidden, TEMPORAL)
+and->or#136@11564	L268	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#137@11581	L269	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: stuckCounter >= StuckThreshold]: ACTION:BudgetStops で kill
+and->or#138@11619	L270	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#139@11643	L271	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=exitReason が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#140@11672	L272	OTHER_ERROR:Successor state is not completely specified by action FinishStuck of the next-st	104	100	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: visited' = v (≠ visited)] 8値すべて性質で kill(NeverOperatesForbidden, TEMPORAL, VisitedChangesOnlyByExecution)
+and->or#141@12007	L278	PASS	158363	19539	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値)
+and->or#142@12024	L279	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: stuckCounter < StuckThreshold]: ACTION:StuckPreempts で kill
+and->or#143@12061	L280	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[guard drop: decisionBudget = 0]: INV:BudgetExceededOnlyWhenSpent で kill
+and->or#144@12087	L281	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=phase が任意値。同じ行の値ごとの変異のうち 6 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#145@12116	L282	PARSE_ERROR			CODE	parse kill(証拠でない)。連言を外す=exitReason が任意値。同じ行の値ごとの変異のうち 4 値が安全性の性質(INV/action)で kill 済みで、任意値はその上位集合なので同じ違反を含む(安全性違反は上位集合でも残る)
+and->or#146@12155	L283	OTHER_ERROR:Successor state is not completely specified by action ExceedDecisionBudget of th	104	100	CODE	エラーkillは証拠でない→値ごとの再検査[UNCHANGED drop: visited' = v (≠ visited)] 8値すべて性質で kill(NeverOperatesForbidden, VisitedChangesOnlyByExecution)
+and->or#147@12809	L302	OTHER_ERROR:Successor state is not completely specified by action Next of the next-state rel	601	245	CODE	エラーkillは証拠でない→意味的変異[terminal may step back to idle]: INV:ExitReasonMatchesPhase で kill
+and->or#148@13068	L312	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#149@13082	L312	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#150@13244	L316	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#151@13258	L316	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#152@13312	L317	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#153@13719	L329	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#154@13794	L330	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#155@13841	L331	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#156@13903	L332	INV:ExitReasonMatchesPhase	223	221	CODE	
+and->or#157@14216	L344	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#158@14269	L345	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#159@14555	L353	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#160@14985	L365	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#161@15306	L373	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#162@15484	L379	ACTION:GoalPreempts	2	2	CODE	
+and->or#163@15529	L379	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#164@15685	L383	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#165@15709	L383	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#166@15867	L387	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#167@15891	L387	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#168@15924	L387	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#169@16075	L392	ACTION:FreezePreemptsDecision	2	2	CODE	
+and->or#170@16291	L397	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#171@16330	L398	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#172@16352	L399	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#173@16377	L399	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#174@16405	L400	ACTION:SafeProposalProceeds	2	2	CODE	
+and->or#175@16478	L400	ACTION:SafeProposalProceeds	206	206	CODE	
+and->or#176@16670	L405	ACTION:AwaitingOnlyByDecision	207	207	CODE	
+and->or#177@16871	L409	ACTION:ActingOnlyAfterGuardrails	2	2	CODE	
+and->or#178@17046	L413	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#179@17078	L413	PARSE_ERROR			CODE	parse/eval kill(証拠でない)。性質側の変異なので振る舞いは不変、意味的変異は不要
+and->or#180@17277	L417	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#181@17422	L421	ACTION:PaywallForcesBack	101	101	CODE	
+and->or#182@17458	L421	PASS	158363	19539	CODE	equivalent: 性質(Inv/TypeOK/action property)側の変異。Init/Next 不変で到達グラフは原本と同一、性質を弱めるだけ
+and->or#183@17851	L430	ACTION:IdleCounterTracksScreen	521	423	CODE	
+and->or#184@18188	L439	ACTION:StuckCounterTracksNewElements	106	106	CODE	
+and->or#185@18392	L444	ACTION:NoDecisionOutsideDomain	528	430	CODE	
+and->or#186@18690	L456	PARSE_ERROR			CODE	parse kill(証拠でない)。Spec 式そのもの。公平性の個別削除は WF 行の意味的変異で再検査済み
+and->or#187@18720	L457	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(RequestDecision)]: TEMPORAL で kill
+and->or#188@18748	L457	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(ResetRequestWindow)]: TEMPORAL で kill
+and->or#189@18779	L457	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(ApplyGuardrails)]: TEMPORAL で kill
+and->or#190@18820	L458	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(ExecuteNoChange \/ ExecuteChange \/ ExecuteOutOfDomain)]: TEMPORAL で kill
+and->or#191@18920	L459	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(ReturnToAllowedDomain)]: TEMPORAL で kill
+and->or#192@18967	L460	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(FinishByProposalDone)]: TEMPORAL で kill
+and->or#193@19000	L460	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(FinishByProposalStuck)]: TEMPORAL で kill
+and->or#194@19047	L461	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(RecoverFromFreeze)]: TEMPORAL で kill
+and->or#195@19077	L461	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(ResumeAfterRecovery)]: TEMPORAL で kill
+and->or#196@19122	L462	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(FinishNormally)]: TEMPORAL で kill
+and->or#197@19149	L462	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(FinishStuck)]: TEMPORAL で kill
+and->or#198@19173	L462	PARSE_ERROR			CODE	エラーkillは証拠でない→意味的変異[drop WF_vars(ExceedDecisionBudget)]: TEMPORAL で kill
+plus->minus#0@4573	L114	INV:TypeOK	2	2	CODE	
+plus->minus#1@4663	L116	INV:TypeOK	2	2	CODE	
+plus->minus#2@7059	L166	INV:TypeOK	308	211	CODE	
+plus->minus#3@7080	L168	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+plus->minus#4@7088	L168	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+plus->minus#5@7334	L175	INV:TypeOK	221	220	CODE	
+plus->minus#6@8085	L192	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+plus->minus#7@8100	L192	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+plus->minus#8@9064	L216	PASS	158363	19539	COMMENT	equivalent: コメント内の字面
+plus->minus#9@14234	L344	INV:BudgetAccounting	2	2	CODE	
+plus->minus#10@14286	L345	INV:BudgetAccounting	2	2	CODE	
+plus->minus#11@16739	L405	ACTION:AwaitingOnlyByDecision	2	2	CODE	
+plus->minus#12@17940	L431	ACTION:IdleCounterTracksScreen	306	209	CODE	
+plus->minus#13@18276	L440	ACTION:StuckCounterTracksNewElements	215	214	CODE	
