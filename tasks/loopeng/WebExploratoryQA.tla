@@ -3,54 +3,67 @@
 \* 元: tasks/loopeng/WebExploratoryQA.extract.md (S-001〜S-044)
 \*      tasks/loopeng/WebExploratoryQA.model.md (状態/ドメインモデル)
 \*
-\* 1ステップループは3段: RequestDecision(判断問い合わせ) -> ApplyGuardrails(ガード適用) -> ExecuteOperation(実行)。
-\* 1 disjunct = 1 EARS節の原則を守るため、判断問い合わせ・ガード判定・実行をそれぞれ別アクションに分離する
-\* (1回目のformalizeレビューで、これらを1つのRequestAndActへ統合していたことを指摘され分離した)。
+\* 1ステップは RequestDecision(判断問い合わせ) -> ApplyGuardrails(ガード適用) -> Execute*(実行と結果の観測)。
+\* 実行と観測は結果(画面変化なし/変化あり/許可ドメイン外)ごとの1アクションにまとめる。
+\* (中ループの mutation oracle で、実行と観測を別アクションにすると実行を飛ばして観測へ進めることが判明したため)
+\*
+\* "idle" での判定の優先順位(S-014, S-044, S-021, S-041, S-017):
+\*   done_when 成立(ゴール達成) > 行き詰まり検出 > 判断予算切れ > {固まり復旧, ドメイン復帰, 時間窓リセット} > 判断問い合わせ
+\* 上位の条件が成立している間は下位のアクションを無効にする(同時成立時の終了理由を一意にするため)。
 
 EXTENDS Naturals, FiniteSets
 
 CONSTANTS
     MaxDecisions,        \* S-041: 判断モデルAPI呼び出し回数の上限
-    MaxRequests,         \* S-042: 探索モードのリクエスト数上限
-    IdleThreshold,        \* S-021: 固まり判定の閾値
-    StuckThreshold,       \* S-021: 行き詰まり判定の閾値
-    Elements,             \* 操作可能要素の有限集合(抽象化)
-    ForbiddenElements,    \* S-012, S-028: 禁止要素の部分集合(購入/削除/退会/サインイン等)
-    Operations            \* S-005: 判断モデルが返す操作種別8種の抽象化(全8種を使わず部分集合でも検査可)
+    MaxRequests,         \* S-042: 単位時間あたりのリクエスト数上限
+    IdleThreshold,       \* S-021: 固まり判定の閾値
+    StuckThreshold,      \* S-021: 行き詰まり判定の閾値
+    Elements,            \* 操作可能要素の有限集合(抽象化)
+    ForbiddenElements,   \* S-012, S-028: 禁止要素の部分集合(購入/削除/退会/サインイン等)
+    Operations           \* S-005: 判断モデルが返す操作種別8種の抽象化(部分集合でも検査可)
 
 ASSUME ForbiddenElements \subseteq Elements
 ASSUME Operations \subseteq {"click", "input", "scroll_down", "scroll_up", "back", "wait", "done", "stuck"}
+\* 終了性(EventuallyTerminates)の前提: 閾値と上限は正。0 だと時間窓リセットや固まり復旧が空回りする。
+ASSUME MaxDecisions \in Nat \ {0}
+ASSUME MaxRequests \in Nat \ {0}
+ASSUME IdleThreshold \in Nat \ {0}
+ASSUME StuckThreshold \in Nat \ {0}
 
 VARIABLES
     phase,              \* 実行フェーズ
-    proposedOp,         \* S-005: 判断モデルが返した操作種別(ガード適用前)
-    proposedTarget,     \* S-006: 判断モデルが返した対象要素(ガード適用前、\in Elements \cup {"none"})
-    proposedLowConfBack,\* S-010: 提案がbackでかつ確信度0.7未満かどうか
-    isPaywall,          \* S-013: 現在画面がpaywall相当かどうか(非決定的に観測)
-    targetExists,       \* S-028: 実行直前に対象要素がアクセシビリティツリーに存在するか
-    screenChanged,      \* S-011: 直前操作後に画面が変化したか
-    visited,            \* S-022, S-023, S-024: 探索済み要素集合
-    idleCounter,        \* S-021: 固まり判定用カウンタ
-    stuckCounter,       \* S-021: 行き詰まり判定用カウンタ
-    inAllowedDomain,    \* S-033: 現在ページが許可ドメイン内か
-    decisionBudget,     \* S-041
-    requestBudget,      \* S-042
-    exitReason          \* S-044, S-021, S-041, S-042: 終了理由
+    proposedOp,         \* S-005: 判断モデルが返した操作種別
+    proposedTarget,     \* S-006: 判断モデルが返した対象要素
+    proposedLowConf,    \* S-010: 判断モデルの確信度が0.7未満か(操作種別とは独立に観測)
+    isPaywall,          \* S-013: 現在画面がpaywall相当か
+    targetExists,       \* S-028: 実行直前に対象要素が存在するか
+    screenChanged,      \* S-011, S-021(固まり): 直前の操作後に画面が変化したかの観測結果
+    visited,            \* S-022, S-023: 探索済み要素集合
+    idleCounter,        \* S-021(固まり): 画面が変化しなかった操作の連続回数
+    stuckCounter,       \* S-021(行き詰まり): 新規要素が出なかった操作の連続回数
+    inAllowedDomain,    \* S-033: システムが記録した「現在ページは許可ドメイン内か」
+    pageOutside,        \* S-033: 環境側の真値。現在ページが実際に許可ドメイン外か(検査用)
+    decisionBudget,     \* S-041: 残りの判断モデルAPI呼び出し回数
+    decisionsMade,      \* S-041: 実際に呼び出した回数(検査用の履歴)
+    requestBudget,      \* S-042: 現在の時間窓で残っているリクエスト数
+    requestsInWindow,   \* S-042: 現在の時間窓で実際に送ったリクエスト数(検査用の履歴)
+    exitReason          \* S-014, S-044, S-041: 終了理由
 
-vars == <<phase, proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-          screenChanged, visited, idleCounter, stuckCounter,
-          inAllowedDomain, decisionBudget, requestBudget, exitReason>>
+vars == <<phase, proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists, screenChanged,
+          visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+          decisionBudget, decisionsMade, requestBudget, requestsInWindow, exitReason>>
 
-Phases == {"idle", "awaiting_decision", "acting",
-           "done", "stuck", "frozen_recovered", "error_exit"}
-ExitReasons == {"none", "goal_achieved", "stuck", "budget_exceeded"}
+Phases == {"idle", "awaiting_decision", "acting", "done", "stuck", "frozen_recovered", "error_exit"}
+Terminal == {"done", "stuck", "error_exit"}
+ExitReasons == {"none", "goal_achieved", "reported_done", "stuck", "budget_exceeded"}
+DirectOps == {"click", "input"}
+Explorable == Elements \ ForbiddenElements
 
-\* --- TypeOK: S-001〜S-044 全変数が値域内に収まる(網羅性のアンカー) ---
 TypeOK ==
     /\ phase \in Phases
-    /\ proposedOp \in Operations \cup {"none"}
+    /\ proposedOp \in Operations \cup {"back", "none"}
     /\ proposedTarget \in Elements \cup {"none"}
-    /\ proposedLowConfBack \in BOOLEAN
+    /\ proposedLowConf \in BOOLEAN
     /\ isPaywall \in BOOLEAN
     /\ targetExists \in BOOLEAN
     /\ screenChanged \in BOOLEAN
@@ -58,16 +71,18 @@ TypeOK ==
     /\ idleCounter \in Nat
     /\ stuckCounter \in Nat
     /\ inAllowedDomain \in BOOLEAN
-    /\ decisionBudget \in Nat
-    /\ requestBudget \in Nat
+    /\ pageOutside \in BOOLEAN
+    /\ decisionBudget \in 0..MaxDecisions
+    /\ decisionsMade \in Nat
+    /\ requestBudget \in 0..MaxRequests
+    /\ requestsInWindow \in Nat
     /\ exitReason \in ExitReasons
 
-\* --- Init ---
 Init ==
     /\ phase = "idle"
     /\ proposedOp = "none"
     /\ proposedTarget = "none"
-    /\ proposedLowConfBack = FALSE
+    /\ proposedLowConf = FALSE
     /\ isPaywall = FALSE
     /\ targetExists = TRUE
     /\ screenChanged = TRUE
@@ -75,259 +90,374 @@ Init ==
     /\ idleCounter = 0
     /\ stuckCounter = 0
     /\ inAllowedDomain = TRUE
+    /\ pageOutside = FALSE
     /\ decisionBudget = MaxDecisions
+    /\ decisionsMade = 0
     /\ requestBudget = MaxRequests
+    /\ requestsInWindow = 0
     /\ exitReason = "none"
 
-\* --- Next: EARS event/state/unwanted を1 disjunctに(1節1アクション) ---
+\* "idle" での優先順位の段(冒頭コメント参照)。
+Exploring == phase = "idle" /\ visited # Explorable              \* S-014, S-044: done_when 未成立
+Continuing == Exploring /\ stuckCounter < StuckThreshold /\ decisionBudget > 0  \* S-021, S-041: 終了条件なし
 
-\* S-005〜S-009: 判断モデルへ画面状態を問い合わせ、operation/target/is_error_shown相当の
-\* proposedOp・proposedTarget・proposedLowConfBack・isPaywall・targetExistsを非決定的に受け取る。
-\* 判断モデルは禁止要素やpaywallの有無を知らず、何を提案してもよい(ガードはApplyGuardrailsが担う)。
+\* S-005〜S-009, S-041, S-042: 判断モデルへ問い合わせる。1回ごとに判断予算とリクエスト予算を1ずつ消費する。
+\* S-017, S-033: 固まり検出中と許可ドメイン外では問い合わせない。
+\* 判断モデルの提案と画面の観測結果は非決定的に受け取る(禁止要素も低確信度も提案されうる)。
 RequestDecision ==
-    /\ phase = "idle"
-    /\ decisionBudget > 0
+    /\ Continuing
+    /\ idleCounter < IdleThreshold
     /\ requestBudget > 0
     /\ inAllowedDomain
     /\ phase' = "awaiting_decision"
     /\ decisionBudget' = decisionBudget - 1
-    /\ \E op \in Operations, t \in Elements, lowConfBack \in BOOLEAN,
-          pw \in BOOLEAN, exists \in BOOLEAN :
+    /\ decisionsMade' = decisionsMade + 1
+    /\ requestBudget' = requestBudget - 1
+    /\ requestsInWindow' = requestsInWindow + 1
+    /\ \E op \in Operations, t \in Elements, lc \in BOOLEAN, pw \in BOOLEAN, ex \in BOOLEAN :
         /\ proposedOp' = op
         /\ proposedTarget' = t
-        /\ proposedLowConfBack' = (op = "back" /\ lowConfBack)
+        /\ proposedLowConf' = lc
         /\ isPaywall' = pw
-        /\ targetExists' = exists
-    /\ UNCHANGED <<screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, requestBudget, exitReason>>
+        /\ targetExists' = ex
+    /\ UNCHANGED <<screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside, exitReason>>
 
-\* S-010, S-012, S-013, S-028: ガードレール。禁止操作・低確信度back・paywall・要素不存在を
-\* ここで拒否し、許可されたときだけ"acting"へ進む。いずれかに該当すれば操作を実行せず"idle"へ戻す
-\* (S-013はpaywallなら既定の離脱操作をacting扱いにして進む)。
-\* S-012(禁止要素)・S-028(存在確認)は要素への直接操作(click/input)のときだけ適用するガードであり、
-\* back/wait等の要素を伴わない操作には適用しない(1回目の修正でback提案時に禁止要素のまま
-\* visitedへ混入する実装ミスが見つかったため、ガード側の前提条件も明示した)。
+\* S-042: 時間窓が経過したらリクエスト予算を戻す(時間経過の抽象化。窓の長さそのものはモデル外)。
+\* 窓の満了は時刻依存なので、予算を1つでも使っていればいつでも起こりうる。
+ResetRequestWindow ==
+    /\ Continuing
+    /\ requestBudget < MaxRequests
+    /\ requestBudget' = MaxRequests
+    /\ requestsInWindow' = 0
+    /\ UNCHANGED <<phase, proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+                   decisionBudget, decisionsMade, exitReason>>
+
+\* S-010, S-012, S-013, S-028: ガードレール。拒否なら "idle" へ戻し、許可なら "acting" へ進む。
+\* S-013: paywall なら判断モデルの提案を使わず既定の離脱操作(back)に置き換える(S-010 の対象外)。
+\* S-012, S-028 は要素への直接操作(click/input)にだけ適用する。
 ApplyGuardrails ==
     /\ phase = "awaiting_decision"
-    /\ \/ /\ isPaywall  \* S-013: paywallは判断モデルに問い合わせず既定の離脱操作(S-010の確信度判定の対象外)
+    /\ \/ /\ isPaywall
           /\ phase' = "acting"
           /\ proposedOp' = "back"
-          /\ proposedLowConfBack' = FALSE
-          /\ UNCHANGED <<proposedTarget>>
+          /\ UNCHANGED <<proposedTarget, proposedLowConf>>
        \/ /\ ~isPaywall
-          /\ \/ /\ proposedOp = "back" /\ proposedLowConfBack  \* S-010: 低確信度backを拒否
+          /\ \/ /\ proposedOp = "back"
+                /\ proposedLowConf
                 /\ phase' = "idle"
-                /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack>>
-             \/ /\ proposedOp \in {"click", "input"}
-                /\ proposedTarget \in ForbiddenElements  \* S-012: 禁止要素を拒否
+             \/ /\ proposedOp \in DirectOps
+                /\ proposedTarget \in ForbiddenElements
                 /\ phase' = "idle"
-                /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack>>
-             \/ /\ proposedOp \in {"click", "input"}
-                /\ ~targetExists  \* S-028: 実行直前の存在確認で不存在なら中止
+             \/ /\ proposedOp \in DirectOps
+                /\ ~targetExists
                 /\ phase' = "idle"
-                /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack>>
-             \/ /\ ~(proposedOp = "back" /\ proposedLowConfBack)
-                /\ (proposedOp \notin {"click", "input"}
-                    \/ (proposedTarget \notin ForbiddenElements /\ targetExists))
+             \/ /\ ~(proposedOp = "back" /\ proposedLowConf)
+                /\ (proposedOp \notin DirectOps \/ (proposedTarget \notin ForbiddenElements /\ targetExists))
                 /\ phase' = "acting"
-                /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack>>
+          /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf>>
     /\ UNCHANGED <<isPaywall, targetExists, screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, decisionBudget, requestBudget, exitReason>>
+                   inAllowedDomain, pageOutside, decisionBudget, decisionsMade, requestBudget, requestsInWindow, exitReason>>
 
-\* S-002(正常系の中核要件): ガードレールを通過した操作を実際に実行する。
-\* S-022, S-023: 要素への直接操作(click/input)であり、かつ対象が実在の要素のときだけ探索済み集合へ加える。
-\* back/scroll_down/scroll_up/wait/done/stuckは対象要素を持たない操作なのでvisitedを変えない
-\* (paywall検出時に既定でproposedOpがbackへ上書きされるケース(S-013)もここで正しく除外される)。
-ExecuteOperation ==
-    /\ phase = "acting"
-    /\ visited' = IF proposedOp \in {"click", "input"} /\ proposedTarget \in Elements
-                  THEN visited \cup {proposedTarget}
-                  ELSE visited
-    /\ UNCHANGED <<phase, proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, idleCounter, stuckCounter, inAllowedDomain,
-                   decisionBudget, requestBudget, exitReason>>
-    /\ phase' = "acting"  \* ObserveXxxが続けて画面の変化を観測し"idle"へ戻す
+\* S-002, S-022, S-023: 許可された操作を実行した後の探索済み集合(要素への直接操作のときだけ対象要素を加える)。
+VisitedAfterOp == IF proposedOp \in DirectOps THEN visited \cup {proposedTarget} ELSE visited
 
-\* S-011: 画面が変化しなかったとき、次善候補へ切り替える前提としてこの観測を記録する。
-\* done/stuckはFinishByProposal*が専用の終了遷移を担うため、ここでは通常操作(click/input/scroll/back/wait)
-\* のときだけ観測する(2回目レビューでdone/stuck提案が無視されていた欠落を指摘され分離した)。
-ObserveNoChange ==
+\* S-021(行き詰まり): 実行した操作で新規要素が出なければ加算し、出たら0に戻す。
+StuckAfterOp == IF VisitedAfterOp = visited THEN stuckCounter + 1 ELSE 0
+
+\* S-002 + S-011 + S-021(固まり): 操作を実行し、画面が変化しなかったことを観測する。
+ExecuteNoChange ==
     /\ phase = "acting"
     /\ proposedOp \notin {"done", "stuck"}
+    /\ visited' = VisitedAfterOp
     /\ phase' = "idle"
     /\ screenChanged' = FALSE
     /\ idleCounter' = idleCounter + 1
-    /\ stuckCounter' = stuckCounter + 1
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   visited, inAllowedDomain, decisionBudget, requestBudget, exitReason>>
+    /\ stuckCounter' = StuckAfterOp
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   inAllowedDomain, pageOutside, decisionBudget, decisionsMade, requestBudget, requestsInWindow, exitReason>>
 
-\* S-002(正常系): 操作の結果、画面が変化した(新規要素到達)。許可ドメイン内にとどまる。カウンタをリセット。
-ObserveChange ==
+\* S-002: 操作を実行し、許可ドメイン内で画面が変化したことを観測する。
+ExecuteChange ==
     /\ phase = "acting"
     /\ proposedOp \notin {"done", "stuck"}
+    /\ visited' = VisitedAfterOp
     /\ phase' = "idle"
     /\ screenChanged' = TRUE
     /\ idleCounter' = 0
-    /\ stuckCounter' = 0
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   visited, inAllowedDomain, decisionBudget, requestBudget, exitReason>>
+    /\ stuckCounter' = StuckAfterOp
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   inAllowedDomain, pageOutside, decisionBudget, decisionsMade, requestBudget, requestsInWindow, exitReason>>
 
-\* S-033, S-021(ドメイン外): 操作の結果、許可ドメイン外へ遷移した。この画面は探索対象外として扱う。
-\* (独立したトグルアクションにすると、ドメイン境界を往復するだけで有限予算を使い切らずに
-\*  操作を回避し続けliveness(EventuallyTerminates)の反例になったため、
-\*  ExecuteOperation後の画面観測の1つ=有限予算を消費する操作の帰結としてモデル化する。)
-ObserveOutOfDomain ==
+\* S-002 + S-021(ドメイン外) + S-033: 操作を実行した結果、許可ドメイン外へ遷移したことを観測して記録する。
+ExecuteOutOfDomain ==
     /\ phase = "acting"
     /\ proposedOp \notin {"done", "stuck"}
+    /\ visited' = VisitedAfterOp
     /\ phase' = "idle"
     /\ screenChanged' = TRUE
     /\ idleCounter' = 0
-    /\ stuckCounter' = 0
+    /\ stuckCounter' = StuckAfterOp
+    /\ pageOutside' = TRUE
     /\ inAllowedDomain' = FALSE
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   visited, decisionBudget, requestBudget, exitReason>>
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow, exitReason>>
 
-\* S-044(event, done): operation=doneが判断モデルから返されたとき、当該実行を正常終了として記録する。
-\* done_when条件(S-014)はFinishNormally(visitedの到達度による構造的終了)が別途担うので、
-\* この経路は「判断モデルの自己申告による終了」であり、FinishNormallyとは独立したEARS要件(S-044)として分離する。
+\* S-033: ドメイン外から許可ドメイン内へ戻り、探索を継続する。
+ReturnToAllowedDomain ==
+    /\ Continuing
+    /\ ~inAllowedDomain
+    /\ pageOutside' = FALSE
+    /\ inAllowedDomain' = TRUE
+    /\ UNCHANGED <<phase, proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow, exitReason>>
+
+\* S-044(done) + S-014: 判断モデルが done を返したら自己申告による終了(未検証)として記録する。
+\* done_when 成立時は問い合わせ前に FinishNormally が先取りするので、ここに来るのは done_when 未成立のときだけ。
 FinishByProposalDone ==
     /\ phase = "acting"
     /\ proposedOp = "done"
     /\ phase' = "done"
-    /\ exitReason' = "goal_achieved"
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, decisionBudget, requestBudget>>
+    /\ exitReason' = "reported_done"
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow>>
 
-\* S-044(event, stuck): operation=stuckが判断モデルから返されたとき、行き詰まり終了として記録する。
-\* FinishStuck(stuckCounter閾値による構造的終了)とは独立したEARS要件(S-044)として分離する。
+\* S-044(stuck): 判断モデルが stuck を返したら行き詰まり終了として記録する。
 FinishByProposalStuck ==
     /\ phase = "acting"
     /\ proposedOp = "stuck"
     /\ phase' = "stuck"
     /\ exitReason' = "stuck"
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, decisionBudget, requestBudget>>
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow>>
 
-\* ドメイン外から探索を継続する(対象外ページから離脱し、許可ドメイン内へ戻る)。
-ReturnToAllowedDomain ==
-    /\ phase = "idle"
-    /\ ~inAllowedDomain
-    /\ phase' = "idle"
-    /\ inAllowedDomain' = TRUE
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, visited, idleCounter, stuckCounter,
-                   decisionBudget, requestBudget, exitReason>>
-
-\* S-017, S-021(固まり): 画面無変化が閾値に到達 → 初期状態へ戻して探索継続。
+\* S-017, S-021(固まり): 画面無変化が閾値に到達したらページを初期状態へ戻して探索を継続する。
+\* S-022: 戻すのはページ状態(固まりカウンタ)だけで、探索の記憶(探索済み集合)は保持する。行き詰まりカウンタも戻さないが、要件の対象外の選択で性質では検査しない。
+\* 許可ドメイン外では問い合わせないので固まりカウンタは増えず、復旧は常に許可ドメイン内で起こる(ドメイン状態は戻す必要がない)。
 RecoverFromFreeze ==
-    /\ phase = "idle"
+    /\ Continuing
     /\ idleCounter >= IdleThreshold
     /\ phase' = "frozen_recovered"
     /\ idleCounter' = 0
-    /\ visited' = {}  \* 再起動により探索状態を初期化
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, stuckCounter, inAllowedDomain, decisionBudget, requestBudget, exitReason>>
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, stuckCounter, inAllowedDomain, pageOutside, decisionBudget, decisionsMade,
+                   requestBudget, requestsInWindow, exitReason>>
 
 ResumeAfterRecovery ==
     /\ phase = "frozen_recovered"
     /\ phase' = "idle"
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, decisionBudget, requestBudget, exitReason>>
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow, exitReason>>
 
-\* S-014, S-044(正常終了): done_when条件相当 = 全要素が探索済みに到達した状態をゴール達成とみなす抽象化。
+\* S-014, S-044(goal): done_when 相当(探索可能な要素を全て探索済み)が成立したらゴール達成で終了する。
 FinishNormally ==
     /\ phase = "idle"
-    /\ visited = Elements \ ForbiddenElements
+    /\ visited = Explorable
     /\ phase' = "done"
     /\ exitReason' = "goal_achieved"
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, decisionBudget, requestBudget>>
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow>>
 
-\* S-021(行き詰まり), S-044(stuck終了): 新規要素が出ない操作が閾値回数続いたら行き詰まり終了。
+\* S-021(行き詰まり), S-044(stuck): 新規要素が出ない操作が閾値回数続いたら行き詰まり終了する。
 FinishStuck ==
-    /\ phase = "idle"
+    /\ Exploring
     /\ stuckCounter >= StuckThreshold
     /\ phase' = "stuck"
     /\ exitReason' = "stuck"
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, decisionBudget, requestBudget>>
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow>>
 
-\* S-041: 判断モデルAPI呼び出し予算が尽きたら強制終了。
+\* S-041: 判断モデルAPI呼び出し予算が尽きたら強制終了する。
 ExceedDecisionBudget ==
-    /\ phase = "idle"
+    /\ Exploring
+    /\ stuckCounter < StuckThreshold
     /\ decisionBudget = 0
     /\ phase' = "error_exit"
     /\ exitReason' = "budget_exceeded"
-    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConfBack, isPaywall, targetExists,
-                   screenChanged, visited, idleCounter, stuckCounter,
-                   inAllowedDomain, decisionBudget, requestBudget>>
+    /\ UNCHANGED <<proposedOp, proposedTarget, proposedLowConf, isPaywall, targetExists,
+                   screenChanged, visited, idleCounter, stuckCounter, inAllowedDomain, pageOutside,
+                   decisionBudget, decisionsMade, requestBudget, requestsInWindow>>
 
 Next ==
     \/ RequestDecision
+    \/ ResetRequestWindow
     \/ ApplyGuardrails
-    \/ ExecuteOperation
-    \/ ObserveNoChange
-    \/ ObserveChange
-    \/ ObserveOutOfDomain
+    \/ ExecuteNoChange
+    \/ ExecuteChange
+    \/ ExecuteOutOfDomain
+    \/ ReturnToAllowedDomain
     \/ FinishByProposalDone
     \/ FinishByProposalStuck
-    \/ ReturnToAllowedDomain
     \/ RecoverFromFreeze
     \/ ResumeAfterRecovery
     \/ FinishNormally
     \/ FinishStuck
     \/ ExceedDecisionBudget
-    \/ (phase \in {"done", "stuck", "error_exit"} /\ UNCHANGED vars)  \* 終了状態で停止
+    \/ (phase \in Terminal /\ UNCHANGED vars)  \* 終了状態で停止
 
-\* --- Inv: ubiquitous要件を安全性として検査 ---
+\* --- Inv ---
 
-\* S-012, S-028: 禁止要素は決して探索済み集合に入らない(=操作されない)。
-\* ApplyGuardrailsが拒否するため、判断モデルが禁止要素やtargetExists=FALSEを提案しても
-\* visitedには反映されない。判断モデルの提案は非決定的(RequestDecisionで全組み合わせを許す)なので、
-\* このInvはApplyGuardrailsのガード条件が実際に効いていることを検査する。
+\* S-012, S-028: 禁止要素は探索済み集合に入らない(=操作されない)。
 NeverOperatesForbidden ==
     visited \cap ForbiddenElements = {}
 
-\* S-010: 低確信度のbackが提案された状態では、"acting"(実行)フェーズに留まらない
-\* (ApplyGuardrailsが拒否して"idle"へ戻すため、低確信度backが実行に進む経路が無いことの検査)。
+\* S-010: paywall 以外で実行段階に進んだ back は、低確信度ではない。
 LowConfidenceBackNeverActed ==
-    (proposedOp = "back" /\ proposedLowConfBack) => phase /= "acting"
+    (phase = "acting" /\ ~isPaywall /\ proposedOp = "back") => ~proposedLowConf
 
-\* S-041: 予算を使い切った後は新たな判断モデル呼び出し(RequestDecision)が起きない。
-BudgetRespected ==
-    decisionBudget >= 0
+\* S-012, S-028: paywall 以外で実行段階に進んだ直接操作の対象は、禁止要素ではなく、存在している。
+DirectOpActedOnlyOnSafeTarget ==
+    (phase = "acting" /\ ~isPaywall /\ proposedOp \in DirectOps)
+        => (targetExists /\ proposedTarget \notin ForbiddenElements)
 
-\* S-044: 終了フェーズに達したら終了理由が必ず設定されている。
-ExitReasonSetOnTermination ==
-    phase \in {"done", "stuck", "error_exit"} => exitReason /= "none"
+\* S-014: ゴール達成で終わるのは done_when を満たしたときだけ。
+GoalOnlyByDoneWhen ==
+    exitReason = "goal_achieved" => visited = Explorable
 
-\* S-042: リクエスト予算が尽きていたらRequestDecisionは起きない(ガードに内包、TypeOKで非負性も保証)。
-RequestBudgetRespected ==
-    requestBudget >= 0
+\* S-044: 自己申告の done(reported_done)で終わるのは done_when を満たしていないときだけ。
+ReportedDoneOnlyWithoutDoneWhen ==
+    exitReason = "reported_done" => visited # Explorable
 
-Inv ==
-    /\ TypeOK
-    /\ NeverOperatesForbidden
-    /\ LowConfidenceBackNeverActed
-    /\ BudgetRespected
-    /\ RequestBudgetRespected
-    /\ ExitReasonSetOnTermination
+\* S-044, S-041: 終了フェーズと終了理由が対応する。終了前は終了理由を設定しない。
+ExitReasonMatchesPhase ==
+    /\ phase = "done" => exitReason \in {"goal_achieved", "reported_done"}
+    /\ phase = "stuck" => exitReason = "stuck"
+    /\ phase = "error_exit" => exitReason = "budget_exceeded"
+    /\ phase \notin Terminal => exitReason = "none"
 
-\* --- Liveness: S-014/S-044 への到達性(行き詰まらない限りいつか終了する) ---
+\* S-042: 1つの時間窓で送るリクエスト数は上限以下。
+RequestsWithinWindowCap ==
+    requestsInWindow <= MaxRequests
+
+\* S-041: 判断モデルAPIの呼び出し回数は上限以下。
+DecisionsWithinCap ==
+    decisionsMade <= MaxDecisions
+
+\* S-041, S-042: 残り予算は上限から実際の呼び出し数を引いた値(予算を勝手に増減させない)。
+BudgetAccounting ==
+    /\ decisionBudget + decisionsMade = MaxDecisions
+    /\ requestBudget + requestsInWindow = MaxRequests
+
+\* S-041: 予算超過による終了は、判断予算を使い切ったときだけ。
+BudgetExceededOnlyWhenSpent ==
+    exitReason = "budget_exceeded" => decisionBudget = 0
+
+\* S-021: 固まり/行き詰まりカウンタは操作の回数を数えるので、実行した判断の回数を超えない。
+CountersBoundedByOps ==
+    idleCounter <= decisionsMade /\ stuckCounter <= decisionsMade
+
+\* S-002, S-022: 探索済み要素は1回の操作で高々1つ増えるので、その数は実行した判断の回数を超えない。
+VisitedOnlyByOps ==
+    Cardinality(visited) <= decisionsMade
+
+\* S-017: 固まり復旧は、固まり判定に必要な回数の操作をした後にしか起こらない。
+RecoveryOnlyAfterFreeze ==
+    phase = "frozen_recovered" => decisionsMade >= IdleThreshold
+
+\* S-017: 固まりから復旧した直後はページ状態が初期化されている(固まりカウンタが0、許可ドメイン内)。
+RecoveryResetsPageState ==
+    phase = "frozen_recovered" => (idleCounter = 0 /\ inAllowedDomain)
+
+\* S-021(ドメイン外), S-033: システムが記録した許可ドメイン内外は、実際のページ位置と一致する。
+DomainRecordAccurate ==
+    inAllowedDomain = ~pageOutside
+
+\* S-005, S-006: 問い合わせ後の提案は操作種別8種のいずれか(paywall 時は既定の back)と、実在する対象要素。
+ProposalWellFormed ==
+    phase \in {"awaiting_decision", "acting"} => (proposedOp \in Operations \cup {"back"} /\ proposedTarget \in Elements)
+
+\* --- Action properties(優先順位と境界) ---
+
+\* S-014, S-044(goal): done_when が成立した "idle" からの次の一歩は必ずゴール達成での終了。
+GoalPreempts ==
+    [][(phase = "idle" /\ visited = Explorable) => (phase' = "done" /\ exitReason' = "goal_achieved")]_vars
+
+\* S-021, S-044(stuck): done_when 未成立で行き詰まりを検出した "idle" からの次の一歩は必ず行き詰まり終了。
+StuckPreempts ==
+    [][(phase = "idle" /\ visited # Explorable /\ stuckCounter >= StuckThreshold) => (phase' = "stuck")]_vars
+
+\* S-041: 判断予算が尽きた "idle" からの次の一歩は(上位の終了条件が無ければ)必ず強制終了。
+BudgetStops ==
+    [][(phase = "idle" /\ visited # Explorable /\ stuckCounter < StuckThreshold /\ decisionBudget = 0)
+        => (phase' = "error_exit")]_vars
+
+\* S-017: 固まりを検出している間は判断モデルへ問い合わせない。
+FreezePreemptsDecision ==
+    [][(phase = "idle" /\ idleCounter >= IdleThreshold) => (phase' # "awaiting_decision")]_vars
+
+\* S-002, S-010, S-012, S-028: ガードに掛からない提案(paywall でなく、低確信度の back でなく、
+\* 直接操作なら対象が禁止要素でなく存在する)は拒否されず実行段階へ進む。
+SafeProposalProceeds ==
+    [][(/\ phase = "awaiting_decision"
+        /\ ~isPaywall
+        /\ ~(proposedOp = "back" /\ proposedLowConf)
+        /\ (proposedOp \in DirectOps => (proposedTarget \notin ForbiddenElements /\ targetExists)))
+        => (phase' = "acting")]_vars
+
+\* S-005, S-041: ガード適用段階へ入るのは判断モデルへ問い合わせたとき(呼び出し回数が1増えるとき)だけで、その逆も成り立つ。
+AwaitingOnlyByDecision ==
+    [][((phase # "awaiting_decision" /\ phase' = "awaiting_decision") <=> (decisionsMade' = decisionsMade + 1))]_vars
+
+\* S-010, S-012, S-013, S-028: 実行段階へはガード適用段階からしか入らない(ガードを迂回しない)。
+ActingOnlyAfterGuardrails ==
+    [][(phase # "acting" /\ phase' = "acting") => (phase = "awaiting_decision")]_vars
+
+\* S-017: 固まりを検出してカウンタを戻す一歩は、復旧として記録する(frozen_recovered を経由する)。
+FreezeRecoveryRecorded ==
+    [][(phase = "idle" /\ idleCounter >= IdleThreshold /\ idleCounter' = 0) => (phase' = "frozen_recovered")]_vars
+
+\* S-002, S-022: 探索済み集合が変わるのは操作を実行した一歩だけ(終了や復旧では変わらない)。
+VisitedChangesOnlyByExecution ==
+    [][(visited' # visited) => (phase = "acting" /\ phase' = "idle")]_vars
+
+\* S-013: paywall を検出したら、判断モデルの提案を使わず既定の離脱操作(back)を実行段階へ進める。
+PaywallForcesBack ==
+    [][(phase = "awaiting_decision" /\ isPaywall) => (phase' = "acting" /\ proposedOp' = "back")]_vars
+
+\* S-002, S-044: 実行段階の次の一歩は、done なら done 終了、stuck なら行き詰まり終了、それ以外は操作を実行して "idle" へ戻る。
+ProposalOutcome ==
+    [][(phase = "acting")
+        => (phase' = CASE proposedOp = "done" -> "done" [] proposedOp = "stuck" -> "stuck" [] OTHER -> "idle")]_vars
+
+\* S-021(固まり): 操作を実行し終えた一歩で、画面が変化しなければ固まりカウンタは1増え、変化すれば0に戻る。
+IdleCounterTracksScreen ==
+    [][(phase = "acting" /\ phase' = "idle")
+        => (idleCounter' = IF screenChanged' THEN 0 ELSE idleCounter + 1)]_vars
+
+\* S-022: 探索の記憶は失われない(探索済み集合は減らない。固まり復旧でも保持する)。
+MemoryNeverShrinks ==
+    [][visited \subseteq visited']_vars
+
+\* S-021(行き詰まり): 操作を実行し終えた一歩で、探索済み集合が増えなければ行き詰まりカウンタは1増え、増えれば0に戻る。
+StuckCounterTracksNewElements ==
+    [][(phase = "acting" /\ phase' = "idle")
+        => (stuckCounter' = IF visited' = visited THEN stuckCounter + 1 ELSE 0)]_vars
+
+\* S-033: 実際に許可ドメイン外にいる間は判断モデルへ問い合わせない(探索対象外)。
+NoDecisionOutsideDomain ==
+    [][(phase = "idle" /\ phase' = "awaiting_decision") => (~pageOutside)]_vars
+
+\* --- Temporal ---
+
+\* S-044, S-041: 実行はいつか終了する。
 EventuallyTerminates ==
-    []<>(phase \in {"done", "stuck", "error_exit"})
+    <>(phase \in Terminal)
 
-\* 各アクションに個別の弱公平性を与える: enabledのまま無視され続けることを許さない。
+\* S-044, S-041: 一度終了したら状態は変わらない(終了状態から探索へ戻らない)。
+TerminalAbsorbing ==
+    [][(phase \in Terminal) => (UNCHANGED vars)]_vars
+
 Spec == Init /\ [][Next]_vars
-             /\ WF_vars(RequestDecision) /\ WF_vars(ApplyGuardrails) /\ WF_vars(ExecuteOperation)
-             /\ WF_vars(ObserveNoChange) /\ WF_vars(ObserveChange)
-             /\ WF_vars(ObserveOutOfDomain) /\ WF_vars(ReturnToAllowedDomain)
+             /\ WF_vars(RequestDecision) /\ WF_vars(ResetRequestWindow) /\ WF_vars(ApplyGuardrails)
+             /\ WF_vars(ExecuteNoChange \/ ExecuteChange \/ ExecuteOutOfDomain)  \* 結果はどれか1つが起きればよい
+             /\ WF_vars(ReturnToAllowedDomain)
              /\ WF_vars(FinishByProposalDone) /\ WF_vars(FinishByProposalStuck)
-             /\ WF_vars(FinishNormally) /\ WF_vars(FinishStuck) /\ WF_vars(ExceedDecisionBudget)
              /\ WF_vars(RecoverFromFreeze) /\ WF_vars(ResumeAfterRecovery)
+             /\ WF_vars(FinishNormally) /\ WF_vars(FinishStuck) /\ WF_vars(ExceedDecisionBudget)
 ====
