@@ -115,50 +115,50 @@
 
 | 仕様条項 | 要件(EARS) | 形式手法(TLA+ INV / Lean P) | テスト |
 |----------|------------|------------------------------|--------|
-| S-001    | (前提条件) | モデル外(実装レベルで検証)   |        |
-| S-002    | event      | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: SafeProposalProceeds, ProposalOutcome, VisitedChangesOnlyByExecution |  |
-| S-003    | event      | モデル外(送信データ形式)     |        |
-| S-004    | ubiquitous | モデル外(設定ファイル定義)   |        |
-| S-005    | event      | Next: RequestDecision / Inv: ProposalWellFormed / Prop: AwaitingOnlyByDecision |  |
-| S-006    | event      | Next: RequestDecision / Inv: ProposalWellFormed |  |
-| S-007    | event      | モデル外(簡略化)             |        |
-| S-008    | event      | モデル外(簡略化。S-014参照)  |        |
-| S-009    | ubiquitous | モデル外(送信データ形式)     |        |
-| S-010    | unwanted   | Next: ApplyGuardrails / Inv: LowConfidenceBackNeverActed / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
-| S-011    | unwanted   | Next: ExecuteNoChange(観測のみ。選択自体はモデル外) |  |
-| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
-| S-013    | unwanted   | Next: ApplyGuardrails(paywall分岐) / Prop: PaywallForcesBack, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
-| S-014    | ubiquitous | Next: FinishNormally/FinishByProposalDone / Inv: GoalOnlyByDoneWhen / Prop: GoalPreempts |  |
-| S-015    | optional   | モデル外(設定ファイル定義)   |        |
-| S-016    | optional   | モデル外(優先順位の中身)     |        |
-| S-017    | unwanted   | Next: RecoverFromFreeze/ResumeAfterRecovery(固まりのみ。他2条件は別disjunct。設計メモ2参照) / Inv: RecoveryResetsPageState, RecoveryOnlyAfterFreeze / Prop: FreezePreemptsDecision, FreezeRecoveryRecorded, MemoryNeverShrinks |  |
-| S-018    | event      | モデル外(問題記録の分類・保存形式) |  |
-| S-019    | unwanted   | モデル外(閾値判定の簡略化)   |        |
-| S-020    | unwanted   | モデル外(パターン判定)       |        |
-| S-021    | state(×3)  | Next: RecoverFromFreeze/ExecuteOutOfDomain/FinishStuck / Inv: CountersBoundedByOps, DomainRecordAccurate / Prop: IdleCounterTracksScreen, StuckCounterTracksNewElements, StuckPreempts |  |
-| S-022    | ubiquitous | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: MemoryNeverShrinks, VisitedChangesOnlyByExecution |  |
-| S-023    | ubiquitous | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / モデル外(優先順位の中身) |  |
-| S-024    | unwanted   | モデル外(単一画面への簡略化) |        |
-| S-025    | optional   | モデル外(計測・観測用副作用) |        |
-| S-026    | optional   | モデル外(計測・観測用副作用) |        |
-| S-027    | ubiquitous | モデル外(アーキテクチャ要件) |        |
-| S-028    | unwanted(×2) | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
-| S-029    | ubiquitous | モデル外(記録の性質)         |        |
-| S-030    | ubiquitous | モデル外(アーキテクチャ要件) |        |
-| S-031    | ubiquitous | モデル外(アーキテクチャ要件) |        |
-| S-032    | optional   | モデル外(設定ファイル定義)   |        |
-| S-033    | unwanted   | Next: ExecuteOutOfDomain/ReturnToAllowedDomain/RequestDecisionのガード / Inv: DomainRecordAccurate / Prop: NoDecisionOutsideDomain。抽象化の空洞は設計メモ8 |  |
-| S-034    | optional   | モデル外(出力形式)           |        |
-| S-035    | ubiquitous | モデル外(問題記録の分類)     |        |
-| S-036    | optional   | モデル外(問題記録の分類)     |        |
-| S-037    | unwanted/security | モデル外(送信データのマスキング) |  |
-| S-038    | unwanted/security | モデル外(設定ファイル定義) |        |
-| S-039    | ubiquitous | モデル外(アーキテクチャ要件) |        |
-| S-040    | ubiquitous | モデル外(実装API選択)        |        |
-| S-041    | unwanted/security | Next: RequestDecision/ExceedDecisionBudget / Inv: DecisionsWithinCap, BudgetAccounting, BudgetExceededOnlyWhenSpent / Prop: AwaitingOnlyByDecision, BudgetStops, EventuallyTerminates, TerminalAbsorbing |  |
-| S-042    | unwanted/security | Next: RequestDecision/ResetRequestWindow / Inv: RequestsWithinWindowCap, BudgetAccounting |  |
-| S-043    | unwanted/security | モデル外(TLS設定の制約)    |        |
-| S-044    | event(×3)/state | Next: FinishNormally/FinishByProposalDone/FinishByProposalStuck/FinishStuck/ExceedDecisionBudget / Inv: GoalOnlyByDoneWhen, ReportedDoneOnlyWithoutDoneWhen, ExitReasonMatchesPhase / Prop: GoalPreempts, StuckPreempts, BudgetStops, ProposalOutcome, EventuallyTerminates, TerminalAbsorbing |  |
+| S-001    | (前提条件) | モデル外(実装レベルで検証)   | 「判断モデルに送る画面状態はアクセシビリティ情報のテキストで、操作可能要素の一覧を含む」、「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」 |
+| S-002    | event      | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: SafeProposalProceeds, ProposalOutcome, VisitedChangesOnlyByExecution | 「ガードレールを通った操作はそのままブラウザで実行する」 |
+| S-003    | event      | モデル外(送信データ形式)     | 「判断モデルに送る画面状態はアクセシビリティ情報のテキストで、操作可能要素の一覧を含む」 |
+| S-004    | ubiquitous | モデル外(設定ファイル定義)   | 「テスト対象・入力値・段階を YAML の設定で定義して実行する」 |
+| S-005    | event      | Next: RequestDecision / Inv: ProposalWellFormed / Prop: AwaitingOnlyByDecision | 「1ステップで操作種別・対象要素・エラー表示の有無・ゴール達成の有無を問い合わせる」、「判断モデルの応答が使えないときは操作せず、応答の異常として記録して次のステップへ進む」 |
+| S-006    | event      | Next: RequestDecision / Inv: ProposalWellFormed | 「1ステップで操作種別・対象要素・エラー表示の有無・ゴール達成の有無を問い合わせる」、「判断モデルの応答が使えないときは操作せず、応答の異常として記録して次のステップへ進む」 |
+| S-007    | event      | モデル外(簡略化)             | 「1ステップで操作種別・対象要素・エラー表示の有無・ゴール達成の有無を問い合わせる」 |
+| S-008    | event      | モデル外(簡略化。S-014参照)  | 「1ステップで操作種別・対象要素・エラー表示の有無・ゴール達成の有無を問い合わせる」 |
+| S-009    | ubiquitous | モデル外(送信データ形式)     | 「判断モデルに送る画面状態はアクセシビリティ情報のテキストで、操作可能要素の一覧を含む」、「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」 |
+| S-010    | unwanted   | Next: ApplyGuardrails / Inv: LowConfidenceBackNeverActed / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「確信度の低い「戻る」は実行しない」、「確信度が欠けた応答の「戻る」は低確信度として扱い、実行しない」 |
+| S-011    | unwanted   | Next: ExecuteNoChange(観測のみ。選択自体はモデル外) | 「画面が変わらないのに同じ要素を選んだら、次に確信度の高い候補へ切り替える」 |
+| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「購入・削除・退会・サインインに当たる要素は操作しない」 |
+| S-013    | unwanted   | Next: ApplyGuardrails(paywall分岐) / Prop: PaywallForcesBack, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「課金画面が出たら判断モデルに問い合わせず、既定の離脱操作をする」、「通常のページを課金画面と取り違えない」、「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」 |
+| S-014    | ubiquitous | Next: FinishNormally/FinishByProposalDone / Inv: GoalOnlyByDoneWhen / Prop: GoalPreempts | 「done_when を満たしたら、判断モデルに問い合わせずにゴール達成で終了する」、「done_when を満たさないまま判断モデルが done を返したら、未検証の終了として記録する」 |
+| S-015    | optional   | モデル外(設定ファイル定義)   | 「テスト対象・入力値・段階を YAML の設定で定義して実行する」 |
+| S-016    | optional   | モデル外(優先順位の中身)     | 「決め打ちシナリオと探索モードを同じツールで実行する」、「未操作の要素を、未探索の分岐が残る操作済み要素より先に選ぶ」 |
+| S-017    | unwanted   | Next: RecoverFromFreeze/ResumeAfterRecovery(固まりのみ。他2条件は別disjunct。設計メモ2参照) / Inv: RecoveryResetsPageState, RecoveryOnlyAfterFreeze / Prop: FreezePreemptsDecision, FreezeRecoveryRecorded, MemoryNeverShrinks | 「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「固まりを検出しているステップでは判断モデルに問い合わせない」、「ページが応答しなければ、開き直して探索を続け、探索の記憶は残す」、「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」、「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」 |
+| S-018    | event      | モデル外(問題記録の分類・保存形式) | 「問題を見つけたら、種類とステップ番号を含む名前でスクリーンショットを残す」 |
+| S-019    | unwanted   | モデル外(閾値判定の簡略化)   | 「問題を見つけたら、種類とステップ番号を含む名前でスクリーンショットを残す」、「エラー表示の確信度が閾値に届かなければ問題として記録しない」、「エラー表示の確信度が閾値ちょうどなら問題として記録する」 |
+| S-020    | unwanted   | モデル外(パターン判定)       | 「読み上げ名が画像ファイル名や仮の値の要素はアクセシビリティの問題として記録する」 |
+| S-021    | state(×3)  | Next: RecoverFromFreeze/ExecuteOutOfDomain/FinishStuck / Inv: CountersBoundedByOps, DomainRecordAccurate / Prop: IdleCounterTracksScreen, StuckCounterTracksNewElements, StuckPreempts | 「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「固まりを検出しているステップでは判断モデルに問い合わせない」、「探索済みの要素が増えない操作が閾値の1回手前までなら終了しない」、「画面が変化すれば固まりの数え直しになる」、「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」、「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」、「許可ドメインかどうかは、最終的な遷移先のオリジンの完全一致で判定する」、「リダイレクトされたら、最終的な遷移先で許可ドメインかどうかを判定する」、「操作しても探索済みの要素が3回続けて増えなければ、次のステップの前に行き詰まりで終了する」、「新しい要素を操作すると行き詰まりの数え直しになる」、「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」、「0 以下の閾値・上限や空の操作種別は設定エラーにする」 |
+| S-022    | ubiquitous | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: MemoryNeverShrinks, VisitedChangesOnlyByExecution | 「探索の記憶を次の実行に引き継ぐ」、「初めての実行では空の記憶から始める」、「探索の記憶が壊れていたら、空の記憶で始めてそのことを記録する」、「別の対象の探索の記憶は引き継がない」、「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」 |
+| S-023    | ubiquitous | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / モデル外(優先順位の中身) | 「未操作の要素を、未探索の分岐が残る操作済み要素より先に選ぶ」、「未操作の要素が無ければ、未探索の分岐が残る操作済み要素を戻る・スクロールより先に選ぶ」、「どの要素にも未探索の分岐が残っていなければ、戻るかスクロールを選ぶ」 |
+| S-024    | unwanted   | モデル外(単一画面への簡略化) | 「遷移先を探索し終えるまで、途中のボタンを探索し終えた要素として扱わない」 |
+| S-025    | optional   | モデル外(計測・観測用副作用) | 「判断・操作・画面変化待ちの時間と、判断モデルのコストを記録する」 |
+| S-026    | optional   | モデル外(計測・観測用副作用) | 「判断・操作・画面変化待ちの時間と、判断モデルのコストを記録する」 |
+| S-027    | ubiquitous | モデル外(アーキテクチャ要件) | 「決め打ちシナリオと探索モードを同じツールで実行する」 |
+| S-028    | unwanted(×2) | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「実行の直前に対象要素が無くなっていたら操作を中止する」、「名前が同じでも役割や位置が変わった要素は操作しない」、「同じ名前のボタンの位置が入れ替わったら操作を中止する」、「位置で一意に決まる同名のボタンは操作する」、「探索モードでも決済導線の要素は選ばない」 |
+| S-029    | ubiquitous | モデル外(記録の性質)         | 「意味の判断が要る検出は、判断モデルだけの判定なら参考情報として記録する」 |
+| S-030    | ubiquitous | モデル外(アーキテクチャ要件) | 全シナリオ(Background で対象ページをブラウザで開く) |
+| S-031    | ubiquitous | モデル外(アーキテクチャ要件) | 受け入れテストの対象外(配布形態の要件。リポジトリのライセンスと公開設定で確認する) |
+| S-032    | optional   | モデル外(設定ファイル定義)   | 「指定した認証状態を注入してから探索を始める」、「注入する認証状態の形式が不正なら設定エラーにする」 |
+| S-033    | unwanted   | Next: ExecuteOutOfDomain/ReturnToAllowedDomain/RequestDecisionのガード / Inv: DomainRecordAccurate / Prop: NoDecisionOutsideDomain。抽象化の空洞は設計メモ8 | 「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」、「許可ドメインかどうかは、最終的な遷移先のオリジンの完全一致で判定する」、「リダイレクトされたら、最終的な遷移先で許可ドメインかどうかを判定する」 |
+| S-034    | optional   | モデル外(出力形式)           | 「実行結果は再実行できる形で出力する」 |
+| S-035    | ubiquitous | モデル外(問題記録の分類)     | 「問題を見つけたら、種類とステップ番号を含む名前でスクリーンショットを残す」、「読み上げ名が画像ファイル名や仮の値の要素はアクセシビリティの問題として記録する」、「ブラウザのコンソールにエラーが出たら問題として記録する」、「意味の判断が要る検出は、判断モデルだけの判定なら参考情報として記録する」 |
+| S-036    | optional   | モデル外(問題記録の分類)     | 「ブラウザのコンソールにエラーが出たら問題として記録する」 |
+| S-037    | unwanted/security | モデル外(送信データのマスキング) | 「設定で指定した機密情報は判断モデルに送る前に伏せる」、「実行結果の出力とログでも、指定した機密情報を伏せる」 |
+| S-038    | unwanted/security | モデル外(設定ファイル定義) | 「API キーは設定ファイルに書かず、環境変数から読む」、「設定ファイルに API キーが直接書かれていたら設定エラーにする」、「参照先の環境変数に API キーが無ければ起動しない」 |
+| S-039    | ubiquitous | モデル外(アーキテクチャ要件) | 「判断モデルを差し替えても同じ探索ができる」 |
+| S-040    | ubiquitous | モデル外(実装API選択)        | 受け入れテストの対象外(実装で使う API の選択。依存ライブラリの版とコードレビューで確認する) |
+| S-041    | unwanted/security | Next: RequestDecision/ExceedDecisionBudget / Inv: DecisionsWithinCap, BudgetAccounting, BudgetExceededOnlyWhenSpent / Prop: AwaitingOnlyByDecision, BudgetStops, EventuallyTerminates, TerminalAbsorbing | 「判断モデルの呼び出しが上限に達したら実行を止める」、「判断モデルの呼び出しが上限の1回手前なら、まだ問い合わせる」、「判断モデルの応答が使えないときは操作せず、応答の異常として記録して次のステップへ進む」、「終了の条件が重なったら、ゴール達成、行き詰まり、判断予算切れの順に1つだけ採る」、「行き詰まりと判断予算切れが重なったら行き詰まりで終了する」、「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」、「終了した実行はそれ以上ステップを進めない」、「0 以下の閾値・上限や空の操作種別は設定エラーにする」 |
+| S-042    | unwanted/security | Next: RequestDecision/ResetRequestWindow / Inv: RequestsWithinWindowCap, BudgetAccounting | 「1時間窓の操作回数が上限に達したら、窓が明けるまで問い合わせも操作もしない」、「時間窓は時刻で区切られ、上限に達していなくても満了する」、「ページの再読み込みや許可ドメインへの戻りも、時間窓の操作回数に数える」、「ガードレールで止めて実行しなかった提案は、時間窓の操作回数に数えない」、「課金画面が出たら判断モデルに問い合わせず、既定の離脱操作をする」、「0 以下の閾値・上限や空の操作種別は設定エラーにする」 |
+| S-043    | unwanted/security | モデル外(TLS設定の制約)    | 「TLS 証明書の検証を無効にする設定は受け付けない」 |
+| S-044    | event(×3)/state | Next: FinishNormally/FinishByProposalDone/FinishByProposalStuck/FinishStuck/ExceedDecisionBudget / Inv: GoalOnlyByDoneWhen, ReportedDoneOnlyWithoutDoneWhen, ExitReasonMatchesPhase / Prop: GoalPreempts, StuckPreempts, BudgetStops, ProposalOutcome, EventuallyTerminates, TerminalAbsorbing | 「done_when を満たしたら、判断モデルに問い合わせずにゴール達成で終了する」、「done_when を満たさないまま判断モデルが done を返したら、未検証の終了として記録する」、「判断モデルが stuck を返したら行き詰まりで終了する」、「操作しても探索済みの要素が3回続けて増えなければ、次のステップの前に行き詰まりで終了する」、「探索済みの要素が増えない操作が閾値の1回手前までなら終了しない」、「判断モデルの呼び出しが上限の1回手前なら、まだ問い合わせる」、「終了の条件が重なったら、ゴール達成、行き詰まり、判断予算切れの順に1つだけ採る」、「行き詰まりと判断予算切れが重なったら行き詰まりで終了する」、「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」、「判断モデルの呼び出しが上限に達したら実行を止める」、「終了した実行はそれ以上ステップを進めない」、「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」 |
 
 ## 閉じる前のチェック
 
@@ -211,4 +211,4 @@
    - `isPaywall`(S-013): (a) 課金・プラン選択・購読を促す語(「プレミアム」「アップグレード」「subscribe」「pricing」等)を含む見出しやボタン、`/pricing`・`/upgrade`・`/checkout`系のURL、モーダルで主要操作が塞がれている状態のいずれかで判定する。(b) 実在するSaaSの課金モーダル・料金ページのHTML断片を使ったゴールデンテストと、通常ページを課金画面と誤判定しないことの確認。
    - `proposedLowConf`(S-010): (a) 判断モデルが返す確率の最大値が0.7未満なら真。閾値は設定で変えられる。(b) 境界値テスト(0.69 / 0.7 / 0.71)と、確率が欠けた応答を低確信度として扱うことの確認。
    - `inAllowedDomain`(S-033): (a) 遷移後のURLのオリジン(スキーム・ホスト・ポート)を設定の許可リストと完全一致で比べる。サブドメインはワイルドカード指定のときだけ許す。(b) 似た名前のホスト(`example.com.evil.test`、`examp1e.com`)、リダイレクト経由の外部遷移、`javascript:`/`data:` URLを入力にした単体テスト。
-   - `targetExists`(S-028): (a) 操作の直前にアクセシビリティツリーを取り直し、判断モデルが返した要素の識別子(role + accessible name + 位置)が一意に見つかるかで判定する。(b) 問い合わせから操作までの間に要素が消える・差し替わるページを用意した統合テストと、同名要素が複数あるときに操作を中止することの確認。
+   - `targetExists`(S-028): (a) 操作の直前にアクセシビリティツリーを取り直し、判断モデルが返した要素の識別子(role + accessible name + 位置)が一意に見つかり、かつ問い合わせ時に取得したDOMノードと同じノードであるかで判定する。識別子が一致しても別のノードに入れ替わっていれば存在しないとみなす。(b) 問い合わせから操作までの間に要素が消える・差し替わる(名前は同じでroleや位置が変わる)ページを用意した統合テストと、同じroleと名前の要素が複数あり、問い合わせ時の位置にその要素が無くなったときに操作を中止することの確認。同名でも位置で一意に決まれば操作してよい(2026-10-18、識別子の定義(a)と食い違っていたため、(a)にノードの同一性を足し、(b)を合わせた)。
