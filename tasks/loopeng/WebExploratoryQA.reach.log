@@ -1,0 +1,279 @@
+=== P1: LowConfidenceBackNeverActedの前件 (proposedOp="back" /\ proposedLowConfBack) の到達性 ===
+実行日時: 2026-10-17T15:18:03+09:00
+INVARIANT: NotP1 == ~(proposedOp = "back" /\ proposedLowConfBack)
+TLC2 Version 2026.10.13.164326 (rev: 210df3a)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 67 and seed 6274016196622130592 with 1 worker on 4 cores with 980MB heap and 64MB offheap memory [pid: 3581526] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file ./tasks/loopeng/MCWebExploratoryQA.tla
+Parsing file ./tasks/loopeng/WebExploratoryQA.tla
+Parsing file /tmp/tlc-16465693986375856738/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-16465693986375856738/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-16465693986375856738/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-16465693986375856738/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-16465693986375856738/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-16465693986375856738/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-16465693986375856738/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module WebExploratoryQA
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module MCWebExploratoryQA
+Linting of module WebExploratoryQA
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module MCWebExploratoryQA
+Starting... (2026-10-17 15:18:03)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-10-17 15:18:03.
+Error: Invariant NotP1 is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ targetExists = TRUE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = "none"
+/\ proposedLowConfBack = FALSE
+/\ phase = "idle"
+/\ proposedOp = "none"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 4
+/\ exitReason = "none"
+
+State 2: <RequestDecision line 88, col 5 to line 102, col 63 of module WebExploratoryQA>
+/\ targetExists = FALSE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = e1
+/\ proposedLowConfBack = TRUE
+/\ phase = "awaiting_decision"
+/\ proposedOp = "back"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 3
+/\ exitReason = "none"
+
+15 states generated, 14 distinct states found, 12 states left on queue.
+The depth of the complete state graph search is 2.
+Finished in 00s at (2026-10-17 15:18:03)
+Trace exploration spec path: ./MCWebExploratoryQA_TTrace_1792217882.tla
+
+=== P2: ExitReasonSetOnTerminationの前件 (phase \in {"done","stuck","error_exit"}) の到達性 ===
+実行日時: 2026-10-17T15:18:14+09:00
+INVARIANT: NotP2 == ~(phase \in {"done","stuck","error_exit"})
+TLC2 Version 2026.10.13.164326 (rev: 210df3a)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 104 and seed -3647510064087028953 with 1 worker on 4 cores with 980MB heap and 64MB offheap memory [pid: 3581683] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file ./tasks/loopeng/MCWebExploratoryQA.tla
+Parsing file ./tasks/loopeng/WebExploratoryQA.tla
+Parsing file /tmp/tlc-8585321771425193996/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-8585321771425193996/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-8585321771425193996/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-8585321771425193996/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-8585321771425193996/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-8585321771425193996/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-8585321771425193996/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module WebExploratoryQA
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module MCWebExploratoryQA
+Linting of module WebExploratoryQA
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module MCWebExploratoryQA
+Starting... (2026-10-17 15:18:13)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-10-17 15:18:14.
+Error: Invariant NotP2 is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ targetExists = TRUE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = "none"
+/\ proposedLowConfBack = FALSE
+/\ phase = "idle"
+/\ proposedOp = "none"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 4
+/\ exitReason = "none"
+
+State 2: <RequestDecision line 88, col 5 to line 102, col 63 of module WebExploratoryQA>
+/\ targetExists = FALSE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = e1
+/\ proposedLowConfBack = FALSE
+/\ phase = "awaiting_decision"
+/\ proposedOp = "done"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 3
+/\ exitReason = "none"
+
+State 3: <ApplyGuardrails line 111, col 5 to line 135, col 79 of module WebExploratoryQA>
+/\ targetExists = FALSE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = e1
+/\ proposedLowConfBack = FALSE
+/\ phase = "acting"
+/\ proposedOp = "done"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 3
+/\ exitReason = "none"
+
+State 4: <FinishByProposalDone line 194, col 5 to line 200, col 67 of module WebExploratoryQA>
+/\ targetExists = FALSE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = e1
+/\ proposedLowConfBack = FALSE
+/\ phase = "done"
+/\ proposedOp = "done"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 3
+/\ exitReason = "goal_achieved"
+
+266 states generated, 161 distinct states found, 96 states left on queue.
+The depth of the complete state graph search is 4.
+Finished in 00s at (2026-10-17 15:18:14)
+Trace exploration spec path: ./MCWebExploratoryQA_TTrace_1792217893.tla
+
+=== P3(補助検査、Invの44要件対応表には無い一時検査): FinishByProposalDoneの到達可能性(死んだコードでないことの確認) ===
+実行日時: 2026-10-17T15:18:28+09:00
+INVARIANT: NotP3ReachedDoneWithoutFullVisit == ~(phase="done" /\ visited /= Elements \ ForbiddenElements)
+目的: visitedが全要素探索済みでない(FinishNormallyの到達条件を満たさない)状態からでも、
+      FinishByProposalDone経由でphase="done"に到達できることを示す(構造的に機能していることの検証)。
+TLC2 Version 2026.10.13.164326 (rev: 210df3a)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 4 and seed 2282114727142071354 with 1 worker on 4 cores with 980MB heap and 64MB offheap memory [pid: 3581844] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file ./tasks/loopeng/MCWebExploratoryQA.tla
+Parsing file ./tasks/loopeng/WebExploratoryQA.tla
+Parsing file /tmp/tlc-12233269696132261445/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-12233269696132261445/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-12233269696132261445/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-12233269696132261445/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-12233269696132261445/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-12233269696132261445/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-12233269696132261445/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module WebExploratoryQA
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module MCWebExploratoryQA
+Linting of module WebExploratoryQA
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module MCWebExploratoryQA
+Starting... (2026-10-17 15:18:28)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-10-17 15:18:28.
+Error: Invariant NotP3ReachedDoneWithoutFullVisit is violated.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+/\ targetExists = TRUE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = "none"
+/\ proposedLowConfBack = FALSE
+/\ phase = "idle"
+/\ proposedOp = "none"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 4
+/\ exitReason = "none"
+
+State 2: <RequestDecision line 88, col 5 to line 102, col 63 of module WebExploratoryQA>
+/\ targetExists = FALSE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = e1
+/\ proposedLowConfBack = FALSE
+/\ phase = "awaiting_decision"
+/\ proposedOp = "done"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 3
+/\ exitReason = "none"
+
+State 3: <ApplyGuardrails line 111, col 5 to line 135, col 79 of module WebExploratoryQA>
+/\ targetExists = FALSE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = e1
+/\ proposedLowConfBack = FALSE
+/\ phase = "acting"
+/\ proposedOp = "done"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 3
+/\ exitReason = "none"
+
+State 4: <FinishByProposalDone line 194, col 5 to line 200, col 67 of module WebExploratoryQA>
+/\ targetExists = FALSE
+/\ isPaywall = FALSE
+/\ visited = {}
+/\ requestBudget = 4
+/\ idleCounter = 0
+/\ proposedTarget = e1
+/\ proposedLowConfBack = FALSE
+/\ phase = "done"
+/\ proposedOp = "done"
+/\ inAllowedDomain = TRUE
+/\ screenChanged = TRUE
+/\ stuckCounter = 0
+/\ decisionBudget = 3
+/\ exitReason = "goal_achieved"
+
+266 states generated, 161 distinct states found, 96 states left on queue.
+The depth of the complete state graph search is 4.
+Finished in 00s at (2026-10-17 15:18:28)
+Trace exploration spec path: ./MCWebExploratoryQA_TTrace_1792217907.tla
+

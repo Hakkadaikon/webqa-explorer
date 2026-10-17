@@ -1,0 +1,4 @@
+# TLC model-checker scratch output
+tasks/loopeng/states/
+tasks/loopeng/*_TTrace_*.tla
+tasks/loopeng/*_TTrace_*.bin
