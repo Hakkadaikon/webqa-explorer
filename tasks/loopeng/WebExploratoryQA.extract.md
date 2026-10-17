@@ -49,7 +49,7 @@
 - [x] S-016 (A)§6 「--explore 秒数で、未押下のボタンを優先して触り続ける」
       → システムは指定時間だけゴールなしで未操作要素を優先的に操作し続ける探索モードを提供しなければならない。(optional)
 - [x] S-017 (A)§6 「固まる、アプリ外に出る、行き詰まる場合はアプリを再起動して続行する」[設計メモ2]
-      → IF 探索中にページが応答しない・対象ドメイン外に遷移した・行き詰まり状態になったとき、システムは対象ページを初期状態に戻して探索を継続しなければならない。(unwanted)
+      → IF 探索中にページが応答しない・対象ドメイン外に遷移した・行き詰まり状態になったとき、システムは対象ページを初期状態に戻して探索を継続しなければならない。初期状態に戻すのはページの状態だけで、探索の記憶(S-022)は保持する。(unwanted)
 - [x] S-018 (A)§6 「気になる点はISSUE_<種類>_step<番号>.pngの名前でスクリーンショットを保存する」
       → WHEN 問題が検出されたとき、システムは種類とステップ番号を含む命名でスクリーンショットを保存しなければならない。(event)
 - [x] S-019 (A)§6 「エラー表示: Jevが判定」
@@ -59,7 +59,7 @@
 - [x] S-021 (A)§6 「固まり、アプリ外、行き詰まり: ツールが判定」[設計メモ3]
       → システムは一定時間操作後も画面に変化がない状態を「固まり」として判定しなければならない。(state)
       → システムは操作の結果が許可ドメインの外への遷移であることを検出できなければならない。(state)
-      → システムは既定の試行回数操作しても新規要素が出ない状態を「行き詰まり」として判定しなければならない。(state)
+      → システムは既定の試行回数操作しても新規要素が出ない状態を「行き詰まり」として判定しなければならない。新規要素が出ないとは、操作の結果、探索済みの要素の集合が増えないことをいう。(state)
 - [x] S-022 (A)§6 「探索の記憶: 画面と遷移をグラフとして実行をまたいで保存」
       → システムは画面状態と操作による遷移を実行をまたいで永続化したグラフとして保持しなければならない。(ubiquitous)
 - [x] S-023 (A)§6 「未押下優先→未探索分岐残り優先→戻る/スクロールの順で選択」
@@ -102,50 +102,52 @@
 - [x] S-041 (STRIDE: D観点) 「判断モデルAPI呼び出しの無制限実行によるコスト膨張の防止」
       → システムは判断モデルAPIへの呼び出し回数または実行時間に上限を設定でき、上限に達したとき実行を停止しなければならない。(unwanted/security)
 - [x] S-042 (STRIDE: D観点) 「探索モードによるテスト対象サーバへの過度な負荷の防止」
-      → システムは探索モードにおける単位時間あたりの操作回数に上限を設け、対象サーバへの過度な負荷を避けなければならない。(unwanted/security)
+      → システムは探索モードにおける単位時間あたりの操作回数に上限を設け、対象サーバへの過度な負荷を避けなければならない。単位時間の窓は時刻で区切られ、どの時点でも満了しうる。(unwanted/security)
 - [x] S-043 (STRIDE: S観点)[設計メモ6] 「判断モデルAPIとの通信でTLS証明書検証を無効化してはならない」
       → システムは判断モデルAPIへの通信でTLS証明書検証を無効化する設定を使用してはならない。(unwanted/security)
 - [x] S-044 (補足要件)[設計メモ7] 「判断結果がdoneまたはstuckのときの実行終了の扱い」
-      → WHEN done_when条件が満たされたとき、またはoperation=doneが返されたとき、システムは実行を正常終了として記録しなければならない。(event)
+      → WHEN done_when条件が満たされたとき、システムは実行をゴール達成として記録しなければならない。(event)
+      → WHEN operation=doneが返されたがdone_when条件が満たされていないとき、システムは実行を未検証の終了(reported_done)として記録しなければならない。(event)
       → WHEN operation=stuckが返されたとき、またはS-021の行き詰まり検出条件が成立したとき、システムは実行を行き詰まり終了として記録しなければならない。(event)
+      → WHILE 判断を問い合わせる前の待機状態にあるとき、システムはゴール達成(S-014)、行き詰まり(S-021)、判断予算切れ(S-041)、固まり復旧・ドメイン復帰・リクエスト窓の満了(S-017, S-033, S-042)、判断の問い合わせの順に、成り立つ条件のうち最も優先度の高いものだけを実行しなければならない。(state)
 
 ## トレーサビリティ・マトリクス(全ループ共通の消し込み台帳)
 
 | 仕様条項 | 要件(EARS) | 形式手法(TLA+ INV / Lean P) | テスト |
 |----------|------------|------------------------------|--------|
 | S-001    | (前提条件) | モデル外(実装レベルで検証)   |        |
-| S-002    | event      | Next: ExecuteOperation       |        |
+| S-002    | event      | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: SafeProposalProceeds, ProposalOutcome, VisitedChangesOnlyByExecution |  |
 | S-003    | event      | モデル外(送信データ形式)     |        |
 | S-004    | ubiquitous | モデル外(設定ファイル定義)   |        |
-| S-005    | event      | Next: RequestDecision        |        |
-| S-006    | event      | Next: RequestDecision        |        |
+| S-005    | event      | Next: RequestDecision / Inv: ProposalWellFormed / Prop: AwaitingOnlyByDecision |  |
+| S-006    | event      | Next: RequestDecision / Inv: ProposalWellFormed |  |
 | S-007    | event      | モデル外(簡略化)             |        |
 | S-008    | event      | モデル外(簡略化。S-014参照)  |        |
 | S-009    | ubiquitous | モデル外(送信データ形式)     |        |
-| S-010    | unwanted   | Next: ApplyGuardrails / Inv: LowConfidenceBackNeverActed |  |
-| S-011    | unwanted   | Next: ObserveNoChange(観測のみ。選択自体はモデル外) |  |
-| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden |  |
-| S-013    | unwanted   | Next: ApplyGuardrails(paywall分岐) |  |
-| S-014    | ubiquitous | Next: FinishNormally         |        |
+| S-010    | unwanted   | Next: ApplyGuardrails / Inv: LowConfidenceBackNeverActed / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
+| S-011    | unwanted   | Next: ExecuteNoChange(観測のみ。選択自体はモデル外) |  |
+| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
+| S-013    | unwanted   | Next: ApplyGuardrails(paywall分岐) / Prop: PaywallForcesBack, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
+| S-014    | ubiquitous | Next: FinishNormally/FinishByProposalDone / Inv: GoalOnlyByDoneWhen / Prop: GoalPreempts |  |
 | S-015    | optional   | モデル外(設定ファイル定義)   |        |
 | S-016    | optional   | モデル外(優先順位の中身)     |        |
-| S-017    | unwanted   | Next: RecoverFromFreeze(固まりのみ。他2条件は別disjunct。設計メモ2参照) |  |
+| S-017    | unwanted   | Next: RecoverFromFreeze/ResumeAfterRecovery(固まりのみ。他2条件は別disjunct。設計メモ2参照) / Inv: RecoveryResetsPageState, RecoveryOnlyAfterFreeze / Prop: FreezePreemptsDecision, FreezeRecoveryRecorded, MemoryNeverShrinks |  |
 | S-018    | event      | モデル外(問題記録の分類・保存形式) |  |
 | S-019    | unwanted   | モデル外(閾値判定の簡略化)   |        |
 | S-020    | unwanted   | モデル外(パターン判定)       |        |
-| S-021    | state(×3)  | Next: RecoverFromFreeze/ObserveOutOfDomain/FinishStuck |  |
-| S-022    | ubiquitous | Next: ExecuteOperation       |        |
-| S-023    | ubiquitous | Next: ExecuteOperation / モデル外(優先順位の中身) |  |
+| S-021    | state(×3)  | Next: RecoverFromFreeze/ExecuteOutOfDomain/FinishStuck / Inv: CountersBoundedByOps, DomainRecordAccurate / Prop: IdleCounterTracksScreen, StuckCounterTracksNewElements, StuckPreempts |  |
+| S-022    | ubiquitous | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: MemoryNeverShrinks, VisitedChangesOnlyByExecution |  |
+| S-023    | ubiquitous | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / モデル外(優先順位の中身) |  |
 | S-024    | unwanted   | モデル外(単一画面への簡略化) |        |
 | S-025    | optional   | モデル外(計測・観測用副作用) |        |
 | S-026    | optional   | モデル外(計測・観測用副作用) |        |
 | S-027    | ubiquitous | モデル外(アーキテクチャ要件) |        |
-| S-028    | unwanted(×2) | Next: ApplyGuardrails      |        |
+| S-028    | unwanted(×2) | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 |  |
 | S-029    | ubiquitous | モデル外(記録の性質)         |        |
 | S-030    | ubiquitous | モデル外(アーキテクチャ要件) |        |
 | S-031    | ubiquitous | モデル外(アーキテクチャ要件) |        |
 | S-032    | optional   | モデル外(設定ファイル定義)   |        |
-| S-033    | unwanted   | Next: ObserveOutOfDomain/ReturnToAllowedDomain |  |
+| S-033    | unwanted   | Next: ExecuteOutOfDomain/ReturnToAllowedDomain/RequestDecisionのガード / Inv: DomainRecordAccurate / Prop: NoDecisionOutsideDomain。抽象化の空洞は設計メモ8 |  |
 | S-034    | optional   | モデル外(出力形式)           |        |
 | S-035    | ubiquitous | モデル外(問題記録の分類)     |        |
 | S-036    | optional   | モデル外(問題記録の分類)     |        |
@@ -153,10 +155,10 @@
 | S-038    | unwanted/security | モデル外(設定ファイル定義) |        |
 | S-039    | ubiquitous | モデル外(アーキテクチャ要件) |        |
 | S-040    | ubiquitous | モデル外(実装API選択)        |        |
-| S-041    | unwanted/security | Next: ExceedDecisionBudget / Inv: BudgetRespected |  |
-| S-042    | unwanted/security | Next: RequestDecisionのガード / Inv: RequestBudgetRespected |  |
+| S-041    | unwanted/security | Next: RequestDecision/ExceedDecisionBudget / Inv: DecisionsWithinCap, BudgetAccounting, BudgetExceededOnlyWhenSpent / Prop: AwaitingOnlyByDecision, BudgetStops, EventuallyTerminates, TerminalAbsorbing |  |
+| S-042    | unwanted/security | Next: RequestDecision/ResetRequestWindow / Inv: RequestsWithinWindowCap, BudgetAccounting |  |
 | S-043    | unwanted/security | モデル外(TLS設定の制約)    |        |
-| S-044    | event(×2)  | Next: FinishByProposalDone/FinishByProposalStuck |  |
+| S-044    | event(×3)/state | Next: FinishNormally/FinishByProposalDone/FinishByProposalStuck/FinishStuck/ExceedDecisionBudget / Inv: GoalOnlyByDoneWhen, ReportedDoneOnlyWithoutDoneWhen, ExitReasonMatchesPhase / Prop: GoalPreempts, StuckPreempts, BudgetStops, ProposalOutcome, EventuallyTerminates, TerminalAbsorbing |  |
 
 ## 閉じる前のチェック
 
@@ -173,8 +175,8 @@
       - D サービス拒否: 判断モデルAPIへの無制限リクエストで費用膨張・レート制限に至るか→S-041
       - E 権限昇格: 判断ミスで権限外の操作(決済・退会等)に到達するか→S-012, S-013, S-028
       - (2)テスト対象Web境界
-      - S なりすまし: テスト対象ページが偽装ページでも操作を続けるか→該当なし: S-033のドメイン境界チェックでカバー
-      - T 改ざん: 該当なし: テスト対象アプリの応答を信頼して読むだけで危険な処理をする構造がない
+      - S なりすまし: テスト対象ページが偽装ページ(許可ドメイン外へ誘導するページ)でも操作を続けるか→S-033
+      - T 改ざん: ページの文言にプロンプトインジェクションを仕込み、判断モデルの出力(操作対象の選択)を誘導できるか→S-012, S-013, S-028。この3つは判断モデルの出力に依存しないガードで、誘導されても禁止要素・課金画面・存在しない要素への操作は止まる。禁止要素以外の要素の選び方が誘導されることは防げないが、探索範囲はS-033で許可ドメイン内に限られる
       - R 否認: S-018, S-022と同様
       - I 情報漏洩: スクリーンショット保存による他ユーザー情報の永続化→該当なし: テスト環境利用が前提、取り扱いは利用者の運用範囲
       - D サービス拒否: 探索モードが対象サーバへ高頻度リクエストで負荷をかけるか→S-042
@@ -188,6 +190,7 @@
       - E 権限昇格: 該当なし: 設定ファイルは自身の挙動を定義するのみ
 - [x] CWE: 入力のパースや長さ・オフセットの算術があれば、カテゴリごとにS-IDか「該当なし: 理由」
       - CWE-20(不適切な入力検証): S-020, S-028
+      - CWE-1427(LLMへのプロンプト入力の不適切な無害化): S-012, S-013, S-028(判断モデルの出力を信用せず、モデルに依存しないガードで操作を止める。STRIDE(2)Tを参照)
       - CWE-770(リソース制限なしの割り当て): S-041, S-042(探索時間上限(S-016)はあるがAPI呼び出し回数・操作頻度の上限が無かったため追加要件化)
       - CWE-190(整数オーバーフロー)・CWE-682(不正な計算): 該当なし: 理由=S-023/S-021は内部カウンタのみの整数演算で外部入力に起因する桁あふれ経路が無い。S-026のトークン数は外部(判断モデルAPI)由来だが値域が小さく(現実的な上限は数百万オーダー、64bit整数/浮動小数点の範囲で桁あふれしない規模)、桁あふれを誘発できる経路が無い
       - 長さ・オフセットの算術: 該当なし: 理由=テキスト化されたアクセシビリティ情報とJSON APIのやり取りのみで、固定長バッファやオフセット計算を行う実装要素がない
@@ -195,11 +198,17 @@
 ## 設計メモ(ID別の補足・他IDとの関係・レビュー対応の経緯)
 
 1. **S-005**: 原文のoperationの選択肢は「タップ／入力／下スクロール／上スクロール／戻る／待つ／完了／行き詰まり」の8種。上下スクロールを1つの`scroll`に統合すると情報量を減らした変換になるため、8種のまま維持する。
-2. **S-017**: 固まる/アプリ外/行き詰まりの3条件はOR→単一アクション(「初期状態へ戻して続行」)として0段で1文のまま抽出した。ただしformalize工程のTLA+実装では3条件それぞれ異なる扱いになった(固まりのみ`RecoverFromFreeze`で復旧、ドメイン外は`ObserveOutOfDomain`/`ReturnToAllowedDomain`で継続、行き詰まりは`FinishStuck`で終了)。「結果のアクションが1つに収束する」という0段時点の想定はformalize実装と一致しなかったため、トレーサビリティ・マトリクスのS-017行に実装の実態を注記した。詳細は`WebExploratoryQA.faithfulness.md`のS-017説明を参照。
+2. **S-017**: 固まる/アプリ外/行き詰まりの3条件はOR→単一アクション(「初期状態へ戻して続行」)として0段で1文のまま抽出した。ただしformalize工程のTLA+実装では3条件それぞれ異なる扱いになった(固まりのみ`RecoverFromFreeze`で復旧、ドメイン外は`ExecuteOutOfDomain`/`ReturnToAllowedDomain`で継続、行き詰まりは`FinishStuck`で終了)。「結果のアクションが1つに収束する」という0段時点の想定はformalize実装と一致しなかったため、トレーサビリティ・マトリクスのS-017行に実装の実態を注記した。詳細は`WebExploratoryQA.faithfulness.md`のS-017説明を参照。
    - S-018も同様に6条件のOR→単一アクション(命名規則に沿ったスクリーンショット保存)として1文のまま抽出し、こちらは実装も単一アクションのまま変わっていない。
    - S-021は同じ3条件を「異なるstate名への判定」としてS-017とは別に3文へ分割した。S-017(復旧アクション)とS-021(検出条件)は検出→復旧の前後関係にあるが、一方が他方に吸収されるものではない独立要件。
 3. **S-019 / S-021**: S-007(is_error_shownの値取得)・S-017(固まり検出後の復旧アクション)とは別の独立した新規要件。S-019はS-007で取得した値を閾値判定して検出イベントに変換する要件、S-021はその検出条件自体を定義する要件であり、いずれも吸収・統合ではない。
 4. **S-034**: 出典は(A)§9「見つけたときにはスクリーンショットと操作の記録が残っているので、再現手順をすぐに確認でき、そのまま原因の調査につなげられました」。この一文を当初は「結果報告でテスト要件を含まない」として対象外にしていたが、再現性要件の直接の一次出典であると判明したため§9由来に修正した(記事を再取得し原文と逐語一致を確認済み)。
 5. **S-039**: 出典は調査結果(Jevは早期アクセス制・公式ドキュメント未整備のベンダー専用モデルであること)。記事§11「Jevが操作し失敗時にClaudeが原因調査・修正する」という今後構想とは直接の論理対応が無いため、出典をこの調査結果に統一した。
 6. **S-043**: 2回目のformalizeレビューでSTRIDE(S観点, 判断モデルAPI境界)の「該当なし」判断が手薄と指摘され追加。当初「TLS証明書検証失敗時にクライアントが接続を続行してしまう」という理由で要件化したが、3回目レビューで「ライブラリの既定動作をアプリ側で再実装するよう要求する過剰設計」と指摘され、「TLS証明書検証を無効化する設定を使用してはならない」という禁止系の文言に修正した。既定のHTTPSクライアントはTLS検証失敗時に例外を投げて続行しない動作を持つため、独自の検証・停止ロジックの実装は要求せず、検証を無効化しないことだけを要件化する。
-7. **S-044**: 3回目のformalizeレビューで、S-002/S-005のoperation選択肢done/stuckに対応する制御フロー(実行終了の扱い)がどのIDにも定義されていないことを指摘され追加。TLA+実装では当初`FinishNormally`/`FinishStuck`(構造的到達による終了)と誤って対応づけていたが、`proposedOp`(判断モデルの提案)の値が一度も参照されず構造的に無視されていることが判明し、専用disjunct(`FinishByProposalDone`/`FinishByProposalStuck`)を追加して対応した。
+7. **S-044**: 3回目のformalizeレビューで、S-002/S-005のoperation選択肢done/stuckに対応する制御フロー(実行終了の扱い)がどのIDにも定義されていないことを指摘され追加。TLA+実装では当初`FinishNormally`/`FinishStuck`(構造的到達による終了)と誤って対応づけていたが、`proposedOp`(判断モデルの提案)の値が一度も参照されず構造的に無視されていることが判明し、専用disjunct(`FinishByProposalDone`/`FinishByProposalStuck`)を追加して対応した。中ループ(2026-10-17)で、旧文面「operation=doneなら正常終了として記録」がS-014(自己申告は信用しない)と矛盾していることが判明した。2026-10-17のClaude Codeセッションで、ユーザーが確認の問い(選択肢「承認」/「却下」)に「承認」と答えたうえで、done_whenを満たすときだけゴール達成、満たさないdoneは未検証の終了(reported_done)として記録する文面に分割した。2026-10-18の2回目の中ループレビューで、待機状態で複数の終了条件が同時に成り立つときの扱いが決まっていないことを指摘された。2026-10-18にユーザーが確認の問い(選択肢「3つとも入れる」/「個別に判断したい」と「記憶を保持」/「記憶もリセット」)にそれぞれ「3つとも入れる」「記憶を保持」と答えたうえで、優先順位を定めるstate行を追加した。同じ承認で、S-017(探索の記憶を保持する)、S-021(新規要素の定義)、S-042(窓はいつでも満了しうる)の文面も明確にした。
+8. **抽象化の空洞(S-010, S-012, S-013, S-028, S-033)**: TLA+では、安全性の判定を非決定的な真偽値や有限集合に丸めている。TLCが緑でも、判定そのものが正しいことは保証しない。変数ごとに (a)実装での判定軸 と (b)判定ロジックの検証方法 を書く。
+   - `ForbiddenElements`(S-012, S-028): (a)と(b)は`WebExploratoryQA.model.md`の「`ForbiddenElements`の判定ロジック」節に書いた。判定軸はキーワード、ARIA role、遷移先URL、明示リストの4つのORで、矛盾したら禁止側を優先する。検証はゴールデンテスト、敵対的サンプル、差分テストで行う。
+   - `isPaywall`(S-013): (a) 課金・プラン選択・購読を促す語(「プレミアム」「アップグレード」「subscribe」「pricing」等)を含む見出しやボタン、`/pricing`・`/upgrade`・`/checkout`系のURL、モーダルで主要操作が塞がれている状態のいずれかで判定する。(b) 実在するSaaSの課金モーダル・料金ページのHTML断片を使ったゴールデンテストと、通常ページを課金画面と誤判定しないことの確認。
+   - `proposedLowConf`(S-010): (a) 判断モデルが返す確率の最大値が0.7未満なら真。閾値は設定で変えられる。(b) 境界値テスト(0.69 / 0.7 / 0.71)と、確率が欠けた応答を低確信度として扱うことの確認。
+   - `inAllowedDomain`(S-033): (a) 遷移後のURLのオリジン(スキーム・ホスト・ポート)を設定の許可リストと完全一致で比べる。サブドメインはワイルドカード指定のときだけ許す。(b) 似た名前のホスト(`example.com.evil.test`、`examp1e.com`)、リダイレクト経由の外部遷移、`javascript:`/`data:` URLを入力にした単体テスト。
+   - `targetExists`(S-028): (a) 操作の直前にアクセシビリティツリーを取り直し、判断モデルが返した要素の識別子(role + accessible name + 位置)が一意に見つかるかで判定する。(b) 問い合わせから操作までの間に要素が消える・差し替わるページを用意した統合テストと、同名要素が複数あるときに操作を中止することの確認。
