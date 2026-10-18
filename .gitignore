@@ -20,3 +20,6 @@ __pycache__/
 
 # Run output of webqa (memory, event log, reports)
 .webqa/
+
+# Secrets for local runs (read by webqa at startup; never commit)
+.env
