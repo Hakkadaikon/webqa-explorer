@@ -1,0 +1,18 @@
+# Complexity limits (also checked from rust-code-analysis by scripts/metrics.py).
+cognitive-complexity-threshold = 4
+too-many-arguments-threshold = 7
+excessive-nesting-threshold = 3
+too-many-lines-threshold = 50
+
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true
+
+# Time is read only through an injected clock, so tests never wait on the
+# wall clock.
+disallowed-methods = [
+  { path = "std::time::Instant::now", reason = "read time through the injected clock" },
+  { path = "std::time::SystemTime::now", reason = "read time through the injected clock" },
+  { path = "std::thread::sleep", reason = "wait through the injected clock" },
+]

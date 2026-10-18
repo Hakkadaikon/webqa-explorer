@@ -1,0 +1,13 @@
+[files]
+# TLC output and mutation logs quote truncated tool messages verbatim.
+extend-exclude = [
+  "tasks/loopeng/*.tsv",
+  "tasks/loopeng/*.log",
+  "aqua-checksums.json",
+]
+
+[default.extend-words]
+# Name of the judge model's yes/no question type.
+noul = "noul"
+# Prefix matched against TLC's "Temporal properties ... violated".
+propert = "propert"

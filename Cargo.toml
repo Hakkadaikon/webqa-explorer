@@ -1,0 +1,40 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.99"
+publish = false
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+# Groups: everything but `restriction` is on; CI turns warnings into errors.
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+# Picked from `restriction`.
+absolute_paths = "warn"
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+as_conversions = "warn"
+dbg_macro = "warn"
+excessive_nesting = "warn"
+exit = "warn"
+expect_used = "warn"
+indexing_slicing = "warn"
+missing_assert_message = "warn"
+mod_module_files = "warn"
+panic = "warn"
+print_stderr = "warn"
+print_stdout = "warn"
+str_to_string = "warn"
+string_add = "warn"
+todo = "warn"
+unimplemented = "warn"
+unwrap_used = "warn"
+wildcard_enum_match_arm = "warn"
