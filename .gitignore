@@ -8,3 +8,4 @@ tasks/loopeng/*_TTrace_*.bin
 target/
 lcov.info
 mutants.out*/
+__pycache__/
