@@ -9,7 +9,7 @@ use webqa_core::guard::forbidden::Candidate;
 use webqa_core::guard::identity::Node;
 use webqa_core::guard::paywall::PaywallFacts;
 use webqa_core::ports::{BrowserError, Observation};
-use webqa_core::screen::{Viewport, in_viewport};
+use webqa_core::screen::{Element, Viewport, in_viewport};
 
 use crate::launch::PlaywrightBrowser;
 use crate::probe::{self, Probe, ProbeArg};
@@ -25,12 +25,14 @@ impl PlaywrightBrowser {
         self.last = probed.iter().map(|(entry, _)| entry.clone()).collect();
         self.last_url = url.clone();
         let console = self.console.take();
+        let text = body_text(&self.page).await;
         Ok(assemble(
             url,
             self.viewport,
             probed,
             snapshot.headings,
             console,
+            text,
         ))
     }
 }
@@ -57,6 +59,18 @@ async fn probe_all(page: &Page, entries: Vec<Entry>, arg: &ProbeArg) -> Vec<(Ent
     probed
 }
 
+/// The `innerText` of `body`, or an empty text when it cannot be read, such
+/// as without `body`: only `done_when`'s `text` needs it.
+///
+/// Read by a page script rather than `Locator::inner_text`, which waits
+/// for `body` up to its own fixed 30 seconds instead of the page's timeout.
+/// The script does not wait: without `body` it fails at once.
+async fn body_text(page: &Page) -> String {
+    let body = page.locator("body");
+    let text = body.evaluate("body => body.innerText", None::<()>).await;
+    text.unwrap_or_default()
+}
+
 /// Puts the parts read from the page into one observation.
 pub fn assemble(
     url: Url,
@@ -64,6 +78,7 @@ pub fn assemble(
     probed: Vec<(Entry, Probe)>,
     headings: Vec<Heading>,
     console: Vec<String>,
+    text: String,
 ) -> Observation {
     let hits = probed
         .iter()
@@ -82,6 +97,25 @@ pub fn assemble(
         candidates,
         paywall: paywall(&snapshot, url, viewport, hits),
         console,
+        outline: outline(&snapshot),
+        text,
+    }
+}
+
+/// The operable elements in page order, then the headings in page order.
+fn outline(snapshot: &Snapshot) -> Vec<Element> {
+    let operable = snapshot.entries.iter().map(|entry| entry.element.clone());
+    operable
+        .chain(snapshot.headings.iter().map(heading))
+        .collect()
+}
+
+fn heading(heading: &Heading) -> Element {
+    Element {
+        role: "heading".to_owned(),
+        name: heading.name.clone(),
+        value: None,
+        rect: heading.rect,
     }
 }
 
