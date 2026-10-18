@@ -5,6 +5,8 @@
 //! the element to operate on from the ranked answer.
 
 mod ask;
+#[cfg(test)]
+mod explore_tests;
 mod image;
 mod target;
 mod verdict;
