@@ -1,0 +1,48 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: Install tools
+        run: |
+          sh scripts/install-aqua.sh
+          echo "$PWD/.aqua/bin" >> "$GITHUB_PATH"
+          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/aqua.yaml" PATH="$PWD/.aqua/bin:$PATH"
+          aqua policy allow aqua-policy.yaml
+          aqua install
+      - name: Format, lint, metrics and tests with 100% coverage
+        run: just check
+      - name: Dependency audit
+        run: just deny
+  mutants:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - name: Install tools
+        run: |
+          sh scripts/install-aqua.sh
+          echo "$PWD/.aqua/bin" >> "$GITHUB_PATH"
+          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/aqua.yaml" PATH="$PWD/.aqua/bin:$PATH"
+          aqua policy allow aqua-policy.yaml
+          aqua install
+      - name: Mutation test of the changed code
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff "$BASE"...HEAD > pr.diff
+          just mutants --in-diff pr.diff
