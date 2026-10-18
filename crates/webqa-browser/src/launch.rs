@@ -207,10 +207,15 @@ async fn open(
 
 /// The page with `timeout` for actions and navigations.
 async fn timed(page: Page, timeout: Duration) -> Page {
-    let millis = timeout.as_secs_f64() * 1000.0;
-    page.set_default_timeout(millis).await;
-    page.set_default_navigation_timeout(millis).await;
+    let limit = millis(timeout);
+    page.set_default_timeout(limit).await;
+    page.set_default_navigation_timeout(limit).await;
     page
+}
+
+/// `timeout` in milliseconds, as Playwright takes it.
+fn millis(timeout: Duration) -> f64 {
+    timeout.as_secs_f64() * 1000.0
 }
 
 fn context_options(options: &LaunchOptions) -> BrowserContextOptions {

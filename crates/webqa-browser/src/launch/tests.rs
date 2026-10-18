@@ -71,3 +71,15 @@ fn first_visit_keeps_timeouts_and_fails_on_errors() {
         "a slow start page still launches"
     );
 }
+
+#[test]
+fn page_timeout_in_milliseconds() {
+    assert_eq!(
+        [
+            millis(Duration::from_millis(1500)),
+            millis(Duration::from_secs(2))
+        ],
+        [1500.0, 2000.0],
+        "Playwright takes milliseconds"
+    );
+}
