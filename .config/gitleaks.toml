@@ -16,6 +16,7 @@ description = "Installed tools and build output are not part of the repository"
 # `gitleaks dir` does not read .gitignore, so the ignored caches are listed here.
 paths = [
   '''^\.aqua/''',
+  '''^\.claude/worktrees/''',
   '''^target/''',
   '''^\.git/''',
   '''^\.config/npm/node_modules/''',

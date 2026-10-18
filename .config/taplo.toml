@@ -1,1 +1,1 @@
-exclude = [".aqua/**", "target/**"]
+exclude = [".aqua/**", "target/**", ".claude/worktrees/**"]

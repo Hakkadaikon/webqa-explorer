@@ -13,6 +13,7 @@ __pycache__/
 
 # Claude Code runtime state (.claude/skills is tracked)
 .claude/scheduled_tasks.lock
+.claude/worktrees/
 
 # Node tools installed from .config/npm/package-lock.json
 .config/npm/node_modules/
