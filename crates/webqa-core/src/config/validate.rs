@@ -54,6 +54,7 @@ fn assemble(raw: RawConfig, secrets: Secrets, env: Env<'_>) -> Result<Config, Co
         auth: raw.auth,
         scenario: raw.scenario,
         ops: raw.ops,
+        interview: raw.interview,
     })
 }
 
