@@ -8,9 +8,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-use webqa_browser::{LaunchError, PlaywrightBrowser};
+use webqa_browser::LaunchError;
 
-use super::port::options;
+use super::port::{at, launch};
 use super::session::Res;
 
 /// A directory under the target's temporary directory, created empty.
@@ -20,19 +20,23 @@ fn empty_dir(name: &str) -> Res<PathBuf> {
     Ok(dir)
 }
 
-/// Whether the ignored test `name` passes with `var` set to `value`.
-fn child_passes(name: &str, var: &str, value: &PathBuf) -> Res<bool> {
-    let status = Command::new(env::current_exe()?)
+/// Whether the ignored test `name` ran and passed with `var` set to
+/// `value`: the child exits with success and reports one passed test.
+fn child_passes(name: &str, var: &str, value: &PathBuf) -> Res<(bool, bool)> {
+    let output = Command::new(env::current_exe()?)
         .args(["--ignored", "--exact", name])
         .env(var, value)
-        .status()?;
-    Ok(status.success())
+        .output()?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    Ok((output.status.success(), stdout.contains("1 passed")))
 }
 
-/// Launches on a port nothing listens on: it fails before opening it.
+/// Launches on the fixture start page, answered through `route`, so that
+/// only the missing piece can make it fail.
 async fn launched() -> Res<Option<LaunchError>> {
-    let options = options("http://127.0.0.1:9/")?;
-    Ok(PlaywrightBrowser::launch(options).await.err())
+    let options = at("/start")?;
+    let failed = launch(options, 0).await.err();
+    Ok(failed.and_then(|e| e.downcast_ref::<LaunchError>().copied()))
 }
 
 #[tokio::test]
@@ -54,7 +58,7 @@ fn launch_without_chromium_tells_to_install() {
     let browsers = empty_dir("webqa-browser-no-browsers").unwrap();
     let name = "contract::children::child_launches_without_chromium";
     let passed = child_passes(name, "PLAYWRIGHT_BROWSERS_PATH", &browsers).unwrap();
-    assert!(passed, "the child sees NotInstalled");
+    assert_eq!(passed, (true, true), "the child sees NotInstalled");
 }
 
 #[test]
@@ -62,5 +66,5 @@ fn launch_without_driver_fails() {
     let driver = empty_dir("webqa-browser-no-driver").unwrap();
     let name = "contract::children::child_launches_without_driver";
     let passed = child_passes(name, "PLAYWRIGHT_DRIVER_PATH", &driver).unwrap();
-    assert!(passed, "the child sees Other");
+    assert_eq!(passed, (true, true), "the child sees Other");
 }

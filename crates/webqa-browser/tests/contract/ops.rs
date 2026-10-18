@@ -81,12 +81,23 @@ async fn waits_and_reloads(browser: &mut PlaywrightBrowser) -> Res<()> {
         before.screen,
         "nothing changed"
     );
+    touch(browser, "click", Some(id("button", "保存"))).await?;
+    let o = seen(browser).await?;
+    assert!(
+        kinds(&o).contains(&("button", "保存済み")),
+        "changed before reloading: {o:?}"
+    );
     assert_eq!(touch(browser, "reload", None).await, Ok(()), "reload");
     let o = seen(browser).await?;
     assert_eq!(o.screen.url.as_str(), START, "the start");
-    assert!(
-        kinds(&o).contains(&("button", "保存")),
-        "first state: {o:?}"
+    let buttons = kinds(&o);
+    assert_eq!(
+        (
+            buttons.contains(&("button", "保存")),
+            buttons.contains(&("button", "保存済み"))
+        ),
+        (true, false),
+        "first state again: {o:?}"
     );
     Ok(())
 }
@@ -114,8 +125,11 @@ async fn refuses_what_it_cannot_do(browser: &mut PlaywrightBrowser) -> Res<()> {
         [Err(BrowserError), Err(BrowserError)],
         "not in the table"
     );
-    let missing = touch(browser, "click", Some(id("button", "無い"))).await;
-    assert_eq!(missing, Ok(()), "no such element");
+    let missing = [
+        touch(browser, "click", Some(id("button", "無い"))).await,
+        touch(browser, "click", None).await,
+    ];
+    assert_eq!(missing, [Ok(()), Ok(())], "no such element, no target");
     assert_eq!(
         seen(browser).await?.screen,
         before.screen,
