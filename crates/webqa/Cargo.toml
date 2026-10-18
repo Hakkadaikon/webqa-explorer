@@ -12,6 +12,12 @@ webqa-browser.workspace = true
 webqa-core.workspace = true
 webqa-judge.workspace = true
 webqa-tui.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+url.workspace = true
 
 [lints]
 workspace = true
