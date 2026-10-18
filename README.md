@@ -27,4 +27,5 @@ sh scripts/setup.sh
 `just`を引数なしで実行すると、レシピの一覧が出る。
 コミット前にはlefthookが軽い検査を回す。
 CIはそれに加えて、依存の監査とmutationテストを回す。
+基準と直し方は[`docs/quality-gates.md`](docs/quality-gates.md)にまとめた。
 開発の進め方と構成は[CONTRIBUTING.md](CONTRIBUTING.md)にまとめた。

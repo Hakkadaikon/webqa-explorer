@@ -29,7 +29,7 @@ PythonとRustのtoolchain、gitのフックもあわせて入れる。
 PRを出すと、GitHub Actionsがコミット前と同じ検査を回す。
 それに加えて、依存の監査、PR内のコミットメッセージの検査を行う。
 変更した箇所にはmutationテストも当てる。
-各検査の中身は`justfile`のレシピの説明を見てほしい。
+各検査の基準と、落ちたときの直し方は[`docs/quality-gates.md`](docs/quality-gates.md)にまとめた。
 
 Claude Codeで開発するときの役割分担は[`docs/agents.md`](docs/agents.md)にまとめた。
 
