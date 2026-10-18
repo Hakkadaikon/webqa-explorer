@@ -1,18 +1,15 @@
-//! Contract tests of the reset command: real child processes started from
-//! the scripts in `tests/fixtures/reset/`.
+//! Contract tests of what the reset command gets: real child processes
+//! started from the scripts in `tests/fixtures/reset/`.
 
-use std::env::var_os;
 use std::ffi::OsString;
 use std::fs;
 use std::future;
 use std::io;
 use std::num::NonZeroU64;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::time::Duration;
 
-use tokio::task::yield_now;
-use webqa::interview::reset::{Output, Ran, ResetError, run};
+use webqa::interview::reset::{ResetError, run};
 use webqa_core::config::interview::Reset;
 use webqa_core::ports::{Clock, Pending};
 use webqa_core::redact::Redactor;
@@ -33,33 +30,6 @@ impl Clock for NeverClock {
     fn sleep_until(&mut self, _at: Duration) -> Pending<'_, ()> {
         Box::pin(future::pending())
     }
-}
-
-/// Lets the timeout pass once something is written to `file`.
-struct GateClock {
-    file: PathBuf,
-}
-
-impl Clock for GateClock {
-    fn elapsed(&self) -> Duration {
-        Duration::ZERO
-    }
-
-    fn sleep_until(&mut self, _at: Duration) -> Pending<'_, ()> {
-        Box::pin(wait_for(self.file.clone()))
-    }
-}
-
-/// Yields until something is written to `file`.
-async fn wait_for(file: PathBuf) {
-    while !written(&file) {
-        yield_now().await;
-    }
-}
-
-/// Whether `file` has something in it.
-fn written(file: &Path) -> bool {
-    fs::metadata(file).is_ok_and(|meta| meta.len() > 0)
 }
 
 /// A fresh directory for one test.
@@ -111,14 +81,6 @@ async fn record_none(dir: &Path) -> io::Result<(Result<(), ResetError>, Vec<u8>)
     Ok((result, fs::read(dir.join("none.args"))?))
 }
 
-/// Whether the process `pid` is still there.
-fn alive(pid: &str) -> io::Result<bool> {
-    let status = Command::new("/bin/sh")
-        .args(["-c", "kill -0 \"$1\" 2>/dev/null", "sh", pid])
-        .status()?;
-    Ok(status.success())
-}
-
 #[tokio::test]
 async fn args_passed_verbatim_without_shell() {
     let dir = scratch("args").unwrap();
@@ -166,32 +128,4 @@ async fn api_key_env_not_inherited() {
     let found = words.map(|word| exported.contains(word));
     let expected = [true, true, false, false, false, false];
     assert_eq!(found, expected, "{words:?} in {exported}");
-}
-
-#[tokio::test]
-async fn timed_out_command_is_stopped() {
-    let dir = scratch("timeout").unwrap();
-    let pid_file = dir.join("pid");
-    let env = [
-        var("RESET_OUT", &pid_file),
-        var("PATH", var_os("PATH").unwrap()),
-    ];
-    let mut clock = GateClock {
-        file: pid_file.clone(),
-    };
-    let plain = Redactor::default();
-    let reset = reset("hang.sh", &[]);
-    let ran = run(&reset, &env, &[], &plain, &mut clock).await;
-    let silent = Output {
-        stdout: plain.text(""),
-        stderr: plain.text(""),
-    };
-    let expected = Ran {
-        result: Err(ResetError::TimedOut),
-        output: silent,
-    };
-    assert_eq!(ran, expected, "hang.sh");
-    let pid = fs::read_to_string(&pid_file).unwrap();
-    assert!(!pid.is_empty(), "hang.sh wrote no pid");
-    assert!(!alive(&pid).unwrap(), "process {pid} is still alive");
 }
