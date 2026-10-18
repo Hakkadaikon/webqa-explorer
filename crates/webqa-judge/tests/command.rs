@@ -2,6 +2,7 @@
 //! `tests/fixtures/bridge.sh`.
 
 mod command {
+    pub mod stale_key;
     pub mod support;
 }
 
