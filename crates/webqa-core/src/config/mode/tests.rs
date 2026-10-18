@@ -24,7 +24,8 @@ fn outcome(config: &Config, mode: Mode) -> Result<(), String> {
 }
 
 /// Rejected in exploration, accepted in a scenario.
-const WITHOUT_ELEMENT_OPS: [&str; 2] = ["[done]", "[scroll_down, back]"];
+const WITHOUT_ELEMENT_OPS: [&str; 3] =
+    ["[done]", "[scroll_down, back]", "[scroll_up, wait, stuck]"];
 
 /// Accepted in both kinds of run.
 const WITH_ELEMENT_OPS: [&str; 4] = [
