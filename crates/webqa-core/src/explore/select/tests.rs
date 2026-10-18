@@ -4,6 +4,8 @@ use super::*;
 use crate::explore::graph::ElementOp;
 use crate::explore::graph::tests::{NONE, VIEW, at, below, candidate, forbid, id, page, shown};
 
+mod own_screen;
+
 /// "トップ" with 保存 and ヘルプ, and "設定" with 通知; 保存 leads to 設定.
 fn top_and_settings() -> (Memory, ScreenKey, ScreenKey, Redacted<Screen>) {
     let top_page = page("/", vec![shown("button", "保存"), shown("link", "ヘルプ")]);
@@ -172,28 +174,6 @@ fn candidates_follow_viewport_numbers() {
         Candidates::Untouched(vec![candidate(2, "button", "保存", 0)]),
         "削除 is left out"
     );
-}
-
-#[test]
-fn return_to_own_screen_falls_to_moves() {
-    let top_page = page("/", vec![shown("button", "設定"), below("button", "下")]);
-    let back = id("link", "トップ", 0);
-    let open = id("button", "設定", 0);
-    let mut memory = Memory::default();
-    let top = memory.visit(&top_page, &NONE);
-    let settings = memory.visit(&page("/settings", vec![shown("link", "トップ")]), &NONE);
-    memory.record(top, &open, ElementOp::Click, settings);
-    memory.record(settings, &back, ElementOp::Click, top);
-    assert!(
-        memory.finished(top, &open),
-        "下 on トップ is not a branch of 設定"
-    );
-    assert_eq!(
-        candidates(&memory, top, &top_page, VIEW),
-        Candidates::Moves,
-        "scroll to show 下"
-    );
-    assert!(memory.untouched_reachable(top), "下 is untouched");
 }
 
 #[test]
