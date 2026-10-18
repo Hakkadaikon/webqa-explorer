@@ -8,23 +8,33 @@ use crate::explore::graph::{Memory, ScreenKey};
 use crate::redact::Redacted;
 use crate::screen::Screen;
 
-/// "トップ" `/` with "保存" and "ヘルプ".
-fn top_page() -> Redacted<Screen> {
-    page("/", vec![shown("button", "保存"), shown("link", "ヘルプ")])
+/// A screen and the positions of its forbidden elements.
+type Seen<'a> = (&'a Redacted<Screen>, &'a BTreeSet<usize>);
+
+/// "トップ" `/` with "保存" and "ヘルプ", then the buttons `more`.
+fn top_page(more: &[&str]) -> Redacted<Screen> {
+    let mut elements = vec![shown("button", "保存"), shown("link", "ヘルプ")];
+    elements.extend(more.iter().map(|name| shown("button", name)));
+    page("/", elements)
 }
 
-/// "トップ" and `settings` seen with `forbidden`; "保存" leads to it and
-/// "ヘルプ" back to "トップ".
+/// "トップ" and "設定" seen as `top` and `settings`; "保存" leads to "設定"
+/// and "ヘルプ" back to "トップ".
+fn seen_both(top: Seen<'_>, settings: Seen<'_>) -> (Memory, ScreenKey, ScreenKey) {
+    let mut memory = Memory::default();
+    let from = memory.visit(top.0, top.1);
+    let to = memory.visit(settings.0, settings.1);
+    click(&mut memory, from, &button("保存"), to);
+    click(&mut memory, from, &id("link", "ヘルプ", 0), from);
+    (memory, from, to)
+}
+
+/// [`seen_both`] with "トップ" of "保存" and "ヘルプ" only.
 fn two_screens(
     settings: &Redacted<Screen>,
     forbidden: &BTreeSet<usize>,
 ) -> (Memory, ScreenKey, ScreenKey) {
-    let mut memory = Memory::default();
-    let top = memory.visit(&top_page(), &NONE);
-    let to = memory.visit(settings, forbidden);
-    click(&mut memory, top, &button("保存"), to);
-    click(&mut memory, top, &id("link", "ヘルプ", 0), top);
-    (memory, top, to)
+    seen_both((&top_page(&[]), &NONE), (settings, forbidden))
 }
 
 /// Whether anything is left from `top`, and whether "保存" and "ヘルプ" are finished.
@@ -38,12 +48,18 @@ fn explored(memory: &Memory, top: ScreenKey) -> (bool, bool, bool) {
 
 #[test]
 fn all_explored_except_forbidden_is_finished() {
-    let (mut memory, top, settings) = two_screens(&buttons("/settings", &["通知"]), &NONE);
-    click(&mut memory, settings, &button("通知"), settings);
+    let top_page = top_page(&["退会"]);
+    let settings = buttons("/settings", &["通知"]);
+    let (mut memory, top, at) = seen_both((&top_page, &forbid(&[2])), (&settings, &NONE));
+    click(&mut memory, at, &button("通知"), at);
     assert_eq!(
         explored(&memory, top),
         (false, true, true),
-        "nothing is left and both are finished"
+        "nothing but the forbidden 退会 is left, and both are finished"
+    );
+    assert!(
+        !memory.is_operated(top, &button("退会")),
+        "退会 stays untouched"
     );
 }
 
