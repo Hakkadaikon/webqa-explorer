@@ -12,6 +12,7 @@ webqa-browser.workspace = true
 webqa-core.workspace = true
 webqa-judge.workspace = true
 webqa-tui.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "process"] }
 serde_json.workspace = true
 thiserror.workspace = true
 
