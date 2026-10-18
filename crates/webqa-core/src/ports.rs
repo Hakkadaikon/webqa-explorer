@@ -12,7 +12,7 @@ use crate::effect::Touch;
 use crate::guard::forbidden::Candidate;
 use crate::guard::identity::Node;
 use crate::guard::paywall::PaywallFacts;
-use crate::judge::{Answers, JudgeError, Question};
+use crate::judge::{Answers, Image, JudgeError, Question};
 use crate::redact::Redacted;
 use crate::screen::{Screen, ScreenText, Viewport};
 
@@ -70,6 +70,26 @@ pub trait Judge: Send {
         screen: &'a Redacted<ScreenText>,
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>>;
+
+    /// Whether this judge reads images, as it declared when it started.
+    /// It does not change while the judge runs. A judge that declares
+    /// nothing reads no images.
+    fn reads_images(&self) -> bool {
+        false
+    }
+
+    /// Answers the questions about the screen and its screenshot. A judge
+    /// that reads no images answers from the screen alone and sends the
+    /// image nowhere.
+    fn ask_with_image<'a>(
+        &'a mut self,
+        screen: &'a Redacted<ScreenText>,
+        image: &'a Image,
+        questions: &'a [Question],
+    ) -> Pending<'a, Result<Answers, JudgeError>> {
+        let _ = image;
+        self.ask(screen, questions)
+    }
 }
 
 /// The browser.
@@ -101,8 +121,13 @@ pub trait Store: Send {
 
 #[cfg(test)]
 mod tests {
+    use std::future;
+    use std::task::{Context, Poll, Waker};
+
     use super::*;
-    use crate::screen::Element;
+    use crate::judge::{ImageFormat, Usage};
+    use crate::redact::Redactor;
+    use crate::screen::{Element, screen_text};
 
     #[test]
     fn error_messages_carry_no_value() {
@@ -152,5 +177,59 @@ mod tests {
              nodes: 0, candidates: 0, console: 1, .. }",
             "only the path and the counts, without names, query or console text"
         );
+    }
+
+    /// Implements `ask` only, and counts its calls.
+    struct AskOnly(u32);
+
+    impl Judge for AskOnly {
+        fn ask<'a>(
+            &'a mut self,
+            _screen: &'a Redacted<ScreenText>,
+            _questions: &'a [Question],
+        ) -> Pending<'a, Result<Answers, JudgeError>> {
+            self.0 += 1;
+            let usage = Usage {
+                input_tokens: 7,
+                output_tokens: 0,
+            };
+            Box::pin(future::ready(Ok(Answers {
+                usage,
+                ..Answers::default()
+            })))
+        }
+    }
+
+    /// Polls the future once, with a waker that does nothing.
+    fn poll_once<T>(mut pending: Pending<'_, T>) -> Poll<T> {
+        pending
+            .as_mut()
+            .poll(&mut Context::from_waker(Waker::noop()))
+    }
+
+    fn empty_screen() -> Redacted<ScreenText> {
+        let screen = Screen {
+            url: url::Url::parse("https://app.example.test/").unwrap(),
+            elements: Vec::new(),
+        };
+        let viewport = Viewport {
+            width: 800,
+            height: 600,
+        };
+        screen_text(&Redactor::default().screen(screen), viewport)
+    }
+
+    #[test]
+    fn judge_without_declaration_reads_no_images() {
+        let text = empty_screen();
+        let png4 = Image::new(ImageFormat::Png, vec![0x89, b'P', b'N', b'G']);
+        let mut judge = AskOnly(0);
+        assert!(!judge.reads_images(), "declares nothing, reads no images");
+        let plain = poll_once(judge.ask(&text, &[]));
+        let with_image = poll_once(judge.ask_with_image(&text, &png4, &[]));
+        assert_eq!(with_image, plain, "the same answers as ask");
+        let tokens = with_image.map(|answers| answers.map(|a| a.usage.input_tokens));
+        assert_eq!(tokens, Poll::Ready(Ok(7)), "the answers of ask");
+        assert_eq!(judge.0, 2, "ask_with_image calls ask once");
     }
 }
