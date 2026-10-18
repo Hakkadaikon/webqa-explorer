@@ -1,7 +1,8 @@
 //! Questions to the judge model and its answers.
 //!
-//! For now this holds the types and the two questions of a step. Building the
-//! whole set of questions and checking the answers come with issue #7.
+//! This holds the types of the questions and the answers, builds the
+//! questions of a step, checks the answers against what was asked, and picks
+//! the element to operate on from the ranked answer.
 
 mod ask;
 mod target;
