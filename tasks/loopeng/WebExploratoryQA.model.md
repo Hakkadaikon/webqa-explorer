@@ -50,7 +50,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 | `proposedLowConf` | `BOOLEAN` | 判断モデルの確信度が0.7未満か(S-010)。操作種別とは独立に観測する |
 | `isPaywall` | `BOOLEAN` | 現在画面がpaywall相当か(S-013、非決定的に観測) |
 | `targetExists` | `BOOLEAN` | 実行直前に対象要素が存在するか(S-028) |
-| `screenChanged` | `BOOLEAN` | 直前の操作後に画面が変化したかの観測結果(S-011, S-021固まり)。`IdleCounterTracksScreen`が読む |
+| `screenChanged` | `BOOLEAN` | 直前の操作後に画面が変化したかの観測結果(S-011, S-021固まり)。`IdleCounterTracksScreen`が読む。ページが応答しない(S-017)場合も「変化なし」(`FALSE`)の1ケースとして同じ変数で表す。応答しないことと変化しなかったことを別に区別する要件が無いため |
 | `visited` | `SUBSET Elements` | 探索済み要素集合(S-022, S-023)。探索の記憶で、固まり復旧でも消さない |
 | `idleCounter` | `Nat` | 画面が変化しなかった操作の連続回数(S-021固まり) |
 | `stuckCounter` | `Nat` | 新規要素が出なかった(`visited`が増えなかった)操作の連続回数(S-021行き詰まり) |
