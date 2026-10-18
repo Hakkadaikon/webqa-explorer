@@ -68,6 +68,7 @@ async fn probe_all(page: &Page, entries: Vec<Entry>, arg: &ProbeArg) -> Vec<(Ent
 async fn body_text(page: &Page) -> String {
     let body = page.locator("body");
     let text = body.evaluate("body => body.innerText", None::<()>).await;
+    // No test reaches the empty text: without `body` the snapshot fails first.
     text.unwrap_or_default()
 }
 
