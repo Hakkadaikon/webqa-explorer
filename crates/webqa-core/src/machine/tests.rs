@@ -45,10 +45,13 @@ fn finished_state_stays_finished() {
 /// `state` takes `facts` that do not fit, and goes back to waiting.
 fn mismatched(state: &State, facts: Facts, expected: &Effect) {
     let notes = state.notes().len();
+    let used = state.budget().used();
     let step: Step = step(state.clone(), facts, secs(3600));
     assert_eq!(step.effect(), Some(expected), "back to waiting");
     assert_eq!(step.state().notes().len(), notes, "nothing recorded");
     assert_eq!(counts(step.state()), (0, 0), "counts kept");
+    let asked = step.state().budget().used();
+    assert_eq!(asked, used + 1, "only the next question");
 }
 
 #[test]
@@ -65,7 +68,9 @@ fn mismatched_facts_return_to_idle() {
     let full =
         idle(few.clone(), seen(&top()), Memory::default()).with_window(window(1, 1, secs(0)));
     let sleeping = next(full, secs(0)).state().clone();
-    mismatched(&sleeping, shows(&top()), &asking(&few, &top()));
+    let asks = asking(&few, &top());
+    mismatched(&sleeping, shows(&top()), &asks);
+    mismatched(&sleeping, Facts::Outside(Heard::Woke), &asks);
 }
 
 /// Every exit reason with its JSON.

@@ -33,14 +33,6 @@ pub(super) const fn answered(facts: &Facts) -> Option<&Result<Answers, JudgeErro
     }
 }
 
-/// Whether the facts are waking up.
-pub(super) const fn woke(facts: &Facts) -> bool {
-    match facts {
-        Facts::Outside(Heard::Woke) => true,
-        Facts::Outside(Heard::Answered(_)) | Facts::Page(_) => false,
-    }
-}
-
 /// In `phase`, with an observation.
 pub(super) fn observing(state: &State, facts: &Facts, phase: Phase) -> bool {
     state.phase == phase && seen(facts).is_some()

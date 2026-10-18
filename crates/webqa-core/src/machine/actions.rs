@@ -11,7 +11,7 @@ mod tests;
 
 use std::time::Duration;
 
-use super::guards::{answered, observing, rejection, seen, woke};
+use super::guards::{answered, observing, rejection, seen};
 use super::note::{Anomaly, Note, Rejection};
 use super::observe::{arrived, executed, take};
 use super::ops::names;
@@ -59,7 +59,10 @@ pub(super) static ENDED: [Action; 1] = [Action {
 }];
 
 /// The rows that take the result of an effect.
-pub(super) static ROWS: [Action; 6] = [
+///
+/// Sleeping has no row of its own: waking up fits no row, and the mismatch
+/// row takes it back to waiting, changing nothing else.
+pub(super) static ROWS: [Action; 5] = [
     Action {
         enabled: |state, now| state.phase == Phase::Awaiting && answered(&now.facts).is_some(),
         fire: decide,
@@ -79,10 +82,6 @@ pub(super) static ROWS: [Action; 6] = [
     Action {
         enabled: |state, now| observing(state, &now.facts, Phase::Recovering),
         fire: arrived,
-    },
-    Action {
-        enabled: |state, now| state.phase == Phase::Sleeping && woke(&now.facts),
-        fire: |state, _| idle(state),
     },
 ];
 

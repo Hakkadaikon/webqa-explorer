@@ -439,8 +439,9 @@ pub(crate) enum Next { Go(State), Out(Step) }
 | `Acting` | `Page(seen)` | 常に | 下の「実行の観測」。`Idle` へ `Go` | なし |
 | `Returning` | `Page(seen)` | 常に | 観測を取り込む(カウンタは変えない)。`Idle` へ `Go` | なし |
 | `Recovering` | `Page(seen)` | 常に | 観測を取り込む(カウンタは変えない)。`Idle` へ `Go` | なし |
-| `Sleeping` | `Outside(Woke)` | 常に | `Idle` へ `Go` | なし |
 | 表の外 | 上のどれにも当たらない(起点と Facts の種類の食い違い) | | `Idle` へ `Go`(何も積まず、カウンタも予算も変えない) | なし |
+
+- `Sleeping` の行は置かない。`Sleeping` に `Outside(Woke)` が来ると、どの行にも当たらず、表の外の食い違いの行で `Idle` へ戻る(記録もカウンタも予算も変えない)。専用の行を置くと、食い違いの行と同じ遷移になり、行のガードの変異が見分けられない(レビューの指摘で消した)。
 
 - `read` は1回だけ呼び、その結果で行を選ぶように書く(同じ答えを何度も読まない)。判断待ちの行を、答えを読む前段と、読んだ提案で分ける前段の2つにしてもよい。止める条件の述語は `Proposal` を受ける。
 - 止めた提案、応答の異常、確認中の中止では、カウンタも時間窓も変えない(判断予算は問い合わせのときに使い済み)。
@@ -485,7 +486,7 @@ pub(crate) enum Next { Go(State), Out(Step) }
 
 ### 書き方
 
-- 複雑度の上限は、関数ごとに循環的複雑度5、認知的複雑度6(`scripts/metrics.py`、`.config/clippy/clippy.toml`)。`match` は腕4本まで、`?` は1つの関数に4つまで、ネストは3まで、関数は50行まで。`Phase` は8通りあるので `match` で分けず、`==` の述語と表で分ける。`Pick` も10通りあるので表で引く。`Facts` と `Heard` の取り出しは小さな関数(`fn seen(facts) -> Option<&Seen>`、`fn answered(facts) -> Option<&Result<Answers, JudgeError>>`、`fn woke(facts) -> bool`)にする。
+- 複雑度の上限は、関数ごとに循環的複雑度5、認知的複雑度6(`scripts/metrics.py`、`.config/clippy/clippy.toml`)。`match` は腕4本まで、`?` は1つの関数に4つまで、ネストは3まで、関数は50行まで。`Phase` は8通りあるので `match` で分けず、`==` の述語と表で分ける。`Pick` も10通りあるので表で引く。`Facts` と `Heard` の取り出しは小さな関数(`fn seen(facts) -> Option<&Seen>`、`fn answered(facts) -> Option<&Result<Answers, JudgeError>>`)にする。
 - `as`、添字、`unwrap` を使わない。一覧は `get` と `iter` で引く。`_` の腕の `match` は `wildcard_enum_match_arm` に掛かる。
 - 1ファイルは1つの話題にする(Halstead のファイルの上限)。
 - カバレッジは行、領域、関数のどれも100%(`just coverage`)。通らない分岐を残さない。
