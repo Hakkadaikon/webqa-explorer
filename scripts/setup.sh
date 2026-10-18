@@ -17,3 +17,4 @@ uv python install 3.14
 npm ci --prefix .config/npm --no-fund --no-audit
 rustup toolchain install
 lefthook install
+just install-browsers

@@ -17,7 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Place the Playwright driver
+        run: echo "PLAYWRIGHT_DRIVER_CACHE_DIR=$RUNNER_TEMP/playwright-driver" >> "$GITHUB_ENV"
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          cache-directories: ${{ runner.temp }}/playwright-driver
       - name: Install tools
         run: |
           sh scripts/install-aqua.sh
@@ -26,6 +30,8 @@ jobs:
           "$AQUA_ROOT_DIR/bin/aqua" install
           PATH="$AQUA_ROOT_DIR/bin:$PATH" npm ci --prefix .config/npm --no-fund --no-audit
           echo "$GITHUB_WORKSPACE/.config/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Chromium for the contract tests
+        run: just install-browsers-with-deps
       - name: Format, lint, metrics and tests with 100% coverage
         run: just check
       - name: Dependency audit
@@ -37,7 +43,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+      - name: Place the Playwright driver
+        run: echo "PLAYWRIGHT_DRIVER_CACHE_DIR=$RUNNER_TEMP/playwright-driver" >> "$GITHUB_ENV"
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          cache-directories: ${{ runner.temp }}/playwright-driver
       - name: Install tools
         run: |
           sh scripts/install-aqua.sh
@@ -50,6 +60,8 @@ jobs:
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
         run: just commit-msg --range "$BASE..HEAD"
+      - name: Chromium for the contract tests
+        run: just install-browsers-with-deps
       - name: Mutation test of the changed code
         env:
           BASE: ${{ github.event.pull_request.base.sha }}

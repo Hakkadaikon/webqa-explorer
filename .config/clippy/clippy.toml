@@ -19,6 +19,10 @@ allowed-duplicate-crates = [
   "syn",
   "thiserror",
   "thiserror-impl",
+  # playwright-rs 0.20 の依存の下で2版が入り、依存の側では消せないため(2026-10-18 に利用者が承認)
+  "windows-sys",
+  # playwright-rs → tokio-tungstenite → tungstenite → rand 0.10 の下で2版が入り、依存の側では消せないため(2026-10-18 に利用者が承認)
+  "rand_core",
 ]
 
 # Time is read only through an injected clock, so tests never wait on the
