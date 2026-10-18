@@ -59,6 +59,21 @@ impl From<RawProbe> for Probe {
     }
 }
 
+/// Runs [`PROBE`] on the element of the aria ref `node`.
+///
+/// # Errors
+///
+/// Playwright's error, such as when the element is gone or the timeout passed.
+pub async fn probe(
+    page: &playwright_rs::Page,
+    node: &str,
+    arg: &ProbeArg,
+) -> playwright_rs::Result<Probe> {
+    let locator = page.get_by_ref(node);
+    let raw: playwright_rs::Result<RawProbe> = locator.evaluate(PROBE, Some(arg)).await;
+    raw.map(Probe::from)
+}
+
 /// The URL, or `None` when there is none or it does not read.
 fn absolute(url: Option<String>) -> Option<url::Url> {
     url.and_then(|u| url::Url::parse(&u).ok())
