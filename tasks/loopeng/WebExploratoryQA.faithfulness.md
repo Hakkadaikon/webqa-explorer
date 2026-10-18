@@ -250,7 +250,7 @@ v6で足したのは次の6本。P46〜P50は`WebExploratoryQA.empty.cfg`で回�
 `Elements`はページの中身で、空でもよい。
 検査に使う`WebExploratoryQA.cfg`は、`Operations`がclickを含み空でなく、`IdleThreshold`(2)が`MaxDecisions`(4)以下なので、固まり復旧の前件にも届く(P14、P25)。
 `WebExploratoryQA.noexplorable.cfg`は要素1つでそれが禁止要素の場合、`WebExploratoryQA.empty.cfg`は操作可能な要素が1つも無い場合を検査する。
-実装では、設定値の検査で0以下の閾値、空の操作種別、探索モードでdoneだけの操作種別を拒否する。
+実装では、設定値の検査で0以下の閾値、空の操作種別、探索モードでclickもinputも無い操作種別を拒否する。
 
 ## 変異の検査(v6のspec)
 

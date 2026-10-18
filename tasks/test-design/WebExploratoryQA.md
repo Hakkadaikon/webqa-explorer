@@ -27,7 +27,7 @@ v5 で決まったのは2点である。決め打ちシナリオでは、実行�
 - T-081、T-082: 探索モードのゴールに「1回以上問い合わせた後」が加わったので、Scenario の前提に「判断モデルに1回以上問い合わせている」を足した。単体 `webqa-core::explore::graph` は探索し終えたかだけを判定し、問い合わせの回数と組み合わせる判定は T-108、T-109 の `webqa-core::plan` が受け持つ。
 - T-086: 段階を進めた直後に次の段階の done_when を確かめるので、Scenario の前提に「段階 "投稿" の done_when 条件は満たされていない」を足した。満たしている場合は T-111 が受け持つ。T-089〜T-092 は、feature 冒頭の「done_when が満たされていると書いていない段階は、入った時点で満たしていない」の決まりで前提を補う。
 - T-015、T-021、T-079、T-087: done_when を確かめる時点は操作の後、実行の開始時、段階を進めた直後の3つになった。どの時点でも、確かめた結果を問い合わせより先に採る優先順位は変わらない。開始時と進めた直後の振る舞いは T-110、T-111 が受け持つ。
-- T-055: 探索モードで要素が1つも無い画面でも、v5 では最初の問い合わせの前にゴール達成にならないので、Scenario のとおり問い合わせる。要素0件の画面で対象の要る操作が返った場合は、存在しない要素番号への操作として T-056 の応答の異常になる。
+- T-055: 扱いは下の v6 の段落にまとめた。
 - T-083〜T-085、T-088: v5 の2点はこれらの判定を変えない。
 
 v6 の仕様では、操作可能な要素が1つも無い画面を表せるように、判断モデルが返しうる対象を直した。対象を取らない操作(scroll、back、wait など)の対象は「対象なし」にする。click と input は、要素が1つも無い画面では対象が存在しない要素番号になり、応答の異常として扱う。これで要素0件の画面でも問い合わせが起きる。影響する行は次のとおりで、手法とテスト名はどの行も変えていない。
@@ -305,7 +305,7 @@ T-112 は、探索モードで使う操作種別に click も input も無い(do
 - [x] T-111 WebExploratoryQA.feature:455(決め打ちシナリオの段階) [state] 「段階を進めた時点で次の段階の done_when も満たしていれば、操作せずにさらに進む」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `advance_into_met_stage_moves_on_without_ops` / issue: #13
 - [x] T-112 WebExploratoryQA.feature:817(設定と外部境界) [unwanted] 「探索モードで使う操作種別に click も input も無ければ設定エラーにする」(Examples の各行を1ケースとする)
-      → 手法: ネガティブテスト(process-static)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate::check` の `explore_mode_needs_click_or_input`(設定とモードを引数に取る関数) / issue: #3
+      → 手法: ネガティブテスト(process-static)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate::check` の `explore_mode_needs_click_or_input`(設定とモードを引数に取る関数)、実行ファイル `webqa/tests/cli.rs` の `explore_without_click_or_input_exits_two` / issue: #3
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
@@ -426,7 +426,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-109 | boundary | 境界値分析(blackbox-partition)、同値分割(blackbox-partition) | `empty_explorable_goal_after_first_question` | #13 | [x] | [ ] | 要 |
 | T-110 | event | 状態遷移テスト(blackbox-state)、デシジョンテーブル(blackbox-partition) | `start_with_done_when_met_moves_on_without_ops` | #13 | [x] | [ ] | 要 |
 | T-111 | state | 状態遷移テスト(blackbox-state) | `advance_into_met_stage_moves_on_without_ops` | #13 | [x] | [ ] | 要 |
-| T-112 | unwanted | ネガティブテスト(process-static)、同値分割(blackbox-partition) | `explore_mode_needs_click_or_input` | #3 | [x] | [ ] | 要 |
+| T-112 | unwanted | ネガティブテスト(process-static)、同値分割(blackbox-partition) | `explore_mode_needs_click_or_input`、`explore_without_click_or_input_exits_two` | #3 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
