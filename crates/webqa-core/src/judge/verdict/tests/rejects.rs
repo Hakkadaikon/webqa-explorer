@@ -44,6 +44,7 @@ fn rejects_rows_of_the_step() {
         (["operation"].as_slice(), "missing operation"),
         (&["operation drag:0.9"], "option operation"),
         (&["operation click:0.9 drag:0.1"], "option operation"),
+        (&["operation click:0.9 click:0.1"], "option operation"),
         (&["operation click:1.5"], "range operation"),
         (&["operation click:-0.1"], "range operation"),
         (&["operation click:inf"], "range operation"),
@@ -53,6 +54,7 @@ fn rejects_rows_of_the_step() {
         (&["target +1:0.9"], "option target"),
         (&["target 保存:0.9"], "option target"),
         (&["target 1:0.8 3:0.1"], "option target"),
+        (&["target 1:0.8 1:0.6"], "option target"),
         (&["target 1:0.8 2:-0.2"], "range target"),
         (&["target"], "missing target"),
         (&["operation input:0.9", "target 3:0.9"], "option target"),
@@ -69,6 +71,7 @@ fn rejects_flags() {
         ("error_shown false:0.9", "option error_shown"),
         ("error_shown true:0.3 false:0.7", "option error_shown"),
         ("error_shown yes:0.3", "option error_shown"),
+        ("error_shown true:0.1 true:0.2", "option error_shown"),
         ("error_shown true:1.01", "range error_shown"),
         ("goal_reached true:-1.0", "range goal_reached"),
     ];

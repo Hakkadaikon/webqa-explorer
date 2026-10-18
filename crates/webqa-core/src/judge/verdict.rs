@@ -104,18 +104,29 @@ fn read_goal(answers: &Answers, goal: Option<&str>) -> Result<Option<f64>, Unusa
 }
 
 /// The options of `id` read by `option`, most probable first. Missing
-/// probabilities come last; ties keep the order of the answer.
+/// probabilities come last; ties keep the order of the answer. An option
+/// given again is not an option.
 fn ranked<T>(
     answers: &Answers,
     id: &QuestionId,
     option: impl Fn(&str) -> Option<T>,
 ) -> Result<Vec<(T, Option<f64>)>, Unusable> {
-    let mut ranked = options(answers, id)?
+    let options = options(answers, id)?;
+    let mut ranked = options
         .iter()
-        .map(|(name, p)| read_option(id, option(name), *p))
+        .enumerate()
+        .map(|(i, (name, p))| {
+            let read = option(name).filter(|_| first_given(options, name) == Some(i));
+            read_option(id, read, *p)
+        })
         .collect::<Result<Vec<_>, _>>()?;
     ranked.sort_by(likelier_first);
     Ok(ranked)
+}
+
+/// Where `name` is first given among the options.
+fn first_given(options: &[(String, f64)], name: &str) -> Option<usize> {
+    options.iter().position(|(given, _)| given == name)
 }
 
 /// The options of `id`, or [`Unusable::Missing`] when there are none.
