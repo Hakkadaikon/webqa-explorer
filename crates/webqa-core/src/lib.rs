@@ -3,6 +3,7 @@
 pub mod config;
 pub mod event;
 pub mod explore;
+pub mod guard;
 pub mod issue;
 pub mod plan;
 pub mod redact;
