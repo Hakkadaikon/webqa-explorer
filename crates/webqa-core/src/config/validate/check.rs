@@ -1,11 +1,10 @@
 //! Checks that only reject a value, without reading secrets.
 
-use url::Url;
-
 use super::super::ConfigError;
 use super::super::raw::{Op, RawConfig, Scenario};
 use super::Read;
 use super::storage_state::storage_state;
+use crate::guard::domain::AllowedOrigin;
 
 /// All the checks, in the order the errors are reported.
 pub fn check(raw: &RawConfig, read: Read<'_>) -> Result<(), ConfigError> {
@@ -62,19 +61,11 @@ fn origins(origins: &[String]) -> Result<(), ConfigError> {
     origins.iter().map(String::as_str).try_for_each(origin)
 }
 
+/// The rules live in [`AllowedOrigin::parse`].
 fn origin(origin: &str) -> Result<(), ConfigError> {
-    Url::parse(origin)
-        .ok()
-        .filter(wildcard_at_start)
+    AllowedOrigin::parse(origin)
         .map(drop)
-        .ok_or(ConfigError::InvalidUrl("target.allowed_origins"))
-}
-
-/// A host with `*` only as a leading `*.`.
-fn wildcard_at_start(url: &Url) -> bool {
-    let host = url.host_str().unwrap_or_default();
-    let rest = host.strip_prefix("*.").unwrap_or(host);
-    !rest.is_empty() && !rest.contains('*')
+        .map_err(|_| ConfigError::InvalidUrl("target.allowed_origins"))
 }
 
 #[cfg(test)]
@@ -157,12 +148,17 @@ mod tests {
         ]
     }
 
-    /// Origins that are not URLs, or put `*` anywhere but the host's start.
-    const BAD_ORIGINS: [&str; 4] = [
+    /// Origins that are not URLs, put `*` anywhere but the host's start, or
+    /// carry more than the origin.
+    const BAD_ORIGINS: [&str; 8] = [
         "not an origin",
         "https://a.*.test",
         "https://*",
         "https://*.",
+        "https://app.example.test/p?q",
+        "https://app.example.test/path",
+        "https://app.example.test#f",
+        "https://user@app.example.test",
     ];
 
     #[test]

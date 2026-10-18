@@ -1,0 +1,19 @@
+[
+  { "case": "アップグレードのモーダルで操作は塞がれていない", "url": "https://app.example.test/home", "headings": [], "dialogs": ["プレミアムにアップグレード", "閉じる"], "buttons": ["保存"], "hits": [true, true, true], "expect": true },
+  { "case": "モーダルの無いページに購読を促す見出しとボタン", "url": "https://app.example.test/article/1", "headings": ["Subscribe to continue"], "dialogs": [], "buttons": ["アップグレード"], "hits": [], "expect": true },
+  { "case": "URLがpricing", "url": "https://app.example.test/pricing", "headings": ["プランを選ぶ"], "dialogs": [], "buttons": [], "hits": [true], "expect": true },
+  { "case": "URLがupgrade", "url": "https://app.example.test/upgrade", "headings": ["プランを選ぶ"], "dialogs": [], "buttons": [], "hits": [true], "expect": true },
+  { "case": "URLがcheckout", "url": "https://app.example.test/checkout", "headings": ["プランを選ぶ"], "dialogs": [], "buttons": [], "hits": [true], "expect": true },
+  { "case": "主要な操作がすべて塞がれている", "url": "https://app.example.test/home", "headings": [], "dialogs": ["お知らせ", "OK"], "buttons": [], "hits": [false, false, false], "expect": true },
+  { "case": "料金の履歴のページ", "url": "https://app.example.test/billing/history", "headings": ["料金の履歴"], "dialogs": [], "buttons": ["ダウンロード"], "hits": [true, true], "expect": false },
+  { "case": "英語のUpgrade to Premiumの見出し", "url": "https://app.example.test/home", "headings": ["Upgrade to Premium"], "dialogs": [], "buttons": [], "hits": [true], "expect": true },
+  { "case": "モーダルの中の全角のPREMIUM", "url": "https://app.example.test/home", "headings": [], "dialogs": ["ＰＲＥＭＩＵＭ"], "buttons": [], "hits": [true], "expect": true },
+  { "case": "大文字の混じったPricingのURL", "url": "https://app.example.test/en/Pricing", "headings": [], "dialogs": [], "buttons": [], "hits": [], "expect": true },
+  { "case": "主要な操作4つのうち3つが塞がれたモーダル", "url": "https://app.example.test/home", "headings": [], "dialogs": ["お知らせ"], "buttons": [], "hits": [false, true, false, false], "expect": true },
+  { "case": "料金プランの比較のヘルプ", "url": "https://app.example.test/help/plans", "headings": ["料金プランの比較"], "dialogs": [], "buttons": [], "hits": [true], "expect": false },
+  { "case": "購読解除のボタン", "url": "https://app.example.test/settings", "headings": ["設定"], "dialogs": [], "buttons": ["Unsubscribe"], "hits": [true], "expect": false },
+  { "case": "ヘッダーのUpgradeボタンだけ", "url": "https://app.example.test/home", "headings": ["ダッシュボード"], "dialogs": [], "buttons": ["Upgrade"], "hits": [true, true], "expect": false },
+  { "case": "URLがpricing-history", "url": "https://app.example.test/pricing-history", "headings": [], "dialogs": [], "buttons": [], "hits": [true], "expect": false },
+  { "case": "主要な操作4つのうち2つが塞がれたページ", "url": "https://app.example.test/home", "headings": ["お知らせ"], "dialogs": [], "buttons": [], "hits": [false, true, false, true], "expect": false },
+  { "case": "要素も文言も無いページ", "url": "https://app.example.test/", "headings": [], "dialogs": [], "buttons": [], "hits": [], "expect": false }
+]
