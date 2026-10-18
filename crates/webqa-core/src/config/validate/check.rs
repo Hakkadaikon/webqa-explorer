@@ -84,9 +84,9 @@ mod tests {
     use super::super::tests::load;
     use super::*;
     use crate::config::raw::parse;
-    use crate::config::raw::tests::{EXAMPLE, changed};
+    use crate::config::raw::tests::{changed, example};
 
-    /// The error from loading `EXAMPLE` with `from` replaced by `to`.
+    /// The error from loading the example with `from` replaced by `to`.
     fn rejected(from: &str, to: &str) -> ConfigError {
         load(&changed(from, to)).unwrap_err()
     }
@@ -158,11 +158,16 @@ mod tests {
     }
 
     /// Origins that are not URLs, or put `*` anywhere but the host's start.
-    const BAD_ORIGINS: [&str; 3] = ["not an origin", "https://a.*.test", "https://*"];
+    const BAD_ORIGINS: [&str; 4] = [
+        "not an origin",
+        "https://a.*.test",
+        "https://*",
+        "https://*.",
+    ];
 
     #[test]
     fn rejects_non_positive_and_empty() {
-        assert!(load(EXAMPLE).is_ok(), "the example is valid");
+        assert!(load(example()).is_ok(), "the example is valid");
         for (from, to) in NON_POSITIVE {
             let err = rejected(from, to);
             assert_eq!(

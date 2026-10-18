@@ -43,7 +43,7 @@ mod tests {
     use super::*;
     use crate::config::Config;
     use crate::config::raw::parse;
-    use crate::config::raw::tests::{EXAMPLE, changed};
+    use crate::config::raw::tests::{changed, example};
 
     /// Loads `yaml` with `text` as the storage state file, `None` making
     /// reading fail. Also returns the paths read.
@@ -70,14 +70,14 @@ mod tests {
             None,
         ];
         for text in bad {
-            let err = with_state(EXAMPLE, text).0.unwrap_err();
+            let err = with_state(example(), text).0.unwrap_err();
             assert_eq!(
                 discriminant(&err),
                 discriminant(&ConfigError::StorageState),
                 "{err:?}"
             );
         }
-        let (result, seen) = with_state(EXAMPLE, Some(STATE));
+        let (result, seen) = with_state(example(), Some(STATE));
         assert!(result.is_ok(), "Playwright's format is accepted");
         assert_eq!(
             seen,

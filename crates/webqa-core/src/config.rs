@@ -20,7 +20,8 @@ pub enum ConfigError {
     /// The YAML could not be read into the raw types.
     #[error("設定の YAML を読めない: {0}")]
     Yaml(#[from] serde_saphyr::Error),
-    /// `judge.api_key` holds the key itself instead of an environment variable.
+    /// `judge.api_key` is not exactly `{ env: <name> }`, so it may hold the
+    /// key itself.
     #[error("API キーを設定ファイルに直接書かず、`{{ env: 変数名 }}` で環境変数を指定する")]
     LiteralApiKey,
     /// A referenced environment variable is not set.

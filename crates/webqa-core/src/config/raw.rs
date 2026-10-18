@@ -272,176 +272,21 @@ struct ProbeJudge {
 
 fn reject_literal_key(yaml: &str) -> Result<(), ConfigError> {
     let probe = serde_saphyr::from_str_with_options::<Probe>(yaml, options());
-    if probe.is_ok_and(|p| !p.judge.api_key.is_object()) {
+    if probe.is_ok_and(|p| !is_env_ref(&p.judge.api_key)) {
         Err(ConfigError::LiteralApiKey)
     } else {
         Ok(())
     }
 }
 
+/// Exactly `{ env: <string> }`. Anything else may hold the key itself, and
+/// the error for an unknown field or a wrong type would quote it.
+fn is_env_ref(api_key: &Value) -> bool {
+    api_key
+        .as_object()
+        .is_some_and(|map| map.len() == 1 && map.get("env").is_some_and(Value::is_string))
+}
+
 /// Shared by the tests of the configuration.
 #[cfg(test)]
-pub(crate) mod tests {
-    use std::mem::discriminant;
-
-    use super::*;
-
-    /// The example from `docs/architecture.md`, without comments.
-    pub const EXAMPLE: &str = r##"target:
-  url: https://app.example.test
-  allowed_origins: ["https://app.example.test", "https://*.app.example.test"]
-judge:
-  kind: command
-  command: ["./bridge/jev.py"]
-  api_key: { env: JEV_API_KEY }
-  timeout_secs: 30
-  pricing: { input_per_1k: 0.0, output_per_1k: 0.0 }
-limits:
-  freeze_threshold: 3
-  stuck_threshold: 3
-  max_decisions: 200
-  requests_per_hour: 600
-  page_timeout_secs: 10
-  max_duration_secs: 60
-  back_confidence: 0.7
-  error_confidence: 0.8
-guard:
-  forbidden: { keywords: ["購入"], selectors: ["#danger"] }
-  allowed: { selectors: [] }
-  leave_paywall: back
-redact:
-  - { name: メールアドレス, pattern: "[\\w.+-]+@[\\w-]+\\.[\\w.]+" }
-inputs:
-  メールアドレス: { env: TEST_EMAIL }
-auth:
-  storage_state: ./auth.json
-scenario:
-  stages:
-    - name: ログイン
-      goal: ログインを済ませる
-      done_when:
-        url: /home
-        element: { role: button, name: ログアウト }
-"##;
-
-    /// `EXAMPLE` with `from` replaced by `to`. Fails if `from` is absent.
-    pub fn changed(from: &str, to: &str) -> String {
-        let yaml = EXAMPLE.replacen(from, to, 1);
-        assert_ne!(yaml, EXAMPLE, "the example has no {from:?}");
-        yaml
-    }
-
-    #[test]
-    fn reads_target_inputs_and_stages() {
-        let raw = parse(EXAMPLE).unwrap();
-        assert_eq!(raw.target.url, "https://app.example.test", "target url");
-        let email = raw.inputs.get("メールアドレス").unwrap();
-        assert_eq!(email.env, "TEST_EMAIL", "input env");
-        let stages = raw.scenario.unwrap().stages;
-        assert_eq!(stages.len(), 1, "one stage");
-        let login = &stages[0];
-        assert_eq!(login.name, "ログイン", "stage name");
-        assert_eq!(
-            login.done_when.url.as_deref(),
-            Some("/home"),
-            "done_when url"
-        );
-        let element = login.done_when.element.as_ref().unwrap();
-        assert_eq!(element.role, "button", "element role");
-        assert_eq!(element.name, "ログアウト", "element name");
-        assert_eq!(raw.ops, all_ops(), "all eight ops when omitted");
-        assert_eq!(raw.ops.len(), 8, "eight ops");
-        reads_two_stages_in_order();
-        reads_snake_case_ops();
-    }
-
-    fn reads_snake_case_ops() {
-        let yaml = format!("{EXAMPLE}ops: [click, scroll_down, scroll_up, back]\n");
-        let ops = parse(&yaml).unwrap().ops;
-        let want = [Op::Click, Op::ScrollDown, Op::ScrollUp, Op::Back];
-        assert_eq!(ops, want, "snake_case names");
-    }
-
-    fn reads_two_stages_in_order() {
-        let two = format!(
-            "{}    - name: 注文\n      goal: 注文を済ませる\n      done_when:\n        text: 注文完了\n",
-            changed("  leave_paywall: back\n", "")
-        );
-        let raw = parse(&two).unwrap();
-        let stages = raw.scenario.unwrap().stages;
-        let names: Vec<_> = stages.iter().map(|s| s.name.as_str()).collect();
-        assert_eq!(names, ["ログイン", "注文"], "stages in order");
-        let text = stages[1].done_when.text.as_deref();
-        assert_eq!(text, Some("注文完了"), "second done_when text");
-        assert_eq!(raw.guard.leave_paywall, "back", "leave_paywall default");
-    }
-
-    #[test]
-    fn rejects_tls_verification_key() {
-        let judge = changed(
-            "  timeout_secs: 30\n",
-            "  timeout_secs: 30\n  tls_verify: false\n",
-        );
-        let err = parse(&judge).unwrap_err();
-        assert!(
-            err.to_string().contains("tls_verify"),
-            "unknown field: {err}"
-        );
-        let target = changed(
-            "  url: https://app.example.test\n",
-            "  url: https://app.example.test\n  insecure: true\n",
-        );
-        let err = parse(&target).unwrap_err();
-        assert!(err.to_string().contains("insecure"), "unknown field: {err}");
-        rejects_unknown_fields_in_nested_forms();
-    }
-
-    /// Forms written inline, including the ones read as one of two shapes.
-    const NESTED_UNKNOWN: [(&str, &str); 4] = [
-        (
-            "api_key: { env: JEV_API_KEY }",
-            "api_key: { env: JEV_API_KEY, tls_verify: false }",
-        ),
-        ("pattern: \"[", "tls_verify: false, pattern: \"["),
-        ("pattern: \"[", "env: TEST_ID, pattern: \"["),
-        ("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, extra: 1 }"),
-    ];
-
-    fn rejects_unknown_fields_in_nested_forms() {
-        let yaml_error = parse("[").unwrap_err();
-        for (from, to) in NESTED_UNKNOWN {
-            let err = parse(&changed(from, to)).unwrap_err();
-            assert_eq!(discriminant(&err), discriminant(&yaml_error), "{to}: {err}");
-        }
-    }
-
-    #[test]
-    fn literal_api_key_rejected_without_value() {
-        let yaml = changed(
-            "api_key: { env: JEV_API_KEY }",
-            "api_key: \"sk-test-123456\"",
-        );
-        let err = parse(&yaml).unwrap_err();
-        assert_eq!(
-            discriminant(&err),
-            discriminant(&ConfigError::LiteralApiKey),
-            "{err:?}"
-        );
-        assert_hides_key(&err);
-        // Broken YAML next to the key: the error must not quote the lines.
-        let broken = yaml.replacen("  timeout_secs: 30\n", "  timeout_secs: [\n", 1);
-        assert_ne!(broken, yaml, "the YAML has timeout_secs");
-        assert_hides_key(&parse(&broken).unwrap_err());
-    }
-
-    fn assert_hides_key(err: &ConfigError) {
-        assert!(
-            !err.to_string().contains("sk-test-123456"),
-            "Display hides the key: {err}"
-        );
-        assert!(
-            !format!("{err:?}").contains("sk-test-123456"),
-            "Debug hides the key"
-        );
-    }
-}
+pub(crate) mod tests;
