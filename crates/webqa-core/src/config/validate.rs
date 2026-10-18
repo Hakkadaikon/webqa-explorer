@@ -43,7 +43,7 @@ fn assemble(raw: RawConfig, secrets: Secrets, env: Env<'_>) -> Result<Config, Co
         judge: Judge {
             kind: raw.judge.kind,
             command: raw.judge.command,
-            api_key: secret(&raw.judge.api_key.env, env)?,
+            api_key: raw.judge.api_key.map(|r| secret(&r.env, env)).transpose()?,
             timeout_secs: raw.judge.timeout_secs,
             pricing: raw.judge.pricing,
         },

@@ -119,7 +119,11 @@ pub struct Judge {
     /// The bridge command, if the adapter runs one.
     pub command: Option<Vec<String>>,
     /// The API key read from the environment.
-    pub api_key: Secret,
+    ///
+    /// `None` when the configuration names none: authentication is then left
+    /// outside (the Network secrets relay or the bridge command). The bridge
+    /// sends no authentication header, and the proxy adds the key.
+    pub api_key: Option<Secret>,
     /// How long to wait for an answer.
     pub timeout_secs: NonZeroU64,
     /// Prices used to compute the cost.
