@@ -145,7 +145,8 @@ fn settle(state: State, now: &Now) -> Step {
     }
 }
 
-/// Runs the first row that applies; facts that fit no row go back to waiting.
+/// Runs the first row that applies. Sleeping has no row: whatever comes
+/// then goes back to waiting, as facts that do not fit the phase do.
 fn fire(state: State, now: &Now) -> Next {
     let fire = TABLE
         .iter()

@@ -33,11 +33,6 @@ pub(super) const fn answered(facts: &Facts) -> Option<&Result<Answers, JudgeErro
     }
 }
 
-/// In `phase`, with an observation.
-pub(super) fn observing(state: &State, facts: &Facts, phase: Phase) -> bool {
-    state.phase == phase && seen(facts).is_some()
-}
-
 /// A check that stops a proposal, and what it records.
 struct Check {
     stops: fn(&State, &Proposal) -> bool,

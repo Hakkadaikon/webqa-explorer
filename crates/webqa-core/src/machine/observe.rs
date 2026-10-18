@@ -1,9 +1,10 @@
 //! Taking an observation into the state, and the rows that take one.
 
 use std::collections::BTreeSet;
+use std::time::Duration;
 
 use super::Seen;
-use super::actions::{Next, Now, idle, page};
+use super::actions::{Next, idle};
 use super::counters::{Counters, Progress};
 use super::material::forbidden_indices;
 use super::note::left;
@@ -122,14 +123,12 @@ pub(super) fn counted(freeze: u32, stuck: u32) -> Counters {
 }
 
 /// Takes the page in after returning or reloading.
-pub(super) fn arrived(state: State, now: &Now) -> Next {
-    let seen = page(&state, now);
+pub(super) fn arrived(state: State, seen: Seen, _: Duration) -> Next {
     idle(settled(state, seen))
 }
 
 /// Takes the page in after an operation and counts what came of it.
-pub(super) fn executed(state: State, now: &Now) -> Next {
-    let seen = page(&state, now);
+pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
     let (mut state, taken) = landed(state, seen);
     let explored = explored(&mut state, taken.from);
     state.counters = state.counters.after_touch(Progress {

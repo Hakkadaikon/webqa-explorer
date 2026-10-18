@@ -11,16 +11,16 @@ mod tests;
 
 use std::time::Duration;
 
-use super::guards::{answered, observing, rejection, seen};
-use super::note::{Anomaly, Note, Rejection};
+use super::guards::{answered, rejection, seen};
+use super::note::{Note, Rejection};
 use super::observe::{arrived, executed, settled};
 use super::ops::names;
 use super::proposal::{Proposal, hear};
 use super::state::{ExitReason, Phase, State};
-use super::{Facts, Outcome, Seen, Step};
+use super::{Facts, Outcome, Seen, Step, abort};
 use crate::effect::{Effect, PageEffect, Questions, Target, Touch};
 use crate::guard::identity::{Recheck, recheck};
-use crate::judge::step_questions;
+use crate::judge::{Answers, JudgeError, step_questions};
 use crate::screen::{screen_text, visible};
 
 /// The facts of the last effect and the time since the run started.
@@ -49,13 +49,7 @@ pub(super) enum Next {
 /// The first row: an ended run stays ended.
 pub(super) static ENDED: [Action; 1] = [Action {
     enabled: |state, _| state.ended().is_some(),
-    fire: |state, _| {
-        let reason = state.ended().unwrap_or(ExitReason::UserAborted);
-        Next::Out(Step::Finished(Outcome {
-            reason,
-            state: Box::new(state),
-        }))
-    },
+    fire: |state, _| Next::Out(Step::Finished(abort(state))),
 }];
 
 /// The rows that take the result of an effect.
@@ -64,26 +58,46 @@ pub(super) static ENDED: [Action; 1] = [Action {
 /// row takes it back to waiting, changing nothing else.
 pub(super) static ROWS: [Action; 5] = [
     Action {
-        enabled: |state, now| state.phase == Phase::Awaiting && answered(&now.facts).is_some(),
-        fire: decide,
+        enabled: |state, _| state.phase == Phase::Awaiting,
+        fire: |state, now| on_reply(state, now, decide),
     },
     Action {
-        enabled: |state, now| observing(state, &now.facts, Phase::Confirming),
-        fire: confirm,
+        enabled: |state, _| state.phase == Phase::Confirming,
+        fire: |state, now| on_page(state, now, confirm),
     },
     Action {
-        enabled: |state, now| observing(state, &now.facts, Phase::Acting),
-        fire: executed,
+        enabled: |state, _| state.phase == Phase::Acting,
+        fire: |state, now| on_page(state, now, executed),
     },
     Action {
-        enabled: |state, now| observing(state, &now.facts, Phase::Returning),
-        fire: arrived,
+        enabled: |state, _| state.phase == Phase::Returning,
+        fire: |state, now| on_page(state, now, arrived),
     },
     Action {
-        enabled: |state, now| observing(state, &now.facts, Phase::Recovering),
-        fire: arrived,
+        enabled: |state, _| state.phase == Phase::Recovering,
+        fire: |state, now| on_page(state, now, arrived),
     },
 ];
+
+/// Takes the judge's reply with `fire`. Other facts do not fit the phase.
+fn on_reply(
+    state: State,
+    now: &Now,
+    fire: fn(State, &Result<Answers, JudgeError>, Duration) -> Next,
+) -> Next {
+    match answered(&now.facts) {
+        Some(reply) => fire(state, reply, now.at),
+        None => MISMATCH(state, now),
+    }
+}
+
+/// Takes the observed page with `fire`. Other facts do not fit the phase.
+fn on_page(state: State, now: &Now, fire: fn(State, Seen, Duration) -> Next) -> Next {
+    match seen(&now.facts) {
+        Some(seen) => fire(state, seen.clone(), now.at),
+        None => MISMATCH(state, now),
+    }
+}
 
 /// The questions about the latest page.
 pub(super) fn questions(state: &State) -> Questions {
@@ -123,18 +137,10 @@ pub(super) fn touched(mut state: State, phase: Phase, touch: Touch, now: Duratio
     out(state, phase, Effect::Page(PageEffect::Touch(touch)))
 }
 
-/// The page in the facts, or the latest one if there is none.
-pub(super) fn page(state: &State, now: &Now) -> Seen {
-    seen(&now.facts).unwrap_or(&state.last).clone()
-}
-
 /// Takes the judge's reply: a proposal to stop, finish with, or pass on.
-fn decide(state: State, now: &Now) -> Next {
-    let proposal = answered(&now.facts).map_or(Err(Anomaly::Operation), |reply| {
-        hear(reply, &state.rules, &state.last)
-    });
-    match proposal {
-        Ok(proposal) => judged(state, proposal, now.at),
+fn decide(state: State, reply: &Result<Answers, JudgeError>, now: Duration) -> Next {
+    match hear(reply, &state.rules, &state.last) {
+        Ok(proposal) => judged(state, proposal, now),
         Err(anomaly) => idle(state.noted(Note::Anomaly(anomaly))),
     }
 }
@@ -171,20 +177,24 @@ fn carry_out(mut state: State, proposal: Proposal, now: Duration) -> Next {
 }
 
 /// The element looked up again: operate on it if it is the same node.
-fn confirm(state: State, now: &Now) -> Next {
-    let seen = page(&state, now);
+fn confirm(state: State, seen: Seen, now: Duration) -> Next {
+    // Confirming always holds the proposal: `carry_out` keeps it before
+    // asking for the look-up. The phase is `Copy` and cannot carry it, so
+    // the missing side stays, unreachable, treated as a vanished element.
     let checked = state
         .proposal
         .as_deref()
         .map_or(Err(Rejection::Missing), |p| verdict(p, &seen));
     match checked {
-        Ok(touch) => touched(state, Phase::Acting, touch, now.at),
+        Ok(touch) => touched(state, Phase::Acting, touch, now),
         Err(why) => idle(settled(state.noted(Note::Rejected(why)), seen)),
     }
 }
 
 /// The operation, if the element is the same node as when the judge was asked.
 fn verdict(proposal: &Proposal, seen: &Seen) -> Result<Touch, Rejection> {
+    // A proposal without an identity never gets here: the guard
+    // `unidentified` stops it while waiting for the judge.
     let check = proposal
         .identity
         .as_ref()
