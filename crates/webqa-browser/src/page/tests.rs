@@ -1,6 +1,8 @@
 //! Tests of putting what the browser read into one observation.
 
 use url::Url;
+use webqa_core::guard::forbidden::Candidate;
+use webqa_core::guard::identity::Node;
 use webqa_core::guard::paywall::PaywallFacts;
 use webqa_core::screen::Viewport;
 
@@ -33,15 +35,23 @@ fn home() -> Url {
     Url::parse("https://app.example.test/home").unwrap()
 }
 
-/// What the page script found for the element of `node`.
+fn settings() -> Url {
+    Url::parse("https://app.example.test/settings").unwrap()
+}
+
+fn checkout() -> Url {
+    Url::parse("https://app.example.test/checkout").unwrap()
+}
+
+/// What the page script found for the element of `node`: each material
+/// stands on its own element.
 fn probe_of(node: &str) -> Probe {
-    let checkout = Url::parse("https://app.example.test/checkout").unwrap();
     Probe {
         hit: node != "e8",
-        href: None,
-        form_action: (node == "e6").then_some(checkout),
-        forbidden_listed: false,
-        allowed_listed: false,
+        href: (node == "e5").then(settings),
+        form_action: (node == "e6").then(checkout),
+        forbidden_listed: node == "e3",
+        allowed_listed: node == "e11",
     }
 }
 
@@ -59,6 +69,26 @@ fn observed(skip: &str) -> Observation {
         .collect();
     let console = vec!["TypeError: x".to_owned()];
     assemble(home(), VIEW, probed, snapshot.headings, console)
+}
+
+fn node(role: &str, name: &str, node: &str) -> Node {
+    Node {
+        role: role.to_owned(),
+        name: name.to_owned(),
+        node: node.to_owned(),
+    }
+}
+
+/// A candidate of `role` and `name` with nothing found.
+fn plain(role: &str, name: &str) -> Candidate {
+    Candidate {
+        role: role.to_owned(),
+        name: name.to_owned(),
+        href: None,
+        form_action: None,
+        forbidden_listed: false,
+        allowed_listed: false,
+    }
 }
 
 fn names(o: &Observation) -> Vec<&str> {
@@ -125,4 +155,39 @@ fn element_without_probe_leaves_every_list() {
         [true, true, true, false],
         "four main operations"
     );
+}
+
+#[test]
+fn candidates_and_nodes_carry_each_element() {
+    let o = observed("");
+    let nodes = vec![
+        node("textbox", "メール", "e3"),
+        node("checkbox", "同意", "e4"),
+        node("link", "設定", "e5"),
+        node("button", "", "e6"),
+        node("button", "閉じる", "e8"),
+        node("button", "閉じる", "e11"),
+    ];
+    assert_eq!(o.nodes, nodes, "role, name and ref of each element");
+    let candidates = vec![
+        Candidate {
+            forbidden_listed: true,
+            ..plain("textbox", "メール")
+        },
+        plain("checkbox", "同意"),
+        Candidate {
+            href: Some(settings()),
+            ..plain("link", "設定")
+        },
+        Candidate {
+            form_action: Some(checkout()),
+            ..plain("button", "")
+        },
+        plain("button", "閉じる"),
+        Candidate {
+            allowed_listed: true,
+            ..plain("button", "閉じる")
+        },
+    ];
+    assert_eq!(o.candidates, candidates, "each probe on its own element");
 }
