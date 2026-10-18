@@ -45,3 +45,4 @@ sh scripts/setup.sh
 `just` を引数なしで実行すると、レシピの一覧が出る。
 コミット前には lefthook が軽い検査を回す。
 CI はそれに加えて、カバレッジと依存の監査を回す。
+開発の進め方と構成は[CONTRIBUTING.md](CONTRIBUTING.md)にまとめた。
