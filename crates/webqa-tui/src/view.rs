@@ -1,5 +1,9 @@
 //! What the screen shows, folded from the event log one line at a time.
 
+use ratatui::{
+    Frame,
+    widgets::{Block, Paragraph},
+};
 use webqa_core::event::{Event, Line, Mode};
 
 /// The last operation the judge chose.
@@ -74,6 +78,41 @@ fn reason(event: &Event) -> Option<String> {
     } else {
         None
     }
+}
+
+/// Draws `state` over the whole frame.
+pub fn render(state: &State, frame: &mut Frame) {
+    let text = rows(state)
+        .map(|(name, value)| format!("{name:<9}{}", value.as_deref().unwrap_or("-")))
+        .join("\n");
+    let view = Paragraph::new(text).block(Block::bordered().title("webqa"));
+    frame.render_widget(view, frame.area());
+}
+
+fn rows(state: &State) -> [(&'static str, Option<String>); 5] {
+    [
+        ("mode", state.mode.map(mode_name)),
+        ("step", state.step.map(|step| step.to_string())),
+        ("decided", state.decision.as_ref().map(decision_text)),
+        ("changed", Some(state.changed_steps.to_string())),
+        ("finished", state.finished.clone()),
+    ]
+}
+
+fn mode_name(mode: Mode) -> String {
+    // The name comes from the serde derive, as a JSON string.
+    serde_json::to_string(&mode)
+        .unwrap_or_default()
+        .trim_matches('"')
+        .to_owned()
+}
+
+fn decision_text(decision: &Decision) -> String {
+    format!(
+        "{} {}",
+        decision.op,
+        decision.target.as_deref().unwrap_or_default()
+    )
 }
 
 #[cfg(test)]

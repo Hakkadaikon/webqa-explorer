@@ -1,0 +1,14 @@
+---
+source: crates/webqa-tui/tests/render.rs
+expression: terminal.backend()
+---
+"┌webqa─────────────────────────────────────────────────────┐"
+"│mode     explore                                          │"
+"│step     1                                                │"
+"│decided  click 保存                                       │" Hidden by multi-width symbols: [(17, " "), (19, " ")]
+"│changed  1                                                │"
+"│finished goal_achieved                                    │"
+"│                                                          │"
+"│                                                          │"
+"│                                                          │"
+"└──────────────────────────────────────────────────────────┘"
