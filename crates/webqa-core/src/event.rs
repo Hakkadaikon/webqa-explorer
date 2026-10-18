@@ -27,6 +27,17 @@ pub enum Mode {
     Scenario,
 }
 
+impl Mode {
+    /// The name written to the log.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Explore => "explore",
+            Self::Scenario => "scenario",
+        }
+    }
+}
+
 /// What a line records.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -89,6 +100,22 @@ mod tests {
         r#"{"seq":2,"elapsed_ms":2100,"step":1,"kind":"executed","changed":true,"accesses":1}"#,
         r#"{"seq":9,"elapsed_ms":60000,"kind":"run_finished","reason":"goal_achieved"}"#,
     ];
+
+    #[test]
+    fn mode_name_matches_the_log() {
+        for (mode, name) in [(Mode::Explore, "explore"), (Mode::Scenario, "scenario")] {
+            assert_eq!(
+                mode.as_str(),
+                name,
+                "the name is the one written to the log"
+            );
+            assert_eq!(
+                serde_json::to_string(&mode).unwrap(),
+                format!("\"{name}\""),
+                "serde writes the same name"
+            );
+        }
+    }
 
     #[test]
     fn event_lines_match_documented_jsonl() {
