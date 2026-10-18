@@ -42,6 +42,7 @@ docs/     設計と規約の文書
 skills/   エージェント向けの参照スキル(.claude/skills と .agents/skills からリンク)
 agents/   Claude Code のサブエージェント(.claude/agents からリンク)
 tasks/    設計の検討過程の記録
+.omm/     アーキテクチャの図と説明(oh-my-mermaid が書き出す)
 .config/  各ツールの設定
 ```
 

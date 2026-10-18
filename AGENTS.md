@@ -7,7 +7,8 @@ Webサービスの探索的テストエージェントを、Rustで作ってい�
 
 - 開発の進め方は[CONTRIBUTING.md](CONTRIBUTING.md)にまとめた。
 - 環境は`sh scripts/setup.sh`でそろう。以降は`just`で作業する。
-- 文書は`docs/`に置く。直下に置くのは、ツールや慣習が場所を決めているものだけ
+- 文書は`docs/`に置く。アーキテクチャの図はoh-my-mermaidが`.omm/`に置く。
+  直下に置くのは、ツールや慣習が場所を決めているものだけ
   (README.md、CONTRIBUTING.md、AGENTS.md、CLAUDE.md)。
 
 ## 守ること
@@ -22,6 +23,7 @@ Webサービスの探索的テストエージェントを、Rustで作ってい�
 ## 参照先
 
 - `skills/`: 作業ごとの手順書(Agent Skills形式)。
+  文書を書くときは`writing-docs`、レビューするときは`reviewing-docs`を使う。
   `.claude/skills`と`.agents/skills`からリンクしている。
 - `agents/`: Claude Code向けのサブエージェント。
   役割分担は[`docs/agents.md`](docs/agents.md)にある。
