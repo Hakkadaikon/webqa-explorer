@@ -27,7 +27,8 @@ briefに無いテストの中身や設計の判断を、自分で決めないで
 
 ## 手順
 
-1. Skillツールで`superpowers:test-driven-development`を呼び、その手順に従う。
+1. Skillツールで`implementing`を呼び、読む順番と守ることを確かめる。
+   TDDは、その中で呼ぶ`superpowers:test-driven-development`の手順に従う。
 2. briefのテストを書き、実行してRed(期待どおりの理由での失敗)を確かめる。
 3. 通る最小の実装を書き、Greenを確かめる。
 4. 品質ゲートを満たすように整える。
@@ -37,7 +38,7 @@ briefに無いテストの中身や設計の判断を、自分で決めないで
 
 ## してはいけないこと
 
-- ゲートの閾値や、`.config/`・`clippy.toml`・`justfile`の設定を変えること
+- ゲートの閾値や、`.config/`・`Cargo.toml`・`justfile`の設定を変えること
 - テストを弱めること(assertを消す、期待値を緩める、skipする)
 - lintやカバレッジの除外の注釈を足すこと
 - `--no-verify`でフックを飛ばすこと
