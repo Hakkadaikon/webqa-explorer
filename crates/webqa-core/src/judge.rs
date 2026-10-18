@@ -3,7 +3,6 @@
 //! For now this holds the types and the two questions of a step. Building the
 //! whole set of questions and checking the answers come with issue #7.
 
-use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
 /// Names a question, so that its answer can be found.
@@ -95,19 +94,28 @@ pub struct Answers {
 impl Answers {
     /// The most probable option of the question and its probability.
     ///
-    /// `None` when the question has no answer or no option.
+    /// A NaN probability counts as missing, so its option is never chosen.
+    /// On a tie, the option that comes first in the answer wins.
+    /// `None` when the question has no answer, no option, or only NaN.
     #[must_use]
     pub fn best(&self, id: &QuestionId) -> Option<(&str, f64)> {
         self.table
             .get(id)?
             .iter()
             .map(borrowed)
-            .max_by(by_probability)
+            .filter(has_probability)
+            .reduce(likelier)
     }
 }
 
-fn by_probability(a: &(&str, f64), b: &(&str, f64)) -> Ordering {
-    a.1.total_cmp(&b.1)
+const fn has_probability(option: &(&str, f64)) -> bool {
+    !option.1.is_nan()
+}
+
+/// `next` if it is more probable than `best`, else `best`, so ties keep the
+/// earlier option.
+fn likelier<'a>(best: (&'a str, f64), next: (&'a str, f64)) -> (&'a str, f64) {
+    if next.1 > best.1 { next } else { best }
 }
 
 const fn borrowed((option, p): &(String, f64)) -> (&str, f64) {
@@ -162,6 +170,38 @@ mod tests {
             answers.best(&id),
             Some(("back", 0.7)),
             "the option with the highest probability"
+        );
+    }
+
+    #[test]
+    fn best_skips_missing_probabilities() {
+        let id = QuestionId::operation();
+        let answers = answers(
+            &id,
+            &[("click", f64::NAN), ("back", 0.2), ("wait", f64::NAN)],
+        );
+        assert_eq!(
+            answers.best(&id),
+            Some(("back", 0.2)),
+            "NaN is not a probability"
+        );
+    }
+
+    #[test]
+    fn best_is_none_when_every_probability_is_missing() {
+        let id = QuestionId::operation();
+        let answers = answers(&id, &[("click", f64::NAN), ("back", f64::NAN)]);
+        assert_eq!(answers.best(&id), None, "no probability, no best");
+    }
+
+    #[test]
+    fn best_keeps_the_earlier_option_on_a_tie() {
+        let id = QuestionId::operation();
+        let answers = answers(&id, &[("wait", 0.1), ("click", 0.45), ("back", 0.45)]);
+        assert_eq!(
+            answers.best(&id),
+            Some(("click", 0.45)),
+            "the first of the tied"
         );
     }
 
