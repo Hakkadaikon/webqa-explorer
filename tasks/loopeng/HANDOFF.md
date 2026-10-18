@@ -1,5 +1,8 @@
 # 引き継ぎ: webqa-explorerのloop-engineering(内ループ完了、テスト設計へ)
 
+> この文書は古い。再開の起点は `tasks/RESUME.md` にある。
+
+
 発行: 2026-10-17、更新: 2026-10-18。有効条件: `tasks/loopeng/WebExploratoryQA.tla`が更新時点(TLC generated 158363 / distinct 19539)から変更されておらず、`WebExploratoryQA.feature`がシナリオ71本のままであること。
 再開の起点はこの文書1つ。ほかの文書は参照先として読む。
 
