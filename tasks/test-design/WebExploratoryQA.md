@@ -7,21 +7,25 @@
 転記元の sha256: 7bbfbf7213310742bb1e1373cedf8bb20d63738d1d324656f7731d0e0590614a
 内ループで feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py` は、この値と実物の feature の sha256 が違えば失敗する。
 
-各 ID は「テストすべき振る舞い」1つ。test-catalog で全行に手法とテスト名を割り当て、行頭を `[x]` にした。
-`[x]` は手法とテスト名が決まった(設計済)ことを表し、テストが緑になったことは表さない。緑の確認は、トレーサビリティマトリクスの「緑確認済」列で test-verify が消し込む。
+各 ID は「テストすべき振る舞い」1つ。test-catalog で全行に手法とテスト名を割り当てた。
+チェックボックスの意味は、ここで1回だけ定義する。台帳の行、マトリクスの「設計済」列、閉じる前のチェックで同じ意味に使う。
+- `[ ]` 未着手、または未確認。
+- `[~]` 部分完了。何が残るかを同じ項目に「残り:」で書く。T-ID の行では、手法とテスト名は割り当て済みで、仕様の直しで何が変わりうるかを `→ 残り:` に書いた。
+- `[x]` 完了。T-ID の行では設計済、すなわち手法とテスト名が決まり、仕様の直しを待たないことを表す。テストが緑になったことは表さない。緑の確認は、トレーサビリティマトリクスの「緑確認済」列で test-verify が消し込む。
+
 手法の欄には、手法名と、割り当てるときに開いた技法スキルの名前を括弧で書いた。
 テストの置き場所は `docs/architecture.md` の「テストの層」と「ディレクトリ構成」に従う。
 どの行も受け入れの層を持つ。`webqa/tests/acceptance.rs` が cucumber で、題名が同じ Scenario を走らせる。
 テスト名の欄には、受け入れのほかに、その振る舞いを受け持つ下の層のテストを書いた。単体は `crate::モジュール` の形で、ほかの層はテストのファイルで場所を示す。
 テスト関数の名前には T-ID などの管理番号を入れない。
-issue の欄は、その行を実装する GitHub の issue の番号である。受け入れの配線は全行を #14 が受け持つので、欄には書かない。ただし保留の行の配線は、#13 が済んでから足す。T-050 の受け入れだけは、部品の噛み合わせを先に確かめるため #15 で先に配線する。
-仕様の直しで変わりうる行は「保留」とし、行の3行目に `→ 保留:` で何が変わりうるかを書いた。
-保留の行: T-015、T-021、T-055、T-079、T-081〜T-092
+issue の欄は、その行を実装する GitHub の issue の番号である。受け入れの配線は全行を #14 が受け持つので、欄には書かない。ただし `[~]` の行の配線は、#13 が済んでから足す。T-050 の受け入れだけは、部品の噛み合わせを先に確かめるため #15 で先に配線する。
+仕様の直しで変わりうる行は `[~]` にした。
+直し待ちの行: T-015、T-021、T-055、T-079、T-081〜T-092
 仕様待ちの issue: #13
-保留の行は issue #13(仕様待ち)にまとめた。それ以外の issue には保留の行を入れない。
-保留の行は、TLA+ の仕様の直しが済み、loop-engineering-reviewer が合格を出すまでテストを書かない。手法とテスト名の割り当ては残しておき、仕様が変わったらテスト名と期待値を新しい仕様に合わせて直す。
-T-016 は保留にしない。未検証の終了は、判断モデルが done を返したステップで done_when を見る判定で、直しが変える「段階に入った時点の観測」とは別の時点だからである。
-T-043 は保留にしない。設定の done_when の宣言の形(url、element、text)は直しで変わらず、変わりうるのは宣言の組み方の判定(T-091、保留)だけだからである。
+`[~]` の行は issue #13(仕様待ち)にまとめた。それ以外の issue には `[~]` の行を入れない。
+`[~]` の行は、TLA+ の仕様の直しが済み、loop-engineering-reviewer が合格を出すまでテストを書かない。手法とテスト名の割り当ては残しておき、仕様が変わったらテスト名と期待値を新しい仕様に合わせて直す。
+T-016 は `[~]` にしない。未検証の終了は、判断モデルが done を返したステップで done_when を見る判定で、直しが変える「段階に入った時点の観測」とは別の時点だからである。
+T-043 は `[~]` にしない。設定の done_when の宣言の形(url、element、text)は直しで変わらず、変わりうるのは宣言の組み方の判定(T-091、`[~]`)だけだからである。
 Scenario Outline は1行にまとめ、Examples の各行をそのテストのケースにする。
 T-ID は一度振ったら変えない。T-052 以降は、レビューで足したシナリオを番号を保つために末尾へ追加したもの。T-060 は題名を言い直した(応答しないステップは固まりに合流させる)。
 T-072 以降は、2026-10-18 の要件変更(行き詰まりの数え直し、時間切れ、利用者による中断、探索モードのゴール、段階の切り替え)と、要素の範囲・終了コードの決定に合わせて足したもの。
@@ -94,9 +98,9 @@ T-018 と T-058 は、行き詰まりの条件に「未操作の要素も新し�
       → 手法: 同値分割(blackbox-partition)、ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard::paywall` の `pricing_word_alone_is_not_paywall`、ゴールデン `webqa-core/tests/guard_golden.rs` の `paywall_fixtures` / issue: #4
 - [x] T-014 WebExploratoryQA.feature:186(ガードレール) [unwanted] 「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `leaving_paywall_counts_toward_stuck` / issue: #12
-- [x] T-015 WebExploratoryQA.feature:194(終了の判定) [event] 「done_when を満たしたら、判断モデルに問い合わせずにゴール達成で終了する」
+- [~] T-015 WebExploratoryQA.feature:194(終了の判定) [event] 「done_when を満たしたら、判断モデルに問い合わせずにゴール達成で終了する」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `goal_met_finishes_without_asking` / issue: #13
-      → 保留: done_when を観測する時点(問い合わせの前か、操作のあとの観測か)
+      → 残り: done_when を観測する時点(問い合わせの前か、操作のあとの観測か)
 - [x] T-016 WebExploratoryQA.feature:200(終了の判定) [unwanted] 「done_when を満たさないまま判断モデルが done を返したら、未検証の終了として記録する」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `self_reported_done_is_unverified` / issue: #12
 - [x] T-017 WebExploratoryQA.feature:207(終了の判定) [event] 「判断モデルが stuck を返したら行き詰まりで終了する」
@@ -107,9 +111,9 @@ T-018 と T-058 は、行き詰まりの条件に「未操作の要素も新し�
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `operating_untouched_resets_stuck` / issue: #12
 - [x] T-020 WebExploratoryQA.feature:242(終了の判定) [unwanted] 「判断モデルの呼び出しが上限に達したら実行を止める」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_exhausted_finishes` / issue: #12
-- [x] T-021 WebExploratoryQA.feature:249(終了の判定) [state] 「終了の条件が重なったら、ゴール達成、行き詰まり、判断予算切れの順に1つだけ採る」
+- [~] T-021 WebExploratoryQA.feature:249(終了の判定) [state] 「終了の条件が重なったら、ゴール達成、行き詰まり、判断予算切れの順に1つだけ採る」
       → 手法: デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `goal_beats_stuck_beats_budget`、全状態の探索 `webqa-core/tests/exhaustive.rs` の `priority_holds_in_every_reachable_state` / issue: #13
-      → 保留: 重なりの判定で、done_when を観測する時点と段階の進行の扱い
+      → 残り: 重なりの判定で、done_when を観測する時点と段階の進行の扱い
 - [x] T-022 WebExploratoryQA.feature:256(終了の判定) [state] 「行き詰まりと判断予算切れが重なったら行き詰まりで終了する」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `stuck_beats_budget` / issue: #12
 - [x] T-023 WebExploratoryQA.feature:263(終了の判定) [state] 「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」
@@ -176,9 +180,9 @@ T-018 と T-058 は、行き詰まりの条件に「未操作の要素も新し�
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::window` の `counts_each_access_kind` / issue: #12
 - [x] T-054 WebExploratoryQA.feature:639(対象サーバへの負荷) [boundary] 「ガードレールで止めて実行しなかった提案は、時間窓の操作回数に数えない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `rejected_proposal_uses_no_access` / issue: #12
-- [x] T-055 WebExploratoryQA.feature:57(1ステップの問い合わせと実行) [boundary] 「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」
+- [~] T-055 WebExploratoryQA.feature:57(1ステップの問い合わせと実行) [boundary] 「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `empty_screen_allows_only_untargeted_ops` / issue: #13
-      → 保留: 要素0件の画面で、対象の要る操作が返ったときの扱い
+      → 残り: 要素0件の画面で、対象の要る操作が返ったときの扱い
 - [x] T-056 WebExploratoryQA.feature:64(1ステップの問い合わせと実行) [unwanted] 「判断モデルの応答が使えないときは操作せず、応答の異常として記録して次のステップへ進む」(Examples の各行を1ケースとする)
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `rejects_unusable_answers`、契約 `webqa-judge/tests/command.rs` の `timeout_becomes_judge_error` / issue: #7
 - [x] T-057 WebExploratoryQA.feature:271(終了の判定) [boundary] 「判断モデルの呼び出しが上限の1回手前なら、まだ問い合わせる」
@@ -225,47 +229,47 @@ T-018 と T-058 は、行き詰まりの条件に「未操作の要素も新し�
       → 手法: 同値分割(blackbox-partition)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `time_limit_applies_to_scenario_mode` / issue: #12
 - [x] T-078 WebExploratoryQA.feature:325(終了の判定) [state] 「判断予算切れと時間切れが重なったら、どちらか1つの終了理由で終了する」
       → 手法: デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_and_timeout_yield_one_of_them`、全状態の探索 `webqa-core/tests/exhaustive.rs` の `budget_and_timeout_tie_yields_one_reason` / issue: #12
-- [x] T-079 WebExploratoryQA.feature:333(終了の判定) [state] 「時間切れとゴール達成や行き詰まりが重なったら、ゴール達成や行き詰まりを採る」(Examples の各行を1ケースとする)
+- [~] T-079 WebExploratoryQA.feature:333(終了の判定) [state] 「時間切れとゴール達成や行き詰まりが重なったら、ゴール達成や行き詰まりを採る」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `goal_and_stuck_beat_timeout` / issue: #13
-      → 保留: 時間切れと重なるゴール達成で、done_when を観測する時点
+      → 残り: 時間切れと重なるゴール達成で、done_when を観測する時点
 - [x] T-080 WebExploratoryQA.feature:344(終了の判定) [unwanted] 「時間窓が明けるのを待っている間に制限時間に達したら、窓を待たずに時間切れで終了する」
       → 手法: 時刻依存の封じ込め(flakiness-value)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `timeout_during_window_wait`、単体 `webqa::run` の `window_wait_sleeps_until_earlier_deadline` / issue: #12、#14
-- [x] T-081 WebExploratoryQA.feature:352(終了の判定) [event] 「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」
+- [~] T-081 WebExploratoryQA.feature:352(終了の判定) [event] 「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `all_explored_except_forbidden_is_goal` / issue: #13
-      → 保留: 探索モードのゴールの定義(開始の画面から辿れる画面の範囲)
-- [x] T-082 WebExploratoryQA.feature:359(終了の判定) [boundary] 「探索モードで未操作の要素が禁止要素だけになったら、ゴール達成で終了する」
+      → 残り: 探索モードのゴールの定義(開始の画面から辿れる画面の範囲)
+- [~] T-082 WebExploratoryQA.feature:359(終了の判定) [boundary] 「探索モードで未操作の要素が禁止要素だけになったら、ゴール達成で終了する」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `only_forbidden_left_is_goal` / issue: #13
-      → 保留: 未操作の要素が禁止要素だけになったときの扱い
-- [x] T-083 WebExploratoryQA.feature:366(終了の判定) [unwanted] 「探索モードで禁止要素以外の未操作の要素が残っていれば、ゴール達成にしない」
+      → 残り: 未操作の要素が禁止要素だけになったときの扱い
+- [~] T-083 WebExploratoryQA.feature:366(終了の判定) [unwanted] 「探索モードで禁止要素以外の未操作の要素が残っていれば、ゴール達成にしない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `untouched_on_other_screen_blocks_goal` / issue: #13
-      → 保留: ほかの画面に残る未操作の要素の数え方
-- [x] T-084 WebExploratoryQA.feature:373(終了の判定) [state] 「探索モードでは、判断モデルに問い合わせる操作種別の選択肢に done を入れない」
+      → 残り: ほかの画面に残る未操作の要素の数え方
+- [~] T-084 WebExploratoryQA.feature:373(終了の判定) [state] 「探索モードでは、判断モデルに問い合わせる操作種別の選択肢に done を入れない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `explore_mode_omits_done_option` / issue: #13
-      → 保留: 探索モードで操作種別の選択肢から done を外す問いの形
-- [x] T-085 WebExploratoryQA.feature:379(終了の判定) [unwanted] 「探索モードで判断モデルが done を返しても、未検証の終了にせず応答の異常として扱う」
+      → 残り: 探索モードで操作種別の選択肢から done を外す問いの形
+- [~] T-085 WebExploratoryQA.feature:379(終了の判定) [unwanted] 「探索モードで判断モデルが done を返しても、未検証の終了にせず応答の異常として扱う」
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `done_in_explore_mode_is_anomaly` / issue: #13
-      → 保留: 探索モードで返った done の扱い(応答の異常にするか)
-- [x] T-086 WebExploratoryQA.feature:388(決め打ちシナリオの段階) [event] 「最後でない段階の done_when を満たしたら、判断モデルに問い合わせずに次の段階へ進む」
+      → 残り: 探索モードで返った done の扱い(応答の異常にするか)
+- [~] T-086 WebExploratoryQA.feature:388(決め打ちシナリオの段階) [event] 「最後でない段階の done_when を満たしたら、判断モデルに問い合わせずに次の段階へ進む」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `non_last_stage_met_advances` / issue: #13
-      → 保留: 最後でない段階を満たしたときの遷移(問い合わせずに次の段階へ進むか)
-- [x] T-087 WebExploratoryQA.feature:396(決め打ちシナリオの段階) [event] 「最後の段階の done_when を満たしたら、ゴール達成で終了する」
+      → 残り: 最後でない段階を満たしたときの遷移(問い合わせずに次の段階へ進むか)
+- [~] T-087 WebExploratoryQA.feature:396(決め打ちシナリオの段階) [event] 「最後の段階の done_when を満たしたら、ゴール達成で終了する」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `last_stage_met_achieves_goal` / issue: #13
-      → 保留: 最後の段階を満たしたときの終了理由
-- [x] T-088 WebExploratoryQA.feature:402(決め打ちシナリオの段階) [unwanted] 「後の段階の done_when だけを満たしても、段階を飛ばさずゴール達成にもしない」
+      → 残り: 最後の段階を満たしたときの終了理由
+- [~] T-088 WebExploratoryQA.feature:402(決め打ちシナリオの段階) [unwanted] 「後の段階の done_when だけを満たしても、段階を飛ばさずゴール達成にもしない」
       → 手法: 禁止仕様からの導出(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::stage` の `later_stage_done_when_does_not_skip` / issue: #13
-      → 保留: 後の段階の done_when だけが成り立つときの扱い
-- [x] T-089 WebExploratoryQA.feature:410(決め打ちシナリオの段階) [state] 「段階を進めたら、固まりと行き詰まりの回数を0に戻す」
+      → 残り: 後の段階の done_when だけが成り立つときの扱い
+- [~] T-089 WebExploratoryQA.feature:410(決め打ちシナリオの段階) [state] 「段階を進めたら、固まりと行き詰まりの回数を0に戻す」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `stage_advance_resets_freeze_and_stuck` / issue: #13
-      → 保留: 段階を進めたときに0に戻すカウンタの範囲
-- [x] T-090 WebExploratoryQA.feature:418(決め打ちシナリオの段階) [state] 「段階を進めても、判断予算・時間窓の操作回数・探索の記憶は引き継ぐ」
+      → 残り: 段階を進めたときに0に戻すカウンタの範囲
+- [~] T-090 WebExploratoryQA.feature:418(決め打ちシナリオの段階) [state] 「段階を進めても、判断予算・時間窓の操作回数・探索の記憶は引き継ぐ」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `stage_advance_keeps_budget_window_memory` / issue: #13
-      → 保留: 段階をまたいで引き継ぐもの(判断予算、時間窓、探索の記憶)
-- [x] T-091 WebExploratoryQA.feature:430(決め打ちシナリオの段階) [boundary] 「done_when に宣言が複数あれば、すべて成り立ったときだけ満たしたとみなす」(Examples の各行を1ケースとする)
+      → 残り: 段階をまたいで引き継ぐもの(判断予算、時間窓、探索の記憶)
+- [~] T-091 WebExploratoryQA.feature:430(決め打ちシナリオの段階) [boundary] 「done_when に宣言が複数あれば、すべて成り立ったときだけ満たしたとみなす」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::stage` の `done_when_requires_all_declarations` / issue: #13
-      → 保留: done_when の宣言が複数あるときの組み合わせ方
-- [x] T-092 WebExploratoryQA.feature:444(決め打ちシナリオの段階) [boundary] 「done_when の要素とテキストは、表示領域の外にあっても成り立つ」
+      → 残り: done_when の宣言が複数あるときの組み合わせ方
+- [~] T-092 WebExploratoryQA.feature:444(決め打ちシナリオの段階) [boundary] 「done_when の要素とテキストは、表示領域の外にあっても成り立つ」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::stage` の `done_when_uses_whole_page` / issue: #13
-      → 保留: done_when を判定する要素とテキストの範囲
+      → 残り: done_when を判定する要素とテキストの範囲
 - [x] T-093 WebExploratoryQA.feature:484(固まりとドメイン外からの復帰) [state] 「スクロールで表示領域の要素が変われば、画面が変化したと数えて固まりの数え直しになる」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::screen` の `scroll_changing_viewport_is_change` / issue: #6
 - [x] T-094 WebExploratoryQA.feature:491(固まりとドメイン外からの復帰) [boundary] 「ページの一番下でスクロールして表示領域の要素が変わらなければ、画面が変化しないステップと数える」
@@ -320,13 +324,13 @@ T-042 のゴールデンは、`docs/architecture.md` の「テストの層」の
 | T-012 | unwanted | ゴールデンテスト(oracle-past-output)、同値分割(blackbox-partition) | `paywall_by_each_axis`、`paywall_fixtures` | #4 | [x] | [ ] | 要 |
 | T-013 | unwanted | 同値分割(blackbox-partition)、ゴールデンテスト(oracle-past-output) | `pricing_word_alone_is_not_paywall`、`paywall_fixtures` | #4 | [x] | [ ] | 要 |
 | T-014 | unwanted | 状態遷移テスト(blackbox-state) | `leaving_paywall_counts_toward_stuck` | #12 | [x] | [ ] | 要 |
-| T-015 | event | 状態遷移テスト(blackbox-state) | `goal_met_finishes_without_asking` | #13 | [x] | [ ] | 要 |
+| T-015 | event | 状態遷移テスト(blackbox-state) | `goal_met_finishes_without_asking` | #13 | [~] | [ ] | 要 |
 | T-016 | unwanted | 状態遷移テスト(blackbox-state) | `self_reported_done_is_unverified` | #12 | [x] | [ ] | 要 |
 | T-017 | event | 状態遷移テスト(blackbox-state) | `stuck_answer_finishes_stuck` | #12 | [x] | [ ] | 要 |
 | T-018 | state | 状態遷移テスト(blackbox-state) | `stuck_after_threshold_without_progress` | #12 | [x] | [ ] | 要 |
 | T-019 | state | 状態遷移テスト(blackbox-state) | `operating_untouched_resets_stuck` | #12 | [x] | [ ] | 要 |
 | T-020 | unwanted | 状態遷移テスト(blackbox-state) | `budget_exhausted_finishes` | #12 | [x] | [ ] | 要 |
-| T-021 | state | デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) | `goal_beats_stuck_beats_budget`、`priority_holds_in_every_reachable_state` | #13 | [x] | [ ] | 要 |
+| T-021 | state | デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) | `goal_beats_stuck_beats_budget`、`priority_holds_in_every_reachable_state` | #13 | [~] | [ ] | 要 |
 | T-022 | state | デシジョンテーブル(blackbox-partition) | `stuck_beats_budget` | #12 | [x] | [ ] | 要 |
 | T-023 | state | デシジョンテーブル(blackbox-partition) | `budget_beats_freeze_recovery` | #12 | [x] | [ ] | 要 |
 | T-024 | unwanted | 禁止仕様からの導出(blackbox-state)、モデルベーステスト(oracle-model-based) | `finished_is_absorbing` | #12 | [x] | [ ] | 要 |
@@ -360,7 +364,7 @@ T-042 のゴールデンは、`docs/architecture.md` の「テストの層」の
 | T-052 | boundary | コントラクトテスト(levels-service)、同値分割(blackbox-partition) | `judges_final_url`、`reports_final_url_after_redirect` | #4、#9 | [x] | [ ] | 要 |
 | T-053 | unwanted | 同値分割(blackbox-partition) | `counts_each_access_kind` | #12 | [x] | [ ] | 要 |
 | T-054 | boundary | 同値分割(blackbox-partition) | `rejected_proposal_uses_no_access` | #12 | [x] | [ ] | 要 |
-| T-055 | boundary | 境界値分析(blackbox-partition) | `empty_screen_allows_only_untargeted_ops` | #13 | [x] | [ ] | — |
+| T-055 | boundary | 境界値分析(blackbox-partition) | `empty_screen_allows_only_untargeted_ops` | #13 | [~] | [ ] | — |
 | T-056 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `rejects_unusable_answers`、`timeout_becomes_judge_error` | #7 | [x] | [ ] | 要 |
 | T-057 | boundary | 境界値分析(blackbox-partition) | `budget_one_left_still_asks` | #12 | [x] | [ ] | 要 |
 | T-058 | boundary | 境界値分析(blackbox-partition) | `stuck_below_threshold_continues` | #12 | [x] | [ ] | 要 |
@@ -384,20 +388,20 @@ T-042 のゴールデンは、`docs/architecture.md` の「テストの層」の
 | T-076 | boundary | 境界値分析(blackbox-partition)、時刻依存の封じ込め(flakiness-value) | `time_limit_boundary` | #12 | [x] | [ ] | 要 |
 | T-077 | event | 同値分割(blackbox-partition)、時刻依存の封じ込め(flakiness-value) | `time_limit_applies_to_scenario_mode` | #12 | [x] | [ ] | 要 |
 | T-078 | state | デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) | `budget_and_timeout_yield_one_of_them`、`budget_and_timeout_tie_yields_one_reason` | #12 | [x] | [ ] | 要 |
-| T-079 | state | デシジョンテーブル(blackbox-partition) | `goal_and_stuck_beat_timeout` | #13 | [x] | [ ] | 要 |
+| T-079 | state | デシジョンテーブル(blackbox-partition) | `goal_and_stuck_beat_timeout` | #13 | [~] | [ ] | 要 |
 | T-080 | unwanted | 時刻依存の封じ込め(flakiness-value)、境界値分析(blackbox-partition) | `timeout_during_window_wait`、`window_wait_sleeps_until_earlier_deadline` | #12、#14 | [x] | [ ] | 要 |
-| T-081 | event | 同値分割(blackbox-partition) | `all_explored_except_forbidden_is_goal` | #13 | [x] | [ ] | 要 |
-| T-082 | boundary | 境界値分析(blackbox-partition) | `only_forbidden_left_is_goal` | #13 | [x] | [ ] | 要 |
-| T-083 | unwanted | 同値分割(blackbox-partition) | `untouched_on_other_screen_blocks_goal` | #13 | [x] | [ ] | 要 |
-| T-084 | state | 同値分割(blackbox-partition) | `explore_mode_omits_done_option` | #13 | [x] | [ ] | 要 |
-| T-085 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) | `done_in_explore_mode_is_anomaly` | #13 | [x] | [ ] | 要 |
-| T-086 | event | 状態遷移テスト(blackbox-state) | `non_last_stage_met_advances` | #13 | [x] | [ ] | 要 |
-| T-087 | event | 状態遷移テスト(blackbox-state) | `last_stage_met_achieves_goal` | #13 | [x] | [ ] | 要 |
-| T-088 | unwanted | 禁止仕様からの導出(blackbox-state) | `later_stage_done_when_does_not_skip` | #13 | [x] | [ ] | 要 |
-| T-089 | state | 状態遷移テスト(blackbox-state) | `stage_advance_resets_freeze_and_stuck` | #13 | [x] | [ ] | 要 |
-| T-090 | state | 状態遷移テスト(blackbox-state) | `stage_advance_keeps_budget_window_memory` | #13 | [x] | [ ] | 要 |
-| T-091 | boundary | デシジョンテーブル(blackbox-partition) | `done_when_requires_all_declarations` | #13 | [x] | [ ] | 要 |
-| T-092 | boundary | 同値分割(blackbox-partition) | `done_when_uses_whole_page` | #13 | [x] | [ ] | 要 |
+| T-081 | event | 同値分割(blackbox-partition) | `all_explored_except_forbidden_is_goal` | #13 | [~] | [ ] | 要 |
+| T-082 | boundary | 境界値分析(blackbox-partition) | `only_forbidden_left_is_goal` | #13 | [~] | [ ] | 要 |
+| T-083 | unwanted | 同値分割(blackbox-partition) | `untouched_on_other_screen_blocks_goal` | #13 | [~] | [ ] | 要 |
+| T-084 | state | 同値分割(blackbox-partition) | `explore_mode_omits_done_option` | #13 | [~] | [ ] | 要 |
+| T-085 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) | `done_in_explore_mode_is_anomaly` | #13 | [~] | [ ] | 要 |
+| T-086 | event | 状態遷移テスト(blackbox-state) | `non_last_stage_met_advances` | #13 | [~] | [ ] | 要 |
+| T-087 | event | 状態遷移テスト(blackbox-state) | `last_stage_met_achieves_goal` | #13 | [~] | [ ] | 要 |
+| T-088 | unwanted | 禁止仕様からの導出(blackbox-state) | `later_stage_done_when_does_not_skip` | #13 | [~] | [ ] | 要 |
+| T-089 | state | 状態遷移テスト(blackbox-state) | `stage_advance_resets_freeze_and_stuck` | #13 | [~] | [ ] | 要 |
+| T-090 | state | 状態遷移テスト(blackbox-state) | `stage_advance_keeps_budget_window_memory` | #13 | [~] | [ ] | 要 |
+| T-091 | boundary | デシジョンテーブル(blackbox-partition) | `done_when_requires_all_declarations` | #13 | [~] | [ ] | 要 |
+| T-092 | boundary | 同値分割(blackbox-partition) | `done_when_uses_whole_page` | #13 | [~] | [ ] | 要 |
 | T-093 | state | 同値分割(blackbox-partition) | `scroll_changing_viewport_is_change` | #6 | [x] | [ ] | 要 |
 | T-094 | boundary | 境界値分析(blackbox-partition) | `scroll_at_bottom_is_unchanged` | #6 | [x] | [ ] | 要 |
 | T-095 | unwanted | 同値分割(blackbox-partition) | `scroll_keeps_screen_identity` | #6 | [x] | [ ] | 要 |
@@ -473,7 +477,7 @@ T-042 のゴールデンは、`docs/architecture.md` の「テストの層」の
 - [x] 用語定義表が埋まり、曖昧な語が残っていない(test-design のレビュー3回で指摘された語をすべて足した)
 - [x] 全 T-ID に種別ラベルが振られている(証跡は下の「機械確認」)
 - [x] 各 `event`/`state` 行に対応する `unwanted` 行が最低1つある(「対応する unwanted 行」の節)
-- [x] 全 T-ID の「設計済」が `[x]`(test-catalog で手法とテスト名を割り当てた。トレーサビリティマトリクスの「設計済」列が 107 行とも `[x]`)
+- [~] 全 T-ID の「設計済」が `[x]`(91 行が `[x]`。残り: 仕様の直し待ちの16行が `[~]`。#13 で仕様が固まったら `[x]` にする)
 - [x] T-001 から連番に欠番なし(証跡は下の「機械確認」)
 - [x] 各 T-ID に手法が割り当たっている(台帳の各行の「手法」欄。割り当てた手法の技法スキルはすべて開いて参照した)
 - [x] 正常系だけでなく、境界と異常系が各機能(Rule)に最低1つあり、非機能は必要な箇所にある(証跡は下の「機械確認」の Rule 別集計)。正常系は event/state/ubiquitous/optional、境界は boundary、異常系は unwanted、非機能は nonfunctional と数える。非機能は計測の行(T-051)だけで、セキュリティ(機密情報、API キー、TLS)と負荷の要求は、拒否・抑止の振る舞いとして unwanted で立てた
@@ -491,8 +495,8 @@ feature の sha256: 7bbfbf7213310742bb1e1373cedf8bb20d63738d1d324656f7731d0e0590
 欠番: なし
 feature の Scenario: 107
 台帳から指されない Scenario: なし
-保留の印がある行: 16(T-015、T-021、T-055、T-079、T-081、T-082、T-083、T-084、T-085、T-086、T-087、T-088、T-089、T-090、T-091、T-092)
-冒頭の保留の一覧: 16
+`[~]` の行: 16(T-015、T-021、T-055、T-079、T-081、T-082、T-083、T-084、T-085、T-086、T-087、T-088、T-089、T-090、T-091、T-092)
+冒頭の直し待ちの一覧: 16
 仕様待ちの issue: #13
 マトリクスの行: 107
 Rule 別の種別の内訳:
