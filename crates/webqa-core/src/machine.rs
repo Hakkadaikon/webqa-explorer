@@ -4,6 +4,7 @@
 //! the ports and the run loop fit together; issue #12 replaces it with the
 //! state machine of `docs/architecture.md`.
 
+pub mod counters;
 #[cfg(test)]
 mod tests;
 
