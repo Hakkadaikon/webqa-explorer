@@ -4,17 +4,19 @@ use super::*;
 use crate::judge::ask::tests::ALL_OPS;
 
 /// The problem written as `"<kind> <question>"`, the kind being `missing`,
-/// `option` or `range`.
+/// `option` or `range`. Panics on any other kind.
 fn unusable(problem: &str) -> Unusable {
     let (kind, id) = problem.split_once(' ').unwrap();
     let id = QuestionId::new(id);
     [
         ("missing", Unusable::Missing(id.clone())),
         ("option", Unusable::NotAnOption(id.clone())),
+        ("range", Unusable::OutOfRange(id)),
     ]
     .into_iter()
     .find(|(k, _)| *k == kind)
-    .map_or(Unusable::OutOfRange(id), |(_, u)| u)
+    .map(|(_, u)| u)
+    .expect("the kind is missing, option or range")
 }
 
 fn assert_rejected(answers: &Answers, ask: &Ask<'_>, problem: &str) {
