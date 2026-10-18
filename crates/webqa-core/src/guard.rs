@@ -8,6 +8,8 @@ mod debug;
 pub mod domain;
 pub mod forbidden;
 pub mod identity;
+mod kana;
+mod path;
 pub mod paywall;
 #[cfg(test)]
 mod tests;
@@ -17,11 +19,16 @@ use url::Url;
 /// Offset from a full-width ASCII character to its half-width one.
 const FULLWIDTH_OFFSET: u32 = 0xFEE0;
 
-/// Folds text for matching: full-width ASCII to half-width, lower case, and
-/// runs of white space (the full-width space too) to one space, trimmed.
+/// Folds text for matching: full-width ASCII to half-width, half-width
+/// katakana to full-width, lower case, and runs of white space and `-` (the
+/// full-width ones too) to one space, trimmed.
 pub(crate) fn fold(s: &str) -> String {
-    let half: String = s.chars().map(halfwidth).collect();
-    half.to_lowercase()
+    let mut wide = String::new();
+    for c in s.chars().map(halfwidth).map(kana::widen) {
+        kana::push(&mut wide, c);
+    }
+    wide.to_lowercase()
+        .replace('-', " ")
         .split_whitespace()
         .collect::<Vec<_>>()
         .join(" ")
@@ -50,7 +57,8 @@ fn entries(defaults: &[&str], extra: &[String], norm: fn(&str) -> String) -> Vec
         .collect()
 }
 
-/// Folded words, matched where ASCII letters and digits do not continue them.
+/// Folded words. An end of a word that is an ASCII letter or digit must not
+/// be continued by one in the text; other ends match anywhere.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Words(Vec<String>);
 
@@ -67,27 +75,31 @@ impl Words {
     }
 }
 
-/// Whether `word` appears in `text` with no ASCII letter or digit on either side.
+/// Whether `word` appears in `text` without its ASCII ends being continued.
 fn bounded(text: &str, word: &str) -> bool {
-    text.match_indices(word)
-        .any(|(start, _)| edge_before(text, start) && edge_after(text, start + word.len()))
+    text.match_indices(word).any(|(start, _)| {
+        free_before(text, word, start) && free_after(text, word, start + word.len())
+    })
 }
 
-fn edge_before(text: &str, at: usize) -> bool {
-    !text
-        .get(..at)
-        .and_then(|s| s.chars().next_back())
-        .is_some_and(|c| c.is_ascii_alphanumeric())
+/// Only a word starting with an ASCII letter or digit needs a boundary before.
+fn free_before(text: &str, word: &str, at: usize) -> bool {
+    !ascii_alnum(word.chars().next())
+        || !ascii_alnum(text.get(..at).and_then(|s| s.chars().next_back()))
 }
 
-fn edge_after(text: &str, at: usize) -> bool {
-    !text
-        .get(at..)
-        .and_then(|s| s.chars().next())
-        .is_some_and(|c| c.is_ascii_alphanumeric())
+/// Only a word ending with an ASCII letter or digit needs a boundary after.
+fn free_after(text: &str, word: &str, at: usize) -> bool {
+    !ascii_alnum(word.chars().next_back())
+        || !ascii_alnum(text.get(at..).and_then(|s| s.chars().next()))
 }
 
-/// URL path segments, compared lower case and without `-` and `_`.
+fn ascii_alnum(c: Option<char>) -> bool {
+    c.is_some_and(|c| c.is_ascii_alphanumeric())
+}
+
+/// URL path segments, compared lower case and without `-` and `_`. Segments
+/// of a URL are percent-decoded and lose `;` parameters and the extension.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Segments(Vec<String>);
 
@@ -101,7 +113,7 @@ impl Segments {
     /// fragment and the host are not looked at.
     pub(crate) fn any_in(&self, url: &Url) -> bool {
         url.path_segments()
-            .is_some_and(|mut parts| parts.any(|part| self.0.contains(&squash(part))))
+            .is_some_and(|mut parts| parts.any(|part| self.0.contains(&path::segment_key(part))))
     }
 }
 

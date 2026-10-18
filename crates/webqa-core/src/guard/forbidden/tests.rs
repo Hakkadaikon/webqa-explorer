@@ -95,6 +95,46 @@ fn forbidden_by_destination() {
 }
 
 #[test]
+fn spelling_variants_are_forbidden() {
+    let cases = [
+        (named("button", "購入3点"), true),
+        (named("button", "1-Click購入"), true),
+        (named("button", "退会API"), true),
+        (named("button", "ｻｲﾝｲﾝ"), true),
+        (named("textbox", "ｶｰﾄﾞ番号"), true),
+        (named("button", "Check-out"), true),
+        (named("button", "注文確定"), true),
+        (named("button", "ご注文手続きへ"), true),
+        (named("button", "レジに進む"), true),
+        (named("button", "Order now"), true),
+        (named("button", "Confirm order"), true),
+        (named("button", "Place order"), true),
+        (named("link", "PayPay"), false),
+        (named("link", "Display"), false),
+        (named("link", "Prepay"), false),
+    ];
+    assert_cases(&Forbidden::default(), &cases);
+}
+
+#[test]
+fn encoded_or_suffixed_destinations_are_forbidden() {
+    let app = "https://app.example.test";
+    let cases = [
+        (with_href("次へ", &format!("{app}/checkout.php")), true),
+        (
+            with_href("次へ", &format!("{app}/checkout;jsessionid=1")),
+            true,
+        ),
+        (
+            with_action("button", "OK", &format!("{app}/%63heckout")),
+            true,
+        ),
+        (with_href("次へ", &format!("{app}/checkouts")), false),
+    ];
+    assert_cases(&Forbidden::default(), &cases);
+}
+
+#[test]
 fn forbidden_by_list() {
     let cases = [
         (listed("実行", true, false), true),
