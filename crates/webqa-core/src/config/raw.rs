@@ -8,6 +8,7 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use super::ConfigError;
+use super::interview::RawInterview;
 
 /// The whole configuration file.
 #[derive(Debug, Deserialize)]
@@ -34,6 +35,8 @@ pub struct RawConfig {
     /// Operation kinds in use. All eight when omitted.
     #[serde(default = "all_ops")]
     pub ops: Vec<Op>,
+    /// The interview settings.
+    pub interview: Option<RawInterview>,
 }
 
 /// The service under test.
@@ -170,7 +173,7 @@ pub struct Scenario {
 }
 
 /// One stage of a scenario.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Stage {
     /// The stage name.
@@ -182,7 +185,7 @@ pub struct Stage {
 }
 
 /// When a stage is done.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DoneWhen {
     /// The URL path reached.
@@ -194,7 +197,7 @@ pub struct DoneWhen {
 }
 
 /// An element by role and accessible name.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Element {
     /// The ARIA role.
