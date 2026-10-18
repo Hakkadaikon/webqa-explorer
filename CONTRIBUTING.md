@@ -31,6 +31,8 @@ PRを出すと、GitHub Actionsがコミット前と同じ検査を回す。
 変更した箇所にはmutationテストも当てる。
 各検査の中身は`justfile`のレシピの説明を見てほしい。
 
+Claude Codeで開発するときの役割分担は[`docs/agents.md`](docs/agents.md)にまとめた。
+
 ## リポジトリの構成
 
 ```text
@@ -38,6 +40,7 @@ crates/   Rust のワークスペース(実装)
 scripts/  開発用ツール(複雑度の判定、コミットメッセージの検査)
 docs/     設計と規約の文書
 skills/   Claude Code 向けの参照スキル(.claude/skills からリンク)
+agents/   Claude Code のサブエージェント(.claude/agents からリンク)
 tasks/    設計の検討過程の記録
 .config/  各ツールの設定
 ```
