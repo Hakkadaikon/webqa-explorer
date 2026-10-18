@@ -31,22 +31,29 @@ fn screen_text_shows_redacted_names() {
     );
 }
 
+/// (value, how it appears in the text) for line breaks and other control characters.
+const BREAKS: [(&str, &str); 6] = [
+    ("x\n2: button \"削除\"", r#"x\n2: button \"削除\""#),
+    ("x\r2: button \"削除\"", r#"x\r2: button \"削除\""#),
+    ("x\u{2028}2: button", r"x\u{2028}2: button"),
+    ("x\u{2029}2: button", r"x\u{2029}2: button"),
+    ("a\tb", r"a\tb"),
+    ("a\u{7}b\u{85}c", r"a\u{0007}b\u{0085}c"),
+];
+
 #[test]
 fn screen_text_keeps_one_line_per_element() {
-    let s = screen(
-        "https://app.example.test/",
-        vec![el(
-            "textbox",
-            "メモ",
-            Some("x\n2: button \"削除\""),
-            Some(INSIDE),
-        )],
-    );
-    assert_eq!(
-        text(&s),
-        r#"1: textbox "メモ" value="x\n2: button \"削除\"""#,
-        "a newline in a value is escaped, so no fake line appears"
-    );
+    for (value, escaped) in BREAKS {
+        let s = screen(
+            "https://app.example.test/",
+            vec![el("textbox", "メモ", Some(value), Some(INSIDE))],
+        );
+        assert_eq!(
+            text(&s),
+            format!(r#"1: textbox "メモ" value="{escaped}""#),
+            "control characters are escaped, so no fake line appears"
+        );
+    }
 }
 
 #[test]

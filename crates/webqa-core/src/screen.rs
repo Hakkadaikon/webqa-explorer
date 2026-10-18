@@ -134,13 +134,44 @@ fn line(n: usize, e: &Element) -> String {
     format!("{n}: {} {}{value}", e.role, quote(&e.name))
 }
 
-/// Wraps `s` in `"`, escaping `\`, `"` and newlines with a backslash.
+/// Wraps `s` in `"`, escaping `\`, `"`, control characters and line separators.
 fn quote(s: &str) -> String {
-    let escaped = s
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n");
+    let escaped: String = s.chars().map(escape).collect();
     format!("\"{escaped}\"")
+}
+
+/// Characters written with a short backslash escape.
+const ESCAPES: [(char, &str); 5] = [
+    ('\\', r"\\"),
+    ('"', r#"\""#),
+    ('\n', r"\n"),
+    ('\r', r"\r"),
+    ('\t', r"\t"),
+];
+
+/// How `c` appears between the quotes.
+fn escape(c: char) -> String {
+    short_escape(c).map_or_else(|| escape_break(c), str::to_owned)
+}
+
+fn short_escape(c: char) -> Option<&'static str> {
+    ESCAPES
+        .iter()
+        .find(|(from, _)| *from == c)
+        .map(|(_, to)| *to)
+}
+
+/// `\u{XXXX}` for the other control characters and line separators, else `c`.
+fn escape_break(c: char) -> String {
+    if is_break(c) {
+        format!("\\u{{{:04X}}}", u32::from(c))
+    } else {
+        c.to_string()
+    }
+}
+
+fn is_break(c: char) -> bool {
+    c.is_control() || ('\u{2028}'..='\u{2029}').contains(&c)
 }
 
 /// Whether the viewport text or the URL differs.
