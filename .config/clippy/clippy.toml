@@ -15,4 +15,10 @@ disallowed-methods = [
   { path = "std::time::Instant::now", reason = "read time through the injected clock" },
   { path = "std::time::SystemTime::now", reason = "read time through the injected clock" },
   { path = "std::thread::sleep", reason = "wait through the injected clock" },
+  { path = "tokio::time::Instant::now", reason = "read time through the injected clock" },
+  { path = "tokio::time::sleep", reason = "wait through the injected clock" },
+  { path = "tokio::time::sleep_until", reason = "wait through the injected clock" },
+  { path = "tokio::time::timeout", reason = "time out through the injected clock" },
+  { path = "jiff::Timestamp::now", reason = "read time through the injected clock" },
+  { path = "jiff::Zoned::now", reason = "read time through the injected clock" },
 ]
