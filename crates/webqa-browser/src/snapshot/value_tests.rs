@@ -3,7 +3,7 @@
 use super::tests::entries;
 
 /// (snapshot, the value of each entry).
-const VALUES: [(&str, &[Option<&str>]); 16] = [
+const VALUES: [(&str, &[Option<&str>]); 18] = [
     (r#"- textbox "空" [ref=e1]"#, &[None]),
     (r#"- textbox "a" [ref=e2]: abc"#, &[Some("abc")]),
     (r#"- textbox "b" [ref=e3]: "  前後  ""#, &[Some("  前後  ")]),
@@ -35,6 +35,11 @@ const VALUES: [(&str, &[Option<&str>]); 16] = [
     ),
     ("- textbox \"同\" [ref=e16]\n- text: 同じ段", &[None]),
     ("- textbox \"深\" [ref=e17]:\n    - text: 2段下", &[None]),
+    ("- button \"x\" [ref=e1]:\n  - text: 中", &[None]),
+    (
+        "- textbox \"a\" [ref=e1]: abc\n  - text: 別",
+        &[Some("abc")],
+    ),
 ];
 
 #[test]

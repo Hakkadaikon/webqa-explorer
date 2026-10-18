@@ -18,6 +18,19 @@ fn tall() -> Snapshot {
     parse(&format!("{SAMPLE}{below}")).unwrap()
 }
 
+/// (snapshot, its paywall words) for the edges of what counts.
+const PAYWALL_EDGES: [(&str, &[&str]); 3] = [
+    (
+        "- dialog [ref=e1]:\n  - button \"下\" [ref=e2] [box=0,700,10,10]",
+        &[],
+    ),
+    (
+        "- dialog [ref=e1]:\n  - heading \"課金\" [level=2] [ref=e2] [box=0,0,10,10]",
+        &["課金"],
+    ),
+    ("- heading \"箱なし\" [level=1] [ref=e1]", &[]),
+];
+
 #[test]
 fn paywall_texts_are_visible_headings_and_dialog_names() {
     assert_eq!(
@@ -36,6 +49,10 @@ fn paywall_texts_are_visible_headings_and_dialog_names() {
         Vec::<String>::new(),
         "no elements, no words"
     );
+    for (text, words) in PAYWALL_EDGES {
+        let parsed = parse(text).unwrap();
+        assert_eq!(parsed.paywall_texts(VIEW), words, "{text}");
+    }
 }
 
 #[test]
