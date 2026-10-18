@@ -1,8 +1,15 @@
-//! Contract tests of the adapter: the snapshot and the page script on a real Chromium.
+//! Contract tests of the adapter: the snapshot, the page script and the
+//! browser port on a real Chromium.
 
 mod contract {
+    pub mod children;
+    pub mod faults;
     pub mod identity;
+    pub mod ops;
+    pub mod pages;
+    pub mod port;
     pub mod probes;
+    pub mod serve;
     pub mod session;
 }
 

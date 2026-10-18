@@ -16,7 +16,7 @@ pub type Res<T> = Result<T, Box<dyn Error>>;
 pub const ORIGIN: &str = "https://app.example.test";
 
 /// The fixture pages by path.
-const PAGES: [(&str, &str); 7] = [
+const PAGES: [(&str, &str); 10] = [
     ("/viewport", include_str!("../fixtures/pages/viewport.html")),
     ("/identity", include_str!("../fixtures/pages/identity.html")),
     ("/parse", include_str!("../fixtures/pages/parse.html")),
@@ -24,6 +24,9 @@ const PAGES: [(&str, &str); 7] = [
     ("/modal", include_str!("../fixtures/pages/modal.html")),
     ("/overlay", include_str!("../fixtures/pages/overlay.html")),
     ("/scroll", include_str!("../fixtures/pages/scroll.html")),
+    ("/ops", include_str!("../fixtures/pages/ops.html")),
+    ("/console", include_str!("../fixtures/pages/console.html")),
+    ("/start", include_str!("../fixtures/pages/start.html")),
 ];
 
 /// A browser with one page of an 800x600 viewport.
@@ -117,7 +120,8 @@ async fn serve(route: Route) -> playwright_rs::Result<()> {
     route.fulfill(response).await
 }
 
-fn fixture(url: &str) -> &'static str {
+/// The fixture page of the URL's path, or an empty page.
+pub fn fixture(url: &str) -> &'static str {
     let path = url::Url::parse(url)
         .map(|u| u.path().to_owned())
         .unwrap_or_default();
