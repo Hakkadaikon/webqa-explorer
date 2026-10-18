@@ -13,19 +13,9 @@ Webサービス向けの探索的テストエージェント。
   迷うところ、見えにくいところ、画面の目的にたどり着かないところを、直す指示の台帳として出す。
   見えにくいところを見つけるには、画像を読める判断モデルが要る。
 
-## 現状
-
-設計の検討は完了し、実装を進めている。
-動くコードは、まだ設定の読み込みと機密情報を伏せる処理だけである。
-以下の「ほかの道具との違い」は、設計で決めた性質を書いている。
-要件をEARS記法で構造化し、TLA+で設計を検査し、受け入れシナリオまで書いた。
-インタビューのモードは、設計を決めて受け入れシナリオを書いている段階にある。
-検討の記録は`tasks/`にあり、読み方は[`docs/design-records.md`](docs/design-records.md)にまとめた。
-アーキテクチャとディレクトリ構造は[`docs/architecture.md`](docs/architecture.md)で決めた。
-インタビューのモードの設計は[`docs/superpowers/specs/2026-10-18-interview-mode-design.md`](docs/superpowers/specs/2026-10-18-interview-mode-design.md)にある。
-実装の進み具合は[GitHubのissue](https://github.com/Hakkadaikon/webqa-explorer/issues)で追っている。
-
 ## ほかの道具との違い
+
+以下は設計で決めた性質で、実装は途中にある。
 
 ### スクリプトを書くE2Eテストのフレームワーク
 
@@ -86,18 +76,13 @@ E2Eテストのフレームワークでは、人が操作の手順と期待値�
 利用者のニーズや動機を調べることは目的にしていない。
 それは人に聞く。
 
-## 開発環境
+## 文書
 
-開発用のツールはaquaで`.aqua/`配下に固定している。
-事前に要るのはrustupとcurlだけで、次の1行でそろう。
-
-```sh
-sh scripts/setup.sh
-```
-
-その後は`.aqua/bin`をPATHに通し、`just`で作業する。
-`just`を引数なしで実行すると、レシピの一覧が出る。
-コミット前にはlefthookが軽い検査を回す。
-CIはそれに加えて、依存の監査とmutationテストを回す。
-基準と直し方は[`docs/quality-gates.md`](docs/quality-gates.md)にまとめた。
-開発の進め方と構成は[CONTRIBUTING.md](CONTRIBUTING.md)にまとめた。
+| 文書 | 内容 |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | crateの分け方、中核の状態機械、ガードレール、設定、テストの層、ディレクトリ構成 |
+| [`docs/superpowers/specs/2026-10-18-interview-mode-design.md`](docs/superpowers/specs/2026-10-18-interview-mode-design.md) | インタビューのモードの設計 |
+| [`docs/quality-gates.md`](docs/quality-gates.md) | 品質ゲートの基準と、落ちたときの直し方 |
+| [`docs/commit-messages.md`](docs/commit-messages.md) | コミットメッセージの規約 |
+| [`docs/agents.md`](docs/agents.md) | Claude Codeの親セッションとサブエージェントの役割分担 |
+| [`docs/design-records.md`](docs/design-records.md) | `tasks/`にある設計検討の記録の読み方 |
