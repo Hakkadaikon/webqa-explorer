@@ -1,6 +1,8 @@
 //! The freeze and stuck counters and the decision budget.
 
 #[cfg(test)]
+mod flow_tests;
+#[cfg(test)]
 mod tests;
 
 use std::num::NonZeroU32;
