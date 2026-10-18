@@ -9,6 +9,18 @@ allow-expect-in-tests = true
 allow-panic-in-tests = true
 allow-indexing-slicing-in-tests = true
 
+# ratatui 0.30 の依存の下で2版が入り、依存の側では消せないため(2026-10-18 に利用者が承認)
+allowed-duplicate-crates = [
+  "base64",
+  "bitflags",
+  "getrandom",
+  "nix",
+  "r-efi",
+  "syn",
+  "thiserror",
+  "thiserror-impl",
+]
+
 # Time is read only through an injected clock, so tests never wait on the
 # wall clock.
 disallowed-methods = [

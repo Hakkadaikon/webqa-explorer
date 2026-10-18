@@ -7,7 +7,11 @@ rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
+ratatui.workspace = true
 webqa-core.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
 
 [lints]
 workspace = true
