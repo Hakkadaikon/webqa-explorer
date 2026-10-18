@@ -20,12 +20,22 @@ pub(super) struct Attrs {
 }
 
 /// Reads ` [attribute]` after ` [attribute]` up to the end of the key.
-pub(super) fn read(mut rest: &str) -> Result<Attrs, Bad> {
+///
+/// Each piece up to a `]` is one attribute, so the loop ends with the text.
+pub(super) fn read(rest: &str) -> Result<Attrs, Bad> {
     let mut attrs = Attrs::default();
-    while !rest.is_empty() {
-        rest = attrs.next(rest)?;
+    for piece in rest.split_inclusive(']') {
+        attrs.apply(bracketed(piece)?);
     }
     (!attrs.unreadable).then_some(attrs).ok_or(Bad)
+}
+
+/// The inside of ` [attribute]`.
+fn bracketed(piece: &str) -> Result<&str, Bad> {
+    piece
+        .strip_prefix(" [")
+        .and_then(|s| s.strip_suffix(']'))
+        .ok_or(Bad)
 }
 
 type Apply = fn(&mut Attrs, Option<&str>);
@@ -39,16 +49,6 @@ const APPLY: [(&str, Apply); 4] = [
 ];
 
 impl Attrs {
-    /// Reads the first ` [attribute]` of `rest` and returns what follows it.
-    fn next<'a>(&mut self, rest: &'a str) -> Result<&'a str, Bad> {
-        let (attr, after) = rest
-            .strip_prefix(" [")
-            .and_then(|s| s.split_once(']'))
-            .ok_or(Bad)?;
-        self.apply(attr);
-        Ok(after)
-    }
-
     fn apply(&mut self, attr: &str) {
         let (name, value) = attr
             .split_once('=')

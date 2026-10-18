@@ -33,22 +33,21 @@ fn single_step<'a>(part: &str, after: &'a str, mut out: String) -> Result<(Strin
 
 /// Reads a double-quoted scalar from just after its opening `"`.
 ///
-/// What follows the closing `"` is not read.
+/// What follows the closing `"` is not read. Every turn of the loop takes
+/// a character off the text, so the loop ends with it.
 pub(super) fn double(s: &str) -> Result<String, Bad> {
     let mut chars = s.chars();
     let mut out = String::new();
-    while let Some(c) = next(&mut chars)? {
-        out.push(c);
+    while let Some(c) = chars.next() {
+        if c == '"' {
+            return Ok(out);
+        }
+        out.push(content(c, &mut chars)?);
     }
-    Ok(out)
+    Err(Bad)
 }
 
-/// The next character of the text, or `None` at the closing `"`.
-fn next(chars: &mut Chars<'_>) -> Result<Option<char>, Bad> {
-    let c = chars.next().ok_or(Bad)?;
-    (c != '"').then(|| content(c, chars)).transpose()
-}
-
+/// The character `c` stands for, reading the rest of an escape from `chars`.
 fn content(c: char, chars: &mut Chars<'_>) -> Result<char, Bad> {
     if c == '\\' { escaped(chars) } else { Ok(c) }
 }
@@ -82,11 +81,12 @@ fn short(letter: char) -> Result<char, Bad> {
         .ok_or(Bad)
 }
 
-/// `\xNN`: two hexadecimal digits.
+/// `\xNN`: two hexadecimal digits, and nothing else (no sign).
 fn hex(chars: &mut Chars<'_>) -> Result<char, Bad> {
     let digits: String = chars.take(2).collect();
-    u32::from_str_radix(&digits, 16)
-        .ok()
+    Some(digits)
+        .filter(|d| d.chars().all(|c| c.is_ascii_hexdigit()))
+        .and_then(|d| u32::from_str_radix(&d, 16).ok())
         .and_then(char::from_u32)
         .ok_or(Bad)
 }

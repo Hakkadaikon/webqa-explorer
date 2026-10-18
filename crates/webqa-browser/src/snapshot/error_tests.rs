@@ -3,7 +3,7 @@
 use super::*;
 
 /// (snapshot, the line number of the error).
-const MALFORMED: [(&str, usize); 13] = [
+const MALFORMED: [(&str, usize); 14] = [
     ("- button \"OK\" [ref=e1]\nbutton \"NG\"", 2),
     (" - button [ref=e1]", 1),
     ("- button \"閉じない [ref=e1]", 1),
@@ -17,6 +17,7 @@ const MALFORMED: [(&str, usize); 13] = [
     ("- button [ref=e1]\n\n- 'button \"x\"' 後ろ", 3),
     ("- textbox \"x\" [ref=e1]: \"末尾\\", 1),
     ("- textbox \"x\" [ref=e1]:\n  - text: \"閉じない", 2),
+    ("- textbox \"x\" [ref=e1]: \"\\x+1\"", 1),
 ];
 
 #[test]
