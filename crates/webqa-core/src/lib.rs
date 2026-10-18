@@ -5,3 +5,4 @@ pub mod event;
 pub mod issue;
 pub mod redact;
 pub mod screen;
+pub mod window;
