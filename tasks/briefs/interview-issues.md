@@ -1,7 +1,16 @@
 # インタビューのモードの issue の案
 
-`tasks/RESUME.md` の「残りの作業」の2の下準備。GitHub にはまだ作っていない。
+`tasks/RESUME.md` の「残りの作業」の2の下準備。GitHub に #18〜#33 として作った(I1 が #18、以下 I の番号に17を足した番号)。
 台帳は `tasks/test-design/InterviewMode.md`、構成は `docs/architecture.md` の「ディレクトリ構成」と「テストの層」(台帳の「構成への追加の案」を反映済み)。
+
+## 決まったこと
+
+利用者が決めた点で、issue の本文に反映した。
+
+- 初期化のコマンドの設定(引数の列、待ち時間)は `config::interview` に置く。I1(#18)の範囲で、I11(#28)はその型を使う。
+- `proptest` を dev の依存に足す。版を crates.io で確かめ、`docs/architecture.md` の「外部crate」の表に足すのは、それを最初に使う I13(#30)の範囲とする。
+- 手引きの置き場所は `share/skills/` で確定。I15(#32)が置く。
+- 各 issue の本文の末尾、「台帳の行は」の行の前に、依存と並列の行を置いた。依存の欄の I の番号は実際の issue 番号に置き換えた。
 
 ## 切り方
 
@@ -15,22 +24,22 @@
 
 | 案 | 題 | 依存 | 並列 |
 |---|---|---|---|
-| I1 | feat(core): ペルソナと目的と、インタビューのモードの設定 | なし(#3 は済み) | 今すぐ始めてよい。#17 と `config` の周りで衝突しうる |
-| I2 | feat(judge): 判断モデルの画像の申告と、自由な文の問い | #7、#15 | #7 と同じファイルを触るので、#7 の後 |
-| I3 | feat(core): インタビューの問いの組み立てと答えの検証 | I1、I2、#7 | I4、I9、I11、I12 と並列 |
-| I4 | feat(core): 迷いの手がかりと試行の結末 | I1、#12 | I3、I9、I11、I12 と並列 |
-| I5 | feat(core): インタビューの課題の検出と番号、試行をまたいだ集計 | I3、I4 | I9、I11、I12 と並列 |
-| I6 | feat(core): 自然さの問いと区分 | I5 | I9、I11、I12 と並列 |
-| I7 | feat(core): 台帳の書き出しと読み戻し | I1、I5、I6 | I9、I11、I12 と並列 |
-| I8 | feat(core): 前回の台帳との照らし合わせ | I7 | I10 と並列 |
-| I9 | feat(core): 次の試行の判定と、中核に渡す時間窓の上限 | #12 | core の interview の他の案と並列 |
-| I10 | feat(tui): 台帳の画面と選択の書き戻し | I7、#11 | I8 と並列 |
-| I11 | feat(webqa): 初期化のコマンドの実行 | I1、#15 | core の案と並列 |
-| I12 | test(browser): 試行ごとに開いたブラウザに前の保存領域が残らないことを確かめる | #9 | ほかのどの案とも並列 |
-| I13 | feat(webqa): 試行の外のループ | I2、I3、I4、I5、I6、I7、I9、I11、#12、#14 | I8、I10、I12 と並列 |
-| I14 | feat(webqa): インタビューと形式の検査のサブコマンド、終了コード、課題のスクリーンショット | I1、I8、I13、#14 | I10、I12 と並列 |
-| I15 | feat(share): ペルソナと目的を書かせる手引き | I1、I14 | I16 の前ならどれとも並列 |
-| I16 | test(webqa): インタビューのモードの受け入れシナリオを配線する | I1〜I15、#4、#12、#13、#14 | 最後。並列にしない |
+| I1(#18) | feat(core): ペルソナと目的と、インタビューのモードの設定 | なし(#3 は済み) | 今すぐ始めてよい。#17 と `config` の周りで衝突しうる |
+| I2(#19) | feat(judge): 判断モデルの画像の申告と、自由な文の問い | #7、#15 | #7 と同じファイルを触るので、#7 の後 |
+| I3(#20) | feat(core): インタビューの問いの組み立てと答えの検証 | I1、I2、#7 | I4、I9、I11、I12 と並列 |
+| I4(#21) | feat(core): 迷いの手がかりと試行の結末 | I1、#12 | I3、I9、I11、I12 と並列 |
+| I5(#22) | feat(core): インタビューの課題の検出と番号、試行をまたいだ集計 | I3、I4 | I9、I11、I12 と並列 |
+| I6(#23) | feat(core): 自然さの問いと区分 | I5 | I9、I11、I12 と並列 |
+| I7(#24) | feat(core): 台帳の書き出しと読み戻し | I1、I5、I6 | I9、I11、I12 と並列 |
+| I8(#25) | feat(core): 前回の台帳との照らし合わせ | I7 | I10 と並列 |
+| I9(#26) | feat(core): 次の試行の判定と、中核に渡す時間窓の上限 | #12 | core の interview の他の案と並列 |
+| I10(#27) | feat(tui): 台帳の画面と選択の書き戻し | I7、#11 | I8 と並列 |
+| I11(#28) | feat(webqa): 初期化のコマンドの実行 | I1、#15 | core の案と並列 |
+| I12(#29) | test(browser): 試行ごとに開いたブラウザに前の保存領域が残らないことを確かめる | #9 | ほかのどの案とも並列 |
+| I13(#30) | feat(webqa): 試行の外のループ | I2、I3、I4、I5、I6、I7、I9、I11、#12、#14 | I8、I10、I12 と並列 |
+| I14(#31) | feat(webqa): インタビューと形式の検査のサブコマンド、終了コード、課題のスクリーンショット | I1、I8、I13、#14 | I10、I12 と並列 |
+| I15(#32) | feat(share): ペルソナと目的を書かせる手引き | I1、I14 | I16 の前ならどれとも並列 |
+| I16(#33) | test(webqa): インタビューのモードの受け入れシナリオを配線する | I1〜I15、#4、#12、#13、#14 | 最後。並列にしない |
 
 始められる順(今の状態から):
 
@@ -43,7 +52,7 @@
 
 ## 各案
 
-### I1 feat(core): ペルソナと目的と、インタビューのモードの設定
+### I1(#18) feat(core): ペルソナと目的と、インタビューのモードの設定
 
 台帳の行: T-001、T-002、T-003、T-004、T-009、T-010、T-011、T-056、T-115
 依存: なし(#3 は済み)。並列: 今すぐ始めてよい。#17 が `config/validate/check.rs` を触るので、`config.rs` と `raw.rs` の合わせは `git merge main` で。
@@ -77,7 +86,7 @@ webqa-core::config(persona、purpose、interview)。CLI から呼ぶ部分と実
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I2 feat(judge): 判断モデルの画像の申告と、自由な文の問い
+### I2(#19) feat(judge): 判断モデルの画像の申告と、自由な文の問い
 
 台帳の行: T-043、T-044、T-045、T-071
 依存: #7(橋渡しの JSON の形と `judge.rs`)、#15(`ports.rs` の `Judge`)。並列: #7 の後。I3 以外の案とは並列。
@@ -107,7 +116,7 @@ webqa-core::ports(`Judge` の画像の申告)、webqa-core::judge(自由な文�
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I3 feat(core): インタビューの問いの組み立てと答えの検証
+### I3(#20) feat(core): インタビューの問いの組み立てと答えの検証
 
 台帳の行: T-006、T-007、T-008、T-041、T-044、T-046、T-047、T-048、T-049、T-050、T-051、T-052、T-053、T-054、T-071、T-072、T-073、T-122、T-124、T-125、T-126、T-127、T-129
 依存: I1(ペルソナと画面ごとの目的の型)、I2(自由な文の問いと画像の申告)、#7(既存の4つの問いの組み立て)。並列: I4、I9、I11、I12 と並列。
@@ -155,7 +164,7 @@ webqa-core::interview(ask、answer)、webqa-core/tests/interview_golden.rs(問�
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I4 feat(core): 迷いの手がかりと試行の結末
+### I4(#21) feat(core): 迷いの手がかりと試行の結末
 
 台帳の行: T-038、T-057、T-058、T-059、T-060、T-061、T-062、T-063、T-064、T-065、T-066
 依存: I1(閾値の設定)、#12(終了理由の型)。並列: I3、I9、I11、I12 と並列。手がかりの判定は、迷いの度合い・確信度・操作種別・画面の識別を値で受け、I3 の答えの型には依らない。
@@ -192,7 +201,7 @@ webqa-core::interview(clue、outcome)
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I5 feat(core): インタビューの課題の検出と番号、試行をまたいだ集計
+### I5(#22) feat(core): インタビューの課題の検出と番号、試行をまたいだ集計
 
 台帳の行: T-006、T-007、T-008、T-036、T-067、T-068、T-069、T-070、T-083、T-086、T-087、T-088、T-127、T-131
 依存: I3(答えの型)、I4(結末と手がかり)。並列: I9、I11、I12 と並列。
@@ -231,7 +240,7 @@ webqa-core::interview::issue。既存のモードの webqa-core::issue とは別
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I6 feat(core): 自然さの問いと区分
+### I6(#23) feat(core): 自然さの問いと区分
 
 台帳の行: T-074、T-075、T-076、T-077、T-078、T-128、T-130
 依存: I5(課題の型と番号)。並列: I9、I11、I12 と並列。
@@ -263,7 +272,7 @@ webqa-core::interview::natural。問いを実際に送る呼び出しは I13。
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I7 feat(core): 台帳の書き出しと読み戻し
+### I7(#24) feat(core): 台帳の書き出しと読み戻し
 
 台帳の行: T-005、T-039、T-070、T-075、T-077、T-079、T-080、T-081、T-082、T-084、T-085、T-090、T-091、T-092、T-093、T-094、T-096、T-098、T-111
 依存: I1(ペルソナと目的)、I5(課題の型)、I6(区分)。並列: I9、I11、I12 と並列。
@@ -307,7 +316,7 @@ webqa-core::interview::ledger、webqa-core/tests/interview_golden.rs(台帳の�
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I8 feat(core): 前回の台帳との照らし合わせ
+### I8(#25) feat(core): 前回の台帳との照らし合わせ
 
 台帳の行: T-103、T-104、T-105、T-106、T-107、T-108、T-109、T-110、T-112、T-113
 依存: I7(台帳の読み戻し)。並列: I10 と並列。
@@ -342,7 +351,7 @@ webqa-core::interview::compare
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I9 feat(core): 次の試行の判定と、中核に渡す時間窓の上限
+### I9(#26) feat(core): 次の試行の判定と、中核に渡す時間窓の上限
 
 台帳の行: T-022、T-024、T-025、T-027
 依存: #12(`window` の窓の番号の求め方を共有する)。並列: core の interview の他の案と並列。
@@ -371,7 +380,7 @@ webqa-core::interview::schedule
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I10 feat(tui): 台帳の画面と選択の書き戻し
+### I10(#27) feat(tui): 台帳の画面と選択の書き戻し
 
 台帳の行: T-097、T-098、T-099、T-100、T-101、T-102
 依存: I7(台帳の読み戻しと選択の書き換え)、#11(main に入った)。並列: I8 と並列。
@@ -402,7 +411,7 @@ webqa-tui(ledger、ledger_file)、webqa-tui/tests/ledger_file.rs、webqa-tui/tes
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I11 feat(webqa): 初期化のコマンドの実行
+### I11(#28) feat(webqa): 初期化のコマンドの実行
 
 台帳の行: T-016、T-017、T-018、T-019
 依存: I1(初期化のコマンドの設定)、#15(`Clock` の待機)。並列: core の案と並列。
@@ -432,7 +441,7 @@ webqa::interview::reset、webqa/tests/reset.rs(試験用コマンドが受け取
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I12 test(browser): 試行ごとに開いたブラウザに前の保存領域が残らないことを確かめる
+### I12(#29) test(browser): 試行ごとに開いたブラウザに前の保存領域が残らないことを確かめる
 
 台帳の行: T-013
 依存: #9(ブラウザのアダプタと契約テストの土台)。並列: ほかのどの案とも並列。#9 のコメントで受け持たせる手もある。
@@ -458,7 +467,7 @@ webqa-browser/tests/contract.rs(テストを足す)。開き直しの呼び出�
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I13 feat(webqa): 試行の外のループ
+### I13(#30) feat(webqa): 試行の外のループ
 
 台帳の行: T-012、T-013、T-014、T-015、T-016、T-020、T-021、T-022、T-023、T-024、T-025、T-026、T-027、T-028、T-029、T-030、T-031、T-032、T-033、T-034、T-035、T-037、T-038、T-040、T-123、T-128
 依存: I2、I3、I4、I5、I6、I7、I9、I11、#12(中核の状態機械)、#14(実行ループと保存)。並列: I8、I10、I12 と並列。並行処理と async の設計が要るので Opus に渡す。
@@ -509,7 +518,7 @@ webqa::interview(trials)、webqa/tests/trials_props.rs(性質の層。乱数の 
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。性質のテストと受け持つ行の対応は台帳の「試行の外のループの性質テスト」の節にある。
 ```
 
-### I14 feat(webqa): インタビューと形式の検査のサブコマンド、終了コード、課題のスクリーンショット
+### I14(#31) feat(webqa): インタビューと形式の検査のサブコマンド、終了コード、課題のスクリーンショット
 
 台帳の行: T-002、T-042、T-089、T-095、T-111、T-114、T-115
 依存: I1(検証)、I8(前回の台帳)、I13(ループ)、#14(cli、exit、run、store)。並列: I10、I12 と並列。
@@ -542,7 +551,7 @@ webqa(cli、exit、run、store::screenshots)、webqa/tests/cli.rs
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I15 feat(share): ペルソナと目的を書かせる手引き
+### I15(#32) feat(share): ペルソナと目的を書かせる手引き
 
 台帳の行: T-116、T-117、T-118
 依存: I1(書式)、I14(形式の検査のサブコマンドの名前)。並列: I16 の前ならどれとも並列。サブコマンドの名前を先に決めれば、I14 を待たずに始められる。
@@ -570,7 +579,7 @@ share/skills/ の下の手引き、webqa/tests/guide.rs(文書の層)
 台帳の行は`tasks/test-design/InterviewMode.md`のissue列で引く。
 ```
 
-### I16 test(webqa): インタビューのモードの受け入れシナリオを配線する
+### I16(#33) test(webqa): インタビューのモードの受け入れシナリオを配線する
 
 台帳の行: T-001〜T-131 の全行(受け入れの層)。下の層を持つのは T-119 だけ。
 依存: I1〜I15、#4(T-120)、#12(T-121)、#13(T-055)、#14(受け入れの土台と既存の feature)。並列: 最後。並列にしない。
@@ -600,7 +609,7 @@ webqa/tests(acceptance.rs、features/interview_mode.feature、steps/、support/)
 
 ## 台帳の issue 列の対応
 
-番号が決まったら、I の番号を GitHub の番号に置き換えて台帳の issue 列とマトリクスの issue 列に書く。照合スクリプトの形は `#18、#33` のように `、` でつなぐ。
+I の番号を GitHub の番号(I の番号に17を足した番号)に置き換えて、台帳の issue 列とマトリクスの issue 列に書いた。照合スクリプトの形は `#18、#33` のように `、` でつなぐ。
 
 | T-ID | issue |
 |---|---|
