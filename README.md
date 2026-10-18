@@ -18,11 +18,14 @@ Webサービス向けの探索的テストエージェントの企画・設計�
 | `WebExploratoryQA.mutants-v*.tsv` | 中ループ: specへのmutation検査の全件結果(v1は旧spec、v3が現行) |
 | `tools/classify_mutants.py` | mutation検査の結果種別と到達状態数をTSVへ出すスクリプト |
 | `WebExploratoryQA.tlc-run.log` | TLCモデル検査の実行ログ |
-| `WebExploratoryQA.feature` | 中ループ/内ループ: Gherkin受け入れ仕様の骨格(未着手) |
+| `WebExploratoryQA.feature` | 内ループ: Gherkinの受け入れシナリオ(71本。TLCの反例は無く、正常系・異常系・境界を要件から書いた) |
+
+`tasks/test-design/WebExploratoryQA.md` は、受け入れシナリオを1件ずつテスト項目(T-001〜T-071)に転記した台帳。テスト手法とテスト名はまだ割り当てていない。
 
 ## 現状
 
 - 要求抽出(0段)・EARS構造化とTLA+モデル検査(外ループ)は完了。
-- 中ループ(TLCのmutation検査による検査強度の検証と、文面の往復確認)は仕上げ中。
-- 内ループ(反例のGherkin変換、受け入れシナリオの追加)は未着手。
+- 中ループ(TLCのmutation検査による検査強度の検証と、文面の往復確認)は完了。
+- 内ループ(受け入れシナリオの作成)は完了。TLCは反例を出していないので、反例から変換したシナリオは無い。
+- 次は、テスト項目の台帳に手法を割り当て、実装言語とテストランナーを決めて実装へ進む。
 - 実装コードはまだ存在しない。

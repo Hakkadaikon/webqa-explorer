@@ -1,16 +1,16 @@
-# 引き継ぎ: webqa-explorerのloop-engineering(中ループ途中)
+# 引き継ぎ: webqa-explorerのloop-engineering(内ループ完了、テスト設計へ)
 
-発行: 2026-10-17、更新: 2026-10-18。有効条件: `tasks/loopeng/WebExploratoryQA.tla`が更新時点(TLC generated 158363 / distinct 19539)から変更されていないこと。
+発行: 2026-10-17、更新: 2026-10-18。有効条件: `tasks/loopeng/WebExploratoryQA.tla`が更新時点(TLC generated 158363 / distinct 19539)から変更されておらず、`WebExploratoryQA.feature`がシナリオ71本のままであること。
 再開の起点はこの文書1つ。ほかの文書は参照先として読む。
 
 凡例: `[ ]`未着手、`[~]`部分完了(残りを同じ行に書く)、`[x]`完了(証跡あり)。
 
 ## 1. いまどこにいるか
 
-- リポジトリ: `/home/hakkadaikon/work/jev`(GitHub private `Hakkadaikon/webqa-explorer`、最新pushは`4a936de`)
+- リポジトリ: `/home/hakkadaikon/work/jev`(GitHub private `Hakkadaikon/webqa-explorer`)
 - 作るもの: Webサービス向けの探索的テストエージェント(判断モデルJev + ブラウザ操作)。設計段階で、実装コードはまだ無い。
-- 工程: hymmeのloop-engineering。0段(抽出)と外ループ(EARS/TLA+)は完了済み。中ループ(`hymme:loopeng-modelcheck`)の途中。
-- 使っているhymme: 0.8.1(`cd54fae`)。
+- 工程: hymmeのloop-engineering。0段(抽出)、外ループ(EARS/TLA+)、中ループ、内ループ(受け入れシナリオ)まで完了。次はtest-design(`hymme:test-catalog`)。
+- 使っているhymme: 0.9.0。
 
 ## 2. 済んだこと
 
@@ -32,6 +32,10 @@
 
 ## 3. 判断待ち(ユーザーに確認すること)
 
+- [ ] 長いページでのscrollと行き詰まり: 操作可能要素の一覧は表示領域内だけなので、scrollで新しい要素が見えても探索済み(操作済み)は増えない。S-021の定義(探索済みが増えない)どおりだと、scrollが3回続くと行き詰まりで終わる(T-018が固定)。意図どおりかを確認する
+- [x] 時間窓で数える単位は対象サーバへのアクセス(ブラウザ操作、課金画面の離脱、再読み込み、ドメイン復帰)。2026-10-18に承認。証跡: `extract.md`設計メモ9
+- [x] `tasks/test-design/`をgitで追跡する(hymmeの既定は管理外だが、`tasks/loopeng/`と同じ扱いにする)。2026-10-18のClaude Codeセッションで、ユーザーが確認の問い(選択肢「追跡する」/「追跡しない」)に「追跡する」と答えた
+
 - [x] S-044の要件文の変更(done_whenを満たさないdoneは`reported_done`)。2026-10-17に承認。証跡: `WebExploratoryQA.extract.md`設計メモ7
 - [x] S-017とS-022の衝突は「探索の記憶を保持する」に決定。S-021(新規要素の定義)、S-042(窓はいつでも満了しうる)、"idle"での優先順位の明確化も承認。2026-10-18。証跡: 同設計メモ7
 
@@ -44,7 +48,10 @@
 - [x] 文面の往復確認をやり直した(fresh reader)。23行、full 14 / partial 9。前件到達は`reach.log`の「v3」「v3b」節
 - [x] `hymme:loop-engineering-reviewer`で再レビュー。1回目(2026-10-17)と2回目(2026-10-18)は不合格、3回目(2026-10-18)で合格(`[本質]` 0件)。値ごとの再検査で見つかった穴8件も含めて性質を8本足した。残った`[瑣末]`2件(ログの取り直し、reach.logの時刻表記の注記)も対応済み。未保証の範囲は`WebExploratoryQA.faithfulness.md`のpartial 9行とabstraction-limitedの各行
 - [x] コミットしてpushした。証跡: `3f23988` 以降のコミット(`git log 4a936de..`)
-- [ ] 内ループ(`hymme:loopeng-gherkin`)へ進む。未保証の範囲(`WebExploratoryQA.faithfulness.md`の partial 9行と abstraction-limited の各行)は実装のテストで確かめる対象として受け入れ仕様へ持ち込む
+- [x] 内ループ(`hymme:loopeng-gherkin`)。TLCは反例を出していないので、受け入れシナリオを要件から書いた(71本、Rule 8つ)。未保証の範囲(partial 9行、abstraction-limited、設計メモ8の判定ロジック)はシナリオに持ち込み、受け持ちの対応表を`tasks/test-design/WebExploratoryQA.md`の「設計検証で保証できなかった範囲の受け持ち」に置いた。`hymme:loop-engineering-reviewer`は4回目で合格(`[本質]` 0件)。証跡: `WebExploratoryQA.feature`、`extract.md`のマトリクス「テスト」列と設計メモ9
+- [x] 受け入れシナリオをテスト項目の台帳へ転記(`hymme:test-extract`)。T-001〜T-071、シナリオ1件=1行。`hymme:test-design-reviewer`は3回目で転記段階として合格。証跡: `tasks/test-design/WebExploratoryQA.md`の「機械確認」節
+- [ ] テスト手法の割り当て(`hymme:test-catalog`)。台帳の行はすべて`[ ]`のままで、`test-design-extract-gate` hookがテストファイルの作成を止める状態(意図どおり)。その前に実装言語とテストランナーを決める
+- [ ] 実装の計画(`superpowers:writing-plans`)と実装。受け入れ条件は手法名・管理番号なしでspecに書く
 
 ## 5. 罠(踏んだもの)
 
