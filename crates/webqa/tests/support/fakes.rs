@@ -4,15 +4,20 @@
 
 use std::collections::VecDeque;
 use std::future;
+use std::num::NonZeroU32;
 use std::time::Duration;
 
 use serde_json::Value;
 use url::Url;
+use webqa_core::config::raw::Op;
 use webqa_core::effect::Touch;
-use webqa_core::guard::forbidden::Candidate;
+use webqa_core::event::Mode;
+use webqa_core::guard::domain::AllowedOrigin;
+use webqa_core::guard::forbidden::{Candidate, Forbidden};
 use webqa_core::guard::identity::Node;
-use webqa_core::guard::paywall::PaywallFacts;
+use webqa_core::guard::paywall::{Paywall, PaywallFacts};
 use webqa_core::judge::{Answers, JudgeError, Question};
+use webqa_core::machine::Rules;
 use webqa_core::ports::{
     Browser, BrowserError, Clock, Judge, Observation, Pending, Store, StoreError,
 };
@@ -25,6 +30,31 @@ pub const VIEWPORT: Viewport = Viewport {
     width: 100,
     height: 100,
 };
+
+/// The thresholds and caps of a run: freeze, stuck, decisions and accesses
+/// in a window.
+pub type Limits = [NonZeroU32; 4];
+
+/// Rules of a scenario with the operation kinds `ops`, the `limits` and the
+/// `allowed` origins. No time limit, the default guardrails, `back` to
+/// leave a paywall.
+pub fn rules(ops: &[Op], limits: Limits, allowed: Vec<AllowedOrigin>) -> Rules {
+    let [freeze, stuck, decisions, requests] = limits;
+    Rules {
+        mode: Mode::Scenario,
+        ops: ops.to_vec(),
+        freeze_threshold: freeze,
+        stuck_threshold: stuck,
+        max_decisions: decisions,
+        requests_per_hour: requests,
+        max_duration: None,
+        back_confidence: 0.7,
+        allowed,
+        forbidden: Forbidden::default(),
+        paywall: Paywall::default(),
+        leave_paywall: "back".to_owned(),
+    }
+}
 
 /// A page at `url` with the (role, name) elements stacked from the top of the
 /// viewport, 20px apart. Element `n` (from 1) has the ref `e<n>`, no link and

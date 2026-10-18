@@ -7,6 +7,7 @@
 - issue #14 のコメントにある引き継ぎ4件(.env の読み込み、イベントログの書き出しの伏せ字、URL の伏せ字ほか)。
 - 決め打ちシナリオのモードで、設定に `scenario` が無ければ設定エラーにする。今は `config::mode` が確かめず、段階が空だと中核はゴールに達しない(12d の brief)。
 - 12e が入ったら、`run.rs` の `observe` で、観測のページ全体の要素と文字列(`Observation` の `outline` と `text`)から `Whole` を作る。入るまでは `Whole::plain` で、見出しを指す done_when(T-092)は成り立たない。
+- `run.rs` の `observe` は、まだ `Material::plain` で材料を作っている。9b の `Observation` の `nodes`、`candidates`、`paywall` から `Material` を作り、禁止要素・要素の参照・課金画面の判定に本物の材料を渡す(12b と 9b を統合した時点の残り)。
 - 受け入れのテストで T-084 に使うページには要素を置く(3段目の絞り込みで操作が3つだけになるため)。
 - 確率の欠けと0を記録で区別する必要が出たら、`Touch.confidence` を `Option<f64>` に変える(12b は欠けを 0.0 にしている)。
 - イベントログの `run_finished.reason` には終了理由の serde の名前を書く。行き詰まりの種類(判断モデルの宣言か、回数か)を別の項目で残すか、終了コードを `is_stuck` で決めるかを決める(12b の brief)。

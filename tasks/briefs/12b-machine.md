@@ -434,13 +434,14 @@ pub(crate) enum Next { Go(State), Out(Step) }
 | `Awaiting` | 同上 | 読めて、行の `ends` が `Some(r)` | `Ended(r)`、`Out(Finished)` | なし |
 | `Awaiting` | 同上 | 読めて、止める条件に当たらず、要素を対象にする | `Confirming`。`proposal` を持つ | `Page(Look(Target { element }))` |
 | `Awaiting` | 同上 | 読めて、止める条件に当たらず、要素を対象にしない | `Acting`。`proposal` を持ち、窓を `spend(now)` | `Touch { op, target: None, confidence: confidence.unwrap_or(0.0) }` |
-| `Confirming` | `Page(seen)` | `recheck(&identity, &seen.material.nodes)` が `Missing` か `Replaced` | `Note::Rejected(Missing か Replaced)`。`seen` を観測として取り込み(カウンタは変えない)、`proposal` を消して `Idle` へ `Go` | なし |
+| `Confirming` | `Page(seen)` | `recheck(&identity, &seen.material.nodes)` が `Missing` か `Replaced` | `Note::Rejected(Missing か Replaced)`。`seen` を観測として取り込み(カウンタは変えない。外に着いたときは末尾の追記)、`proposal` を消して `Idle` へ `Go` | なし |
 | `Confirming` | `Page(seen)` | `Same` | `Acting`。窓を `spend(now)`。`last` は変えない | `Touch { op, target: Some(element), confidence: confidence.unwrap_or(0.0) }` |
 | `Acting` | `Page(seen)` | 常に | 下の「実行の観測」。`Idle` へ `Go` | なし |
-| `Returning` | `Page(seen)` | 常に | 観測を取り込む(カウンタは変えない)。`Idle` へ `Go` | なし |
-| `Recovering` | `Page(seen)` | 常に | 観測を取り込む(カウンタは変えない)。`Idle` へ `Go` | なし |
-| `Sleeping` | `Outside(Woke)` | 常に | `Idle` へ `Go` | なし |
+| `Returning` | `Page(seen)` | 常に | 観測を取り込む(カウンタは変えない。外に着いたときは末尾の追記)。`Idle` へ `Go` | なし |
+| `Recovering` | `Page(seen)` | 常に | 観測を取り込む(カウンタは変えない。外に着いたときは末尾の追記)。`Idle` へ `Go` | なし |
 | 表の外 | 上のどれにも当たらない(起点と Facts の種類の食い違い) | | `Idle` へ `Go`(何も積まず、カウンタも予算も変えない) | なし |
+
+- `Sleeping` の行は置かない。`Sleeping` に `Outside(Woke)` が来ると、どの行にも当たらず、表の外の食い違いの行で `Idle` へ戻る(記録もカウンタも予算も変えない)。専用の行を置くと、食い違いの行と同じ遷移になり、行のガードの変異が見分けられない(レビューの指摘で消した)。
 
 - `read` は1回だけ呼び、その結果で行を選ぶように書く(同じ答えを何度も読まない)。判断待ちの行を、答えを読む前段と、読んだ提案で分ける前段の2つにしてもよい。止める条件の述語は `Proposal` を受ける。
 - 止めた提案、応答の異常、確認中の中止では、カウンタも時間窓も変えない(判断予算は問い合わせのときに使い済み)。
@@ -485,7 +486,7 @@ pub(crate) enum Next { Go(State), Out(Step) }
 
 ### 書き方
 
-- 複雑度の上限は、関数ごとに循環的複雑度5、認知的複雑度6(`scripts/metrics.py`、`.config/clippy/clippy.toml`)。`match` は腕4本まで、`?` は1つの関数に4つまで、ネストは3まで、関数は50行まで。`Phase` は8通りあるので `match` で分けず、`==` の述語と表で分ける。`Pick` も10通りあるので表で引く。`Facts` と `Heard` の取り出しは小さな関数(`fn seen(facts) -> Option<&Seen>`、`fn answered(facts) -> Option<&Result<Answers, JudgeError>>`、`fn woke(facts) -> bool`)にする。
+- 複雑度の上限は、関数ごとに循環的複雑度5、認知的複雑度6(`scripts/metrics.py`、`.config/clippy/clippy.toml`)。`match` は腕4本まで、`?` は1つの関数に4つまで、ネストは3まで、関数は50行まで。`Phase` は8通りあるので `match` で分けず、`==` の述語と表で分ける。`Pick` も10通りあるので表で引く。`Facts` と `Heard` の取り出しは小さな関数(`fn seen(facts) -> Option<&Seen>`、`fn answered(facts) -> Option<&Result<Answers, JudgeError>>`)にする。
 - `as`、添字、`unwrap` を使わない。一覧は `get` と `iter` で引く。`_` の腕の `match` は `wildcard_enum_match_arm` に掛かる。
 - 1ファイルは1つの話題にする(Halstead のファイルの上限)。
 - カバレッジは行、領域、関数のどれも100%(`just coverage`)。通らない分岐を残さない。
@@ -576,3 +577,7 @@ mutation は担当が回さない(`common.md`)。親が統合の前に、`machin
 - 許可ドメインの中か外かは、伏せ字を通す前の URL(`material.paywall.url`)で判定する。伏せ字が URL のホストを書き換えうるため。伏せ字を通した URL は、記録と判断モデルへの文字列にだけ使う。
 - `Touch.confidence` は確率の欠けを 0.0 にする。欠けと0の区別が要れば #14 で `Option<f64>` に変える。
 - 次の作業は 12d(親が brief を書く)に回す: 待機の1段目(段階の進行とゴール、done_when を確かめる時点)のつなぎ、探索モードで done を外し `explore::candidates` で選択肢を絞ること、画面が変わらなかったときに次の候補へ切り替えること(`pick_target` の avoid)、形B を #7 の `read_answers` に置き換えること。12b はこれらを書かない。
+
+## 親の決定(追記、レビューのあと): 許可ドメインの外への到着
+
+仕様との差分。仕様では、外への到着を数えるのは実行の観測(`ExecuteOutOfDomain`)だけで、戻る・開き直しのあとも外に着き続けると `Return` が繰り返されて終わらない。12b では、どの相でも観測を取り込んで外に着いたら、その観測を進展なしとして行き詰まりの回数を1増やし(固まりの回数は変えない)、閾値に達すれば待機の行が `Stuck(StuckKind::NoProgress)` で終える。実行の行は従来どおり `after_touch` で数える(外の画面では新しく見えた要素が無いので、進展なしになる。要素を初めて操作したときだけ回数が戻る)。外への到着の `Note::Issue` は、実行・移動中・復旧・確認中の中止のどれで着いたときも、到着1回につき1件積む。最初の観測(`start`)は数えず、記録もしない。12a の `Counters` には固まりの回数を保ったまま行き詰まりの回数だけを進める関数が無いので、`machine/observe.rs` の `counted` で `after_touch` を重ねて作り直す(`counters.rs` に関数を足すなら、12a の持ち物なので親が決める)。

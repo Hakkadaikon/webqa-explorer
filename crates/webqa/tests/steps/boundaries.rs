@@ -4,7 +4,7 @@ use std::mem;
 
 use cucumber::{given, then, when};
 use webqa_core::judge::QuestionId;
-use webqa_core::machine::Outcome;
+use webqa_core::machine::ExitReason;
 
 use crate::world::QaWorld;
 
@@ -21,12 +21,15 @@ fn stub(world: &mut QaWorld, op: String, target: String) {
         .then(QuestionId::target(), [(number, 1.0)]);
 }
 
+/// The script answers once, so every later question is an anomaly until the
+/// decisions run out.
 #[when(expr = "1ステップを実行する")]
 async fn one_step(world: &mut QaWorld) {
+    let reason = world.run().await.map(|outcome| outcome.reason);
     assert_eq!(
-        world.run().await,
-        Ok(Outcome::Stepped),
-        "the step ran to its end"
+        reason,
+        Ok(ExitReason::BudgetExceeded),
+        "after the step, the script runs out and so do the decisions"
     );
 }
 
