@@ -1,10 +1,12 @@
-//! The lines of the bridge format, version 1.
+//! The request and answer lines of the bridge format, version 2.
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
+use base64::Engine;
+use base64::engine::general_purpose::STANDARD;
 use serde::{Deserialize, Serialize};
-use webqa_core::judge::{Answers, JudgeError, Question, QuestionId, Usage};
+use webqa_core::judge::{Answers, Image, ImageFormat, JudgeError, Question, QuestionId, Usage};
 
 use super::PROTOCOL_VERSION;
 
@@ -14,20 +16,39 @@ pub struct Request<'a> {
     version: u32,
     seq: u64,
     screen: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    image: Option<WireImage>,
     questions: &'a [Question],
 }
 
-/// The request line for `seq`, ending with a newline.
-pub fn request(seq: u64, screen: &str, questions: &[Question]) -> String {
+/// The image of a request, in a form no judge model owns.
+#[derive(Serialize)]
+pub struct WireImage {
+    media_type: ImageFormat,
+    /// The bytes in standard base64, padded, on one line.
+    data: String,
+}
+
+/// The request line for `seq`, ending with a newline. Without `image` the
+/// line has no `image` key.
+pub fn request(seq: u64, screen: &str, image: Option<&Image>, questions: &[Question]) -> String {
     let request = Request {
         version: PROTOCOL_VERSION,
         seq,
         screen,
+        image: image.map(wire_image),
         questions,
     };
     let mut line = serde_json::to_string(&request).unwrap_or_default();
     line.push('\n');
     line
+}
+
+fn wire_image(image: &Image) -> WireImage {
+    WireImage {
+        media_type: image.format(),
+        data: STANDARD.encode(image.bytes()),
+    }
 }
 
 /// One answer line. Unknown fields are ignored.
@@ -126,3 +147,6 @@ fn row((id, options): (String, Vec<Probability>)) -> (QuestionId, Vec<(String, f
         .collect();
     (QuestionId::new(&id), options)
 }
+
+#[cfg(test)]
+mod tests;
