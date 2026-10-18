@@ -114,6 +114,21 @@ fn exists(pid: &str) -> bool {
     Path::new("/proc").join(pid).exists()
 }
 
+/// Whether the process `pid` is still running: there, and not a zombie.
+fn running(pid: &str) -> bool {
+    let stat = fs::read_to_string(Path::new("/proc").join(pid).join("stat"));
+    stat.is_ok_and(|stat| {
+        stat.rsplit_once(") ")
+            .is_some_and(|(_, rest)| !rest.starts_with('Z'))
+    })
+}
+
+/// Whether the process `pid`, which has been sent SIGKILL, stops running
+/// soon.
+fn stops(pid: &str) -> bool {
+    (0..1_000_000).any(|_| !running(pid))
+}
+
 #[tokio::test]
 async fn timed_out_command_is_stopped() {
     let dir = scratch("timeout").unwrap();
@@ -121,6 +136,19 @@ async fn timed_out_command_is_stopped() {
     assert_eq!(ran, timed_out(), "hang.sh");
     assert!(!pid.is_empty(), "hang.sh wrote no pid");
     assert!(!exists(&pid), "process {pid} is left, maybe as a zombie");
+}
+
+#[tokio::test]
+async fn timed_out_group_is_stopped() {
+    let dir = scratch("group").unwrap();
+    let (ran, pids) = time_out(&dir, "spawn.sh").await.unwrap();
+    let (pid, grandchild) = pids.split_once(' ').unwrap();
+    assert_eq!(ran, timed_out(), "spawn.sh");
+    assert!(!exists(pid), "process {pid} is left, maybe as a zombie");
+    assert!(
+        stops(grandchild),
+        "grandchild {grandchild} is still running"
+    );
 }
 
 #[tokio::test]

@@ -1,8 +1,9 @@
 //! Runs the command that resets the service before each trial.
 //!
 //! The command is started without a shell, gets only the environment it is
-//! given minus the judge's API key, and is stopped when its timeout passes on
-//! the injected clock. Its output comes back only redacted.
+//! given minus the judge's API key, and is stopped with everything in its
+//! process group when its timeout passes on the injected clock. Its output
+//! comes back only redacted.
 
 mod env;
 #[cfg(test)]
@@ -60,8 +61,8 @@ pub struct Ran {
 ///
 /// The command gets `env` and nothing else from this process, minus every
 /// variable whose value contains one of `withheld`. Its output passes
-/// through `redactor`. It is stopped when `reset.timeout_secs` pass on
-/// `clock`.
+/// through `redactor`. It is started in a process group of its own, and the
+/// whole group is stopped when `reset.timeout_secs` pass on `clock`.
 pub async fn run(
     reset: &Reset,
     env: &[(OsString, OsString)],
@@ -91,6 +92,7 @@ fn command(reset: &Reset, env: &[(OsString, OsString)], withheld: &[&str]) -> Co
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
+        .process_group(0)
         .kill_on_drop(true);
     command
 }
@@ -114,10 +116,26 @@ async fn supervise(
     }
 }
 
-/// Stops the command that did not finish in time, and waits until it has.
+/// Stops the command that did not finish in time and every process in its
+/// group, and waits until the command has ended.
 async fn stop(mut child: Child, redactor: &Redactor) -> Ran {
+    let _ = kill_group(child.id()).await;
     let _ = child.kill().await;
     silent(ResetError::TimedOut, redactor)
+}
+
+/// Sends SIGKILL to the process group led by `leader`, through the `kill`
+/// program, as signalling a group needs no more than that.
+async fn kill_group(leader: Option<u32>) -> io::Result<ExitStatus> {
+    Command::new("kill")
+        .args(["-KILL", "--"])
+        .args(leader.map(|pid| format!("-{pid}")))
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .kill_on_drop(true)
+        .status()
+        .await
 }
 
 /// The failure with no output.
