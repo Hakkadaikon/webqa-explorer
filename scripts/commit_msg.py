@@ -7,6 +7,7 @@ Usage:
 """
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -115,12 +116,28 @@ def check(text):
     return header_errors(lines[0]) + blank_line_errors(lines) + width_errors(lines)
 
 
+# Set by git for its hooks; they would point `git -C <repo>` at the outer repository.
+REPO_VARIABLES = (
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_PREFIX",
+    "GIT_COMMON_DIR",
+)
+
+
+def git_env():
+    """The environment without git's per-repository variables."""
+    return {k: v for k, v in os.environ.items() if k not in REPO_VARIABLES}
+
+
 def commits_in_range(repo, commit_range):
     out = subprocess.run(
         ["git", "-C", repo, "log", "--format=%H", commit_range],
         check=True,
         capture_output=True,
         text=True,
+        env=git_env(),
     ).stdout
     return [h for h in out.split("\n") if h]
 
@@ -131,6 +148,7 @@ def message_of(repo, commit_hash):
         check=True,
         capture_output=True,
         text=True,
+        env=git_env(),
     ).stdout.rstrip("\n")
 
 

@@ -53,6 +53,8 @@
       → 手法: 分岐網羅 (whitebox-controlflow-basic/SKILL.md) / テスト名: CliTest.test_running_the_script_exits_with_the_result
 - [x] T-017 ヘッダー [boundary] 「コメント行だけのメッセージは、空のメッセージとして不合格」
       → 手法: 境界値分析 (blackbox-partition/SKILL.md) / テスト名: EmptyTest.test_a_message_of_only_comments_fails_as_empty
+- [x] T-018 起動 [unwanted] 「git のフックの中など、GIT_DIR が設定された環境から呼んでも、--repo で指定したリポジトリを判定する」
+      → 手法: 同値分割 (blackbox-partition/SKILL.md) / テスト名: CliTest.test_git_variables_of_an_outer_hook_do_not_leak
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
@@ -75,6 +77,7 @@
 | T-015 | event | 分岐網羅 | CliTest.test_a_range_of_commits_is_checked | [x] | [x] | — |
 | T-016 | event | 分岐網羅 | CliTest.test_running_the_script_exits_with_the_result | [x] | [x] | — |
 | T-017 | boundary | 境界値分析 | EmptyTest.test_a_message_of_only_comments_fails_as_empty | [x] | [x] | — |
+| T-018 | unwanted | 同値分割 | CliTest.test_git_variables_of_an_outer_hook_do_not_leak | [x] | [x] | — |
 
 mutation 列は全行「—」。開発用の検査ツールで、金額・セキュリティ・状態遷移に当たらない。
 

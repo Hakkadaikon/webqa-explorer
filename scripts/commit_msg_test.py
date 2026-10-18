@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import commit_msg
 
@@ -44,7 +45,12 @@ def run_as_script(argv):
 
 
 def git(repo, *args):
-    subprocess.run(["git", "-C", repo, *args], check=True, capture_output=True)
+    subprocess.run(
+        ["git", "-C", repo, *args],
+        check=True,
+        capture_output=True,
+        env=commit_msg.git_env(),
+    )
 
 
 def commit(repo, message):
@@ -168,6 +174,15 @@ class CliTest(unittest.TestCase):
                 out, r"^[0-9a-f]{7,}: 種類 Add a thing は使えない|^[0-9a-f]{7,}: "
             )
             self.assertEqual(len(out.splitlines()), 1)
+
+    def test_git_variables_of_an_outer_hook_do_not_leak(self):
+        with tempfile.TemporaryDirectory() as d:
+            new_repo(d)
+            commit(d, GOOD)
+            outer = {"GIT_DIR": os.path.join(d, "no-such-dir")}
+            with mock.patch.dict(os.environ, outer):
+                result = run_main(["--range", "HEAD~1..HEAD", "--repo", d])
+            self.assertEqual(result, (0, ""))
 
     def test_running_the_script_exits_with_the_result(self):
         with tempfile.TemporaryDirectory() as d:
