@@ -164,6 +164,7 @@ pub fn parse(text: &str) -> Result<Persona, ConfigError>;
 - 生の型は5項目とも `Option` で受け、`#[serde(deny_unknown_fields)]` を付ける。欠けの判定は serde に任せず自前で行う(誤りの項目の名前を決まった文で返すため)。
 - 検査の順: YAML として読めない(未知の項目、最上位が対応表でない、を含む)→ `Malformed { document: "persona", .. }`。次に `name`、`profile`、`it_literacy`、`wants`、`avoids` の順で、最初に欠けた項目を `MissingField("persona.<項目>")` で返す。
 - 欠けとみなすもの: 項目が無い、`null`、`trim` して空の文字列。`avoids` は、空の一覧、または `trim` して空の要素を1つでも含む一覧。
+- 箇条書きの空の要素(`- ` だけの行。YAML の null)は、空の文字列と同じに扱う。生の型の `avoids` は `Option<Vec<Option<String>>>` で受け、`MissingField("persona.avoids")` にする(serde の型の誤りにしない)。
 - 空の文書(空の文字列、空白と改行だけ、コメントだけ)は、5項目とも欠けた文書として扱い、`MissingField("persona.name")` を返す(`Malformed` にしない)。
 - 値は書いたまま持つ(`trim` しない)。ペルソナは秘密の値ではないので `Debug` は derive でよい。
 
@@ -210,6 +211,7 @@ pub fn parse(text: &str) -> Result<Purpose, ConfigError>;
 ```
 
 - 生の型: `RawPurpose { goal: Option<String>, done_when: Option<DoneWhen>, #[serde(default)] screens: Vec<RawScreen> }`、`RawScreen { url: String, purpose: String }`。どちらも `deny_unknown_fields`。`DoneWhen` は `config::raw::DoneWhen` をそのまま使う。
+- `RawScreen` の `url` と `purpose` は `Option<String>` で受け、null を空の文字列と同じに扱う。空の `purpose:` は `BlankScreenPurpose(n)`、空の `url:` は空の URL の型と同じく `UrlPattern(n)`。エラーの文に serde や Rust の内部の言葉を出さない。
 - `stage()`:
   - `Written` なら `Stage { name: STAGE_NAME, goal: <goal>, done_when: <done_when> }`。
   - `Inferred` なら `Stage { name: STAGE_NAME, goal: INFERRED_GOAL, done_when: DoneWhen { url: None, element: Some(Element { role: "", name: "" }), text: None } }`。宣言が0個の done_when を作らない(台帳の用語定義「目的を書いた / 推測させた」)。role と name が空の `element` の宣言は、#13 の `stage::met` の規則(「宣言の role か name が空なら成り立たない」)で決して成り立たない。この done_when を作るのは非公開の関数1つにまとめる。
@@ -247,6 +249,7 @@ impl UrlPattern {
 3. `/` で区切った各区切りについて、`*` を含むなら区切り全体が `*` である(`/a/*b`、`/a/b*`、`/**` は不可)。
 4. 空の区切りは最後の1つだけ許す(`/`、`/products/` は可、`/a//b` は不可)。
 5. `.` と `..` の区切りを含まない。
+6. 百分率符号化した `.` と `..`(`%2e`、`%2E`、`.%2e`、`%2e%2e` など。大文字と小文字を問わない)も、区切りを復号してから比べて `.` と `..` として拒む。
 
 正規化と照合:
 
