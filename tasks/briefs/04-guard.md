@@ -41,11 +41,11 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 - 材料 `Candidate { role: String, name: String, href: Option<Url>, form_action: Option<Url>, forbidden_listed: bool, allowed_listed: bool }`。
   - `href`: リンクの遷移先。`form_action`: 送信ボタンと入力欄の実効の送信先(アダプタが `formaction` 属性か `el.form?.action` から取る)。無ければ `None`。
   - `forbidden_listed` と `allowed_listed`: 設定の `guard.forbidden.selectors` と `guard.allowed.selectors` に一致したか。CSS セレクタの評価はアダプタが行う。
-  - `role` は判定に使わない(材料として持ち、fixture と `Debug` で読む)。`allowed_listed` も判定に使わない(許可リストと食い違えば禁止を採るので、許可リストは禁止を外さない)。
+  - `role` は判定に使わない(材料として持ち、fixture と `Debug` で読む)。`allowed_listed` は禁止より優先する(利用者の決定)。真なら、どの軸で禁止に当たっていても禁止にしない。
   - `Debug` は `role`、`forbidden_listed`、`allowed_listed` だけを出し、`name`、`href`、`form_action` は `…` にする(`screen::Element` と同じ扱い)。
 - 判定器 `Forbidden { words: Words, segments: Segments }`。
   - `Forbidden::new(extra_keywords: &[String]) -> Forbidden`: 既定の語に、設定の `guard.forbidden.keywords` を足す。`Default` は `new(&[])` と同じ。
-  - `Forbidden::forbids(&self, c: &Candidate) -> bool`: 次の4軸の OR。
+  - `Forbidden::forbids(&self, c: &Candidate) -> bool`: `c.allowed_listed` が真なら偽。そうでなければ次の4軸の OR。
     1. 名前のキーワード: `words.any_in(&c.name)`
     2. 送信先: `c.form_action` が `Some` で `segments.any_in` が真
     3. 遷移先: `c.href` が `Some` で `segments.any_in` が真
@@ -59,15 +59,17 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 
 ### 課金画面(`guard/paywall.rs`)
 
-- 材料 `PaywallFacts { url: Url, texts: Vec<String>, hits: Vec<bool> }`。
-  - `texts`: 表示領域の見出しとボタンの名前(モーダルの見出しと中のボタンも含む)。並びは問わない。
+- 材料 `PaywallFacts { url: Url, headings: Vec<String>, dialogs: Vec<String>, buttons: Vec<String>, hits: Vec<bool> }`。一覧の並びは問わない。
+  - `headings`: 表示領域の、モーダルの外の見出し。
+  - `dialogs`: モーダル(`dialog`)の中の名前(見出しとボタン)。
+  - `buttons`: 表示領域の、モーダルの外のボタンの名前。判定に使わない(材料として持ち、fixture と `Debug` で読む)。課金を促す語はここから探さない(利用者の決定。ヘッダーの「Upgrade」ボタンだけでは課金画面にしない)。
   - `hits`: 主要な操作ごとの当たり判定。主要な操作は「表示領域の操作可能要素のうち、モーダルの外にあるもの」で、アダプタが中心で `elementFromPoint` を呼び、自分に当たれば `true`。
-  - `Debug` は `texts` と `hits` の件数だけを出し、`url` は出さない。
+  - `Debug` は `headings`、`dialogs`、`buttons`、`hits` の件数だけを出し、`url` は出さない。
 - `pub fn blocked(hits: &[bool]) -> bool`: 当たらないもの(`false`)の数の2倍が全体の数より大きい(過半数が塞がれている)なら真。空なら偽。整数で比べ、小数を使わない。
 - 判定器 `Paywall { words: Words, segments: Segments }`。
   - `Paywall::new(extra_words: &[String], extra_segments: &[String]) -> Paywall`。`Default` は `new(&[], &[])`。設定に足す項目は今は無いので、引数だけ用意する。
   - `Paywall::detects(&self, f: &PaywallFacts) -> bool`: 次の3軸の OR。
-    1. 課金を促す語: `texts` のどれかで `words.any_in` が真
+    1. 課金を促す語: `headings` か `dialogs` のどれかで `words.any_in` が真
     2. 課金系の URL: `segments.any_in(&f.url)`
     3. 主要な操作が塞がれている: `blocked(&f.hits)`
 - 既定の語 `pub const DEFAULT_WORDS: &[&str]`: `アップグレード`、`プレミアム`、`有料プラン`、`有料会員`、`upgrade`、`premium`、`subscribe`。
@@ -106,6 +108,7 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
   - `subdomains: true`: `host_str()` が `.` + `host` で終わり、その前に1文字以上ある。深さは問わない(`a.b.app.example.test` も一致)。`host` 自身には一致しない。
   
   ホストの無い URL(`javascript:`、`data:`)は偽。
+- `pub fn allowed_or_start(listed: Vec<AllowedOrigin>, start: &Url) -> Vec<AllowedOrigin>`: 判定に使う一覧を作る。`listed`(`target.allowed_origins`)が空なら、`start`(`target.url`)のオリジン1つ(`subdomains: false`)だけにする(利用者の決定)。`start` にホストか既知のポートが無ければ空(何も許可しない)。空でなければ `listed` のまま。
 - `pub fn is_allowed(url: &Url, allowed: &[AllowedOrigin]) -> bool`: どれかが `allows` なら真。`allowed` が空なら偽。
 - `Navigation { requested: Url, landed: Url }`: 操作で求めた URL と、リダイレクトのあとに着いた最終的な URL(アダプタが集める)。
 - `pub fn left_allowed(nav: &Navigation, allowed: &[AllowedOrigin]) -> bool`: `!is_allowed(&nav.landed, allowed)`。`requested` は判定に使わない(記録のために持つ)。
@@ -122,31 +125,33 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 
 ### `guard`
 
-1. `words_match_at_ascii_boundaries`: 既定なし、追加 `["pay", "購入"]` の `Words` で、`"Pay now"` 真、`"PAY"` 真、`"Display"` 偽、`"payment"` 偽、`"今すぐ購入"` 真、`"ｐａｙ"`(全角)真、`""` 偽。
+1. `words_match_at_ascii_boundaries`: 既定なし、追加 `["pay", "購入"]` の `Words` で、`"Pay now"` 真、`"PAY"` 真、`"Display"` 偽、`"Prepay"` 偽(前に英字が続く)、`"payment"` 偽、`"今すぐ購入"` 真、`"ｐａｙ"`(全角)真、`""` 偽。
 2. `empty_keyword_is_ignored`: 追加 `["", "  ", "　"]` だけの `Words` は、`"保存"` にも `""` にも一致しない。`Segments` も追加 `["", "-"]` だけなら `https://app.example.test/` に一致しない。
 3. `segments_ignore_case_hyphen_and_query`: 追加 `["signin", "pricing"]` の `Segments` で、`https://app.example.test/sign-in` 真、`https://app.example.test/Sign_In/` 真、`https://app.example.test/en/pricing` 真、`https://app.example.test/pricing-history` 偽、`https://app.example.test/?next=/pricing` 偽、`https://app.example.test/#/pricing` 偽、`data:text/html,pricing` 偽。
 
 ### `guard::forbidden`
 
 4. `forbidden_by_keyword`: `Forbidden::default()` で、`href` と `form_action` が `None`、両リストが偽の候補について:
-   - 真: `button "購入する"`、`button "アカウントを削除"`、`button "退会"`、`button "サインイン"`、`button "Checkout"`、`button "購入はこちら"`、`button "今すぐ買う"`(代替テキストが名前になった画像ボタン)、`textbox "カード番号"`、`button "ＣＨＥＣＫＯＵＴ"`、`button "Sign  In"`、`button "購入テスト"`(`allowed_listed: true`)。
-   - 偽: `button "保存"`、`link "Display settings"`、`link "Payments"`、`button ""`(名前の無いボタン、ほかの手がかりも無い)。
+   - 真: `button "購入する"`、`button "アカウントを削除"`、`button "退会"`、`button "サインイン"`、`button "Checkout"`、`button "購入はこちら"`、`button "今すぐ買う"`(代替テキストが名前になった画像ボタン)、`textbox "カード番号"`、`button "ＣＨＥＣＫＯＵＴ"`、`button "Sign  In"`。
+   - 偽: `button "保存"`、`link "Display settings"`、`link "Payments"`、`button ""`(名前の無いボタン、ほかの手がかりも無い)、`button "購入テスト"`(`allowed_listed: true`)。
 5. `forbidden_by_destination`: 名前が手がかりにならない候補で:
    - 真: `button "OK"` で `form_action` が `https://app.example.test/account/delete`、`link "次へ"` で `href` が `https://app.example.test/checkout/confirm`、`link "次へ"` で `href` が `https://app.example.test/sign-in`、`button ""` で `form_action` が `https://app.example.test/checkout`(名前の無い画像ボタン)。
    - 偽: `link "次へ"` で `href` が `https://app.example.test/settings`、`button "検索"` で `form_action` が `https://app.example.test/search`、`link "次へ"` で `href` が `https://app.example.test/login?next=/checkout`(クエリは見ない)。
-6. `forbidden_by_list`: `button "実行"` で `forbidden_listed: true` は真。`button "保存"` で `allowed_listed: true` だけは偽。`button "実行"` で両方真は真(許可リストは禁止を外さない)。
+6. `forbidden_by_list`: `button "実行"` で `forbidden_listed: true` は真。`button "保存"` で `allowed_listed: true` だけは偽。`button "実行"` で両方真は偽(許可リストが優先する)。
+6b. `allowed_list_wins_over_every_axis`: 名前のキーワード、遷移先、送信先、禁止リストのすべてに当たる候補は、`allowed_listed: true` なら偽、`false` なら真。遷移先だけ、送信先だけで当たる候補も、`allowed_listed: true` なら偽。
 7. `extra_keywords_extend_defaults`: `Forbidden::new(&["危険".into()])` は `button "危険な操作"` を禁止し、`Forbidden::default()` は禁止しない。`Forbidden::new(&["".into()])` は `button "保存"` を禁止しない。追加しても既定の語は残る(`button "退会"` は真)。
 
 ### `guard::paywall`
 
 8. `paywall_by_each_axis`: `Paywall::default()` で、feature の Examples の6行がどれも真。
-   - URL `https://app.example.test/home`、`texts: ["プレミアムにアップグレード", "閉じる"]`、`hits: [true, true, true]`
-   - URL `https://app.example.test/article/1`、`texts: ["Subscribe to continue", "アップグレード"]`、`hits: []`
-   - URL が `https://app.example.test/pricing`、`/upgrade`、`/checkout` で、`texts: ["プランを選ぶ"]`、`hits: [true]`(3行)
-   - URL `https://app.example.test/home`、`texts: ["お知らせ", "OK"]`、`hits: [false, false, false]`
-9. `pricing_word_alone_is_not_paywall`: URL `https://app.example.test/billing/history`、`texts: ["料金の履歴", "ダウンロード"]`、`hits: [true, true]` は偽。URL `https://app.example.test/`、`texts: []`、`hits: []` も偽。
+   - URL `https://app.example.test/home`、`dialogs: ["プレミアムにアップグレード", "閉じる"]`、`buttons: ["保存"]`、`hits: [true, true, true]`
+   - URL `https://app.example.test/article/1`、`headings: ["Subscribe to continue"]`、`buttons: ["アップグレード"]`、`hits: []`
+   - URL が `https://app.example.test/pricing`、`/upgrade`、`/checkout` で、`headings: ["プランを選ぶ"]`、`hits: [true]`(3行)
+   - URL `https://app.example.test/home`、`dialogs: ["お知らせ", "OK"]`、`hits: [false, false, false]`
+9. `pricing_word_alone_is_not_paywall`: URL `https://app.example.test/billing/history`、`headings: ["料金の履歴"]`、`buttons: ["ダウンロード"]`、`hits: [true, true]` は偽。URL `https://app.example.test/`、一覧がすべて空も偽。
+9b. `upgrade_button_alone_is_not_paywall`: URL `https://app.example.test/home`、`headings: ["ダッシュボード"]`、`dialogs: []`、`buttons: ["Upgrade", "プレミアム"]`、`hits: [true, true]` は偽。
 10. `blocked_needs_more_than_half`: `blocked(&[])` 偽、`[false]` 真、`[true]` 偽、`[true, false]` 偽、`[false, false, true]` 真、`[true, true, false, false]` 偽、`[false, false, false, true]` 真。
-11. `extra_words_and_segments`: `Paywall::new(&["お試し期間終了".into()], &["plans".into()])` は `texts: ["お試し期間終了"]`(URL `/home`、`hits: []`)と URL `/plans`(`texts: []`、`hits: []`)をどちらも真にし、`Paywall::default()` はどちらも偽。空の文字列の追加は何にも一致しない。
+11. `extra_words_and_segments`: `Paywall::new(&["お試し期間終了".into()], &["plans".into()])` は `headings: ["お試し期間終了"]`(URL `/home`、`hits: []`)、`dialogs: ["お試し期間終了"]`(同じ)、URL `/plans`(一覧がすべて空)をどれも真にし、`Paywall::default()` はどちらも偽。空の文字列の追加は何にも一致しない。
 
 ### `guard::confidence`
 
@@ -168,7 +173,7 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 19. `allowed_origin_rejects_more_than_origin`: `AllowedOrigin::parse` が `Err(InvalidOrigin)` を返すもの: `""`、`"not an origin"`、`"https://a.*.test"`、`"https://*"`、`"https://*."`、`"https://app.example.test/p?q"`、`"https://app.example.test/path"`、`"https://app.example.test?q"`、`"https://app.example.test#f"`、`"https://user@app.example.test"`、`"https://user:pw@app.example.test"`、`"javascript:alert(1)"`、`"data:text/html,hello"`。`Ok` になるもの: `"https://app.example.test"`、`"https://app.example.test/"`、`"https://*.app.example.test"`、`"http://localhost:8080"`。`InvalidOrigin` の `to_string()` は決めた文と等しい。
 20. `origin_must_match_exactly`: 許可が `["https://app.example.test"]` のとき、`is_allowed` は:
     - 真: `https://app.example.test/settings`、`https://app.example.test:443/`(既定のポートを明示)、`https://APP.example.test/`
-    - 偽: `https://app.example.test.evil.test/`、`https://app.examp1e.test/`、`http://app.example.test/`、`https://app.example.test:8443/`、`javascript:alert(1)`、`data:text/html,hello`、`https://sub.app.example.test/`
+    - 偽: `https://app.example.test.evil.test/`、`https://app.examp1e.test/`、`http://app.example.test/`、`http://app.example.test:443/`(スキームだけが違う)、`https://app.example.test:8443/`、`javascript:alert(1)`、`data:text/html,hello`、`https://sub.app.example.test/`
     
     許可が `["https://app.example.test", "https://*.app.example.test"]` のとき: `https://sub.app.example.test/` 真、`https://a.b.app.example.test/` 真、`https://app.example.test/` 真、`http://sub.app.example.test/` 偽、`https://sub.app.example.test:8443/` 偽、`https://subapp.example.test/` 偽。
     許可が `["https://*.app.example.test"]` だけのとき: `https://app.example.test/` 偽。
@@ -177,23 +182,24 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
     - 真: `requested` `https://app.example.test/go`、`landed` `https://other.example.net/`(リダイレクトで外へ出た)
     - 偽: `requested` `https://other.example.net/r`、`landed` `https://app.example.test/home`(外から中へ戻された)
     - 偽: `requested` と `landed` がどちらも `https://app.example.test/home`
+21b. `empty_list_allows_only_start_origin`: `allowed_or_start(空, https://app.example.test/login?next=/)` で、`https://app.example.test/home` と `https://app.example.test:443/` は中、`https://other.example.net/`、`https://sub.app.example.test/`、`http://app.example.test/`、`https://app.example.test:8443/` は外。`allowed_or_start(["https://app.example.test"], https://other.example.net/)` では `https://app.example.test/` が中、`https://other.example.net/` が外(一覧があれば開始の URL は足さない)。開始の URL が `data:text/html,hello` と `foo://app.example.test/` なら空の一覧。
 
 ### `Debug`(秘密の値の扱い)
 
-22. `debug_hides_page_strings`: 名前 `"山田太郎の注文"`、`href` `https://app.example.test/u/token123` の `Candidate`、`texts: ["山田太郎"]` と URL `https://app.example.test/u/token123` の `PaywallFacts`、名前 `"山田太郎"` の `Node` と `Target` の `format!("{:?}")` に、`山田太郎` と `token123` が含まれない。
+22. `debug_hides_page_strings`: 名前 `"山田太郎の注文"`、`href` `https://app.example.test/u/token123` の `Candidate`、`headings: ["山田太郎"]`、`dialogs: ["山田太郎", "token123"]` と URL `https://app.example.test/u/token123` の `PaywallFacts`、名前 `"山田太郎"` の `Node` と `Target` の `format!("{:?}")` に、`山田太郎` と `token123` が含まれない。
 
 ### ゴールデン(`crates/webqa-core/tests/guard_golden.rs`)
 
 fixture は `crates/webqa-core/tests/fixtures/guard/` の JSON。テストの中に `#[derive(Deserialize)]` の行の型を置き、URL は文字列で読んで `Url::parse` で変える(`url` の serde の機能は足さない)。URL は絶対 URL で書く(下でパスだけ書いたものは、ECサイトなら `https://shop.example.test`、SaaS なら `https://app.example.test` を前に付ける)。各行は `case`(日本語の短い説明)と期待値 `expect: bool` を持つ。比べるときは `assert_eq!(実際, row.expect, "{}", row.case)`。fixture の行数が0なら失敗させる。
 
 23. `forbidden_fixtures`: `forbidden.json`。行は `{ case, role, name, href, form_action, forbidden_listed, allowed_listed, expect }`(`href` と `form_action` は `null` 可)。`Forbidden::default()` で判定する。少なくとも次を入れる。
-    - feature の Examples の10行(期待値はすべて `true`)。お支払いフォームの `textbox "カード番号"` は `form_action` を `https://shop.example.test/checkout/payment` にする。
+    - feature の Examples の行(期待値は `true`。ただし許可リストにも一致する `button "購入テスト"` は `false`)。禁止リストにもキーワードにも当たるが許可リストに当たる行(`false`)。お支払いフォームの `textbox "カード番号"` は `form_action` を `https://shop.example.test/checkout/payment` にする。
     - 見逃しを狙う行(`true`): 全角の `ＢＵＹ ＮＯＷ`、`今すぐ 購入`、`Place order`、`Sign in`、名前の無い画像ボタンで `form_action` が `/checkout`、`link "次へ"` で `href` が `/account/deactivate`、`button "OK"` で `form_action` が `/subscription/unsubscribe`。
     - 過検知を見る行(`false`): ECサイトの `link "商品一覧"`、`button "カートを見る"`、`link "Display settings"`、SaaS の `button "保存"`、`link "請求書の履歴"`(`href` `/billing/history`)、`link "ヘルプ"`。
-24. `paywall_fixtures`: `paywall.json`。行は `{ case, url, texts, hits, expect }`。`Paywall::default()` で判定する。少なくとも次を入れる。
+24. `paywall_fixtures`: `paywall.json`。行は `{ case, url, headings, dialogs, buttons, hits, expect }`。`Paywall::default()` で判定する。少なくとも次を入れる。
     - feature の Examples の6行(`true`)と、「料金の履歴」の行(`false`)。
-    - 見逃しを狙う行(`true`): `texts: ["Upgrade to Premium"]`、`texts: ["ＰＲＥＭＩＵＭ"]`、URL `/en/Pricing`、主要な操作4つのうち3つが当たらないモーダル。
-    - 過検知を見る行(`false`): `texts: ["料金プランの比較"]`(URL `/help/plans`)、`texts: ["Unsubscribe"]`、URL `/pricing-history`、主要な操作4つのうち2つが当たらないページ、要素も文言も無い `/` のページ。
+    - 見逃しを狙う行(`true`): `headings: ["Upgrade to Premium"]`、`dialogs: ["ＰＲＥＭＩＵＭ"]`、URL `/en/Pricing`、主要な操作4つのうち3つが当たらないモーダル。
+    - 過検知を見る行(`false`): `headings: ["料金プランの比較"]`(URL `/help/plans`)、`buttons: ["Unsubscribe"]`、ヘッダーの `buttons: ["Upgrade"]` だけ、URL `/pricing-history`、主要な操作4つのうち2つが当たらないページ、要素も文言も無い `/` のページ。
 
 ## 受け入れ条件
 
