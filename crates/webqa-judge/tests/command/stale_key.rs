@@ -15,7 +15,8 @@ const CHILD: &str = "command::stale_key::child_bridge_sees_no_key";
 #[tokio::test]
 #[ignore = "run by stale_key_does_not_reach_bridge in a child process"]
 async fn child_bridge_sees_no_key() {
-    let answers = bench(&["key"], None, &[]).unwrap().ask().await.unwrap();
+    let mut bench = bench(&["key"], None, &[]).await.unwrap();
+    let answers = bench.ask().await.unwrap();
     let got = options(&answers, "operation");
     assert_eq!(got, Some(pairs(&[("absent", 1.0)])), "no key");
 }

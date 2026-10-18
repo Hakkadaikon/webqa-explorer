@@ -10,13 +10,22 @@ use tokio::process::Command;
 
 use serde_json::{Value, json};
 use url::{ParseError, Url};
-use webqa_core::judge::{Answers, JudgeError, QuestionId, Usage};
+use webqa_core::config::raw::Op;
+use webqa_core::judge::{Answers, Ask, Image, ImageFormat, JudgeError, QuestionId, Usage};
 use webqa_core::ports::{Clock, Judge, Pending};
 use webqa_core::redact::{Redacted, Redactor};
 use webqa_core::screen::{Element, Rect, Screen, ScreenText, Viewport, screen_text};
 use webqa_judge::command::{Bridge, CommandJudge};
+use webqa_judge::table::StartError;
 
 const SCRIPT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bridge.sh");
+
+/// The step of the round trip: two operations, one element, no goal.
+pub const STEP: Ask<'static> = Ask {
+    ops: &[Op::Click, Op::Back],
+    elements: 1,
+    goal: None,
+};
 
 /// Each wait takes the next of the script: done at once when `true`, and
 /// done after [`REAL_WAIT`] of real time when `false` or when the script
@@ -68,14 +77,19 @@ impl Bench {
     pub async fn ask(&mut self) -> Result<Answers, JudgeError> {
         self.judge.ask(&self.empty, &[]).await
     }
+
+    /// Asks no question about the empty screen and `image`.
+    pub async fn ask_with(&mut self, image: &Image) -> Result<Answers, JudgeError> {
+        self.judge.ask_with_image(&self.empty, image, &[]).await
+    }
 }
 
-/// The bridge run with `args`, the key and a clock with `script`.
-pub fn bench(
+/// The bridge started with `args`, the key and a clock with `script`.
+pub async fn spawned(
     args: &[&str],
     api_key: Option<&str>,
     script: &[bool],
-) -> Result<Bench, Box<dyn Error>> {
+) -> Result<CommandJudge, StartError> {
     let command: Vec<String> = ["sh", SCRIPT]
         .iter()
         .chain(args)
@@ -86,16 +100,41 @@ pub fn bench(
         api_key,
         timeout: Duration::from_secs(30),
     };
+    CommandJudge::spawn(&bridge, clock(script)).await
+}
+
+/// The bridge run with `args`, the key and a clock with `script`. The
+/// first wait of the script is the wait for the version line.
+pub async fn bench(
+    args: &[&str],
+    api_key: Option<&str>,
+    script: &[bool],
+) -> Result<Bench, Box<dyn Error>> {
     Ok(Bench {
-        judge: CommandJudge::spawn(&bridge, clock(script))?,
+        judge: spawned(args, api_key, script).await?,
         empty: text(Vec::new())?,
     })
 }
 
 /// The bridge in `mode`, with a clock that ends the wait only after
 /// [`REAL_WAIT`] of real time.
-pub fn judge(mode: &str) -> Result<Bench, Box<dyn Error>> {
-    bench(&[mode], None, &[])
+pub async fn judge(mode: &str) -> Result<Bench, Box<dyn Error>> {
+    bench(&[mode], None, &[]).await
+}
+
+/// A PNG of 4 bytes, `iVBORw==` in base64.
+pub fn png4() -> Image {
+    Image::new(ImageFormat::Png, vec![0x89, b'P', b'N', b'G'])
+}
+
+/// A JPEG of 3 bytes, `/9j/` in base64.
+pub fn jpeg3() -> Image {
+    Image::new(ImageFormat::Jpeg, vec![0xFF, 0xD8, 0xFF])
+}
+
+/// A PNG without bytes.
+pub const fn empty_image() -> Image {
+    Image::new(ImageFormat::Png, Vec::new())
 }
 
 fn text(elements: Vec<Element>) -> Result<Redacted<ScreenText>, ParseError> {
@@ -176,11 +215,11 @@ pub fn logged(path: &str) -> Result<Vec<Value>, Box<dyn Error>> {
 /// three questions of a step without a goal, then the empty screen with no
 /// question.
 pub fn round_trip_requests() -> [Value; 2] {
-    let first = json!({"version": 1, "seq": 1, "screen": "1: button \"保存\"", "questions": [
+    let first = json!({"version": 2, "seq": 1, "screen": "1: button \"保存\"", "questions": [
         {"kind": "choice", "id": "operation", "prompt": "次に行う操作の種別を選ぶ", "options": ["click", "back"]},
         {"kind": "choice", "id": "target", "prompt": "操作する要素の番号を選ぶ", "options": ["1"]},
         {"kind": "noul", "id": "error_shown", "prompt": "画面にエラーの表示があるか"}
     ]});
-    let second = json!({"version": 1, "seq": 2, "screen": "", "questions": []});
+    let second = json!({"version": 2, "seq": 2, "screen": "", "questions": []});
     [first, second]
 }
