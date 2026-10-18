@@ -1,6 +1,8 @@
-"""テスト項目台帳 WebExploratoryQA を、転記元の feature と突き合わせる。
+"""テスト項目台帳を、転記元の feature と突き合わせる。
 
-使い方(リポジトリの直下で): python3 tasks/test-design/tools/check_ledger.py
+使い方(リポジトリの直下で): python3 tasks/test-design/tools/check_ledger.py [台帳の名前]
+台帳の名前は LEDGERS のキー。省けば WebExploratoryQA を検査する。
+台帳は tasks/test-design/<名前>.md、feature は tasks/loopeng/<名前>.feature に置く。
 問題が1つでもあれば終了コード1で終わる。
 """
 
@@ -11,14 +13,17 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-LEDGER = Path("tasks/test-design/WebExploratoryQA.md")
-FEATURE = Path("tasks/loopeng/WebExploratoryQA.feature")
-EXPECTED = 107
+# 名前: (Scenario の数, issue の欄が空でもよいか)
+LEDGERS = {"WebExploratoryQA": (111, False), "InterviewMode": (131, True)}
+NAME = sys.argv[1] if len(sys.argv) > 1 else "WebExploratoryQA"
+EXPECTED, ISSUE_OPTIONAL = LEDGERS[NAME]
+LEDGER = Path(f"tasks/test-design/{NAME}.md")
+FEATURE = Path(f"tasks/loopeng/{NAME}.feature")
 
 ROW = re.compile(
-    r"^- \[(.)\] (T-\d{3}) WebExploratoryQA\.feature:(\d+)\((.+?)\) \[(\w+)\] 「(.+)」(.*)$"
+    rf"^- \[(.)\] (T-\d{{3}}) {re.escape(NAME)}\.feature:(\d+)\((.+?)\) \[(\w+)\] 「(.+)」(.*)$"
 )
-DETAIL = re.compile(r"^      → 手法: (.+?) / テスト名: (.+?) / issue: (.*)$")
+DETAIL = re.compile(r"^      → 手法: (.+?) / テスト名: (.+?) / issue: ?(.*)$")
 METHOD = re.compile(r"^.+\([a-z][a-z-]*\)$")
 ISSUE = re.compile(r"^#\d+(、#\d+)*$")
 SCEN = re.compile(r"^\s*Scenario( Outline)?:\s*(.*?)\s*$")
@@ -94,10 +99,10 @@ def check_details(rows):
                 fail(f"{tid}: 手法に参照したスキル名が無い: {me}")
         if not re.search(r"の `[a-z0-9_]+`", d.group(2)):
             fail(f"{tid}: テスト名が無い")
-        if not ISSUE.match(d.group(3)):
+        if not (ISSUE.match(d.group(3)) or (ISSUE_OPTIONAL and not d.group(3))):
             fail(f"{tid}: issue の欄が空か形が違う: {d.group(3)!r}")
     holds = [t for t, r in sorted(rows.items()) if r["hold"]]
-    print(f"`[~]` の行: {len(holds)}({'、'.join(holds)})")
+    print(f"`[~]` の行: {len(holds)}({'、'.join(holds) or 'なし'})")
     for tid, r in sorted(rows.items()):
         if r["hold"] != r["rest_note"]:
             fail(f"{tid}: `[~]` と「→ 残り:」の有無が合わない")
@@ -116,17 +121,22 @@ def expand_ids(text):
 
 
 def check_holds(rows, text):
+    text = text.split("\n## ", 1)[0]  # 冒頭だけを読む。機械確認に貼った出力を拾わない
     m = re.search(r"^直し待ちの行: (.+)$", text, re.M)
-    listed = expand_ids(m.group(1)) if m else set()
+    listed = set() if not m or m.group(1) == "なし" else expand_ids(m.group(1))
     marked = {t for t, r in rows.items() if r["hold"]}
     print(f"冒頭の直し待ちの一覧: {len(listed)}")
     if not m or listed != marked:
         fail(f"冒頭の直し待ちの一覧と `[~]` の行が合わない: {sorted(listed ^ marked)}")
-    w = re.search(r"^仕様待ちの issue: (#\d+)$", text, re.M)
+    w = re.search(r"^仕様待ちの issue: (#\d+|なし)$", text, re.M)
     wait = w.group(1) if w else None
     print(f"仕様待ちの issue: {wait}")
     if not wait:
         fail("仕様待ちの issue が書かれていない")
+        return
+    if wait == "なし":
+        if marked:
+            fail("`[~]` の行があるのに仕様待ちの issue が「なし」")
         return
     for tid, r in sorted(rows.items()):
         if not r["detail"]:
