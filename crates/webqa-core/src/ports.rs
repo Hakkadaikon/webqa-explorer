@@ -118,7 +118,7 @@ mod tests {
 
     #[test]
     fn observation_debug_hides_page_strings() {
-        let url = url::Url::parse("https://app.example.test/home").unwrap();
+        let url = url::Url::parse("https://app.example.test/home?token=abc123").unwrap();
         let element = Element {
             role: "button".to_owned(),
             name: "山田太郎".to_owned(),
@@ -145,8 +145,12 @@ mod tests {
             },
             console: vec!["token=abc123".to_owned()],
         };
-        let shown = format!("{observation:?}");
-        assert!(!shown.contains("山田太郎"), "no names: {shown}");
-        assert!(!shown.contains("abc123"), "no console text: {shown}");
+        assert_eq!(
+            format!("{observation:?}"),
+            "Observation { screen: Screen { path: \"/home\", elements: 1 }, \
+             viewport: Viewport { width: 800, height: 600 }, \
+             nodes: 0, candidates: 0, console: 1, .. }",
+            "only the path and the counts, without names, query or console text"
+        );
     }
 }
