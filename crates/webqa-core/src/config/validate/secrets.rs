@@ -61,3 +61,47 @@ fn redact_source(entry: &RawRedact, env: Env<'_>) -> Result<RedactSource, Config
         RawRedact::Env { env: var, .. } => secret(var, env).map(RedactSource::Env),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::super::tests::{ALL_ENV, STATE_OK, value_of};
+    use super::super::validate;
+    use super::*;
+    use crate::config::raw::parse;
+    use crate::config::raw::tests::changed;
+
+    fn missing(yaml: &str, absent: &str) -> ConfigError {
+        let env = |name: &str| (name != absent).then(|| value_of(name));
+        validate(parse(yaml).unwrap(), &env, STATE_OK).unwrap_err()
+    }
+
+    #[test]
+    fn missing_env_is_config_error() {
+        let yaml = changed(
+            "redact:\n",
+            "redact:\n  - { name: 社員番号, env: TEST_ID }\n",
+        );
+        for name in ["JEV_API_KEY", "TEST_EMAIL", "TEST_ID"] {
+            let err = missing(&yaml, name);
+            assert!(
+                matches!(&err, ConfigError::MissingEnv(v) if v == name),
+                "{name}: {err:?}"
+            );
+        }
+        reads_secrets_without_showing_them(&yaml);
+    }
+
+    fn reads_secrets_without_showing_them(yaml: &str) {
+        let config = validate(parse(yaml).unwrap(), ALL_ENV, STATE_OK).unwrap();
+        assert_eq!(
+            config.judge.api_key.expose(),
+            "value-of-JEV_API_KEY",
+            "key read"
+        );
+        let names: Vec<_> = config.redact.iter().map(|r| r.name.as_str()).collect();
+        assert_eq!(names, ["社員番号", "メールアドレス"], "redact names");
+        let shown = format!("{config:?}");
+        assert!(!shown.contains("value-of-"), "Debug hides secrets: {shown}");
+        assert!(shown.contains("Secret(***)"), "Debug marks secrets");
+    }
+}

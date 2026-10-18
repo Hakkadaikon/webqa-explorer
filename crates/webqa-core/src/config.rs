@@ -29,6 +29,12 @@ pub enum ConfigError {
     /// A confidence threshold is not a finite value in `(0, 1]`.
     #[error("{0} は 0 より大きく 1 以下の値にする")]
     Confidence(&'static str),
+    /// A price is negative or not a number.
+    #[error("{0} は 0 以上の値にする")]
+    Pricing(&'static str),
+    /// `scenario.stages` is empty.
+    #[error("scenario.stages に段階を1つ以上書く")]
+    NoStages,
     /// The list of operation kinds is empty.
     #[error("ops に操作種別を1つ以上書く")]
     NoOps,

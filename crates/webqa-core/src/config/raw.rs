@@ -358,14 +358,11 @@ scenario:
             changed("  leave_paywall: back\n", "")
         );
         let raw = parse(&two).unwrap();
-        let names: Vec<_> = raw
-            .scenario
-            .unwrap()
-            .stages
-            .into_iter()
-            .map(|s| s.name)
-            .collect();
+        let stages = raw.scenario.unwrap().stages;
+        let names: Vec<_> = stages.iter().map(|s| s.name.as_str()).collect();
         assert_eq!(names, ["ログイン", "注文"], "stages in order");
+        let text = stages[1].done_when.text.as_deref();
+        assert_eq!(text, Some("注文完了"), "second done_when text");
         assert_eq!(raw.guard.leave_paywall, "back", "leave_paywall default");
     }
 
