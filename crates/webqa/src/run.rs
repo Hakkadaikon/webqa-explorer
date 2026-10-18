@@ -24,10 +24,6 @@ pub enum RunError {
     /// A record could not be written.
     #[error(transparent)]
     Store(#[from] StoreError),
-    /// The core stopped without an outcome. The loop ends only on one, so
-    /// this does not happen.
-    #[error("中核が終了を返さずに止まった")]
-    Unfinished,
 }
 
 /// The ports of a run and where it is in the event log.
@@ -77,10 +73,12 @@ pub async fn explore(ports: &mut Ports<'_>, ops: Vec<String>) -> Result<Outcome,
 /// [`RunError`] when the browser fails or a record cannot be written.
 pub async fn run(start: Step, ports: &mut Ports<'_>) -> Result<Outcome, RunError> {
     let mut step = start;
-    while let Step::Continue(state, effect) = step {
-        step = advance(state, effect, ports).await?;
+    loop {
+        match step {
+            Step::Continue(state, effect) => step = advance(state, effect, ports).await?,
+            Step::Finished(outcome) => return Ok(outcome),
+        }
     }
-    step.into_outcome().ok_or(RunError::Unfinished)
 }
 
 async fn advance(state: State, effect: Effect, ports: &mut Ports<'_>) -> Result<Step, RunError> {
@@ -133,6 +131,10 @@ fn decided(touch: &Touch) -> Event {
     }
 }
 
+/// Observes the page after the touch and logs whether it changed.
+///
+/// Provisional: `accesses` is always 1, one access per touch, until the
+/// accesses are counted with the time window.
 async fn executed(before: &Seen, ports: &mut Ports<'_>) -> Result<Seen, RunError> {
     let after = observe(ports).await?;
     let changed = screen::changed(&before.screen, &after.screen, after.viewport);
@@ -156,7 +158,10 @@ async fn observe(ports: &mut Ports<'_>) -> Result<Seen, RunError> {
     })
 }
 
-/// Writes the event as the next line of the log. Every line is step 1 for now.
+/// Writes the event as the next line of the log.
+///
+/// Provisional: `step` is always 1, since the run has one step until the
+/// state machine counts its steps.
 async fn record(ports: &mut Ports<'_>, event: Event) -> Result<(), RunError> {
     let line = Line {
         seq: ports.seq,

@@ -168,12 +168,6 @@ fn observing_after_the_touch_ends_the_step() {
 }
 
 #[test]
-fn only_a_finished_step_has_an_outcome() {
-    assert_eq!(asking().into_outcome(), None, "still running");
-    assert_eq!(
-        Step::Finished(Outcome::Stepped).into_outcome(),
-        Some(Outcome::Stepped),
-        "the outcome it finished with"
-    );
-    assert_eq!(state().last(), &seen(), "the state keeps the observation");
+fn the_state_keeps_the_observation() {
+    assert_eq!(state().last(), &seen(), "the page it was started on");
 }

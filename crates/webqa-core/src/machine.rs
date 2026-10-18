@@ -74,17 +74,6 @@ pub enum Step {
     Finished(Outcome),
 }
 
-impl Step {
-    /// The outcome, if the run is over.
-    #[must_use]
-    pub fn into_outcome(self) -> Option<Outcome> {
-        match self {
-            Self::Continue(..) => None,
-            Self::Finished(outcome) => Some(outcome),
-        }
-    }
-}
-
 /// Starts a run on the first observation, choosing among the operations `ops`.
 #[must_use]
 pub fn start(seen: Seen, ops: Vec<String>) -> Step {

@@ -222,14 +222,12 @@ fn run_errors_tell_what_failed() {
     let messages = [
         RunError::Browser(BrowserError).to_string(),
         RunError::Store(StoreError).to_string(),
-        RunError::Unfinished.to_string(),
     ];
     assert_eq!(
         messages,
         [
             "ブラウザを操作できない".to_owned(),
             "記録を書けない".to_owned(),
-            "中核が終了を返さずに止まった".to_owned(),
         ],
         "fixed messages"
     );
