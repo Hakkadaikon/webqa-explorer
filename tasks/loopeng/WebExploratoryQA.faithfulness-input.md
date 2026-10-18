@@ -55,6 +55,8 @@ Explorable == Elements \ ForbiddenElements
 
 ProposableOps == IF mode = "explore" THEN Operations \ {"done"} ELSE Operations
 
+ProposalTargets(op) == IF op \in DirectOps /\ Elements # {} THEN Elements ELSE {"none"}
+
 DoneWhen == IF mode = "explore" THEN visited = Explorable /\ decisionsMade > 0 ELSE doneWhenMet
 
 LastStage == mode = "explore" \/ stage = NumStages
@@ -122,7 +124,8 @@ RequestDecision ==
     /\ decisionsMade' = decisionsMade + 1
     /\ requestBudget' = requestBudget - 1
     /\ requestsInWindow' = requestsInWindow + 1
-    /\ \E op \in ProposableOps, t \in Elements, lc \in BOOLEAN, pw \in BOOLEAN, ex \in BOOLEAN :
+    /\ \E op \in ProposableOps, lc \in BOOLEAN, pw \in BOOLEAN :
+       \E t \in ProposalTargets(op) : \E ex \in IF op \in DirectOps /\ t = "none" THEN {FALSE} ELSE BOOLEAN :
         /\ proposedOp' = op
         /\ proposedTarget' = t
         /\ proposedLowConf' = lc
@@ -352,7 +355,7 @@ LowConfidenceBackNeverActed ==
 
 DirectOpActedOnlyOnSafeTarget ==
     (phase = "acting" /\ ~isPaywall /\ proposedOp \in DirectOps)
-        => (targetExists /\ proposedTarget \notin ForbiddenElements)
+        => (targetExists /\ proposedTarget \in Explorable)
 
 ExploreDone == mode = "explore" /\ visited = Explorable /\ decisionsMade > 0
 ScenarioStageDone == mode = "scenario" /\ doneWhenMet
@@ -426,7 +429,10 @@ DomainRecordAccurate ==
 ProposalWellFormed ==
     phase \in {"awaiting_decision", "acting"}
         => (/\ proposedOp \in Operations \cup {"back"}
-            /\ proposedTarget \in Elements
+            /\ proposedTarget \in Elements \cup {"none"}
+            /\ (phase = "awaiting_decision" /\ proposedOp \notin DirectOps => proposedTarget = "none")
+            /\ (proposedOp \in DirectOps /\ proposedTarget = "none" => ~targetExists)
+            /\ (proposedOp \in DirectOps /\ Elements # {} => proposedTarget \in Elements)
             /\ (mode = "explore" => proposedOp # "done"))
 
 EnvEvent == (phase' = "aborted" /\ exitReason' = "user_aborted") \/ (~timeUp /\ timeUp')

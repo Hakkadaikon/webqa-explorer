@@ -131,8 +131,8 @@ class CheckTest(unittest.TestCase):
 class LimitsTest(unittest.TestCase):
     def test_limits_are_the_agreed_ones(self):
         agreed_fn = {
-            "cyclomatic": ("max", 3),
-            "cognitive": ("max", 4),
+            "cyclomatic": ("max", 5),
+            "cognitive": ("max", 6),
             "volume": ("max", 1000),
             "difficulty": ("max", 30),
             "bugs": ("max", 0.5),

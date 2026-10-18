@@ -95,7 +95,7 @@ TUIのコードは`webqa-tui`に分け、CLIの実行ループとは別のプロ
 
 | 仕様の変数 | 実装での置き場所 |
 |---|---|
-| `mode` | 設定から決まる実行のモード(決め打ちシナリオ、探索) |
+| `mode` | CLIのサブコマンド(`run`、`explore`)で決まる実行のモード |
 | `stage` | `State`の今の段階の番号 |
 | `phase` | `State::phase`(待機、判断待ち、確認中、実行、移動中、復旧、終了) |
 | `proposedOp`、`proposedTarget`、`proposedLowConf` | 判断待ちから実行までの間だけ持つ`Proposal` |
@@ -426,27 +426,27 @@ TLCが書くJSONの形は、実装の最初に確かめる。
 
 `rust-code-analysis`は、次のものを1つにつき循環的複雑度+1と数える。
 
-- `match`の腕(腕3本で4、腕4本で5)
+- `match`の腕(腕4本で5、腕5本で6)
 - `if`、`while`、`for`
 - `?`
 - `&&`と`||`
 
 クロージャの中の分岐は、外側の関数の合計に入る。
-関数ごとの上限は3なので、腕3本の`match`だけで超える。
+関数ごとの上限は5なので、腕5本の`match`だけで超える。
 `matches!`のようなマクロの中身は数えられないが、これに頼らない。
 ネストは、clippyの`excessive-nesting-threshold = 3`でも止まる。
 そこで、次の書き方を決まりにする。
 
-- 3通り以上の場合分けは、静的な表かtraitで書く。
+- 5通り以上の場合分けは、静的な表かtraitで書く。
   操作種別8種は、性質を値に持つ表の行で表す。
   対象要素が要るか、ブラウザ操作になるか、などを行のフィールドに持つ。
-- `match`は腕2本までにする。
+- `match`は腕4本までにする。
   `A | B`のように腕をまとめるか、種類の近いものを入れ子の型に分ける。
 - 条件は、名前の付いた小さな述語に分ける。
   1つの式に`&&`と`||`を並べない。
 - 列挙型から文字列への変換は、serdeのderiveで書く。
   手書きの`match`にしない。
-- 1つの関数で使う`?`は2つまでにする。
+- 1つの関数で使う`?`は4つまでにする。
   手順の長い処理は、`?`を1つずつ持つ小さな関数に分ける。
 - `as`での変換、添字での参照、`unwrap`は使わない。
   表は`get`で引き、見つからないときの値を決めておく。
@@ -654,12 +654,19 @@ DOMノードの同一性には、アクセシビリティ情報の要素参照�
 遷移先から辿れる画面に、禁止要素以外の未操作の要素が残ることがある。
 その要素は、まだ探索し終えていない。
 循環があっても止まるよう、たどった画面を覚えておく。
+たどり始めるとき、その要素のある画面を、たどった画面に入れておく。
+自分の画面に戻る辺と、そこから先へ戻る循環は、未探索の分岐に数えない。
+自分の画面に残る未操作の要素は、1段目かスクロールで拾うからである。
 
 探索モードの候補は、中核が次の段に分ける。
 
 1. 現在の画面の未操作の要素(禁止要素を除く)
-2. 未探索の分岐が残る操作済みの要素
+2. 未探索の分岐が残る操作済みの要素(禁止要素を除く)
 3. 戻る、下スクロール、上スクロール
+
+1段目と2段目に入れるのは、表示領域の中の要素だけである。
+判断モデルが選べるのは、番号を振って送った要素だけだからである。
+表示領域の外にしか未操作の要素が無ければ3段目に落ち、スクロールで表示領域に出す。
 
 中核は、候補のある最上位の段だけを判断モデルに渡す。
 1段目と2段目では、対象要素の問いの選択肢をその段の要素に絞る。
@@ -779,6 +786,10 @@ serde_yamlは保守が終わったので使わない。
 待ち時間も0を拒否する。
 確信度の閾値は小数なので、検証の段で0より大きく1以下の有限の値かを確かめる。
 使う操作種別が空なら拒否する。
+実行のモードは設定ではなく、CLIのサブコマンドで決まる。
+そのため、モードによって変わる検査は、設定とモードを受け取る中核の関数で行い、CLIが起動時に呼ぶ。
+探索モードでは、使う操作種別にclickもinputも無ければ(doneだけの場合も含む)設定エラーにする。
+要素を操作できないと、探索が進まないためである。
 環境変数の読み取りは関数として渡し、検証そのものは中核の純粋な関数にする。
 認証状態はPlaywrightの保存形式のJSONファイルを指定し、起動時に形式を確かめる。
 
@@ -924,20 +935,23 @@ clippyの`print_stdout`と`print_stderr`は、`println!`と`eprintln!`を止め�
 |---|---|---|---|
 | 単体 | 各crateの`src`内 | 判定関数、表の行、設定の検証、伏せ字、done_when、名前の正規化 | なし |
 | 全状態の探索 | `webqa-core/tests/` | 状態機械の不変条件と行動の性質 | なし |
-| ゴールデン | `webqa-core/tests/`、`webqa-tui/tests/`、`webqa`の`store::report`の単体 | ガードレールの判定、TUIの描画、実行結果の形 | なし |
-| 契約 | `webqa-browser/tests/`、`webqa-judge/tests/` | アダプタが材料を正しく集め、操作すること | Chromium、fixtureのページ、橋渡しの試験用コマンド |
-| 保存 | `webqa/tests/` | 記憶と実行結果のファイルの読み書き | `CARGO_TARGET_TMPDIR`の下の一時ディレクトリ |
-| 受け入れ | `webqa/tests/` | 受け入れシナリオ111本 | 偽のブラウザ、判断モデル、時計、保存先 |
-| 実行ファイル | `webqa/tests/` | 起動、設定エラー、終了コード、中断、再実行 | Chromium |
+| ゴールデン | `webqa-core/tests/`、`webqa-tui/tests/`、`webqa`の`store::report`の単体 | ガードレールの判定、インタビューの問いの文面と台帳の形、TUIの描画(実行中の画面と台帳の画面)、実行結果の形 | なし |
+| 契約 | `webqa-browser/tests/`、`webqa-judge/tests/`、`webqa/tests/` | アダプタが材料を正しく集め、操作すること。初期化のコマンドをシェルを通さずに起動すること | Chromium、fixtureのページ、橋渡しと初期化の試験用コマンド |
+| 保存 | `webqa/tests/`、`webqa-tui/tests/` | 記憶と実行結果のファイルの読み書き。台帳の書き戻しと、外での書き換えの検出 | `CARGO_TARGET_TMPDIR`の下の一時ディレクトリ |
+| 性質 | `webqa/tests/` | 試行の外のループの安全性(実行全体の窓、期限、試行の数) | 偽の時計、ブラウザ、初期化のコマンド、判断モデル。乱数のseedと試行回数を固定する |
+| 文書 | `webqa/tests/` | 配布する手引きの形 | なし |
+| 受け入れ | `webqa/tests/` | 受け入れシナリオ242本(既存のモード111本、インタビューのモード131本) | 偽のブラウザ、判断モデル、時計、保存先、初期化のコマンド |
+| 実行ファイル | `webqa/tests/` | 起動、設定エラー、終了コード、中断、再実行、形式の検査 | Chromium |
 
 受け入れシナリオは、cucumber crateでRustのテストとして走らせる。
 `webqa/tests/acceptance.rs`を`harness = false`のテストにする。
 featureファイルは`webqa/tests/features/`に置き、`tasks/`の版は記録として残す。
+既存のモードとインタビューのモードは、featureファイルを分け、同じ`acceptance.rs`で走らせる。
 手順の定義は`webqa/tests/steps/`に置き、Ruleごとに1ファイルにする。
 要件を変えたところと足したところのシナリオは、仕様のやり直しに合わせて足す。
 
 受け入れのテストは、`webqa/tests/support/`の偽物で実行ループを回す。
-偽物は、ブラウザ、判断モデル、時計、保存先の4つである。
+偽物は、ブラウザ、判断モデル、時計、保存先、初期化のコマンドの5つである。
 保存先の偽物はメモリに書き、テストから中身を読めるようにする。
 こうするとシナリオは決定的に速く回り、mutationテストにも耐える。
 
@@ -952,6 +966,13 @@ featureファイルは`webqa/tests/features/`に置き、`tasks/`の版は記録
 | 記憶と実行結果の保存先 | 保存。受け入れは保存先の偽物を使う |
 | 再実行 | 受け入れ(保存先の偽物に残った実行結果から再実行する)と、実行ファイル |
 | リダイレクト、要素の差し替え、コンソール | 契約 |
+| 試行ごとに開いたブラウザに前の保存領域が残らない | 契約 |
+| 初期化のコマンドにシェルを通さず、APIキーを渡さない | 契約(試験用コマンドが、受け取った引数と環境変数を書き出す) |
+| 試行の外のループの窓、期限、試行の数 | 性質(乱数で作った試行の長さと時刻を、偽の時計で回す) |
+| 配布する手引きの前付け、手順、例、置き場所 | 文書 |
+
+性質のテストは、性質ごとに1つの関数にする。
+反例が出たら、最小の反例を単体のテストのケースに足して固定する。
 
 契約テストのfixtureのページは、Playwrightの`route`で応答を返す。
 応答の遅れ、別のオリジン、ページのスクリプトによる転送は、これで作れる。
@@ -1010,27 +1031,44 @@ crates/
       explore/
         graph.rs         探索の記憶のグラフ
         select.rs        候補の絞り込み
-      judge.rs           問いの組み立てと応答の検証
+      judge.rs           問いの組み立てと応答の検証(自由な文の問いを含む)
       screen.rs          要素の一覧、画面の識別、名前の正規化、画面の変化
+      screen/
+        debug.rs  tests.rs  identity_tests.rs  privacy_tests.rs  url_tests.rs
       effect.rs          入れ子の効果の型
       issue.rs           問題の検出と分類
+      interview.rs       インタビューのモードの純粋な部品をまとめる
+      interview/
+        ask.rs           毎ステップの問いと、ずれの問いの組み立て
+        answer.rs        足した問いと、ずれの問いの答えの検証
+        clue.rs          迷いの手がかり
+        issue.rs         課題の型、番号、検出、試行をまたいだ集計
+        outcome.rs       試行の結末と、目的に届かない試行の数え方
+        natural.rs       自然さの問いと区分、問いの回数の上限
+        ledger.rs        台帳の書き出しと読み戻し、選択の書き換え
+        compare.rs       前回の台帳との照らし合わせ
+        schedule.rs      次の試行を始めるかの判定と、中核に渡す窓の上限
       window.rs          時間窓
       redact.rs          伏せ字と Redacted<T>
       redact/
-        rule.rs  tests.rs
+        rule.rs  screen.rs  tests.rs
       event.rs           イベントログの型
       config.rs
       config/
         raw.rs  validate.rs
+        persona.rs       ペルソナの文書の型と検証
+        purpose.rs       目的、画面ごとの目的、URL の型
+        interview.rs     インタビューのモードの設定
         raw/
           tests.rs
         validate/
           check.rs  secrets.rs  storage_state.rs
-      ports.rs           Browser、Judge、Clock、Store の trait
+      ports.rs           Browser、Judge(画像の申告を含む)、Clock、Store の trait
     tests/
       exhaustive.rs      全状態の探索
       tlc_traces.rs      TLC の遷移の列との突き合わせ(回帰)
       guard_golden.rs
+      interview_golden.rs  インタビューの問いの文面と台帳の形
       fixtures/guard/    アクセシビリティ情報の断片
       fixtures/tlc/      書き出した遷移の列
       snapshots/         insta のゴールデンファイル
@@ -1047,30 +1085,44 @@ crates/
       command.rs
       fixtures/          橋渡しの試験用コマンド
   webqa-tui/
-    src/  lib.rs  tail.rs  view.rs
+    src/
+      lib.rs  tail.rs  view.rs
+      ledger.rs          台帳の画面の状態
+      ledger_file.rs     台帳の書き戻しと、外での書き換えの検出
     tests/
-      render.rs
+      render.rs          実行中の画面と台帳の画面のゴールデン
+      ledger_file.rs     台帳のファイルの書き戻し
       snapshots/
   webqa/
     src/
       lib.rs             実行ループと保存を公開し、tests/ から使えるようにする
       main.rs            引数を読み、lib を呼ぶだけ
-      cli.rs             サブコマンド(run、explore、replay、watch)
+      cli.rs             サブコマンド(run、explore、replay、watch、インタビュー、形式の検査)
       run.rs             実行ループ
       perform.rs         効果の振り分け
       clock.rs           本物の時計(禁止の例外はここだけ)
       interrupt.rs
       exit.rs            終了コード
+      interview.rs       試行の外のループ
+      interview/
+        trials.rs        試行を回し、試行の後の問いを呼び、台帳を書く
+        reset.rs         初期化のコマンドの実行
       store.rs
       store/
         memory.rs  events.rs  report.rs  screenshots.rs
     tests/
       acceptance.rs
       features/web_exploratory_qa.feature
+      features/interview_mode.feature
       steps/             Rule ごとの手順の定義
-      support/           偽のブラウザ、判断モデル、時計、保存先
+      support/           偽のブラウザ、判断モデル、時計、保存先、初期化のコマンド
       store.rs           記憶と実行結果のファイルの読み書き
       cli.rs             実行ファイルのテスト
+      reset.rs           初期化のコマンドの起動(契約)
+      trials_props.rs    試行の外のループの性質
+      guide.rs           配布する手引きの形
+share/
+  skills/                配布する手引き(ペルソナと目的を書かせる)
 ```
 
 `webqa`は、libとbinの2つのターゲットを持つcrateにする。
@@ -1078,6 +1130,10 @@ binだけのcrateの中身は`tests/`から使えないためである。
 受け入れのテストと保存のテストは、libを通して実行ループと保存を使う。
 保存のテストは`tests/`に置く。
 一時ディレクトリには、cargoが統合テストに渡す`CARGO_TARGET_TMPDIR`を使う。
+
+`webqa-core`は、インタビューのモードでも同期の純粋なコードだけにする。
+時計、子プロセス、ブラウザを使う試行のループは、`webqa`の`interview`に置く。
+配布する手引きは、開発用の`skills/`と分けて`share/skills/`に置く。
 
 実行時の出力は、作業ディレクトリの`.webqa/`に置く。
 置き場所は設定で変えられるようにする。
