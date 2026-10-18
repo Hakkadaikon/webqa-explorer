@@ -60,7 +60,10 @@ fn unknown_parts_change_nothing() {
     let (mut memory, top, settings) = two_screens();
     let notice = button("通知");
     assert!(!click(&mut memory, top, &notice, settings), "not on トップ");
-    assert!(!memory.is_operated(top, &notice), "not on トップ");
+    assert!(
+        !memory.is_operated(settings, &notice),
+        "通知 stays untouched"
+    );
     assert!(
         !click(&mut memory, top, &button("保存"), foreign(3)),
         "unknown target"

@@ -175,9 +175,7 @@ impl Memory {
     /// Whether `from` or a screen reachable from it has an untouched, unforbidden element.
     #[must_use]
     pub fn untouched_reachable(&self, from: ScreenKey) -> bool {
-        self.reachable(from)
-            .into_iter()
-            .any(|key| self.screens.get(key).is_some_and(Node::has_untouched))
+        self.any_untouched(self.reachable(from, BTreeSet::new()))
     }
 
     /// The number of screens.
@@ -221,12 +219,26 @@ impl Memory {
         self.edges
             .iter()
             .filter(|e| e.branches_from(at, element))
-            .any(|e| self.untouched_reachable(e.to))
+            .any(|e| self.untouched_beyond(e.to, at))
     }
 
-    /// Positions of `from` and every screen reachable from it along edges.
-    fn reachable(&self, from: ScreenKey) -> BTreeSet<usize> {
-        let mut seen = BTreeSet::new();
+    /// Whether `to` reaches an untouched element without passing through `at`.
+    ///
+    /// Untouched elements of `at` are left to the first tier or to scrolling.
+    fn untouched_beyond(&self, to: ScreenKey, at: ScreenKey) -> bool {
+        let mut seen = self.reachable(to, BTreeSet::from([at.0]));
+        seen.remove(&at.0);
+        self.any_untouched(seen)
+    }
+
+    /// Whether a screen among `keys` has an untouched element.
+    fn any_untouched(&self, keys: BTreeSet<usize>) -> bool {
+        keys.into_iter()
+            .any(|key| self.screens.get(key).is_some_and(Node::has_untouched))
+    }
+
+    /// `seen` plus `from` and every screen reachable from it without entering `seen`.
+    fn reachable(&self, from: ScreenKey, mut seen: BTreeSet<usize>) -> BTreeSet<usize> {
         let mut queue = vec![from];
         while let Some(key) = queue.pop() {
             self.step(key, &mut seen, &mut queue);

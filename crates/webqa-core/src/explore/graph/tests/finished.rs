@@ -64,3 +64,25 @@ fn finished_follows_reachable_screens() {
     cycle_stops();
     only_forbidden_left();
 }
+
+/// "設定" on "トップ" leads to an explored "完了" (0) and to "設定" with 通知 left (1).
+///
+/// The edges are recorded in `order`; returns whether "設定" is finished.
+fn two_branches(order: [usize; 2]) -> bool {
+    let mut memory = Memory::default();
+    let top = memory.visit(&buttons("/", &["設定"]), &NONE);
+    let done = memory.visit(&buttons("/done", &["完了"]), &NONE);
+    let settings = memory.visit(&buttons("/settings", &["通知"]), &NONE);
+    click(&mut memory, done, &button("完了"), done);
+    let targets = [done, settings];
+    for i in order {
+        click(&mut memory, top, &button("設定"), targets[i]);
+    }
+    memory.finished(top, &button("設定"))
+}
+
+#[test]
+fn finished_needs_every_branch_explored() {
+    assert!(!two_branches([0, 1]), "explored branch first");
+    assert!(!two_branches([1, 0]), "unexplored branch first");
+}

@@ -1,7 +1,7 @@
 //! Visiting finds the same screen and updates its elements.
 
 use super::{NONE, VIEW, below, button, buttons, candidate, click, forbid, id, page, shown};
-use crate::explore::graph::Memory;
+use crate::explore::graph::{Memory, ScreenKey};
 use crate::explore::select::{Candidates, candidates};
 use crate::screen::Element;
 
@@ -40,7 +40,8 @@ fn query_value_and_box_ignored() {
             shown("link", "ヘルプ"),
         ],
     );
-    assert_ne!(memory.visit(&added, &NONE), key, "another element set");
+    let next = memory.visit(&added, &NONE);
+    assert_eq!(next, ScreenKey(1), "another element set");
     assert_eq!(memory.screen_count(), 2, "two screens");
 }
 
@@ -80,9 +81,23 @@ fn forbidden_follows_the_latest_visit() {
     assert_eq!(offered(&memory), tier, "out-of-range numbers are ignored");
 }
 
+/// Elements missing from the latest visit keep their forbidden marks.
+fn missing_elements_keep_forbidden() {
+    let one = buttons("/", &["保存"]);
+    let mut memory = Memory::default();
+    let top = memory.visit(&one, &NONE);
+    click(&mut memory, top, &button("保存"), top);
+    let two = buttons("/", &["保存", "保存"]);
+    assert_eq!(memory.visit(&two, &forbid(&[1])), top, "the same screen");
+    assert_eq!(memory.visit(&one, &NONE), top, "back to one 保存");
+    let left = memory.untouched_reachable(top);
+    assert!(!left, "the second 保存 stays forbidden");
+}
+
 #[test]
 fn visit_reuses_the_same_screen() {
     query_value_and_box_ignored();
     same_name_adds_an_element();
     forbidden_follows_the_latest_visit();
+    missing_elements_keep_forbidden();
 }

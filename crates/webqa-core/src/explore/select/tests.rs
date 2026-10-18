@@ -173,3 +173,41 @@ fn candidates_follow_viewport_numbers() {
         "削除 is left out"
     );
 }
+
+#[test]
+fn return_to_own_screen_falls_to_moves() {
+    let top_page = page("/", vec![shown("button", "設定"), below("button", "下")]);
+    let back = id("link", "トップ", 0);
+    let open = id("button", "設定", 0);
+    let mut memory = Memory::default();
+    let top = memory.visit(&top_page, &NONE);
+    let settings = memory.visit(&page("/settings", vec![shown("link", "トップ")]), &NONE);
+    memory.record(top, &open, ElementOp::Click, settings);
+    memory.record(settings, &back, ElementOp::Click, top);
+    assert!(
+        memory.finished(top, &open),
+        "下 on トップ is not a branch of 設定"
+    );
+    assert_eq!(
+        candidates(&memory, top, &top_page, VIEW),
+        Candidates::Moves,
+        "scroll to show 下"
+    );
+    assert!(memory.untouched_reachable(top), "下 is untouched");
+}
+
+#[test]
+fn forbidden_after_operation_leaves_second_tier() {
+    let (mut memory, top, _, top_page) = top_and_settings();
+    memory.record(top, &id("link", "ヘルプ", 0), ElementOp::Click, top);
+    assert_eq!(
+        memory.visit(&top_page, &forbid(&[0])),
+        top,
+        "the same screen"
+    );
+    assert_eq!(
+        candidates(&memory, top, &top_page, VIEW),
+        Candidates::Moves,
+        "保存 is now forbidden"
+    );
+}
