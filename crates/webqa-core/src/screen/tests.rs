@@ -46,7 +46,7 @@ fn screen(url: &str, elements: Vec<Element>) -> Screen {
 }
 
 fn text(s: &Screen) -> String {
-    screen_text(s, VIEW).0
+    screen_text(s, VIEW).as_str().to_owned()
 }
 
 #[test]
@@ -56,12 +56,18 @@ fn screen_text_lists_role_name_value() {
         vec![
             shown("button", "保存"),
             el("textbox", "メール", Some("a@example.test"), Some(INSIDE)),
+            el("textbox", r#"引用 "x""#, Some(r"C:\dir"), Some(INSIDE)),
         ],
     );
+    let expected = [
+        r#"1: button "保存""#,
+        r#"2: textbox "メール" value="a@example.test""#,
+        r#"3: textbox "引用 \"x\"" value="C:\\dir""#,
+    ];
     assert_eq!(
         text(&s),
-        "1: button \"保存\"\n2: textbox \"メール\" value=\"a@example.test\"",
-        "one numbered line per element, value only when present"
+        expected.join("\n"),
+        "one numbered line per element, value only when present, quotes escaped"
     );
     assert_eq!(
         text(&screen("https://app.example.test/", vec![])),
@@ -111,8 +117,11 @@ fn assert_outside_skipped() {
             shown("link", "次"),
         ],
     );
-    let names: Vec<&str> = visible(&s, VIEW).iter().map(|e| e.name.as_str()).collect();
-    assert_eq!(names, ["保存", "次"], "only inside elements, in page order");
+    assert_eq!(
+        visible(&s, VIEW),
+        [&s.elements[1], &s.elements[3]],
+        "only inside elements, in page order"
+    );
     assert_eq!(
         text(&s),
         "1: button \"保存\"\n2: link \"次\"",
@@ -171,21 +180,20 @@ fn scroll_keeps_screen_identity() {
         ],
     );
     let id = screen_id(&top);
-    assert!(
-        id == screen_id(&bottom),
+    assert_eq!(
+        id,
+        screen_id(&bottom),
         "viewport, query and value are ignored"
     );
-    assert_eq!(id.path, "/list", "the path of the URL");
-    let pairs: Vec<(&str, &str)> = id
-        .elements
-        .iter()
-        .map(|(r, n)| (r.as_str(), n.as_str()))
-        .collect();
-    assert_eq!(
-        pairs,
-        [("link", "下"), ("textbox", "名前")],
-        "role and name"
-    );
+    let pairs = [("link", "下"), ("textbox", "名前")];
+    let expected = ScreenId {
+        path: "/list".to_owned(),
+        elements: pairs
+            .iter()
+            .map(|&(r, n)| (r.to_owned(), n.to_owned()))
+            .collect(),
+    };
+    assert_eq!(id, expected, "the path and the (role, name) set");
 }
 
 #[test]
@@ -194,14 +202,14 @@ fn page_element_change_is_new_screen() {
     let base = screen(url, vec![shown("button", "保存")]);
     let id = screen_id(&base);
     let added = screen(url, vec![shown("button", "保存"), hidden("link", "次")]);
-    assert!(id != screen_id(&added), "an element was added");
+    assert_ne!(id, screen_id(&added), "an element was added");
     let renamed = screen(url, vec![shown("button", "送信")]);
-    assert!(id != screen_id(&renamed), "an element was renamed");
+    assert_ne!(id, screen_id(&renamed), "an element was renamed");
     let moved = screen(
         "https://app.example.test/other",
         vec![shown("button", "保存")],
     );
-    assert!(id != screen_id(&moved), "the path differs");
+    assert_ne!(id, screen_id(&moved), "the path differs");
 }
 
 #[test]
@@ -232,10 +240,6 @@ fn element_ids_count_same_role_and_name() {
             shown("button", "通知 (4)"),
         ],
     );
-    let ids: Vec<(String, String, usize)> = element_ids(&s)
-        .into_iter()
-        .map(|i| (i.role, i.name, i.nth))
-        .collect();
     let expected = [
         ("button", "保存", 0),
         ("link", "保存", 0),
@@ -243,6 +247,14 @@ fn element_ids_count_same_role_and_name() {
         ("button", "通知 (#)", 0),
         ("button", "通知 (#)", 1),
     ]
-    .map(|(r, n, k)| (r.to_owned(), n.to_owned(), k));
-    assert_eq!(ids, expected, "nth counts within role and normalized name");
+    .map(|(r, n, nth)| ElementId {
+        role: r.to_owned(),
+        name: n.to_owned(),
+        nth,
+    });
+    assert_eq!(
+        element_ids(&s),
+        expected,
+        "nth counts within role and normalized name"
+    );
 }

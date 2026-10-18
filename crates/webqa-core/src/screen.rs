@@ -27,8 +27,9 @@ pub struct Viewport {
     pub height: i64,
 }
 
-/// An operable element. `Debug` is not derived: names and values come from the page.
+/// An operable element. `Debug` is test-only: names and values come from the page.
 #[derive(Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Debug))]
 pub struct Element {
     /// ARIA role.
     pub role: String,
@@ -42,6 +43,7 @@ pub struct Element {
 
 /// A page: its URL and every operable element in page order.
 #[derive(Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Debug))]
 pub struct Screen {
     /// URL of the page.
     pub url: url::Url,
@@ -51,10 +53,20 @@ pub struct Screen {
 
 /// The viewport's elements as numbered lines. Not redacted yet.
 #[derive(Clone, PartialEq, Eq)]
-pub struct ScreenText(pub String);
+#[cfg_attr(test, derive(Debug))]
+pub struct ScreenText(String);
+
+impl ScreenText {
+    /// Borrows the text.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
 
 /// Identifies a screen: the URL path and the set of (role, normalized name).
 #[derive(Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Debug))]
 pub struct ScreenId {
     /// Path of the URL, without the query.
     pub path: String,
@@ -64,6 +76,7 @@ pub struct ScreenId {
 
 /// Identifies an element within a screen.
 #[derive(Clone, PartialEq, Eq)]
+#[cfg_attr(test, derive(Debug))]
 pub struct ElementId {
     /// ARIA role.
     pub role: String,
@@ -113,8 +126,13 @@ fn line(n: usize, e: &Element) -> String {
     let value = e
         .value
         .as_ref()
-        .map_or_else(String::new, |v| format!(" value=\"{v}\""));
-    format!("{n}: {} \"{}\"{value}", e.role, e.name)
+        .map_or_else(String::new, |v| format!(" value={}", quote(v)));
+    format!("{n}: {} {}{value}", e.role, quote(&e.name))
+}
+
+/// Wraps `s` in `"`, escaping `\` and `"` with a backslash.
+fn quote(s: &str) -> String {
+    format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
 }
 
 /// Whether the viewport text or the URL differs.
