@@ -3,6 +3,7 @@
 pub mod config;
 pub mod effect;
 pub mod event;
+pub mod issue;
 pub mod judge;
 pub mod machine;
 pub mod ports;

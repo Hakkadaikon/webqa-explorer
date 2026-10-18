@@ -3,8 +3,11 @@
 //! Reading is split into two steps: [`raw::parse`] reads the YAML into raw
 //! types, and [`validate::validate`] turns them into a checked [`Config`].
 
+mod mode;
 pub mod raw;
 pub mod validate;
+
+pub use mode::check_mode;
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -45,6 +48,9 @@ pub enum ConfigError {
     /// The storage state file is unreadable or not in Playwright's format.
     #[error("auth.storage_state を Playwright の保存形式として読めない")]
     StorageState,
+    /// Exploring with no operation kind that acts on an element.
+    #[error("探索モードでは ops に click か input を1つ以上書く")]
+    ExploreNeedsElementOp,
 }
 
 /// A secret value. Neither `Debug` nor any other formatting shows it.

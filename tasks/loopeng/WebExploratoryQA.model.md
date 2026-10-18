@@ -48,13 +48,13 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 | `stage` | `1..NumStages` | 決め打ちシナリオの現在の段階(S-015)。探索モードでは1のまま |
 | `phase` | `{"idle", "awaiting_decision", "acting", "done", "stuck", "frozen_recovered", "error_exit", "timed_out", "aborted"}` | 1ステップ実行ループの進行フェーズ |
 | `proposedOp` | `Operations ∪ {"back", "none"}` | 判断モデルが返した操作種別(S-005)。paywallのときはガードが`"back"`に書き換える。探索モードでは`"done"`を選択肢に入れない(S-016) |
-| `proposedTarget` | `Elements ∪ {"none"}` | 判断モデルが返した対象要素(S-006) |
+| `proposedTarget` | `Elements ∪ {"none"}` | 判断モデルが返した対象要素(S-006)。対象を取らない操作(scroll_down、scroll_up、back、wait、done、stuck)では`"none"`。click/inputで要素が1つも無いときも`"none"`で、存在しない要素番号が返った応答の異常として扱う(`targetExists = FALSE`) |
 | `proposedLowConf` | `BOOLEAN` | 判断モデルの確信度が0.7未満か(S-010)。操作種別とは独立に観測する |
 | `isPaywall` | `BOOLEAN` | 現在画面がpaywall相当か(S-013、非決定的に観測) |
 | `targetExists` | `BOOLEAN` | 実行直前に対象要素が存在するか(S-028) |
 | `screenChanged` | `BOOLEAN` | 直前の操作後に画面が変化したかの観測結果(S-011, S-021固まり)。ページが応答しない(S-017)場合も「変化なし」(`FALSE`)の1ケースとして同じ変数で表す |
 | `newSeen` | `BOOLEAN` | 直前の操作後に未操作の要素が新しく見えたかの観測結果(S-021行き詰まり)。スクロール等で画面が変化したときだけ非決定的に`TRUE`になりうる。許可ドメイン外のページでは`FALSE` |
-| `doneWhenMet` | `BOOLEAN` | 決め打ちシナリオで、現在の段階のdone_whenを満たしたかの観測結果(S-014, S-015)。実行の開始時、段階を進めた直後、操作の実行後に非決定的に観測する。探索モードでは常に`FALSE` |
+| `doneWhenMet` | `BOOLEAN` | 決め打ちシナリオで、現在の段階のdone_whenを満たしたかの観測結果(S-014, S-015)。実行の開始時、段階を進めた直後、操作の実行後に非決定的に観測する。探索モードでは常に`FALSE`。3か所とも、とりうる値は補助定義`DoneWhenObservations`(決め打ちシナリオは`BOOLEAN`、探索モードは`{FALSE}`)で共通にした |
 | `visited` | `SUBSET Elements` | 探索済み要素集合(S-022, S-023)。探索の記憶で、固まり復旧でも段階の切り替えでも消さない |
 | `idleCounter` | `Nat` | 画面が変化しなかった操作の連続回数(S-021固まり) |
 | `stuckCounter` | `Nat` | 新規要素が出なかった(`visited`が増えず、未操作の要素も新しく見えなかった)操作の連続回数(S-021行き詰まり) |
@@ -69,7 +69,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 
 `pageOutside`、`decisionsMade`、`requestsInWindow`は、システムの記録や予算の変数が正しく動いているかを外から確かめるための変数で、実装に対応する変数はない。`newSeen`、`doneWhenMet`、`timeUp`は環境の観測で、実装では画面の取得結果、done_whenの判定結果、時計に当たる。
 
-**簡略化の明示**: 画面ごとの既操作要素集合というグラフ構造は、単一画面を仮定した`visited: SUBSET Elements`に簡略化した。画面をまたぐ遷移構造(S-022「画面A→画面Bのグラフ」)の再現はモデル外とする。決め打ちシナリオの各段階のdone_whenは、中身(YAMLに書く条件)をモデル外に置き、「操作の後に満たしたかを観測する」真偽値に抽象化した。
+**簡略化の明示**: 画面ごとの既操作要素集合というグラフ構造は、単一画面を仮定した`visited: SUBSET Elements`に簡略化した。画面をまたぐ遷移構造(S-022「画面A→画面Bのグラフ」)の再現はモデル外とする。決め打ちシナリオの各段階のdone_whenは、中身(YAMLに書く条件)をモデル外に置き、「満たしたかを観測する」真偽値に抽象化した。観測するのは、実行の開始時、段階を進めた直後、操作の後の3か所(S-015の3行目、設計メモ11の1)。
 
 ## 定数(CONSTANTS、`.tla`と一致)
 
@@ -79,7 +79,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 - `MaxDecisions`, `MaxRequests`, `IdleThreshold`, `StuckThreshold`: 各閾値(S-041, S-042, S-021)。どれも正の整数(`ASSUME`)。0だと時間窓リセットや固まり復旧が空回りし、終了性が成り立たない。実装では設定値の検証で0を拒否する
 - `NumStages`: 決め打ちシナリオの段階の数(S-015)。正の整数。検査では2
 
-検査の設定は2つ。主の設定(`.cfg`)は`MaxDecisions = 4`、`MaxRequests = 2`、`IdleThreshold = 2`、`StuckThreshold = 2`、`NumStages = 2`、`Elements = {e1, e2, e3}`、`ForbiddenElements = {e3}`、`Operations = {"click", "back", "done", "stuck"}`。スクロールは`Operations`に入れていないが、要素を対象にしない操作の結果の扱い(新しい要素が見えたかの観測を含む)は`back`と同じ分岐を通るので、`back`で代表させる。もう1つの`WebExploratoryQA.noexplorable.cfg`は`Elements = {e1}`、`ForbiddenElements = {e1}`で、ほかは同じ。探索してよい要素が空の場合(S-016、設計メモ11)を検査するために置く。
+検査の設定は3つ。主の設定(`.cfg`)は`MaxDecisions = 4`、`MaxRequests = 2`、`IdleThreshold = 2`、`StuckThreshold = 2`、`NumStages = 2`、`Elements = {e1, e2, e3}`、`ForbiddenElements = {e3}`、`Operations = {"click", "back", "done", "stuck"}`。スクロールは`Operations`に入れていないが、要素を対象にしない操作の結果の扱い(新しい要素が見えたかの観測を含む)は`back`と同じ分岐を通るので、`back`で代表させる。もう1つの`WebExploratoryQA.noexplorable.cfg`は`Elements = {e1}`、`ForbiddenElements = {e1}`で、ほかは同じ。探索してよい要素が空の場合(S-016、設計メモ11)を検査するために置く。3つ目の`WebExploratoryQA.empty.cfg`は`Elements = {}`、`ForbiddenElements = {}`で、ほかは同じ。`Elements`はページの中身なので、操作可能な要素が1つも無い画面もありうる。その画面でも問い合わせ、対象を取らない操作を実行し、対象の要る操作は応答の異常として却下することを検査するために置く。
 
 ## 初期状態(Init)
 
@@ -113,7 +113,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 |----------|----------|------|
 | `TypeOK` | 全変数 | 各変数が値域内 |
 | `NeverOperatesForbidden` | S-012, S-028 | `visited ∩ ForbiddenElements = {}` |
-| `DirectOpActedOnlyOnSafeTarget` | S-012, S-028 | `(phase = "acting" ∧ ¬isPaywall ∧ proposedOp ∈ DirectOps) ⇒ (targetExists ∧ proposedTarget ∉ ForbiddenElements)` |
+| `DirectOpActedOnlyOnSafeTarget` | S-012, S-028 | `(phase = "acting" ∧ ¬isPaywall ∧ proposedOp ∈ DirectOps) ⇒ (targetExists ∧ proposedTarget ∈ Explorable)` |
 | `LowConfidenceBackNeverActed` | S-010 | `(phase = "acting" ∧ ¬isPaywall ∧ proposedOp = "back") ⇒ ¬proposedLowConf`。paywallの強制backはS-013によりS-010の対象外 |
 | `ExploreGoalOnlyWhenAllExplored` | S-016, S-044 | 探索モードでゴール達成なら`visited = Explorable`かつ`decisionsMade > 0`(探索してよい要素が無くても1回は問い合わせてから) |
 | `ScenarioGoalOnlyAtLastStage` | S-014, S-015, S-044 | 決め打ちシナリオでゴール達成なら、最後の段階で`doneWhenMet` |
@@ -134,7 +134,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 | `DomainRecordAccurate` | S-021, S-033 | `inAllowedDomain = ¬pageOutside` |
 | `VisitedOnlyByOps` | S-002, S-022 | `Cardinality(visited) ≤ decisionsMade` |
 | `RecoveryOnlyAfterFreeze` | S-017 | `phase = "frozen_recovered" ⇒ decisionsMade ≥ IdleThreshold` |
-| `ProposalWellFormed` | S-005, S-006, S-016 | 問い合わせ後の提案は操作種別8種のいずれか(paywall時はback)と実在する対象要素で、探索モードではdoneでない |
+| `ProposalWellFormed` | S-005, S-006, S-016, S-028 | 問い合わせ後の提案は操作種別8種のいずれか(paywall時はback)で、対象は要素か`"none"`。問い合わせの直後、対象を取らない操作の対象は`"none"`。click/inputの対象が`"none"`なら対象は存在しない扱いで、要素がある画面ではclick/inputの対象は要素。探索モードではdoneでない |
 
 ## 行動性質・時相性質(PROPERTY、`.tla`と一致)
 
@@ -169,14 +169,14 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 | `DoneWhenChangesOnlyByExecutionOrAdvance` | S-014, S-015 | `doneWhenMet`が成り立つのは実行の一歩か段階を進めた一歩だけで、取り消されるのは段階の切り替えだけ |
 | `TerminationKeepsState` | S-044, S-041, S-016 | 終了する一歩(中断を含む)は、フェーズと終了理由以外を変えない |
 | `StartsFresh` | S-015, S-016, S-041, S-042 | 実行は段階1、探索済みなし、カウンタ0、許可ドメイン内、予算満タン、制限時間内、終了理由なしで始まる(最初の段階のdone_whenは開始時に観測するので満たしていてもよい。探索モードでは観測しない)(初期状態だけで検査される状態述語) |
-| `EventuallyTerminates` | S-044, S-041 | `<>(phase ∈ Terminal)`。各システムアクションの弱公平性(実行の3結果は和に対して1つ)の下で、いつか終了する。中断と時刻の経過には公平性を課さないので、判断予算だけで終了性が成り立つ |
+| `EventuallyTerminates` | S-044, S-041 | `<>(phase ∈ Terminal)`。各システムアクションの弱公平性(実行の3結果は和に対して1つ)の下で、いつか終了する。中断と時刻の経過には公平性を課さないので、判断予算だけで終了性が成り立つ。操作可能な要素が1つも無くても成り立つ(`WebExploratoryQA.empty.cfg`で検査)。前提は`ProposableOps`が空でないこと(実装は設定値の検査で、空の操作種別と、探索モードでdoneだけの操作種別を拒否する) |
 | `TerminalAbsorbing` | S-044, S-041, S-016 | 一度終了したら(中断を含む)状態は変わらない |
 
 ## 遷移(Next、`.tla`と一致)
 
 | Next disjunct名 | 対応EARS | 遷移概要 |
 |---|---|---|
-| `RequestDecision` | S-005, S-006, S-007(簡略化), S-008(簡略化), S-016, S-017, S-033, S-041, S-042 | `Continuing`かつ固まり未検出かつリクエスト予算ありかつ許可ドメイン内 → `"awaiting_decision"`。判断予算とリクエスト予算を1ずつ減らし、履歴を1ずつ増やす。提案と画面の観測値は非決定的に受け取る。探索モードではdoneを選択肢に入れない |
+| `RequestDecision` | S-005, S-006, S-007(簡略化), S-008(簡略化), S-016, S-017, S-033, S-041, S-042 | `Continuing`かつ固まり未検出かつリクエスト予算ありかつ許可ドメイン内 → `"awaiting_decision"`。判断予算とリクエスト予算を1ずつ減らし、履歴を1ずつ増やす。提案と画面の観測値は非決定的に受け取る。対象は`ProposalTargets(op)`から選ぶ(click/inputで要素があれば要素、それ以外は`"none"`)。探索モードではdoneを選択肢に入れない |
 | `ResetRequestWindow` | S-042 | `Continuing`かつ予算を1つ以上使っている → 予算を`MaxRequests`へ戻し、窓の履歴を0にする |
 | `ApplyGuardrails` | S-010, S-012, S-013, S-028 | `"awaiting_decision"`から。paywallなら既定のbackへ強制して`"acting"`へ。paywallでなければ低確信度back・禁止要素・存在しない要素のいずれかで`"idle"`へ却下し、どれにも当たらなければ`"acting"`へ |
 | `ExecuteNoChange` | S-002, S-011, S-014, S-015, S-021, S-022, S-023 | `"acting"`(done/stuck以外)→`"idle"`。操作を実行し(click/inputなら対象を`visited`へ加える)、画面無変化を観測(新しい要素も見えない)。決め打ちシナリオではdone_whenを満たしたかを非決定的に観測する。固まりカウンタ+1、行き詰まりカウンタは新規要素の有無で更新 |

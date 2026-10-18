@@ -2,20 +2,20 @@ $ cd tasks/loopeng && tla_lint.sh WebExploratoryQA.tla
 SANY ok: WebExploratoryQA.tla
 Apalache typecheck ok: WebExploratoryQA.tla
 $ cd tasks/loopeng && tlc -workers auto -deadlock -config WebExploratoryQA.cfg WebExploratoryQA.tla
-date: 2026-10-18T15:47:30+09:00
+date: 2026-10-18T18:57:12+09:00
 Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/tmp/tla
 TLC2 Version 2026.10.13.164326 (rev: 210df3a)
 Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
 (Use the -nowarning option to disable this warning.)
-Running breadth-first search Model-Checking with fp 98 and seed 6417899200136242508 with 4 workers on 4 cores with 980MB heap and 64MB offheap memory [pid: 352913] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 0 and seed -2474070444731416701 with 4 workers on 4 cores with 980MB heap and 64MB offheap memory [pid: 792767] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
 Parsing file tasks/loopeng/WebExploratoryQA.tla
-Parsing file /tmp/tla/tlc-10988275740433924600/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file /tmp/tla/tlc-10988275740433924600/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file /tmp/tla/tlc-10988275740433924600/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file /tmp/tla/tlc-10988275740433924600/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file /tmp/tla/tlc-10988275740433924600/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file /tmp/tla/tlc-10988275740433924600/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
-Parsing file /tmp/tla/tlc-10988275740433924600/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file /tmp/tla/tlc-1995967775265620130/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tla/tlc-1995967775265620130/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tla/tlc-1995967775265620130/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tla/tlc-1995967775265620130/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tla/tlc-1995967775265620130/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tla/tlc-1995967775265620130/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tla/tlc-1995967775265620130/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
 Semantic processing of module Naturals
 Semantic processing of module Sequences
 Semantic processing of module FiniteSets
@@ -27,42 +27,42 @@ Semantic processing of module WebExploratoryQA
 Linting of module TLCExt
 Linting of module _TLCTrace
 Linting of module WebExploratoryQA
-Starting... (2026-10-18 15:47:32)
+Starting... (2026-10-18 18:57:14)
 Warning: The formula StartsFresh is a state-level formula, but it was used as a PROPERTY (or PROPERTIES), where a temporal formula is typically expected. State-level formulas used as PROPERTY or PROPERTIES are only checked in the initial state. To verify that the formula StartsFresh holds in all states of every behavior, use INVARIANT StartsFresh instead. Alternatively, applying the "always" temporal operator ([]) to the state-level formula StartsFresh changes it into a temporal formula, asserting that StartsFresh holds in all states of every behavior. See https://explain.tlapl.us/invariants-and-properties for additional details.
 Implied-temporal checking--satisfiability problem has 1 branches.
 Computing initial states...
 Computed 2 initial states...
-Finished computing initial states: 3 distinct states generated at 2026-10-18 15:47:33.
-Checking temporal properties for the current state space with 3857 total distinct states at (2026-10-18 15:47:36)
-Finished checking temporal properties in 00s at 2026-10-18 15:47:36
-Progress(6) at 2026-10-18 15:47:36: 10,228 states generated (10,228 s/min), 4,632 distinct states found (4,632 ds/min), 2,921 states left on queue.
-Progress(19) at 2026-10-18 15:48:11: 1,256,590 states generated, 307,979 distinct states found, 0 states left on queue.
-Checking temporal properties for the complete state space with 307979 total distinct states at (2026-10-18 15:48:11)
-Finished checking temporal properties in 05s at 2026-10-18 15:48:16
+Finished computing initial states: 3 distinct states generated at 2026-10-18 18:57:15.
+Checking temporal properties for the current state space with 5645 total distinct states at (2026-10-18 18:57:18)
+Finished checking temporal properties in 00s at 2026-10-18 18:57:18
+Progress(7) at 2026-10-18 18:57:18: 18,302 states generated (18,302 s/min), 6,879 distinct states found (6,879 ds/min), 4,634 states left on queue.
+Progress(19) at 2026-10-18 18:57:39: 776,380 states generated, 232,571 distinct states found, 0 states left on queue.
+Checking temporal properties for the complete state space with 232571 total distinct states at (2026-10-18 18:57:39)
+Finished checking temporal properties in 03s at 2026-10-18 18:57:42
 Model checking completed. No error has been found.
   Estimates of the probability that TLC did not check all reachable states
   because two distinct states had the same fingerprint:
-  calculated (optimistic):  val = 1.6E-8
-  based on the actual fingerprints:  val = 1.2E-8
-1256590 states generated, 307979 distinct states found, 0 states left on queue.
+  calculated (optimistic):  val = 6.9E-9
+  based on the actual fingerprints:  val = 1.2E-9
+776380 states generated, 232571 distinct states found, 0 states left on queue.
 The depth of the complete state graph search is 19.
 The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 3).
-Finished in 45s at (2026-10-18 15:48:16)
+Finished in 29s at (2026-10-18 18:57:43)
 $ cd tasks/loopeng && tlc -workers auto -deadlock -config WebExploratoryQA.noexplorable.cfg WebExploratoryQA.tla
-date: 2026-10-18T15:48:17+09:00
+date: 2026-10-18T18:57:43+09:00
 Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/tmp/tla
 TLC2 Version 2026.10.13.164326 (rev: 210df3a)
 Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
 (Use the -nowarning option to disable this warning.)
-Running breadth-first search Model-Checking with fp 127 and seed -7012038854083581031 with 4 workers on 4 cores with 980MB heap and 64MB offheap memory [pid: 354260] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
+Running breadth-first search Model-Checking with fp 60 and seed 2255596055752646345 with 4 workers on 4 cores with 980MB heap and 64MB offheap memory [pid: 792871] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
 Parsing file tasks/loopeng/WebExploratoryQA.tla
-Parsing file /tmp/tla/tlc-10903062349287685461/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-Parsing file /tmp/tla/tlc-10903062349287685461/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
-Parsing file /tmp/tla/tlc-10903062349287685461/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
-Parsing file /tmp/tla/tlc-10903062349287685461/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
-Parsing file /tmp/tla/tlc-10903062349287685461/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
-Parsing file /tmp/tla/tlc-10903062349287685461/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
-Parsing file /tmp/tla/tlc-10903062349287685461/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Parsing file /tmp/tla/tlc-9202364253767166390/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tla/tlc-9202364253767166390/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tla/tlc-9202364253767166390/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tla/tlc-9202364253767166390/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tla/tlc-9202364253767166390/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tla/tlc-9202364253767166390/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tla/tlc-9202364253767166390/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
 Semantic processing of module Naturals
 Semantic processing of module Sequences
 Semantic processing of module FiniteSets
@@ -74,23 +74,69 @@ Semantic processing of module WebExploratoryQA
 Linting of module TLCExt
 Linting of module _TLCTrace
 Linting of module WebExploratoryQA
-Starting... (2026-10-18 15:48:19)
+Starting... (2026-10-18 18:57:44)
 Warning: The formula StartsFresh is a state-level formula, but it was used as a PROPERTY (or PROPERTIES), where a temporal formula is typically expected. State-level formulas used as PROPERTY or PROPERTIES are only checked in the initial state. To verify that the formula StartsFresh holds in all states of every behavior, use INVARIANT StartsFresh instead. Alternatively, applying the "always" temporal operator ([]) to the state-level formula StartsFresh changes it into a temporal formula, asserting that StartsFresh holds in all states of every behavior. See https://explain.tlapl.us/invariants-and-properties for additional details.
 Implied-temporal checking--satisfiability problem has 1 branches.
 Computing initial states...
 Computed 2 initial states...
-Finished computing initial states: 3 distinct states generated at 2026-10-18 15:48:20.
-Checking temporal properties for the current state space with 6699 total distinct states at (2026-10-18 15:48:23)
-Finished checking temporal properties in 00s at 2026-10-18 15:48:23
-Progress(9) at 2026-10-18 15:48:23: 21,150 states generated (21,150 s/min), 8,194 distinct states found (8,194 ds/min), 2,989 states left on queue.
-Progress(16) at 2026-10-18 15:48:25: 57,394 states generated, 20,353 distinct states found, 0 states left on queue.
-Checking temporal properties for the complete state space with 20353 total distinct states at (2026-10-18 15:48:25)
-Finished checking temporal properties in 00s at 2026-10-18 15:48:26
+Finished computing initial states: 3 distinct states generated at 2026-10-18 18:57:45.
+Checking temporal properties for the current state space with 15586 total distinct states at (2026-10-18 18:57:48)
+Finished checking temporal properties in 00s at 2026-10-18 18:57:48
+Progress(11) at 2026-10-18 18:57:48: 51,736 states generated (51,736 s/min), 17,446 distinct states found (17,446 ds/min), 3,650 states left on queue.
+Progress(16) at 2026-10-18 18:57:49: 78,588 states generated, 27,081 distinct states found, 0 states left on queue.
+Checking temporal properties for the complete state space with 27081 total distinct states at (2026-10-18 18:57:49)
+Finished checking temporal properties in 00s at 2026-10-18 18:57:49
 Model checking completed. No error has been found.
   Estimates of the probability that TLC did not check all reachable states
   because two distinct states had the same fingerprint:
-  calculated (optimistic):  val = 4.1E-11
-57394 states generated, 20353 distinct states found, 0 states left on queue.
+  calculated (optimistic):  val = 7.6E-11
+78588 states generated, 27081 distinct states found, 0 states left on queue.
 The depth of the complete state graph search is 16.
 The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 3).
-Finished in 08s at (2026-10-18 15:48:26)
+Finished in 05s at (2026-10-18 18:57:49)
+$ cd tasks/loopeng && tlc -workers auto -deadlock -config WebExploratoryQA.empty.cfg WebExploratoryQA.tla
+date: 2026-10-18T18:57:49+09:00
+Picked up _JAVA_OPTIONS: -Djava.io.tmpdir=/tmp/tla
+TLC2 Version 2026.10.13.164326 (rev: 210df3a)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 3 and seed 8561046214483280307 with 4 workers on 4 cores with 980MB heap and 64MB offheap memory [pid: 793023] (Linux 6.8.0-110-generic amd64, N/A 21.0.10 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file tasks/loopeng/WebExploratoryQA.tla
+Parsing file /tmp/tla/tlc-5475633467155196153/Naturals.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tla/tlc-5475633467155196153/FiniteSets.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tla/tlc-5475633467155196153/_TLCTrace.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tla/tlc-5475633467155196153/Sequences.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tla/tlc-5475633467155196153/TLC.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tla/tlc-5475633467155196153/TLCExt.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tla/tlc-5475633467155196153/Integers.tla (jar:file:/nix/store/b0cz9k2rc0pndyy4j4hjww5i9rr4b5ql-tlaplus-1.8.0/share/tlaplus/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module WebExploratoryQA
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module WebExploratoryQA
+Starting... (2026-10-18 18:57:50)
+Warning: The formula StartsFresh is a state-level formula, but it was used as a PROPERTY (or PROPERTIES), where a temporal formula is typically expected. State-level formulas used as PROPERTY or PROPERTIES are only checked in the initial state. To verify that the formula StartsFresh holds in all states of every behavior, use INVARIANT StartsFresh instead. Alternatively, applying the "always" temporal operator ([]) to the state-level formula StartsFresh changes it into a temporal formula, asserting that StartsFresh holds in all states of every behavior. See https://explain.tlapl.us/invariants-and-properties for additional details.
+Implied-temporal checking--satisfiability problem has 1 branches.
+Computing initial states...
+Computed 2 initial states...
+Finished computing initial states: 3 distinct states generated at 2026-10-18 18:57:51.
+Checking temporal properties for the current state space with 7866 total distinct states at (2026-10-18 18:57:54)
+Finished checking temporal properties in 00s at 2026-10-18 18:57:54
+Progress(10) at 2026-10-18 18:57:54: 23,299 states generated (23,299 s/min), 9,270 distinct states found (9,270 ds/min), 2,535 states left on queue.
+Progress(16) at 2026-10-18 18:57:55: 50,698 states generated, 18,825 distinct states found, 0 states left on queue.
+Checking temporal properties for the complete state space with 18825 total distinct states at (2026-10-18 18:57:55)
+Finished checking temporal properties in 00s at 2026-10-18 18:57:55
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 3.3E-11
+50698 states generated, 18825 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 16.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 3).
+Finished in 06s at (2026-10-18 18:57:55)

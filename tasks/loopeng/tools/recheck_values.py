@@ -23,6 +23,9 @@ jobs = [a.split(":", 1) for a in sys.argv[4:]]
 src = open(spec, encoding="utf-8").read()
 cfg_src = open(cfg).read().replace("CONSTANTS\n", "CONSTANTS\n    e1 = e1\n    e2 = e2\n    e3 = e3\n", 1)
 work = tempfile.mkdtemp(prefix="recheck_")
+# RECHECK_JOBS=N runs N rewrites at once, each TLC run with cpu_count // N workers
+JOBS = int(os.environ.get("RECHECK_JOBS", "2"))
+WORKERS = str(max(1, (os.cpu_count() or 1) // JOBS))
 open(os.path.join(work, "R.cfg"), "w").write(cfg_src)
 
 S = lambda *xs: ['"%s"' % x for x in xs]
@@ -97,7 +100,7 @@ def run(text, idx):
     d = os.path.join(work, f"d{idx}")
     os.makedirs(d, exist_ok=True)
     try:
-        p = subprocess.run(["tlc", "-workers", "2", "-deadlock", "-metadir", d, "-config", "R.cfg", mod + ".tla"],
+        p = subprocess.run(["tlc", "-workers", WORKERS, "-deadlock", "-metadir", d, "-config", "R.cfg", mod + ".tla"],
                            cwd=work, capture_output=True, text=True, timeout=300)
         o = p.stdout + p.stderr
     except subprocess.TimeoutExpired:
@@ -128,6 +131,10 @@ def item_span(off):
         cm = src.find("\\*", off, end)
         end = cm if cm != -1 else end
         return off, end
+    if src.startswith("/\\ WF_vars", off):  # Spec: one fairness conjunct of `/\ WF(A) /\ WF(B)`
+        nxt = src.find(" /\\", off + 2, le)
+        cm = src.find("\\*", off, le)
+        return off, min(x for x in (nxt, cm, le) if x != -1)
     end = le
     while True:
         nl = src.find("\n", end + 1)
@@ -191,7 +198,7 @@ if os.environ.get("RECHECK_DRY"):  # print each rewrite as a one-hunk diff inste
         print(label, "|", name, "|", " / ".join(x.strip() for x in d if x[:1] in "+-"))
     sys.exit()
 
-with open(out_path, "a") as out, cf.ThreadPoolExecutor(max_workers=2) as ex:
+with open(out_path, "a") as out, cf.ThreadPoolExecutor(max_workers=JOBS) as ex:
     futs = {ex.submit(run, t[2], i): t for i, t in enumerate(tasks)}
     for f in cf.as_completed(futs):
         label, name, _ = futs[f]

@@ -12,14 +12,14 @@ import json
 import os
 import sys
 
-# Per function: cyclomatic <= 3 (wired's lizard gate; Rust's `?` and every
-# match arm count), cognitive <= 4, Halstead volume <= 1000, difficulty
+# Per function: cyclomatic <= 5 (Rust's `?` and every match arm count;
+# raised from 3 on 2026-10-18 with the user's approval), cognitive <= 6, Halstead volume <= 1000, difficulty
 # <= 30, bugs <= 0.5, MI original >= 65, MI (Visual Studio) >= 20,
 # exits <= 4, parameters <= 7. Per file: volume <= 8000, bugs <= 2.
 # MI is a per-function measure (file MI falls with size alone).
 FN_LIMITS = (
-    ("cyclomatic", "sum", "cyclomatic", "max", 3),
-    ("cognitive", "sum", "cognitive", "max", 4),
+    ("cyclomatic", "sum", "cyclomatic", "max", 5),
+    ("cognitive", "sum", "cognitive", "max", 6),
     ("halstead", "volume", "volume", "max", 1000),
     ("halstead", "difficulty", "difficulty", "max", 30),
     ("halstead", "bugs", "bugs", "max", 0.5),

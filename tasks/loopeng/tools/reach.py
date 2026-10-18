@@ -17,6 +17,7 @@ LOG = os.path.join(D, "WebExploratoryQA.reach.log")
 
 VER, HEADING = sys.argv[1:3]
 EMPTY = "WebExploratoryQA.noexplorable.cfg"
+NOELEM = "WebExploratoryQA.empty.cfg"
 # (id, property whose antecedent is checked, kind S=state / A=action, predicate[, cfg])
 CHECKS = [
     ("P1", "LowConfidenceBackNeverActed", "S", 'phase = "acting" /\\ ~isPaywall /\\ proposedOp = "back"'),
@@ -81,11 +82,18 @@ CHECKS = [
     ("P43", "ScenarioGoalOnlyAtLastStage (操作せずにゴール達成)", "A", 'decisionsMade = 0 /\\ exitReason\' = "goal_achieved"'),
     ("P44", "ExploreGoalOnlyWhenAllExplored / GoalPreempts (探索してよい要素が空で、問い合わせる前の idle)", "S", 'mode = "explore" /\\ phase = "idle" /\\ decisionsMade = 0 /\\ visited = Explorable', EMPTY),
     ("P45", "ExploreGoalOnlyWhenAllExplored (探索してよい要素が空のときのゴール達成)", "S", 'mode = "explore" /\\ exitReason = "goal_achieved"', EMPTY),
+    ("P46", "ProposalWellFormed (操作可能な要素が無いときの問い合わせ)", "A", "decisionsMade' = decisionsMade + 1", NOELEM),
+    ("P47", "ExploreGoalOnlyWhenAllExplored (操作可能な要素が無いときのゴール達成)", "S", 'mode = "explore" /\\ exitReason = "goal_achieved"', NOELEM),
+    ("P48", "ScenarioGoalOnlyAtLastStage (操作可能な要素が無い決め打ちシナリオのゴール達成)", "S", 'mode = "scenario" /\\ exitReason = "goal_achieved"', NOELEM),
+    ("P49", "SafeProposalProceeds (操作可能な要素が無く、対象を取らない操作を実行する)", "S", 'phase = "acting" /\\ proposedOp \\notin DirectOps /\\ proposedTarget = "none"', NOELEM),
+    ("P50", "DirectOpActedOnlyOnSafeTarget / ProposalWellFormed (対象の要る操作に要素番号が無い応答)", "S", 'phase = "awaiting_decision" /\\ proposedOp \\in DirectOps /\\ proposedTarget = "none"', NOELEM),
+    ("P51", "ProposalWellFormed (要素がある画面で、対象を取らない操作の対象なし)", "S", 'phase = "awaiting_decision" /\\ proposedOp \\notin DirectOps /\\ proposedTarget = "none"'),
 ]
 
 env = dict(os.environ, _JAVA_OPTIONS="-Djava.io.tmpdir=/tmp/tla")
 with open(LOG, "a") as log:
-    log.write(f"\n# {HEADING}\n")
+    tz = datetime.datetime.now().astimezone().strftime("%z")
+    log.write(f"\n# {HEADING}時刻の表記は {tz[:3]}:{tz[3:]}。\n")
     for pid, prop, kind, pred, *c in CHECKS:
         cfgname = c[0] if c else "WebExploratoryQA.cfg"
         head = open(os.path.join(D, cfgname)).read().split("SPECIFICATION")[0] + "SPECIFICATION Spec\n"
