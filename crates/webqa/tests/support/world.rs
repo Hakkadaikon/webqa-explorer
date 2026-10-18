@@ -1,26 +1,35 @@
 //! The state of a scenario: the fake ports and what the scenario set up.
 
 use std::collections::BTreeMap;
+use std::iter;
+use std::num::NonZeroU32;
 
 use url::Url;
 use webqa::run::{Ports, RunError, explore};
-use webqa_core::machine::Outcome;
+use webqa_core::config::raw::Op;
+use webqa_core::explore::Memory;
+use webqa_core::guard::domain::AllowedOrigin;
+use webqa_core::machine::{Outcome, Rules};
 use webqa_core::ports::Observation;
 use webqa_core::redact::Redactor;
 
 use crate::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 
-/// The operation kinds offered to the judge model.
-const OPS: [&str; 8] = [
-    "click",
-    "input",
-    "scroll_down",
-    "scroll_up",
-    "back",
-    "wait",
-    "done",
-    "stuck",
+/// The operation kinds offered to the judge model: all of them.
+const OPS: [Op; 8] = [
+    Op::Click,
+    Op::Input,
+    Op::ScrollDown,
+    Op::ScrollUp,
+    Op::Back,
+    Op::Wait,
+    Op::Done,
+    Op::Stuck,
 ];
+
+/// How many times each page is observed: at the start, when the element is
+/// looked up again, and after the operation.
+const OBSERVED: usize = 3;
 
 /// One scenario's fakes and settings.
 #[derive(Debug, Default, cucumber::World)]
@@ -39,7 +48,7 @@ pub struct QaWorld {
     pub origins: Vec<String>,
     /// The (role, name) elements of the page.
     pub elements: Vec<(String, String)>,
-    /// Limits from the background. The provisional step does not use them yet.
+    /// Limits from the background.
     pub limits: BTreeMap<&'static str, u32>,
 }
 
@@ -47,9 +56,9 @@ impl QaWorld {
     /// Shows the page, unchanged by the touch, and runs the loop.
     pub async fn run(&mut self) -> Result<Outcome, RunError> {
         let pages = self.pages();
-        self.browser
-            .pages
-            .extend(pages.iter().chain(&pages).cloned());
+        let observed = pages.iter().flat_map(|page| iter::repeat_n(page, OBSERVED));
+        self.browser.pages.extend(observed.cloned());
+        let rules = self.rules();
         let mut ports = Ports::new(
             &mut self.browser,
             &mut self.judge,
@@ -57,8 +66,27 @@ impl QaWorld {
             &mut self.store,
             &self.redactor,
         );
-        let ops = OPS.map(str::to_owned).to_vec();
-        explore(&mut ports, ops).await
+        explore(&mut ports, rules, Memory::default()).await
+    }
+
+    /// The rules of the background. The origins that cannot be read allow nothing.
+    fn rules(&self) -> Rules {
+        let limits = [
+            "freeze_threshold",
+            "stuck_threshold",
+            "max_decisions",
+            "requests_per_hour",
+        ]
+        .map(|name| self.limit(name));
+        let origins = self.origins.iter();
+        let allowed = origins.flat_map(|o| AllowedOrigin::parse(o)).collect();
+        fakes::rules(&OPS, limits, allowed)
+    }
+
+    /// A limit of the background; one when it is not set or zero.
+    fn limit(&self, name: &str) -> NonZeroU32 {
+        let value = self.limits.get(name).copied().unwrap_or_default();
+        NonZeroU32::new(value).unwrap_or(NonZeroU32::MIN)
     }
 
     /// The page at each origin. A URL that cannot be read gives no page, and
