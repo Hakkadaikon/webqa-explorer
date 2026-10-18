@@ -6,6 +6,7 @@ members = ["crates/*"]
 edition = "2024"
 rust-version = "1.99"
 publish = false
+license = "MIT"
 
 [workspace.dependencies]
 webqa-browser = { path = "crates/webqa-browser", version = "0.1.0" }

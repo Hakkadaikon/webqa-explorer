@@ -86,3 +86,7 @@ E2Eテストのフレームワークでは、人が操作の手順と期待値�
 | [`docs/commit-messages.md`](docs/commit-messages.md) | コミットメッセージの規約 |
 | [`docs/agents.md`](docs/agents.md) | Claude Codeの親セッションとサブエージェントの役割分担 |
 | [`docs/design-records.md`](docs/design-records.md) | `tasks/`にある設計検討の記録の読み方 |
+
+## ライセンス
+
+[MIT](LICENSE)

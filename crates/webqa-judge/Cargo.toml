@@ -5,6 +5,7 @@ description = "Judge-model adapters of webqa"
 edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
+license.workspace = true
 
 [dependencies]
 webqa-core.workspace = true

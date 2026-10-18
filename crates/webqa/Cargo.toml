@@ -5,6 +5,7 @@ description = "Exploratory testing agent for web services"
 edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
+license.workspace = true
 
 [dependencies]
 webqa-browser.workspace = true
