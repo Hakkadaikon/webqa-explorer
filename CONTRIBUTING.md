@@ -12,6 +12,8 @@ sh scripts/setup.sh
 PythonとRustのtoolchain、gitのフックもあわせて入れる。
 あとは`.aqua/bin`をPATHに通し、`just`で作業する。
 `just`を引数なしで実行すると、レシピの一覧が出る。
+git worktreeで作業するときは、worktreeの中で`just worktree-tools`を1回実行する。
+本体のcheckoutが入れたツールを、シンボリックリンクで借りられる。
 
 ## コミットする前に
 
