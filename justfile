@@ -14,6 +14,18 @@ _default:
 setup:
     sh scripts/setup.sh
 
+# git worktree で、本体の checkout が入れたツールを借りる(シンボリックリンクを張る)
+worktree-tools:
+    #!/bin/sh
+    set -eu
+    main=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")
+    if [ "$main" = "$PWD" ]; then
+        echo "本体の checkout なので、何もしない"
+        exit 0
+    fi
+    ln -sfn "$main/.aqua" .aqua
+    ln -sfn "$main/.config/npm/node_modules" .config/npm/node_modules
+
 # 整形
 fmt:
     cargo fmt --all

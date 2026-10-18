@@ -1,6 +1,13 @@
 [lint]
 # Design records under tasks/ are working notes, not published docs.
-exclude = ["tasks/**", "target/**", ".aqua/**", ".omm/**", ".config/npm/**"]
+exclude = [
+  "tasks/**",
+  "target/**",
+  ".aqua/**",
+  ".omm/**",
+  ".config/npm/**",
+  ".claude/worktrees/**",
+]
 # Every default rule except MD041: SKILL.md files must start with YAML front
 # matter, not a heading.
 rules = [

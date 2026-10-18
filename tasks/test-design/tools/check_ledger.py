@@ -43,11 +43,12 @@ def read_ledger(lines):
             continue
         mark, tid, ln, rule, kind, title, rest = m.groups()
         d = DETAIL.match(lines[i + 1]) if i + 1 < len(lines) else None
-        hold = i + 2 < len(lines) and lines[i + 2].startswith("      → 保留: ")
+        rest_note = i + 2 < len(lines) and lines[i + 2].startswith("      → 残り: ")
         if tid in rows:
             fail(f"重複: {tid}")
         rows[tid] = dict(mark=mark, ln=int(ln), rule=rule, kind=kind, title=title,
-                         outline="Examples の各行" in rest, detail=d, hold=hold)
+                         outline="Examples の各行" in rest, detail=d, hold=mark == "~",
+                         rest_note=rest_note)
     return rows
 
 
@@ -96,7 +97,10 @@ def check_details(rows):
         if not ISSUE.match(d.group(3)):
             fail(f"{tid}: issue の欄が空か形が違う: {d.group(3)!r}")
     holds = [t for t, r in sorted(rows.items()) if r["hold"]]
-    print(f"保留の印がある行: {len(holds)}({'、'.join(holds)})")
+    print(f"`[~]` の行: {len(holds)}({'、'.join(holds)})")
+    for tid, r in sorted(rows.items()):
+        if r["hold"] != r["rest_note"]:
+            fail(f"{tid}: `[~]` と「→ 残り:」の有無が合わない")
 
 
 def expand_ids(text):
@@ -104,7 +108,7 @@ def expand_ids(text):
     for part in text.split("、"):
         m = re.fullmatch(r"T-(\d{3})(?:〜T-(\d{3}))?", part.strip())
         if not m:
-            fail(f"保留の一覧が読めない: {part!r}")
+            fail(f"直し待ちの一覧が読めない: {part!r}")
             continue
         a = int(m.group(1))
         ids.update(f"T-{n:03d}" for n in range(a, int(m.group(2) or a) + 1))
@@ -112,12 +116,12 @@ def expand_ids(text):
 
 
 def check_holds(rows, text):
-    m = re.search(r"^保留の行: (.+)$", text, re.M)
+    m = re.search(r"^直し待ちの行: (.+)$", text, re.M)
     listed = expand_ids(m.group(1)) if m else set()
     marked = {t for t, r in rows.items() if r["hold"]}
-    print(f"冒頭の保留の一覧: {len(listed)}")
+    print(f"冒頭の直し待ちの一覧: {len(listed)}")
     if not m or listed != marked:
-        fail(f"冒頭の保留の一覧と印が合わない: {sorted(listed ^ marked)}")
+        fail(f"冒頭の直し待ちの一覧と `[~]` の行が合わない: {sorted(listed ^ marked)}")
     w = re.search(r"^仕様待ちの issue: (#\d+)$", text, re.M)
     wait = w.group(1) if w else None
     print(f"仕様待ちの issue: {wait}")
@@ -129,9 +133,9 @@ def check_holds(rows, text):
             continue
         nums = r["detail"].group(3).split("、")
         if r["hold"] and nums != [wait]:
-            fail(f"{tid}: 保留の行の issue が {wait} だけでない: {nums}")
+            fail(f"{tid}: `[~]` の行の issue が {wait} だけでない: {nums}")
         if not r["hold"] and wait in nums:
-            fail(f"{tid}: 保留でない行に {wait} がある")
+            fail(f"{tid}: `[~]` でない行に {wait} がある")
 
 
 def read_matrix(lines):
@@ -154,7 +158,7 @@ def check_matrix(rows, mat):
         names = re.findall(r"の `([a-z0-9_]+)`", d.group(2))
         pairs = [("種別", c[1], r["kind"]), ("手法", c[2], d.group(1)),
                  ("テスト名", re.findall(r"`([a-z0-9_]+)`", c[3]), names),
-                 ("issue", c[4], d.group(3)), ("設計済", c[5], "[x]")]
+                 ("issue", c[4], d.group(3)), ("設計済", c[5], "[~]" if r["hold"] else "[x]")]
         for label, got, want in pairs:
             if got != want:
                 fail(f"{tid}: マトリクスの{label}が本文と違う: {got!r} / {want!r}")
@@ -180,9 +184,9 @@ def main():
         fail("`- [ ]` の行が残っている")
 
     rows = read_ledger(lines)
-    not_x = [t for t, r in sorted(rows.items()) if r["mark"] != "x"]
-    if not_x:
-        fail(f"[x] でない行: {not_x}")
+    bad = [t for t, r in sorted(rows.items()) if r["mark"] not in "x~"]
+    if bad:
+        fail(f"`[x]` でも `[~]` でもない行: {bad}")
     check_rows(rows, feat)
     check_details(rows)
     check_holds(rows, text)

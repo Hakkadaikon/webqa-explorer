@@ -4,7 +4,7 @@ tasks/loopeng/*_TTrace_*.tla
 tasks/loopeng/*_TTrace_*.bin
 
 # Tools installed by aqua, Rust build output, coverage and mutation reports
-.aqua/
+/.aqua
 target/
 lcov.info
 mutants.out*/
@@ -13,9 +13,10 @@ __pycache__/
 
 # Claude Code runtime state (.claude/skills is tracked)
 .claude/scheduled_tasks.lock
+.claude/worktrees/
 
 # Node tools installed from .config/npm/package-lock.json
-.config/npm/node_modules/
+/.config/npm/node_modules
 
 # Run output of webqa (memory, event log, reports)
 .webqa/
