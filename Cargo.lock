@@ -5,3 +5,34 @@ version = 4
 [[package]]
 name = "webqa"
 version = "0.1.0"
+dependencies = [
+ "webqa-browser",
+ "webqa-core",
+ "webqa-judge",
+ "webqa-tui",
+]
+
+[[package]]
+name = "webqa-browser"
+version = "0.1.0"
+dependencies = [
+ "webqa-core",
+]
+
+[[package]]
+name = "webqa-core"
+version = "0.1.0"
+
+[[package]]
+name = "webqa-judge"
+version = "0.1.0"
+dependencies = [
+ "webqa-core",
+]
+
+[[package]]
+name = "webqa-tui"
+version = "0.1.0"
+dependencies = [
+ "webqa-core",
+]

@@ -6,5 +6,11 @@ edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
 
+[dependencies]
+webqa-browser.workspace = true
+webqa-core.workspace = true
+webqa-judge.workspace = true
+webqa-tui.workspace = true
+
 [lints]
 workspace = true

@@ -16,3 +16,6 @@ __pycache__/
 
 # Node tools installed from .config/npm/package-lock.json
 .config/npm/node_modules/
+
+# Run output of webqa (memory, event log, reports)
+.webqa/
