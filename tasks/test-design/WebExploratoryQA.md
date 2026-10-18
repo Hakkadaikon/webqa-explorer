@@ -2,6 +2,7 @@
 
 対象: Web サービスの探索的テストエージェント(判断モデルの問い合わせ、ガードレール、ブラウザ操作、終了判定、探索の記憶、負荷制御、問題の記録、設定)
 走査アンカー: 受け入れ条件(`tasks/loopeng/WebExploratoryQA.feature` の Scenario 1件 = T-ID 1行で転記)
+テスト対象: crates/*
 転記元の版: commit `ed3e0d3` の `tasks/loopeng/WebExploratoryQA.feature`。出典欄の行番号はこの版の行を指す。
 
 各 ID は「テストすべき振る舞い」1つ。手法の割り当てとテスト名はまだ無い(実装言語とランナーが未定で、次の test-catalog で割り当てる)。
