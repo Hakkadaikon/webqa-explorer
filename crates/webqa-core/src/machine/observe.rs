@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use super::Seen;
 use super::actions::{Next, Now, idle, page};
-use super::counters::Progress;
+use super::counters::{Counters, Progress};
 use super::material::forbidden_indices;
 use super::note::left;
 use super::state::State;
@@ -77,26 +77,66 @@ fn shown(state: &State, at: ScreenKey, id: &ElementId) -> bool {
     state.shown.iter().any(|(k, e)| *k == at && e == id)
 }
 
-/// Takes the page in after returning or reloading, without counting.
+/// Takes `seen` in after an effect. Landing outside the allowed origins
+/// records the issue, once for each arrival.
+fn landed(state: State, seen: Seen) -> (State, Taken) {
+    let (mut state, taken) = take(state, seen);
+    if state.outside {
+        let issue = left(&state.last);
+        state = state.noted(issue);
+    }
+    (state, taken)
+}
+
+/// Takes `seen` in without an operation to count. Landing outside counts
+/// as a step without progress, so that a page that keeps sending the run
+/// outside ends it stuck instead of returning forever.
+pub(super) fn settled(state: State, seen: Seen) -> State {
+    let (mut state, _) = landed(state, seen);
+    if state.outside {
+        state.counters = stalled(state.counters);
+    }
+    state
+}
+
+/// The counters with one more step without progress, the freeze count kept.
+fn stalled(counters: Counters) -> Counters {
+    counted(counters.freeze(), counters.stuck().saturating_add(1))
+}
+
+/// Counters with `freeze` and `stuck`. `Counters` only moves by touches,
+/// so the counts are built up from zero by touches.
+pub(super) fn counted(freeze: u32, stuck: u32) -> Counters {
+    let step = |changed, explored| Progress {
+        changed,
+        explored,
+        revealed: false,
+    };
+    let changing = (0..stuck.saturating_sub(freeze)).map(|_| step(true, false));
+    let exploring = (0..freeze.saturating_sub(stuck)).map(|_| step(false, true));
+    let still = (0..freeze.min(stuck)).map(|_| step(false, false));
+    changing
+        .chain(exploring)
+        .chain(still)
+        .fold(Counters::default(), Counters::after_touch)
+}
+
+/// Takes the page in after returning or reloading.
 pub(super) fn arrived(state: State, now: &Now) -> Next {
     let seen = page(&state, now);
-    idle(take(state, seen).0)
+    idle(settled(state, seen))
 }
 
 /// Takes the page in after an operation and counts what came of it.
 pub(super) fn executed(state: State, now: &Now) -> Next {
     let seen = page(&state, now);
-    let (mut state, taken) = take(state, seen);
+    let (mut state, taken) = landed(state, seen);
     let explored = explored(&mut state, taken.from);
     state.counters = state.counters.after_touch(Progress {
         changed: taken.changed,
         explored,
         revealed: taken.revealed,
     });
-    if state.outside {
-        let issue = left(&state.last);
-        state = state.noted(issue);
-    }
     idle(state)
 }
 

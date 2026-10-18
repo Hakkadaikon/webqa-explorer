@@ -6,7 +6,8 @@ use std::iter;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
-use super::counters::{Budget, Counters, Progress};
+use super::counters::{Budget, Counters};
+use super::observe::counted;
 use super::ops::offered;
 use super::state::State;
 use super::{Facts, Heard, Rules, Seen, Step, step};
@@ -138,25 +139,7 @@ pub fn idle(rules: Rules, seen: Seen, memory: Memory) -> State {
 
 /// Counters with `freeze` steps without a change and `stuck` steps without progress.
 pub fn counters(freeze: u32, stuck: u32) -> Counters {
-    let progress = |changed, explored| Progress {
-        changed,
-        explored,
-        revealed: false,
-    };
-    let steps = iter::repeat_n(progress(true, false), times(stuck.saturating_sub(freeze)))
-        .chain(iter::repeat_n(
-            progress(false, true),
-            times(freeze.saturating_sub(stuck)),
-        ))
-        .chain(iter::repeat_n(
-            progress(false, false),
-            times(freeze.min(stuck)),
-        ));
-    steps.fold(Counters::default(), Counters::after_touch)
-}
-
-fn times(n: u32) -> usize {
-    usize::try_from(n).unwrap()
+    counted(freeze, stuck)
 }
 
 /// A budget of `cap` with `used` decisions used.

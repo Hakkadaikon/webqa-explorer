@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use super::guards::{answered, observing, rejection, seen};
 use super::note::{Anomaly, Note, Rejection};
-use super::observe::{arrived, executed, take};
+use super::observe::{arrived, executed, settled};
 use super::ops::names;
 use super::proposal::{Proposal, hear};
 use super::state::{ExitReason, Phase, State};
@@ -179,7 +179,7 @@ fn confirm(state: State, now: &Now) -> Next {
         .map_or(Err(Rejection::Missing), |p| verdict(p, &seen));
     match checked {
         Ok(touch) => touched(state, Phase::Acting, touch, now.at),
-        Err(why) => idle(take(state.noted(Note::Rejected(why)), seen).0),
+        Err(why) => idle(settled(state.noted(Note::Rejected(why)), seen)),
     }
 }
 
