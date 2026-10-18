@@ -83,6 +83,14 @@ metrics-report:
 cov-open:
     cargo llvm-cov --workspace --open
 
+# Playwright の driver が求める Chromium を入れる
+install-browsers:
+    cargo run -p webqa-browser --example install-browsers
+
+# Chromium と、それが要る OS のライブラリを入れる(sudo を求めることがある。CI 用)
+install-browsers-with-deps:
+    cargo run -p webqa-browser --example install-browsers -- --with-deps
+
 # mutation テスト(生き残りがあれば失敗)
 mutants *args:
     cargo mutants --workspace {{ args }}
