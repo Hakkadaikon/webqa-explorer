@@ -30,7 +30,7 @@
 ### モジュールの形
 
 - `explore.rs` は `pub mod graph; pub mod select;` と、`pub use graph::{ElementOp, Memory, ScreenKey}; pub use select::{Candidate, Candidates, candidates};` だけを持つ。
-- テストは `explore/graph/tests.rs` と `explore/select/tests.rs` に置く(`#[cfg(test)] mod tests;`)。テストの関数のパスは `webqa_core::explore::graph::tests::…` と `webqa_core::explore::select::tests::…` になる。
+- テストは `explore/graph/tests.rs` と `explore/select/tests.rs` に置く(`#[cfg(test)] mod tests;`)。テストの関数のパスは `webqa_core::explore::graph::tests::…` と `webqa_core::explore::select::tests::…` になる(graph のテストは Halstead の上限のため `graph/tests/` の下の4ファイルに分けたので、`…::graph::tests::finished::…` のように1段深い)。
 - `mod.rs` は使わない。
 
 ### `graph`: 探索の記憶
@@ -85,7 +85,8 @@ impl Memory {
 - `finished`(探索し終えたか): 次のすべてを満たすとき真。
   1. `is_operated(at, element)` が真。
   2. `from == at` かつ `element` が等しい辺のうち、`to != at` のすべての辺について、`untouched_reachable(to)` が偽。
-  - 辺が無い、または `to == at` の辺だけの要素は、操作した時点で探索し終えたとみなす(台帳の用語定義「遷移の無い要素は操作した時点で探索し終えたとみなす」)。`to == at` の辺を数えないのは、自分の画面に残る未操作の要素で、入力欄のような遷移の無い要素がいつまでも探索し終えないのを避けるため。自分の画面に残る未操作の要素は、候補の1段目が先に拾う。
+  - 辺が無い、または `to == at` の辺だけの要素は、操作した時点で探索し終えたとみなす(台帳の用語定義「遷移の無い要素は操作した時点で探索し終えたとみなす」)。`to == at` の辺を数えないのは、自分の画面に残る未操作の要素で、入力欄のような遷移の無い要素がいつまでも探索し終えないのを避けるため。自分の画面に残る未操作の要素は、表示領域の中なら候補の1段目が、外なら3段目のスクロールが拾う。
+  - (レビューで足した規則)`to` から到達できる画面をたどるとき、たどった画面の集合に最初から `at` を入れておく。`to` から `at` へ戻る循環を通って `at` 自身の未操作の要素を数えると、表示領域の外の未操作の要素がある画面で2段目が出続け、スクロールに落ちないため。
   - 未操作の要素、記憶に無い画面や要素は偽。
 - `#13` の探索モードのゴールは `!memory.untouched_reachable(開始の画面の鍵)` で判定できる。この issue ではゴールの判定は書かない。
 

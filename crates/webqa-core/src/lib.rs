@@ -3,5 +3,7 @@
 pub mod config;
 pub mod event;
 pub mod guard;
+pub mod issue;
 pub mod redact;
 pub mod screen;
+pub mod window;

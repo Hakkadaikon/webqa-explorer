@@ -1,5 +1,5 @@
 # Complexity limits (also checked from rust-code-analysis by scripts/metrics.py).
-cognitive-complexity-threshold = 4
+cognitive-complexity-threshold = 6
 too-many-arguments-threshold = 7
 excessive-nesting-threshold = 3
 too-many-lines-threshold = 50

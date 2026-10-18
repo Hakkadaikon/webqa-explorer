@@ -32,7 +32,7 @@ CONSTANTS
     \* @type: Int;
     NumStages,           \* S-015: 決め打ちシナリオの段階の数
     \* @type: Set(Str);
-    Elements,            \* 操作可能要素の有限集合(抽象化)
+    Elements,            \* 操作可能要素の有限集合(抽象化)。ページの中身なので空もありうる
     \* @type: Set(Str);
     ForbiddenElements,   \* S-012, S-028: 禁止要素の部分集合(購入/削除/退会/サインイン等)
     \* @type: Set(Str);
@@ -106,6 +106,10 @@ Explorable == Elements \ ForbiddenElements
 
 \* S-016: 探索モードでは done を判断モデルの選択肢に入れない(探索モードの終わりはツール側の判定だけで決める)。
 ProposableOps == IF mode = "explore" THEN Operations \ {"done"} ELSE Operations
+
+\* S-005, S-006, S-028: 判断モデルが返しうる対象。対象を取らない操作は対象なし("none")。
+\* 対象の要る操作(click/input)で要素が1つも無ければ、返る対象は存在しない要素番号("none")になる。
+ProposalTargets(op) == IF op \in DirectOps /\ Elements # {} THEN Elements ELSE {"none"}
 
 \* S-014, S-015, S-016: 現在の段階の done_when。探索モードでは、1回以上問い合わせた後で禁止要素以外をすべて探索し終えたこと。
 DoneWhen == IF mode = "explore" THEN visited = Explorable /\ decisionsMade > 0 ELSE doneWhenMet
@@ -182,7 +186,8 @@ RequestDecision ==
     /\ decisionsMade' = decisionsMade + 1
     /\ requestBudget' = requestBudget - 1
     /\ requestsInWindow' = requestsInWindow + 1
-    /\ \E op \in ProposableOps, t \in Elements, lc \in BOOLEAN, pw \in BOOLEAN, ex \in BOOLEAN :
+    /\ \E op \in ProposableOps, lc \in BOOLEAN, pw \in BOOLEAN :
+       \E t \in ProposalTargets(op) : \E ex \in IF op \in DirectOps /\ t = "none" THEN {FALSE} ELSE BOOLEAN :
         /\ proposedOp' = op
         /\ proposedTarget' = t
         /\ proposedLowConf' = lc
@@ -450,7 +455,7 @@ LowConfidenceBackNeverActed ==
 \* S-012, S-028: paywall 以外で実行段階に進んだ直接操作の対象は、禁止要素ではなく、存在している。
 DirectOpActedOnlyOnSafeTarget ==
     (phase = "acting" /\ ~isPaywall /\ proposedOp \in DirectOps)
-        => (targetExists /\ proposedTarget \notin ForbiddenElements)
+        => (targetExists /\ proposedTarget \in Explorable)
 
 \* 性質側の定義(システム側の DoneWhen / LastStage とは独立に、要件の言葉で書き直したもの)。
 \* S-016: 探索モードの done_when は、1回以上判断モデルに問い合わせた後で、禁止要素以外をすべて探索し終えたこと。
@@ -550,7 +555,10 @@ DomainRecordAccurate ==
 ProposalWellFormed ==
     phase \in {"awaiting_decision", "acting"}
         => (/\ proposedOp \in Operations \cup {"back"}
-            /\ proposedTarget \in Elements
+            /\ proposedTarget \in Elements \cup {"none"}
+            /\ (phase = "awaiting_decision" /\ proposedOp \notin DirectOps => proposedTarget = "none")
+            /\ (proposedOp \in DirectOps /\ proposedTarget = "none" => ~targetExists)
+            /\ (proposedOp \in DirectOps /\ Elements # {} => proposedTarget \in Elements)
             /\ (mode = "explore" => proposedOp # "done"))
 
 \* --- Action properties(優先順位と境界) ---
