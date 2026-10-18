@@ -12,7 +12,7 @@ use std::io;
 use std::process::Stdio;
 use std::time::Duration;
 
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Split};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 use tokio::task::yield_now;
 use webqa_core::judge::{Answers, JudgeError, Question};
@@ -44,7 +44,7 @@ pub struct CommandJudge {
     /// Killed when the judge is dropped.
     _child: Child,
     stdin: ChildStdin,
-    stdout: Lines<BufReader<ChildStdout>>,
+    stdout: Split<BufReader<ChildStdout>>,
     clock: Box<dyn Clock>,
     timeout: Duration,
     seq: u64,
@@ -67,7 +67,7 @@ impl CommandJudge {
             .map(|(stdin, stdout)| Self {
                 _child: child,
                 stdin,
-                stdout: BufReader::new(stdout).lines(),
+                stdout: BufReader::new(stdout).split(b'\n'),
                 clock,
                 timeout: bridge.timeout,
                 seq: 0,
@@ -151,7 +151,7 @@ fn spawn_error(_: io::Error) -> StartError {
 /// gives no answer, which ends as a timeout.
 async fn talk(
     stdin: &mut ChildStdin,
-    stdout: &mut Lines<BufReader<ChildStdout>>,
+    stdout: &mut Split<BufReader<ChildStdout>>,
     line: &str,
     seq: u64,
 ) -> Result<Answers, JudgeError> {
@@ -162,7 +162,7 @@ async fn talk(
 
 /// Reads lines until the answer to `seq`, skipping late answers.
 async fn receive(
-    stdout: &mut Lines<BufReader<ChildStdout>>,
+    stdout: &mut Split<BufReader<ChildStdout>>,
     seq: u64,
 ) -> Result<Answers, JudgeError> {
     loop {
@@ -172,11 +172,12 @@ async fn receive(
     }
 }
 
-/// The next line, or [`JudgeError::Bridge`] once the command has ended or
-/// its output cannot be read.
-async fn next_line(stdout: &mut Lines<BufReader<ChildStdout>>) -> Result<String, JudgeError> {
+/// The next line as bytes, or [`JudgeError::Bridge`] once the command has
+/// ended or its output cannot be read. A line that is not UTF-8 is left to
+/// [`wire::read`], which finds it malformed.
+async fn next_line(stdout: &mut Split<BufReader<ChildStdout>>) -> Result<Vec<u8>, JudgeError> {
     stdout
-        .next_line()
+        .next_segment()
         .await
         .ok()
         .flatten()

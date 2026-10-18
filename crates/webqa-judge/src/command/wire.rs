@@ -67,16 +67,17 @@ const ERRORS: [(&str, JudgeError); 2] =
     [("api", JudgeError::Api), ("timeout", JudgeError::Timeout)];
 
 /// Reads an answer line to the request `seq`. `None` for a late answer to
-/// an earlier request, which the caller skips.
-pub fn read(line: &str, seq: u64) -> Result<Option<Answers>, JudgeError> {
+/// an earlier request, which the caller skips. A line that is not UTF-8 is
+/// malformed.
+pub fn read(line: &[u8], seq: u64) -> Result<Option<Answers>, JudgeError> {
     let reply = parse(line)?;
     on_time(reply.seq, seq)?
         .then(|| reply.into_answers())
         .transpose()
 }
 
-fn parse(line: &str) -> Result<Reply, JudgeError> {
-    serde_json::from_str::<Reply>(line)
+fn parse(line: &[u8]) -> Result<Reply, JudgeError> {
+    serde_json::from_slice::<Reply>(line)
         .ok()
         .filter(|reply| reply.version == PROTOCOL_VERSION)
         .ok_or(JudgeError::Malformed)

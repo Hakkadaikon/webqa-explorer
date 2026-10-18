@@ -40,6 +40,13 @@ while IFS= read -r line; do
 	timeout_error) reply 1 "$seq" '"error":{"kind":"timeout","message":"slow"}' ;;
 	unknown_error) reply 1 "$seq" '"error":{"kind":"quota","message":"over"}' ;;
 	garbage) printf 'not json\n' ;;
+	not_utf8)
+		if [ "$count" -eq 1 ]; then
+			printf '{"version":1,"seq":%s,"answers":{"operation":[{"option":"\377","p":1.0}]}}\n' "$seq"
+		else
+			reply 1 "$seq" "$answers"
+		fi
+		;;
 	old_version) reply 0 "$seq" "$answers" ;;
 	ahead) reply 1 "$((seq + 1))" "$answers" ;;
 	string_p) reply 1 "$seq" '"answers":{"operation":[{"option":"click","p":"0.9"}]}' ;;

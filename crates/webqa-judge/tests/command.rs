@@ -91,6 +91,13 @@ async fn bridge_errors_become_judge_errors() {
 }
 
 #[tokio::test]
+async fn non_utf8_answer_is_malformed() {
+    let mut judge = judge("not_utf8").unwrap();
+    assert_eq!(judge.ask().await, Err(JudgeError::Malformed), "first");
+    assert_eq!(judge.ask().await, Ok(fixed()), "the next one goes on");
+}
+
+#[tokio::test]
 async fn optional_fields_default() {
     let answers = judge("optional").unwrap().ask().await.unwrap();
     let op = options(&answers, "operation").unwrap();
