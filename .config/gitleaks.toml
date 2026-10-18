@@ -1,0 +1,24 @@
+# gitleaks: the default secret rules, plus absolute paths on a developer's
+# machine (they leak user names and break on other machines).
+[extend]
+useDefault = true
+
+[[rules]]
+id = "machine-local-path"
+description = "Absolute path into a home directory; write a repository-relative path"
+regex = '''(?:/home|/Users|[A-Za-z]:\\+Users)[/\\]+([A-Za-z0-9._-]+)[/\\]'''
+# Report only the user name: the default stopwords would otherwise drop
+# matches that contain words such as "home".
+secretGroup = 1
+
+[allowlist]
+description = "Installed tools and build output are not part of the repository"
+# `gitleaks dir` does not read .gitignore, so the ignored caches are listed here.
+paths = [
+  '''^\.aqua/''',
+  '''^target/''',
+  '''^\.git/''',
+  '''^\.config/npm/node_modules/''',
+  '''^\.ruff_cache/''',
+  '''(?:^|/)__pycache__/''',
+]

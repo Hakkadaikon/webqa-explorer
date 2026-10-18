@@ -12,6 +12,7 @@ registries:
 packages:
   - name: casey/just@1.59.0
   - name: evilmartians/lefthook@v2.2.2
+  - name: gitleaks/gitleaks@v8.30.1
   - name: akiomik/mado@v0.3.2
   - name: crate-ci/typos@v1.51.1
   - name: tamasfe/taplo@0.10.0

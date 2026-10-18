@@ -17,3 +17,5 @@ pre-commit:
       run: just config-check
     - name: test
       run: just test
+    - name: secrets
+      run: just secrets-staged

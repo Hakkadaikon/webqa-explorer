@@ -88,6 +88,14 @@ omm *args:
 commit-msg *args:
     uv run --no-project --python 3.14 scripts/commit_msg.py {{ args }}
 
+# 秘密情報と、手元の絶対パス(/home/<名前>/ など)の検査。ステージした差分だけを見る
+secrets-staged:
+    gitleaks git --pre-commit --staged --config .config/gitleaks.toml --no-banner --redact
+
+# 同じ検査を、作業ツリーのファイル全体に当てる
+secrets:
+    gitleaks dir . --config .config/gitleaks.toml --no-banner --redact
+
 # 設定とスクリプトの静的解析(GitHub Actions、シェル、Python)
 config-check:
     actionlint
