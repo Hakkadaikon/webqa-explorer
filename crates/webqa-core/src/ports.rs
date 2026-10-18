@@ -1,6 +1,7 @@
 //! The traits the run loop uses to reach the browser, the judge model, the
 //! clock and the store. Each one works as a `Box<dyn …>`.
 
+use std::fmt;
 use std::future::Future;
 use std::pin::Pin;
 use std::time::Duration;
@@ -8,6 +9,9 @@ use std::time::Duration;
 use serde_json::Value;
 
 use crate::effect::Touch;
+use crate::guard::forbidden::Candidate;
+use crate::guard::identity::Node;
+use crate::guard::paywall::PaywallFacts;
 use crate::judge::{Answers, JudgeError, Question};
 use crate::redact::Redacted;
 use crate::screen::{Screen, ScreenText, Viewport};
@@ -16,12 +20,36 @@ use crate::screen::{Screen, ScreenText, Viewport};
 pub type Pending<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
 /// The page as the browser saw it, before redaction.
-#[derive(Debug, Clone, PartialEq, Eq)]
+///
+/// `screen.elements`, `nodes` and `candidates` have the same length, and the
+/// same index points at the same element. `Debug` shows only how many entries
+/// the lists have.
+#[derive(Clone, PartialEq, Eq)]
 pub struct Observation {
-    /// The page.
+    /// The page. `screen.url` is the final URL, after any redirect.
     pub screen: Screen,
     /// The size of the viewport.
     pub viewport: Viewport,
+    /// The aria ref of each element, in the order of `screen.elements`.
+    pub nodes: Vec<Node>,
+    /// What the forbidden-element check needs, in the order of `screen.elements`.
+    pub candidates: Vec<Candidate>,
+    /// What the paywall check needs.
+    pub paywall: PaywallFacts,
+    /// Console errors since the previous observation, as the page wrote them.
+    pub console: Vec<String>,
+}
+
+impl fmt::Debug for Observation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Observation")
+            .field("screen", &self.screen)
+            .field("viewport", &self.viewport)
+            .field("nodes", &self.nodes.len())
+            .field("candidates", &self.candidates.len())
+            .field("console", &self.console.len())
+            .finish_non_exhaustive()
+    }
 }
 
 /// The browser failed. Carries no page strings.
@@ -74,6 +102,7 @@ pub trait Store: Send {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::screen::Element;
 
     #[test]
     fn error_messages_carry_no_value() {
@@ -85,5 +114,39 @@ mod tests {
             ),
             "fixed messages"
         );
+    }
+
+    #[test]
+    fn observation_debug_hides_page_strings() {
+        let url = url::Url::parse("https://app.example.test/home").unwrap();
+        let element = Element {
+            role: "button".to_owned(),
+            name: "山田太郎".to_owned(),
+            value: None,
+            rect: None,
+        };
+        let observation = Observation {
+            screen: Screen {
+                url: url.clone(),
+                elements: vec![element],
+            },
+            viewport: Viewport {
+                width: 800,
+                height: 600,
+            },
+            nodes: Vec::new(),
+            candidates: Vec::new(),
+            paywall: PaywallFacts {
+                url,
+                headings: vec!["山田太郎".to_owned()],
+                dialogs: Vec::new(),
+                buttons: Vec::new(),
+                hits: Vec::new(),
+            },
+            console: vec!["token=abc123".to_owned()],
+        };
+        let shown = format!("{observation:?}");
+        assert!(!shown.contains("山田太郎"), "no names: {shown}");
+        assert!(!shown.contains("abc123"), "no console text: {shown}");
     }
 }

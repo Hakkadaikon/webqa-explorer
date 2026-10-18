@@ -9,6 +9,9 @@ use std::time::Duration;
 use serde_json::Value;
 use url::Url;
 use webqa_core::effect::Touch;
+use webqa_core::guard::forbidden::Candidate;
+use webqa_core::guard::identity::Node;
+use webqa_core::guard::paywall::PaywallFacts;
 use webqa_core::judge::{Answers, JudgeError, Question};
 use webqa_core::ports::{
     Browser, BrowserError, Clock, Judge, Observation, Pending, Store, StoreError,
@@ -24,19 +27,49 @@ pub const VIEWPORT: Viewport = Viewport {
 };
 
 /// A page at `url` with the (role, name) elements stacked from the top of the
-/// viewport, 20px apart.
+/// viewport, 20px apart. Element `n` (from 1) has the ref `e<n>`, no link and
+/// no form; the page has no paywall facts and no console errors.
 pub fn page(url: &Url, elements: &[(&str, &str)]) -> Observation {
-    let elements = elements
+    let elements: Vec<Element> = elements
         .iter()
         .zip((0..).step_by(20))
         .map(|(&(role, name), y)| element(role, name, y))
         .collect();
     Observation {
+        nodes: elements.iter().zip(1..).map(node).collect(),
+        candidates: elements.iter().map(candidate).collect(),
+        paywall: PaywallFacts {
+            url: url.clone(),
+            headings: Vec::new(),
+            dialogs: Vec::new(),
+            buttons: Vec::new(),
+            hits: Vec::new(),
+        },
+        console: Vec::new(),
         screen: Screen {
             url: url.clone(),
             elements,
         },
         viewport: VIEWPORT,
+    }
+}
+
+fn node((e, n): (&Element, usize)) -> Node {
+    Node {
+        role: e.role.clone(),
+        name: e.name.clone(),
+        node: format!("e{n}"),
+    }
+}
+
+fn candidate(e: &Element) -> Candidate {
+    Candidate {
+        role: e.role.clone(),
+        name: e.name.clone(),
+        href: None,
+        form_action: None,
+        forbidden_listed: false,
+        allowed_listed: false,
     }
 }
 
