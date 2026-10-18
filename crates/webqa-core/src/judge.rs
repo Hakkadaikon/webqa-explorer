@@ -1,12 +1,24 @@
 //! Questions to the judge model and its answers.
 //!
-//! For now this holds the types and the two questions of a step. Building the
-//! whole set of questions and checking the answers come with issue #7.
+//! This holds the types of the questions and the answers, builds the
+//! questions of a step, checks the answers against what was asked, and picks
+//! the element to operate on from the ranked answer.
+
+mod ask;
+mod target;
+mod verdict;
+
+pub use ask::{Ask, MAX_OPTIONS, op_name, questions};
+pub use target::pick_target;
+pub use verdict::{Unusable, Verdict, read_answers};
 
 use std::collections::BTreeMap;
 
+use serde::Serialize;
+
 /// Names a question, so that its answer can be found.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
+#[serde(transparent)]
 pub struct QuestionId(String);
 
 impl QuestionId {
@@ -33,10 +45,23 @@ impl QuestionId {
     pub fn target() -> Self {
         Self::new("target")
     }
+
+    /// Whether the page shows an error.
+    #[must_use]
+    pub fn error_shown() -> Self {
+        Self::new("error_shown")
+    }
+
+    /// Whether the goal of the current stage is reached.
+    #[must_use]
+    pub fn goal_reached() -> Self {
+        Self::new("goal_reached")
+    }
 }
 
 /// A question to the judge model.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Question {
     /// A yes-or-no question.
     Noul {
@@ -60,6 +85,8 @@ pub enum Question {
         id: QuestionId,
         /// What to ask.
         prompt: String,
+        /// Level descriptions, lowest first (2 to 10).
+        levels: Vec<String>,
     },
 }
 
@@ -128,6 +155,18 @@ pub enum JudgeError {
     /// The judge has no more answers, such as a script that ran out.
     #[error("判断モデルの答えが尽きた")]
     Exhausted,
+    /// The judge model's API returned an error.
+    #[error("判断モデルの API がエラーを返した")]
+    Api,
+    /// No answer came within the time allowed.
+    #[error("判断モデルの答えが待ち時間内に返らなかった")]
+    Timeout,
+    /// The answer could not be read.
+    #[error("判断モデルの答えの形式が崩れている")]
+    Malformed,
+    /// The bridge command could not be written to or read from.
+    #[error("橋渡しのコマンドとやりとりできない")]
+    Bridge,
 }
 
 /// The two questions of a step: the kind of operation among `ops`, and the
@@ -233,6 +272,7 @@ mod tests {
             Question::Score {
                 id: id.clone(),
                 prompt,
+                levels: Vec::new(),
             },
         ] {
             assert_eq!(question.id(), &id, "the id the question was built with");
