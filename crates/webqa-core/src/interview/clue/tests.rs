@@ -125,7 +125,7 @@ fn executed_back_is_clue() {
 }
 
 /// Trails, and whether they end moving back and forth.
-const TRAILS: [(&[&str], bool); 12] = [
+const TRAILS: [(&[&str], bool); 13] = [
     (&["A", "B", "A", "B"], true),
     (&["A", "B", "A"], false),
     (&[], false),
@@ -136,6 +136,7 @@ const TRAILS: [(&[&str], bool); 12] = [
     (&["C", "A", "B", "A", "B"], true),
     (&["A", "B", "A", "B", "C"], false),
     (&["A", "B", "A", "B", "A"], true),
+    (&["A", "B", "A", "B", "B"], true),
     (&["A", "B", "A", "C"], false),
     (&["A", "B", "C", "A", "B", "C"], false),
 ];
