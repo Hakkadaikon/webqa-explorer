@@ -3,6 +3,8 @@
 use super::*;
 use crate::screen::Rect;
 
+mod blank;
+
 const ORIGIN: &str = "https://app.example.test";
 
 const BOX: Option<Rect> = Some(Rect {
@@ -151,8 +153,9 @@ fn done_when_uses_whole_page() {
         );
     }
     let long = format!("{} 利用規約", "長い本文。".repeat(500));
-    assert!(
-        holds(text_is("利用規約"), "/", &[], &long),
+    assert_eq!(
+        check(&two_stages(text_is("利用規約")), "/", &[], &long),
+        (true, Goal::Advance),
         "text at the end of a long page counts"
     );
 }
@@ -162,6 +165,7 @@ fn url_declaration_compares_path_only() {
     let cases = [
         ("/home?tab=1#top", "/home", true),
         ("/home", "/home?x=1", true),
+        ("/home", "/home#x", true),
         ("/検索", "/検索", true),
         ("/home", "/home/", false),
         ("/home/", "/home", false),
@@ -207,33 +211,6 @@ fn element_and_text_need_exact_values() {
             holds(text_is(declared), "/", &[], text),
             want,
             "declared {declared:?}, page text {text:?}"
-        );
-    }
-}
-
-#[test]
-fn empty_declarations_never_hold() {
-    let rich = [el("heading", "ようこそ"), el("button", ""), el("", "保存")];
-    for (path, text) in [("/", ""), ("/home", "本文")] {
-        let stages = [stage("ログイン", when(None, None, None))];
-        assert_eq!(
-            check(&stages, path, &rich, text),
-            (false, Goal::Unmet),
-            "no declaration at {path}"
-        );
-    }
-    let cases = [
-        text_is(""),
-        text_is("  "),
-        element_is("button", ""),
-        element_is("", "保存"),
-        when(Some("/home"), None, Some("")),
-    ];
-    for done_when in cases {
-        let shown = format!("{done_when:?}");
-        assert!(
-            !holds(done_when, "/home", &rich, "本文"),
-            "an empty declaration holds: {shown}"
         );
     }
 }
