@@ -1,6 +1,8 @@
 //! Priority of the rows taken while waiting, and the goal of explore mode.
 
 #[cfg(test)]
+mod limit_tests;
+#[cfg(test)]
 mod tests;
 
 /// The first tier: the result of the goal check of the mode.
