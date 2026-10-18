@@ -28,6 +28,9 @@ fn allowed_origin_rejects_more_than_origin() {
         "https://a.*.test",
         "https://*",
         "https://*.",
+        "https://*.com",
+        "https://*.test",
+        "https://*.test.",
         "https://app.example.test/p?q",
         "https://app.example.test/path",
         "https://app.example.test?q",
@@ -44,6 +47,7 @@ fn allowed_origin_rejects_more_than_origin() {
         "https://app.example.test",
         "https://app.example.test/",
         "https://*.app.example.test",
+        "https://*.example.test",
         "http://localhost:8080",
     ];
     for s in good {

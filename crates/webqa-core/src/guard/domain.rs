@@ -113,10 +113,16 @@ fn origin_only(url: &Url) -> bool {
 }
 
 /// Splits a leading `*.` off: (whether it was there, the rest). `None` when
-/// the rest is empty or still has a `*`.
+/// the rest still has a `*`, or follows `*.` with fewer than two labels
+/// (`*.com` would allow a whole top-level domain).
 fn wildcard(host: &str) -> Option<(bool, &str)> {
     let (subdomains, rest) = host.strip_prefix("*.").map_or((false, host), |r| (true, r));
-    (!rest.is_empty() && !rest.contains('*')).then_some((subdomains, rest))
+    (!rest.contains('*') && (!subdomains || labels(rest) >= 2)).then_some((subdomains, rest))
+}
+
+/// The number of non-empty labels.
+fn labels(host: &str) -> usize {
+    host.split('.').filter(|label| !label.is_empty()).count()
 }
 
 /// `host` is `<one or more characters>.<base>`.
