@@ -14,7 +14,7 @@ use crate::guard::identity::Node;
 use crate::guard::paywall::PaywallFacts;
 use crate::judge::{Answers, Image, JudgeError, Question};
 use crate::redact::Redacted;
-use crate::screen::{Screen, ScreenText, Viewport};
+use crate::screen::{Element, Screen, ScreenText, Viewport};
 
 /// A future a port returns.
 pub type Pending<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
@@ -23,7 +23,7 @@ pub type Pending<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 ///
 /// `screen.elements`, `nodes` and `candidates` have the same length, and the
 /// same index points at the same element. `Debug` shows only how many entries
-/// the lists have.
+/// the lists have, and leaves out `text`.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Observation {
     /// The page. `screen.url` is the final URL, after any redirect.
@@ -38,6 +38,11 @@ pub struct Observation {
     pub paywall: PaywallFacts,
     /// Console errors since the previous observation, as the page wrote them.
     pub console: Vec<String>,
+    /// Every element of the whole page for `done_when`, operable or not: the
+    /// operable elements in page order, then the headings in page order.
+    pub outline: Vec<Element>,
+    /// The text of the whole page, as the `innerText` of `body`, for `done_when`.
+    pub text: String,
 }
 
 impl fmt::Debug for Observation {
@@ -48,6 +53,7 @@ impl fmt::Debug for Observation {
             .field("nodes", &self.nodes.len())
             .field("candidates", &self.candidates.len())
             .field("console", &self.console.len())
+            .field("outline", &self.outline.len())
             .finish_non_exhaustive()
     }
 }
@@ -127,7 +133,7 @@ mod tests {
     use super::*;
     use crate::judge::{ImageFormat, Usage};
     use crate::redact::Redactor;
-    use crate::screen::{Element, screen_text};
+    use crate::screen::screen_text;
 
     #[test]
     fn error_messages_carry_no_value() {
@@ -141,19 +147,23 @@ mod tests {
         );
     }
 
-    #[test]
-    fn observation_debug_hides_page_strings() {
-        let url = url::Url::parse("https://app.example.test/home?token=abc123").unwrap();
-        let element = Element {
+    fn named(name: &str) -> Element {
+        Element {
             role: "button".to_owned(),
-            name: "山田太郎".to_owned(),
+            name: name.to_owned(),
             value: None,
             rect: None,
-        };
-        let observation = Observation {
+        }
+    }
+
+    /// A page of one button "山田太郎" with `text`, its query and console
+    /// holding `token=abc123`.
+    fn observation(text: &str) -> Observation {
+        let url = url::Url::parse("https://app.example.test/home?token=abc123").unwrap();
+        Observation {
             screen: Screen {
                 url: url.clone(),
-                elements: vec![element],
+                elements: vec![named("山田太郎")],
             },
             viewport: Viewport {
                 width: 800,
@@ -169,13 +179,34 @@ mod tests {
                 hits: Vec::new(),
             },
             console: vec!["token=abc123".to_owned()],
-        };
+            outline: vec![named("山田太郎"), named("お知らせ")],
+            text: text.to_owned(),
+        }
+    }
+
+    #[test]
+    fn observation_debug_hides_page_strings() {
         assert_eq!(
-            format!("{observation:?}"),
+            format!("{:?}", observation("")),
             "Observation { screen: Screen { path: \"/home\", elements: 1 }, \
              viewport: Viewport { width: 800, height: 600 }, \
-             nodes: 0, candidates: 0, console: 1, .. }",
+             nodes: 0, candidates: 0, console: 1, outline: 2, .. }",
             "only the path and the counts, without names, query or console text"
+        );
+    }
+
+    #[test]
+    fn observation_debug_hides_text() {
+        let shown = format!("{:?}", observation("山田太郎さん"));
+        assert_eq!(
+            (shown.contains("山田太郎"), shown.contains("outline: 2")),
+            (false, true),
+            "the count of the outline, without the text or its length: {shown}"
+        );
+        assert_eq!(
+            shown,
+            format!("{:?}", observation("")),
+            "the text leaves no trace"
         );
     }
 

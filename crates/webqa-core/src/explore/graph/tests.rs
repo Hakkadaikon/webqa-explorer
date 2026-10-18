@@ -1,6 +1,7 @@
 //! Tests of the exploration memory, and builders shared with the candidate tests.
 
 mod finished;
+mod goal;
 mod memory;
 mod reach;
 mod visit;
