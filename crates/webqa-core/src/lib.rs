@@ -2,5 +2,6 @@
 
 pub mod config;
 pub mod event;
+pub mod issue;
 pub mod redact;
 pub mod screen;
