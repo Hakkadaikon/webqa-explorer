@@ -1,11 +1,14 @@
 //! Answers that cannot become a proposal, and pages without elements.
 
 use crate::config::raw::Op;
-use crate::judge::{Answers, JudgeError};
+use crate::effect::{Effect, Outside, Questions};
+use crate::judge::{Answers, JudgeError, Question, QuestionId};
 use crate::machine::testing::{
-    APP, answer, ask_top, asking, counts, heard, page, rules, secs, started, told, top, touch,
+    APP, VIEWPORT, answer, ask_top, asking, counts, heard, page, rules, secs, seen, started, told,
+    top, touch,
 };
 use crate::machine::{Anomaly, Note, Rules, State};
+use crate::screen::screen_text;
 
 /// Passes `answers` and checks the anomaly and that the judge is asked again.
 fn anomaly(state: &State, answers: Result<Answers, JudgeError>, expected: &Anomaly) -> State {
@@ -72,15 +75,42 @@ fn unusable_answers_are_anomalies() {
     );
 }
 
+/// The questions about a page without elements: every operation kind, and
+/// no element to choose.
+fn empty_questions() -> Vec<Question> {
+    let ops = [
+        "click",
+        "input",
+        "scroll_down",
+        "scroll_up",
+        "back",
+        "wait",
+        "done",
+        "stuck",
+    ];
+    vec![
+        Question::Choice {
+            id: QuestionId::operation(),
+            prompt: "次に行う操作の種別を選ぶ".to_owned(),
+            options: ops.map(str::to_owned).to_vec(),
+        },
+        Question::Choice {
+            id: QuestionId::target(),
+            prompt: "操作する要素の番号を選ぶ".to_owned(),
+            options: Vec::new(),
+        },
+    ]
+}
+
 #[test]
 fn empty_screen_allows_untargeted_ops() {
     let empty = page(&format!("{APP}/"), &[]);
     let asked = started(rules(), &empty);
-    assert_eq!(
-        asked.effect(),
-        Some(&asking(&rules(), &empty)),
-        "no number to choose"
-    );
+    let questions = Effect::Outside(Outside::Ask(Questions {
+        screen: screen_text(&seen(&empty).screen, VIEWPORT),
+        questions: empty_questions(),
+    }));
+    assert_eq!(asked.effect(), Some(&questions), "no number to choose");
     let scrolled = told(asked.state(), answer("scroll_down", Some(0.9), None));
     let scroll = touch("scroll_down", None, 0.9);
     assert_eq!(scrolled.effect(), Some(&scroll), "scrolls");
