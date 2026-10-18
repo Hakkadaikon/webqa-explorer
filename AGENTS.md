@@ -17,6 +17,8 @@ Webサービスの探索的テストエージェントを、Rustで作ってい�
 - コミットの前に`just check`を通す。
 - 品質ゲートの閾値や設定を変えない。除外の注釈も足さない。
 - `--no-verify`でgitのフックを飛ばさない。
+- 手元の絶対パス(`/home/<名前>/`など)をファイルに書かない。リポジトリからの相対パスで書く。
+  ツールの場所は環境変数かPATHで渡す。コミットの前にgitleaksが検査する。
 - コミットメッセージは日本語のConventional Commitsで書く。
   規約は[`docs/commit-messages.md`](docs/commit-messages.md)にある。
 

@@ -7,7 +7,7 @@
 
 ## 1. いまどこにいるか
 
-- リポジトリ: `/home/hakkadaikon/work/jev`(GitHub private `Hakkadaikon/webqa-explorer`)
+- リポジトリ: GitHub private `Hakkadaikon/webqa-explorer`
 - 作るもの: Webサービス向けの探索的テストエージェント(判断モデルJev + ブラウザ操作)。設計段階で、実装コードはまだ無い。
 - 工程: hymmeのloop-engineering。0段(抽出)、外ループ(EARS/TLA+)、中ループ、内ループ(受け入れシナリオ)まで完了。次はtest-design(`hymme:test-catalog`)。
 - 使っているhymme: 0.9.0。
@@ -63,4 +63,4 @@
 
 ## 6. 触っていないもの
 
-- `/home/hakkadaikon/work/jev/.claude/`が未追跡で存在する。中身は確認していない。
+- リポジトリ直下の`.claude/`には、実行時のロックファイルがある(git管理外)。`skills`と`agents`へのリンクだけを追跡している。
