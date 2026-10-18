@@ -358,3 +358,10 @@ TypeSafe 互換の入口は、TypeSafe 本家(`https://api.typesafe.ai/v1/system
 - 日本語の画面での精度。今回の問いは易しく、答えはもっともらしかったが、評価はしていない。
 - `GET https://ai-gateway.vercel.sh/typesafe/v1/models` の形。
 - 選択肢の名前に記号や長い文字列を使ったときの扱い。
+
+## 自由な文の問い(2026-10-18 の利用者の決定)
+
+JEV が答えられる問いは真偽(noul)、選択(choice)、点数(score)の3つで、自由な文で答える問いは無い。
+インタビューのモードの自由な文の問い(`Question::Text`、issue #19)は、橋渡しのコマンドが AI Gateway の言語モデルへ送る。
+キーは JEV と同じ AI Gateway のキーを使い、モデルの名前は設定で選べるようにする。
+Rust の側の形(橋渡しの版2)は、どのモデルが答えるかに依らない。
