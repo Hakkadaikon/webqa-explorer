@@ -16,6 +16,15 @@ allow = [
   "Zlib",
 ]
 confidence-threshold = 0.9
+# playwright-rs の依存が持つライセンス。crate を限って許す(issue #9)
+exceptions = [
+  { allow = [
+    "MPL-2.0",
+  ], crate = "option-ext" },
+  { allow = [
+    "CDLA-Permissive-2.0",
+  ], crate = "webpki-roots" },
+]
 private = { ignore = true }
 
 [bans]
