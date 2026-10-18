@@ -1,6 +1,7 @@
 //! Terminal viewer of the webqa event log.
 
 pub mod tail;
+pub mod view;
 
 /// The event log example of `docs/architecture.md`.
 #[cfg(test)]
