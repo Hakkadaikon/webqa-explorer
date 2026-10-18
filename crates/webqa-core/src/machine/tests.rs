@@ -9,11 +9,14 @@ use crate::explore::Memory;
 use crate::issue::{Issue, IssueKind};
 use crate::machine::ops::offered;
 use crate::machine::testing::{
-    answer, ask_top, asking, budget, counts, idle, next, nz, page, rules, secs, seen, showed,
+    APP, answer, ask_top, asking, budget, counts, idle, next, nz, page, rules, secs, seen, showed,
     shows, started, told, top, window,
 };
-use crate::machine::{ExitReason, Facts, Heard, Note, Rules, State, Step, StuckKind, abort, step};
+use crate::machine::{
+    ExitReason, Facts, Heard, Note, Phase, Rules, State, Step, StuckKind, abort, step,
+};
 use crate::redact::Redactor;
+use crate::screen::Screen;
 
 /// What must not change once the run is over.
 fn kept(state: &State) -> (u32, u32, (u32, u32), usize) {
@@ -127,6 +130,15 @@ fn offered_follows_table_order() {
     );
 }
 
+/// Started inside on `screen`, waiting for its first element to be looked up.
+fn confirming_on(screen: &Screen) -> State {
+    let asked = started(rules(), screen);
+    let looking = told(asked.state(), answer("click", Some(0.9), Some("1")));
+    let state = looking.state().clone();
+    assert_eq!(state.phase(), Phase::Confirming, "holds the proposal");
+    state
+}
+
 #[test]
 fn debug_hides_page_text() {
     let screen = page("https://other.example.net/", &[("button", "山田太郎")]);
@@ -138,7 +150,9 @@ fn debug_hides_page_text() {
         label: None,
         p: None,
     });
-    for shown in [format!("{state:?}"), format!("{issue:?}")] {
+    let confirming = confirming_on(&page(&format!("{APP}/"), &[("button", "山田太郎")]));
+    let all = [state, confirming].map(|s| format!("{s:?}"));
+    for shown in all.into_iter().chain([format!("{issue:?}")]) {
         assert!(!shown.contains("山田太郎"), "no name in {shown}");
         assert!(!shown.contains("other.example.net"), "no URL in {shown}");
     }
