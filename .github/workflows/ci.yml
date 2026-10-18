@@ -18,8 +18,8 @@ jobs:
         run: |
           sh scripts/install-aqua.sh
           echo "$PWD/.aqua/bin" >> "$GITHUB_PATH"
-          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/aqua.yaml" PATH="$PWD/.aqua/bin:$PATH"
-          aqua policy allow aqua-policy.yaml
+          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/.config/aqua/aqua.yaml" AQUA_POLICY_CONFIG="$PWD/.config/aqua/policy.yaml" PATH="$PWD/.aqua/bin:$PATH"
+          aqua policy allow .config/aqua/policy.yaml
           aqua install
       - name: Format, lint, metrics and tests with 100% coverage
         run: just check
@@ -37,8 +37,8 @@ jobs:
         run: |
           sh scripts/install-aqua.sh
           echo "$PWD/.aqua/bin" >> "$GITHUB_PATH"
-          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/aqua.yaml" PATH="$PWD/.aqua/bin:$PATH"
-          aqua policy allow aqua-policy.yaml
+          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/.config/aqua/aqua.yaml" AQUA_POLICY_CONFIG="$PWD/.config/aqua/policy.yaml" PATH="$PWD/.aqua/bin:$PATH"
+          aqua policy allow .config/aqua/policy.yaml
           aqua install
       - name: Mutation test of the changed code
         env:

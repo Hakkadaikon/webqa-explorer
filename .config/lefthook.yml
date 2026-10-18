@@ -1,4 +1,4 @@
-# Gates before each commit. Mutation and dependency audits run in CI.
+# Gates before each commit (installed by `just setup`). Mutation and dependency audits run in CI.
 pre-commit:
   parallel: true
   jobs:

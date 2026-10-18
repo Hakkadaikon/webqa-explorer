@@ -2,7 +2,9 @@
 # 開発用ツールは aqua で .aqua 配下に固定し、各レシピで PATH を通す。
 
 export AQUA_ROOT_DIR := justfile_directory() + "/.aqua"
-export AQUA_GLOBAL_CONFIG := justfile_directory() + "/aqua.yaml"
+export AQUA_GLOBAL_CONFIG := justfile_directory() + "/.config/aqua/aqua.yaml"
+export AQUA_POLICY_CONFIG := justfile_directory() + "/.config/aqua/policy.yaml"
+export UV_PYTHON := "3.14"
 export PATH := justfile_directory() + "/.aqua/bin:" + env_var('PATH')
 
 _default:
@@ -15,19 +17,19 @@ setup:
 # 整形
 fmt:
     cargo fmt --all
-    taplo fmt
+    taplo fmt --config .config/taplo.toml
     ruff format scripts
     shfmt -w scripts
-    yamlfmt .
+    yamlfmt -conf .config/yamlfmt.yaml .
     just --fmt --unstable
 
 # 整形の確認(差分があれば失敗)
 fmt-check:
     cargo fmt --all -- --check
-    taplo fmt --check
+    taplo fmt --check --config .config/taplo.toml
     ruff format --check scripts
     shfmt -d scripts
-    yamlfmt -lint .
+    yamlfmt -conf .config/yamlfmt.yaml -lint .
     just --fmt --check --unstable
 
 # 静的解析(警告1件で失敗)
@@ -70,12 +72,12 @@ mutants *args:
 
 # 依存の監査(脆弱性、ライセンス、取得元)
 deny:
-    cargo deny check
+    cargo deny --config .config/deny.toml check
 
 # 文書の検査(Markdown とスペル)
 docs-check:
-    mado check . </dev/null
-    typos
+    mado --config .config/mado.toml check . </dev/null
+    typos --config .config/typos.toml
 
 # 設定とスクリプトの静的解析(GitHub Actions、シェル、Python)
 config-check:

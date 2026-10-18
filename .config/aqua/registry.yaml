@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/registry.json
 # Tools missing from the standard aqua registry. Their releases ship no
-# checksum file; aqua-checksums.json pins them instead.
+# checksum file; aqua-checksums.json (next to aqua.yaml) pins them instead.
 packages:
   - type: github_release
     repo_owner: sourcefrog

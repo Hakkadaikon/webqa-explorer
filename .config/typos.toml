@@ -3,7 +3,7 @@
 extend-exclude = [
   "tasks/loopeng/*.tsv",
   "tasks/loopeng/*.log",
-  "aqua-checksums.json",
+  ".config/aqua/aqua-checksums.json",
 ]
 
 [default.extend-words]

@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/policy.json
 # Allows the standard registry and this repository's local registry
-# (aqua-registry.yaml). `just setup` registers it with `aqua policy allow`.
+# (registry.yaml). `just setup` registers it with `aqua policy allow .config/aqua/policy.yaml`.
 registries:
   - type: standard
     ref: semver(">= 4.0.0")
   - name: local
     type: local
-    path: aqua-registry.yaml
+    path: registry.yaml
 packages:
   - registry: standard
   - registry: local

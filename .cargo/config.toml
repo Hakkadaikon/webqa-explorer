@@ -1,0 +1,3 @@
+[env]
+# clippy reads its settings from .config/clippy/clippy.toml.
+CLIPPY_CONF_DIR = { value = ".config/clippy", relative = true }

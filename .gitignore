@@ -9,3 +9,4 @@ target/
 lcov.info
 mutants.out*/
 __pycache__/
+.ruff_cache/
