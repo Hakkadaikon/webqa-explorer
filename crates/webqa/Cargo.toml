@@ -16,8 +16,13 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+cucumber.workspace = true
 tokio = { workspace = true, features = ["macros", "rt"] }
 url.workspace = true
+
+[[test]]
+name = "acceptance"
+harness = false
 
 [lints]
 workspace = true
