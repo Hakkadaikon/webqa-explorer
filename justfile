@@ -2,7 +2,7 @@
 # 開発用ツールは aqua で .aqua 配下に固定し、各レシピで PATH を通す。
 
 export AQUA_ROOT_DIR := justfile_directory() + "/.aqua"
-export AQUA_GLOBAL_CONFIG := justfile_directory() + "/.config/aqua/aqua.yaml"
+export AQUA_CONFIG := justfile_directory() + "/.config/aqua/aqua.yaml"
 export AQUA_POLICY_CONFIG := justfile_directory() + "/.config/aqua/policy.yaml"
 export UV_PYTHON := "3.14"
 export PATH := justfile_directory() + "/.aqua/bin:" + env_var('PATH')

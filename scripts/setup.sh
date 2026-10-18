@@ -5,7 +5,7 @@ set -eu
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 export AQUA_ROOT_DIR="$root/.aqua"
-export AQUA_GLOBAL_CONFIG="$root/.config/aqua/aqua.yaml"
+export AQUA_CONFIG="$root/.config/aqua/aqua.yaml"
 export AQUA_POLICY_CONFIG="$root/.config/aqua/policy.yaml"
 export PATH="$root/.aqua/bin:$PATH"
 

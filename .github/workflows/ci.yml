@@ -5,6 +5,10 @@ on:
   pull_request:
 permissions:
   contents: read
+env:
+  AQUA_ROOT_DIR: ${{ github.workspace }}/.aqua
+  AQUA_CONFIG: ${{ github.workspace }}/.config/aqua/aqua.yaml
+  AQUA_POLICY_CONFIG: ${{ github.workspace }}/.config/aqua/policy.yaml
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -17,10 +21,9 @@ jobs:
       - name: Install tools
         run: |
           sh scripts/install-aqua.sh
-          echo "$PWD/.aqua/bin" >> "$GITHUB_PATH"
-          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/.config/aqua/aqua.yaml" AQUA_POLICY_CONFIG="$PWD/.config/aqua/policy.yaml" PATH="$PWD/.aqua/bin:$PATH"
-          aqua policy allow .config/aqua/policy.yaml
-          aqua install
+          echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
+          "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
+          "$AQUA_ROOT_DIR/bin/aqua" install
       - name: Format, lint, metrics and tests with 100% coverage
         run: just check
       - name: Dependency audit
@@ -36,10 +39,9 @@ jobs:
       - name: Install tools
         run: |
           sh scripts/install-aqua.sh
-          echo "$PWD/.aqua/bin" >> "$GITHUB_PATH"
-          export AQUA_ROOT_DIR="$PWD/.aqua" AQUA_GLOBAL_CONFIG="$PWD/.config/aqua/aqua.yaml" AQUA_POLICY_CONFIG="$PWD/.config/aqua/policy.yaml" PATH="$PWD/.aqua/bin:$PATH"
-          aqua policy allow .config/aqua/policy.yaml
-          aqua install
+          echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
+          "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
+          "$AQUA_ROOT_DIR/bin/aqua" install
       - name: Mutation test of the changed code
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
