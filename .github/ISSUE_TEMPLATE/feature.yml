@@ -1,0 +1,35 @@
+name: 機能
+description: 受け入れシナリオの一まとまりを実装する
+labels: [feature]
+body:
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: 何の要件か。振る舞いの言葉で書く
+    validations:
+      required: true
+  - type: textarea
+    id: scenarios
+    attributes:
+      label: 受け入れシナリオ
+      description: tasks/loopeng/WebExploratoryQA.featureのScenarioの題名を1行に1つ写す
+      placeholder: |
+        - 判断モデルに送る画面状態はアクセシビリティ情報のテキストで、操作可能要素の一覧を含む
+    validations:
+      required: true
+  - type: textarea
+    id: modules
+    attributes:
+      label: 関わるcrateとモジュール
+      description: docs/architecture.mdのディレクトリ構成にある名前で書く
+      placeholder: webqa-core::guard
+    validations:
+      required: true
+  - type: checkboxes
+    id: done
+    attributes:
+      label: 完了の条件
+      options:
+        - label: '`just check`が緑(カバレッジ100%を含む)'
+        - label: reviewerが合格
