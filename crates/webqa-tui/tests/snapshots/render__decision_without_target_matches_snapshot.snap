@@ -1,0 +1,14 @@
+---
+source: crates/webqa-tui/tests/render.rs
+expression: terminal.backend()
+---
+"┌webqa─────────────────────────────────────────────────────┐"
+"│mode     -                                                │"
+"│step     2                                                │"
+"│decided  back                                             │"
+"│changed  0                                                │"
+"│finished -                                                │"
+"│                                                          │"
+"│                                                          │"
+"│                                                          │"
+"└──────────────────────────────────────────────────────────┘"

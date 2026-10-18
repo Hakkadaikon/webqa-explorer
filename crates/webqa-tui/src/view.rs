@@ -91,7 +91,7 @@ pub fn render(state: &State, frame: &mut Frame) {
 
 fn rows(state: &State) -> [(&'static str, Option<String>); 5] {
     [
-        ("mode", state.mode.map(mode_name)),
+        ("mode", state.mode.map(|mode| mode.as_str().to_owned())),
         ("step", state.step.map(|step| step.to_string())),
         ("decided", state.decision.as_ref().map(decision_text)),
         ("changed", Some(state.changed_steps.to_string())),
@@ -99,20 +99,12 @@ fn rows(state: &State) -> [(&'static str, Option<String>); 5] {
     ]
 }
 
-fn mode_name(mode: Mode) -> String {
-    // The name comes from the serde derive, as a JSON string.
-    serde_json::to_string(&mode)
-        .unwrap_or_default()
-        .trim_matches('"')
-        .to_owned()
-}
-
 fn decision_text(decision: &Decision) -> String {
-    format!(
-        "{} {}",
-        decision.op,
-        decision.target.as_deref().unwrap_or_default()
-    )
+    [Some(decision.op.as_str()), decision.target.as_deref()]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]
@@ -141,6 +133,24 @@ mod tests {
                 finished: Some("goal_achieved".to_owned()),
             },
             "every line updates its part of the state"
+        );
+    }
+
+    #[test]
+    fn decision_without_target_shows_only_the_op() {
+        let decision = |target: Option<&str>| Decision {
+            op: "back".to_owned(),
+            target: target.map(str::to_owned),
+        };
+        assert_eq!(
+            decision_text(&decision(None)),
+            "back",
+            "no trailing space after the op"
+        );
+        assert_eq!(
+            decision_text(&decision(Some("保存"))),
+            "back 保存",
+            "the target follows the op"
         );
     }
 }
