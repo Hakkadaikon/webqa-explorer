@@ -2,12 +2,12 @@
 
 use webqa_core::issue::{Issue, IssueKind};
 use webqa_core::judge::JudgeError;
-use webqa_core::machine::{Anomaly, ExitReason, Note, Rejection, StuckKind};
+use webqa_core::machine::{Anomaly, ExitReason, Note, Phase, Rejection, StuckKind};
 use webqa_core::redact::Redactor;
 
 use super::candidates::PRICING;
 use super::candidates::pages::AWAY_URL;
-use super::view::{Transition, asks, looks, sleeps};
+use super::view::{Transition, all, asks, looks, sleeps};
 
 /// Something to reach, by name.
 pub struct Row {
@@ -45,7 +45,8 @@ fn effects() -> Vec<Row> {
         effect("sleep", sleeps),
         row("operate on an element", |t| t.target().is_some()),
         row("leave the paywall", |t| {
-            t.touches("back") && t.last == Some(PRICING)
+            let own = t.before.phase() != Phase::Awaiting;
+            all(&[t.touches("back"), t.last == Some(PRICING), own])
         }),
         row("reload", |t| t.touches("reload")),
         row("return", |t| t.touches("return")),

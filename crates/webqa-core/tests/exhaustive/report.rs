@@ -32,6 +32,12 @@ pub mod group {
     pub const MEMORY: usize = 6;
 }
 
+/// How many failures to show the facts of.
+const SHOWN: usize = 3;
+
+/// The number of failures, and the facts that lead to the first ones.
+pub type Broken = (usize, Vec<(&'static str, Trace)>);
+
 /// The facts and the times passed from the start, oldest first.
 pub type Trace = Vec<(Facts, Duration)>;
 
@@ -127,16 +133,28 @@ impl Report {
         passed.zip(choices).filter_map(passed_at).collect()
     }
 
-    /// The broken properties of `group`, with the facts that break them.
-    pub fn broken(&self, group: usize) -> Vec<(&'static str, Trace)> {
-        let failures = self.found.failures.get(group).into_iter().flatten();
-        failures.zip(iter::repeat(self)).map(traced).collect()
+    /// How many properties of `group` broke, with the facts that break
+    /// the first few.
+    pub fn broken(&self, group: usize) -> Broken {
+        let failures = self
+            .found
+            .failures
+            .get(group)
+            .map_or(&[][..], Vec::as_slice);
+        self.shown(failures)
     }
 
-    /// The broken properties of the ended runs, with the facts that break them.
-    pub fn broken_ended(&self) -> Vec<(&'static str, Trace)> {
-        let failures = self.found.ended.iter();
-        failures.zip(iter::repeat(self)).map(traced).collect()
+    /// How many properties of the ended runs broke, with the facts that
+    /// break the first few.
+    pub fn broken_ended(&self) -> Broken {
+        self.shown(&self.found.ended)
+    }
+
+    /// The count, and the facts of the first [`SHOWN`]. The search is
+    /// breadth-first, so they are among the shortest.
+    fn shown(&self, failures: &[(&'static str, Path)]) -> Broken {
+        let first = failures.iter().take(SHOWN).zip(iter::repeat(self));
+        (failures.len(), first.map(traced).collect())
     }
 
     /// The rows not reached.

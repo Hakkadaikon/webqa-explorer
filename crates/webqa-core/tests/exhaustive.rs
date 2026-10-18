@@ -1,7 +1,9 @@
-//! The state machine searched through with small constants: every state
-//! reached from the start, by every fitting fact at every later time.
+//! The state machine searched through with small constants: from the
+//! start, every fitting fact at every later time is passed to every state
+//! reached, telling states apart by a key of what decides the next steps.
 //!
-//! A failure shows the facts and times passed from the start.
+//! A failure shows how many transitions broke the property, and the facts
+//! and times passed from the start to the first few.
 
 #[path = "exhaustive/absorb.rs"]
 mod absorb;
@@ -26,11 +28,11 @@ mod walk;
 
 use webqa_core::machine::step;
 
-use report::{Trace, group, traced};
+use report::{Broken, group, traced};
 use walk::{MAX, knows, report, started};
 
 /// No failures.
-const NONE: Vec<(&str, Trace)> = Vec::new();
+const NONE: Broken = (0, Vec::new());
 
 #[test]
 fn finished_is_absorbing() {
