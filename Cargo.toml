@@ -15,6 +15,7 @@ webqa-judge = { path = "crates/webqa-judge", version = "0.1.0" }
 webqa-tui = { path = "crates/webqa-tui", version = "0.1.0" }
 # External crates, checked on crates.io (docs/architecture.md). A crate
 # adds `<name>.workspace = true` when it first uses one.
+base64 = "0.23.1"
 clap = "4.6.7"
 crossterm = "0.29.0"
 cucumber = "0.23.0"
