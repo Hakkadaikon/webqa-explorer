@@ -1,11 +1,14 @@
 //! Observations after an effect: leaving a paywall, the counters after a
 //! touch, and the first observation.
 
+use std::collections::BTreeSet;
+
+use crate::explore::{ElementOp, Memory};
 use crate::machine::testing::{
-    answer, asking, away, below, counts, inside, pricing, rules, secs, showed, started, told, top,
-    touch, with,
+    answer, asking, away, below, counts, id, inside, pricing, rules, secs, seen, showed, started,
+    told, top, touch, with,
 };
-use crate::machine::{ExitReason, Rules, State, Step, StuckKind};
+use crate::machine::{ExitReason, Rules, State, Step, StuckKind, start};
 use crate::screen::Screen;
 
 /// Started on the paywall under `rules`: leaves with `op` without asking.
@@ -83,6 +86,27 @@ fn touch_observation_updates_counters() {
     assert_eq!(up, (0, 1), "changed, nothing new");
     let (_, again) = after(&state, "scroll_down", None, &scrolled());
     assert_eq!(again, (0, 2), "seen before");
+}
+
+/// Scrolls `role` `name` from below the viewport into it, starting with
+/// `memory`, and returns the counts.
+fn scrolling_in(role: &str, name: &str, memory: Memory) -> (u32, u32) {
+    let hidden = with(top(), below(role, name));
+    let asked = start(seen(&hidden), rules(), memory, secs(0));
+    let shown = with(top(), inside(role, name));
+    after(asked.state(), "scroll_down", None, &shown).1
+}
+
+#[test]
+fn revealing_forbidden_or_operated_is_no_progress() {
+    let forbidden = scrolling_in("button", "退会", Memory::default());
+    assert_eq!(forbidden, (0, 1), "only a forbidden element shows");
+    let mut memory = Memory::default();
+    let at = memory.visit(&seen(&first()).screen, &BTreeSet::new());
+    let notice = id("link", "通知設定", 0);
+    memory.record(at, &notice, ElementOp::Click, at);
+    let operated = scrolling_in("link", "通知設定", memory);
+    assert_eq!(operated, (0, 1), "only an operated element shows");
 }
 
 #[test]
