@@ -305,7 +305,7 @@ T-112 は、探索モードで使う操作種別に click も input も無い(do
 - [x] T-111 WebExploratoryQA.feature:455(決め打ちシナリオの段階) [state] 「段階を進めた時点で次の段階の done_when も満たしていれば、操作せずにさらに進む」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `advance_into_met_stage_moves_on_without_ops` / issue: #13
 - [x] T-112 WebExploratoryQA.feature:817(設定と外部境界) [unwanted] 「探索モードで使う操作種別に click も input も無ければ設定エラーにする」(Examples の各行を1ケースとする)
-      → 手法: ネガティブテスト(process-static)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate::check` の `explore_mode_needs_click_or_input`(設定とモードを引数に取る関数)、実行ファイル `webqa/tests/cli.rs` の `explore_without_click_or_input_exits_two` / issue: #3
+      → 手法: ネガティブテスト(process-static)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate::check` の `explore_mode_needs_click_or_input`(設定とモードを引数に取る関数)、実行ファイル `webqa/tests/cli.rs` の `explore_without_click_or_input_exits_two` / issue: #17、#14
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
@@ -426,7 +426,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-109 | boundary | 境界値分析(blackbox-partition)、同値分割(blackbox-partition) | `empty_explorable_goal_after_first_question` | #13 | [x] | [ ] | 要 |
 | T-110 | event | 状態遷移テスト(blackbox-state)、デシジョンテーブル(blackbox-partition) | `start_with_done_when_met_moves_on_without_ops` | #13 | [x] | [ ] | 要 |
 | T-111 | state | 状態遷移テスト(blackbox-state) | `advance_into_met_stage_moves_on_without_ops` | #13 | [x] | [ ] | 要 |
-| T-112 | unwanted | ネガティブテスト(process-static)、同値分割(blackbox-partition) | `explore_mode_needs_click_or_input`、`explore_without_click_or_input_exits_two` | #3 | [x] | [ ] | 要 |
+| T-112 | unwanted | ネガティブテスト(process-static)、同値分割(blackbox-partition) | `explore_mode_needs_click_or_input`、`explore_without_click_or_input_exits_two` | #17、#14 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
