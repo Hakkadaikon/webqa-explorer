@@ -2,3 +2,9 @@
 tasks/loopeng/states/
 tasks/loopeng/*_TTrace_*.tla
 tasks/loopeng/*_TTrace_*.bin
+
+# Tools installed by aqua, Rust build output, coverage and mutation reports
+.aqua/
+target/
+lcov.info
+mutants.out*/

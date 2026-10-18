@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/registry.json
+# Tools missing from the standard aqua registry. Their releases ship no
+# checksum file; aqua-checksums.json pins them instead.
+packages:
+  - type: github_release
+    repo_owner: sourcefrog
+    repo_name: cargo-mutants
+    description: Mutation testing for Rust
+    asset: cargo-mutants-{{.Arch}}-{{.OS}}.tar.gz
+    files:
+      - name: cargo-mutants
+    replacements:
+      amd64: x86_64
+      linux: unknown-linux-gnu
+      darwin: apple-darwin
+    rosetta2: true
+    supported_envs:
+      - linux/amd64
+      - darwin
+  - type: github_release
+    repo_owner: mozilla
+    repo_name: rust-code-analysis
+    description: Source code metrics (cyclomatic, cognitive, Halstead, MI)
+    # Only a Linux x86_64 CLI is released; elsewhere run
+    # `cargo install rust-code-analysis-cli --version 0.0.25`.
+    asset: rust-code-analysis-linux-cli-x86_64.tar.gz
+    files:
+      - name: rust-code-analysis-cli
+    supported_envs:
+      - linux/amd64
