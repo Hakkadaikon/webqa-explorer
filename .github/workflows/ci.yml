@@ -24,7 +24,7 @@ jobs:
           echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
           "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
           "$AQUA_ROOT_DIR/bin/aqua" install
-          "$AQUA_ROOT_DIR/bin/npm" ci --prefix .config/npm --no-fund --no-audit
+          PATH="$AQUA_ROOT_DIR/bin:$PATH" npm ci --prefix .config/npm --no-fund --no-audit
           echo "$GITHUB_WORKSPACE/.config/npm/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Format, lint, metrics and tests with 100% coverage
         run: just check
@@ -44,7 +44,7 @@ jobs:
           echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
           "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
           "$AQUA_ROOT_DIR/bin/aqua" install
-          "$AQUA_ROOT_DIR/bin/npm" ci --prefix .config/npm --no-fund --no-audit
+          PATH="$AQUA_ROOT_DIR/bin:$PATH" npm ci --prefix .config/npm --no-fund --no-audit
           echo "$GITHUB_WORKSPACE/.config/npm/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Commit messages
         env:
