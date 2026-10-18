@@ -68,7 +68,7 @@ const REMOVED: [(&[&str], &str); 6] = [
 ];
 
 /// Documents with a blank value, with the message expected.
-fn blank_values() -> [(String, &'static str); 5] {
+fn blank_values() -> [(String, &'static str); 6] {
     [
         (
             PERSONA.replacen(
@@ -91,6 +91,10 @@ fn blank_values() -> [(String, &'static str); 5] {
                 "{}avoids: [\"URL を手で打たない\", \" \"]\n",
                 without(&["avoids:", "  - "])
             ),
+            "persona.avoids を書く",
+        ),
+        (
+            PERSONA.replacen("  - 開発者ツールを開かない", "  - ", 1),
             "persona.avoids を書く",
         ),
         (String::new(), "persona.name を書く"),

@@ -36,16 +36,16 @@ fn push(
     Ok(checked)
 }
 
+/// The screen purpose at the 1-based position `n`. A null value counts as
+/// an empty string.
 fn item(n: usize, screen: RawScreen) -> Result<ScreenPurpose, InterviewError> {
-    let pattern = UrlPattern::parse(&screen.url).ok_or(InterviewError::UrlPattern(n))?;
-    if is_blank(&screen.purpose) {
-        Err(InterviewError::BlankScreenPurpose(n))
-    } else {
-        Ok(ScreenPurpose {
-            pattern,
-            purpose: screen.purpose,
-        })
-    }
+    let url = screen.url.unwrap_or_default();
+    let pattern = UrlPattern::parse(&url).ok_or(InterviewError::UrlPattern(n))?;
+    let purpose = screen
+        .purpose
+        .filter(|purpose| !is_blank(purpose))
+        .ok_or(InterviewError::BlankScreenPurpose(n))?;
+    Ok(ScreenPurpose { pattern, purpose })
 }
 
 /// No earlier screen purpose has the same pattern.

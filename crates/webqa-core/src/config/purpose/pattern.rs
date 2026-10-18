@@ -77,9 +77,16 @@ fn segments_well_formed(rest: &str) -> bool {
     rest.split('/').all(segment_well_formed) && !rest.split('/').rev().skip(1).any(str::is_empty)
 }
 
-/// A wildcard is a whole segment, and no segment is `.` or `..`.
+/// A wildcard is a whole segment, and no segment is `.` or `..`, even when
+/// percent-encoded.
 fn segment_well_formed(segment: &str) -> bool {
-    wildcard_is_whole(segment) && !matches!(segment, "." | "..")
+    wildcard_is_whole(segment) && !is_dot(segment)
+}
+
+/// `.` or `..` after decoding `%2e` in either case, as URL parsers do.
+fn is_dot(segment: &str) -> bool {
+    let decoded = segment.to_ascii_lowercase().replace("%2e", ".");
+    matches!(decoded.as_str(), "." | "..")
 }
 
 fn wildcard_is_whole(segment: &str) -> bool {

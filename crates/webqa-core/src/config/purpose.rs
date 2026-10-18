@@ -119,8 +119,10 @@ struct RawPurpose {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RawScreen {
-    url: String,
-    purpose: String,
+    /// A null value reads as `None` and counts as an empty string.
+    url: Option<String>,
+    /// A null value reads as `None` and counts as blank.
+    purpose: Option<String>,
 }
 
 impl RawPurpose {

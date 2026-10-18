@@ -40,7 +40,8 @@ struct RawPersona {
     profile: Option<String>,
     it_literacy: Option<String>,
     wants: Option<String>,
-    avoids: Option<Vec<String>>,
+    /// A null item reads as `None` and counts as blank.
+    avoids: Option<Vec<Option<String>>>,
 }
 
 impl RawPersona {
@@ -76,7 +77,7 @@ impl RawPersona {
             profile: self.profile.unwrap_or_default(),
             it_literacy: self.it_literacy.unwrap_or_default(),
             wants: self.wants.unwrap_or_default(),
-            avoids: self.avoids.unwrap_or_default(),
+            avoids: self.avoids.into_iter().flatten().flatten().collect(),
         }
     }
 }
@@ -86,9 +87,11 @@ fn text_missing(value: Option<&str>) -> bool {
     value.is_none_or(is_blank)
 }
 
-/// Absent, empty, or with a blank item.
-fn list_missing(items: Option<&[String]>) -> bool {
-    items.is_none_or(|items| items.is_empty() || items.iter().map(String::as_str).any(is_blank))
+/// Absent, empty, or with a null or blank item.
+fn list_missing(items: Option<&[Option<String>]>) -> bool {
+    items.is_none_or(|items| {
+        items.is_empty() || items.iter().map(Option::as_deref).any(text_missing)
+    })
 }
 
 #[cfg(test)]

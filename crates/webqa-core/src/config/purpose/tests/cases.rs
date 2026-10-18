@@ -33,8 +33,9 @@ pub const WITHOUT_DECLARATIONS: [(&str, &str); 11] = [
     ("# メモだけ\n", "purpose に done_when か screens を書く"),
 ];
 
-/// URL patterns that are malformed.
-pub const BAD_PATTERNS: [&str; 16] = [
+/// URL patterns that are malformed, as written between double quotes in
+/// YAML.
+pub const BAD_PATTERNS: [&str; 22] = [
     "/products/[",
     "/products/]",
     "",
@@ -51,6 +52,24 @@ pub const BAD_PATTERNS: [&str; 16] = [
     "/a b",
     "/a{b}",
     "/a\\\\b",
+    "/a\\u0001b",
+    "/a{b",
+    "/a}b",
+    "/a/%2e/b",
+    "/a/%2E%2E/b",
+    "/a/.%2e/b",
+];
+
+/// Screen purposes with a null value, with the message expected.
+pub const NULL_ITEMS: [(&str, &str); 2] = [
+    (
+        "screens:\n  - url: /a\n    purpose:\n",
+        "purpose.screens の 1 番目の purpose を書く",
+    ),
+    (
+        "screens:\n  - url:\n    purpose: 見る\n",
+        "purpose.screens の 1 番目の url の型が書式に合わない",
+    ),
 ];
 
 /// URL patterns that are well formed.

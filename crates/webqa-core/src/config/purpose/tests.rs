@@ -8,7 +8,7 @@ use super::*;
 use crate::config::interview::tests::{config_with, load_with};
 use crate::config::persona::tests::PERSONA;
 use crate::config::raw::tests::changed;
-use cases::{BAD_PATTERNS, GOOD_PATTERNS, MATCHES, WITHOUT_DECLARATIONS};
+use cases::{BAD_PATTERNS, GOOD_PATTERNS, MATCHES, NULL_ITEMS, WITHOUT_DECLARATIONS};
 
 /// A valid purpose document.
 pub const PURPOSE: &str = "goal: 注文を確定できる画面まで進む
@@ -131,6 +131,7 @@ fn malformed_url_pattern_rejected() {
         "second"
     );
     assert!(!second.contains("/products/["), "no pattern in {second}");
+    assert_eq!(UrlPattern::parse("/a\u{1}b"), None, "control character");
     accepts_good_patterns();
 }
 
@@ -159,6 +160,9 @@ fn screen_purpose_items_checked() {
     }
     let distinct = parse(&with_screens(&["/products/*", "/products/"])).unwrap();
     assert_eq!(distinct.screens.len(), 2, "trailing slash differs");
+    for (text, want) in NULL_ITEMS {
+        assert_eq!(rejected(text), want, "{text:?}");
+    }
 }
 
 /// Whether `pattern` matches the path `path` of the test origin.
