@@ -48,8 +48,14 @@ worktreeはそれぞれ丸ごとビルドするので、立てる前、立てた
 - briefで参照するのは、worktreeの中から読めるファイルだけにする。
   設計の文書が未コミットなら、先にコミットしてからworktreeを立てる。
 - 立てたあと、worktreeの中で最初に`just worktree-tools`を実行させる。
-- 終わったworktreeは、`cargo clean`でビルドの成果物を片づける。
-  コミットはブランチに残る。
+- ビルドの成果物は、`just`を通すと本体のcheckoutの`target/`に置かれる。
+  依存は1回のビルドで使い回され、cargoのロックで同時のビルドは1本ずつになる。
+  `cargo`を直接叩くときは、`CARGO_TARGET_DIR`に同じ場所を渡す。
+  共有しているので、worktreeの片づけに`cargo clean`は使わない。
+- メモリが少ないマシンでは、担当に`CARGO_BUILD_JOBS=2`を渡す。
+- TDDの途中は、触っているモジュールのテストだけを回す。
+  例えば`cargo test -p webqa-core screen`のようにする。
+  カバレッジの計測とmutationは、コミットの前に1回だけ回す。
 
 ## 格上げの規則
 
