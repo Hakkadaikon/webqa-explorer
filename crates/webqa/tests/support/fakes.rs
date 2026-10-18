@@ -58,7 +58,8 @@ pub fn rules(ops: &[Op], limits: Limits, allowed: Vec<AllowedOrigin>) -> Rules {
 
 /// A page at `url` with the (role, name) elements stacked from the top of the
 /// viewport, 20px apart. Element `n` (from 1) has the ref `e<n>`, no link and
-/// no form; the page has no paywall facts and no console errors.
+/// no form; the page has no paywall facts and no console errors. The whole
+/// page is the same elements, and its text their names, one per line.
 pub fn page(url: &Url, elements: &[(&str, &str)]) -> Observation {
     let elements: Vec<Element> = elements
         .iter()
@@ -76,12 +77,21 @@ pub fn page(url: &Url, elements: &[(&str, &str)]) -> Observation {
             hits: Vec::new(),
         },
         console: Vec::new(),
+        outline: elements.clone(),
+        text: plain_text(&elements),
         screen: Screen {
             url: url.clone(),
             elements,
         },
         viewport: VIEWPORT,
     }
+}
+
+/// The names of `elements` in page order, one per line, as the text of the
+/// whole page.
+fn plain_text(elements: &[Element]) -> String {
+    let names: Vec<&str> = elements.iter().map(|e| e.name.as_str()).collect();
+    names.join("\n")
 }
 
 fn node((e, n): (&Element, usize)) -> Node {

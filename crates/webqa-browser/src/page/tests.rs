@@ -4,7 +4,7 @@ use url::Url;
 use webqa_core::guard::forbidden::Candidate;
 use webqa_core::guard::identity::Node;
 use webqa_core::guard::paywall::PaywallFacts;
-use webqa_core::screen::Viewport;
+use webqa_core::screen::{Element, Rect, Viewport};
 
 use super::*;
 use crate::snapshot::parse;
@@ -68,7 +68,14 @@ fn observed(skip: &str) -> Observation {
         })
         .collect();
     let console = vec!["TypeError: x".to_owned()];
-    assemble(home(), VIEW, probed, snapshot.headings, console)
+    assemble(
+        home(),
+        VIEW,
+        probed,
+        snapshot.headings,
+        console,
+        String::new(),
+    )
 }
 
 fn node(role: &str, name: &str, node: &str) -> Node {
@@ -190,4 +197,88 @@ fn candidates_and_nodes_carry_each_element() {
         },
     ];
     assert_eq!(o.candidates, candidates, "each probe on its own element");
+}
+
+/// An element of `role` and `name` without a box.
+fn element(role: &str, name: &str, rect: Option<Rect>) -> Element {
+    Element {
+        role: role.to_owned(),
+        name: name.to_owned(),
+        value: None,
+        rect,
+    }
+}
+
+/// The element of `node`, probed.
+fn probed(role: &str, name: &str, node: &str) -> (Entry, Probe) {
+    let entry = Entry {
+        element: element(role, name, None),
+        node: node.to_owned(),
+        in_dialog: false,
+    };
+    (entry, probe_of(node))
+}
+
+fn heading(name: &str, rect: Option<Rect>) -> Heading {
+    Heading {
+        name: name.to_owned(),
+        rect,
+    }
+}
+
+/// The whole page of `entries` and `headings` with the text `text`.
+fn whole(entries: Vec<(Entry, Probe)>, headings: Vec<Heading>, text: &str) -> Observation {
+    assemble(home(), VIEW, entries, headings, Vec::new(), text.to_owned())
+}
+
+#[test]
+fn assemble_lists_whole_page() {
+    let far = Some(Rect {
+        x: 0,
+        y: 1200,
+        width: 100,
+        height: 20,
+    });
+    let entries = vec![
+        probed("button", "保存", "e2"),
+        probed("link", "ヘルプ", "e3"),
+    ];
+    let headings = vec![heading("ようこそ", far), heading("お知らせ", None)];
+    let o = whole(entries, headings, "本文");
+    let outline = vec![
+        element("button", "保存", None),
+        element("link", "ヘルプ", None),
+        element("heading", "ようこそ", far),
+        element("heading", "お知らせ", None),
+    ];
+    assert_eq!(
+        (o.outline, o.text),
+        (outline, "本文".to_owned()),
+        "the operable elements, then the headings, and the text"
+    );
+    let empty = whole(Vec::new(), Vec::new(), "");
+    assert_eq!(
+        (empty.outline, empty.text),
+        (Vec::new(), String::new()),
+        "nothing on the page"
+    );
+    skipped_leaves_outline();
+}
+
+/// The element whose probe failed is not in the outline either.
+fn skipped_leaves_outline() {
+    let names: Vec<String> = observed("e4")
+        .outline
+        .into_iter()
+        .map(|e| format!("{} {}", e.role, e.name))
+        .collect();
+    let want = [
+        "textbox メール",
+        "link 設定",
+        "button ",
+        "button 閉じる",
+        "button 閉じる",
+        "heading 見出し 1",
+    ];
+    assert_eq!(names, want, "no 同意, the heading last");
 }

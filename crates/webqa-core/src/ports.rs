@@ -12,9 +12,9 @@ use crate::effect::Touch;
 use crate::guard::forbidden::Candidate;
 use crate::guard::identity::Node;
 use crate::guard::paywall::PaywallFacts;
-use crate::judge::{Answers, JudgeError, Question};
+use crate::judge::{Answers, Image, JudgeError, Question};
 use crate::redact::Redacted;
-use crate::screen::{Screen, ScreenText, Viewport};
+use crate::screen::{Element, Screen, ScreenText, Viewport};
 
 /// A future a port returns.
 pub type Pending<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
@@ -23,7 +23,7 @@ pub type Pending<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 ///
 /// `screen.elements`, `nodes` and `candidates` have the same length, and the
 /// same index points at the same element. `Debug` shows only how many entries
-/// the lists have.
+/// the lists have, and leaves out `text`.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Observation {
     /// The page. `screen.url` is the final URL, after any redirect.
@@ -38,6 +38,11 @@ pub struct Observation {
     pub paywall: PaywallFacts,
     /// Console errors since the previous observation, as the page wrote them.
     pub console: Vec<String>,
+    /// Every element of the whole page for `done_when`, operable or not: the
+    /// operable elements in page order, then the headings in page order.
+    pub outline: Vec<Element>,
+    /// The text of the whole page, as the `innerText` of `body`, for `done_when`.
+    pub text: String,
 }
 
 impl fmt::Debug for Observation {
@@ -48,6 +53,7 @@ impl fmt::Debug for Observation {
             .field("nodes", &self.nodes.len())
             .field("candidates", &self.candidates.len())
             .field("console", &self.console.len())
+            .field("outline", &self.outline.len())
             .finish_non_exhaustive()
     }
 }
@@ -70,6 +76,26 @@ pub trait Judge: Send {
         screen: &'a Redacted<ScreenText>,
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>>;
+
+    /// Whether this judge reads images, as it declared when it started.
+    /// It does not change while the judge runs. A judge that declares
+    /// nothing reads no images.
+    fn reads_images(&self) -> bool {
+        false
+    }
+
+    /// Answers the questions about the screen and its screenshot. A judge
+    /// that reads no images answers from the screen alone and sends the
+    /// image nowhere.
+    fn ask_with_image<'a>(
+        &'a mut self,
+        screen: &'a Redacted<ScreenText>,
+        image: &'a Image,
+        questions: &'a [Question],
+    ) -> Pending<'a, Result<Answers, JudgeError>> {
+        let _ = image;
+        self.ask(screen, questions)
+    }
 }
 
 /// The browser.
@@ -101,8 +127,13 @@ pub trait Store: Send {
 
 #[cfg(test)]
 mod tests {
+    use std::future;
+    use std::task::{Context, Poll, Waker};
+
     use super::*;
-    use crate::screen::Element;
+    use crate::judge::{ImageFormat, Usage};
+    use crate::redact::Redactor;
+    use crate::screen::screen_text;
 
     #[test]
     fn error_messages_carry_no_value() {
@@ -116,19 +147,23 @@ mod tests {
         );
     }
 
-    #[test]
-    fn observation_debug_hides_page_strings() {
-        let url = url::Url::parse("https://app.example.test/home?token=abc123").unwrap();
-        let element = Element {
+    fn named(name: &str) -> Element {
+        Element {
             role: "button".to_owned(),
-            name: "山田太郎".to_owned(),
+            name: name.to_owned(),
             value: None,
             rect: None,
-        };
-        let observation = Observation {
+        }
+    }
+
+    /// A page of one button "山田太郎" with `text`, its query and console
+    /// holding `token=abc123`.
+    fn observation(text: &str) -> Observation {
+        let url = url::Url::parse("https://app.example.test/home?token=abc123").unwrap();
+        Observation {
             screen: Screen {
                 url: url.clone(),
-                elements: vec![element],
+                elements: vec![named("山田太郎")],
             },
             viewport: Viewport {
                 width: 800,
@@ -144,13 +179,88 @@ mod tests {
                 hits: Vec::new(),
             },
             console: vec!["token=abc123".to_owned()],
-        };
+            outline: vec![named("山田太郎"), named("お知らせ")],
+            text: text.to_owned(),
+        }
+    }
+
+    #[test]
+    fn observation_debug_hides_page_strings() {
         assert_eq!(
-            format!("{observation:?}"),
+            format!("{:?}", observation("")),
             "Observation { screen: Screen { path: \"/home\", elements: 1 }, \
              viewport: Viewport { width: 800, height: 600 }, \
-             nodes: 0, candidates: 0, console: 1, .. }",
+             nodes: 0, candidates: 0, console: 1, outline: 2, .. }",
             "only the path and the counts, without names, query or console text"
         );
+    }
+
+    #[test]
+    fn observation_debug_hides_text() {
+        let shown = format!("{:?}", observation("山田太郎さん"));
+        assert_eq!(
+            (shown.contains("山田太郎"), shown.contains("outline: 2")),
+            (false, true),
+            "the count of the outline, without the text or its length: {shown}"
+        );
+        assert_eq!(
+            shown,
+            format!("{:?}", observation("")),
+            "the text leaves no trace"
+        );
+    }
+
+    /// Implements `ask` only, and counts its calls.
+    struct AskOnly(u32);
+
+    impl Judge for AskOnly {
+        fn ask<'a>(
+            &'a mut self,
+            _screen: &'a Redacted<ScreenText>,
+            _questions: &'a [Question],
+        ) -> Pending<'a, Result<Answers, JudgeError>> {
+            self.0 += 1;
+            let usage = Usage {
+                input_tokens: 7,
+                output_tokens: 0,
+            };
+            Box::pin(future::ready(Ok(Answers {
+                usage,
+                ..Answers::default()
+            })))
+        }
+    }
+
+    /// Polls the future once, with a waker that does nothing.
+    fn poll_once<T>(mut pending: Pending<'_, T>) -> Poll<T> {
+        pending
+            .as_mut()
+            .poll(&mut Context::from_waker(Waker::noop()))
+    }
+
+    fn empty_screen() -> Redacted<ScreenText> {
+        let screen = Screen {
+            url: url::Url::parse("https://app.example.test/").unwrap(),
+            elements: Vec::new(),
+        };
+        let viewport = Viewport {
+            width: 800,
+            height: 600,
+        };
+        screen_text(&Redactor::default().screen(screen), viewport)
+    }
+
+    #[test]
+    fn judge_without_declaration_reads_no_images() {
+        let text = empty_screen();
+        let png4 = Image::new(ImageFormat::Png, vec![0x89, b'P', b'N', b'G']);
+        let mut judge = AskOnly(0);
+        assert!(!judge.reads_images(), "declares nothing, reads no images");
+        let plain = poll_once(judge.ask(&text, &[]));
+        let with_image = poll_once(judge.ask_with_image(&text, &png4, &[]));
+        assert_eq!(with_image, plain, "the same answers as ask");
+        let tokens = with_image.map(|answers| answers.map(|a| a.usage.input_tokens));
+        assert_eq!(tokens, Poll::Ready(Ok(7)), "the answers of ask");
+        assert_eq!(judge.0, 2, "ask_with_image calls ask once");
     }
 }

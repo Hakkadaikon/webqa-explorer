@@ -5,10 +5,14 @@
 //! the element to operate on from the ranked answer.
 
 mod ask;
+#[cfg(test)]
+mod explore_tests;
+mod image;
 mod target;
 mod verdict;
 
 pub use ask::{Ask, MAX_OPTIONS, op_name, questions};
+pub use image::{Image, ImageFormat};
 pub use target::pick_target;
 pub use verdict::{Unusable, Verdict, read_answers};
 
@@ -88,6 +92,13 @@ pub enum Question {
         /// Level descriptions, lowest first (2 to 10).
         levels: Vec<String>,
     },
+    /// A question answered with free text, such as what the user expected.
+    Text {
+        /// Names the question.
+        id: QuestionId,
+        /// What to ask.
+        prompt: String,
+    },
 }
 
 impl Question {
@@ -95,7 +106,10 @@ impl Question {
     #[must_use]
     pub const fn id(&self) -> &QuestionId {
         match self {
-            Self::Noul { id, .. } | Self::Choice { id, .. } | Self::Score { id, .. } => id,
+            Self::Noul { id, .. }
+            | Self::Choice { id, .. }
+            | Self::Score { id, .. }
+            | Self::Text { id, .. } => id,
         }
     }
 }
@@ -132,6 +146,16 @@ impl Answers {
             .map(borrowed)
             .filter(has_probability)
             .reduce(likelier)
+    }
+
+    /// The free-text answer to `id`: the one option written for it.
+    ///
+    /// `None` when the question has no answer, or when the answer has no
+    /// option or more than one. The probability is not read.
+    #[must_use]
+    pub fn text(&self, id: &QuestionId) -> Option<&str> {
+        let (first, rest) = self.table.get(id)?.split_first()?;
+        rest.is_empty().then_some(first.0.as_str())
     }
 }
 
@@ -188,151 +212,4 @@ pub fn step_questions(ops: &[String], elements: usize) -> Vec<Question> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn answers(id: &QuestionId, table: &[(&str, f64)]) -> Answers {
-        Answers {
-            table: BTreeMap::from([(
-                id.clone(),
-                table.iter().map(|(o, p)| ((*o).to_owned(), *p)).collect(),
-            )]),
-            usage: Usage::default(),
-        }
-    }
-
-    #[test]
-    fn best_is_the_most_probable_option() {
-        let id = QuestionId::operation();
-        let answers = answers(&id, &[("click", 0.2), ("back", 0.7), ("wait", 0.1)]);
-        assert_eq!(
-            answers.best(&id),
-            Some(("back", 0.7)),
-            "the option with the highest probability"
-        );
-    }
-
-    #[test]
-    fn best_skips_missing_probabilities() {
-        let id = QuestionId::operation();
-        let answers = answers(
-            &id,
-            &[("click", f64::NAN), ("back", 0.2), ("wait", f64::NAN)],
-        );
-        assert_eq!(
-            answers.best(&id),
-            Some(("back", 0.2)),
-            "NaN is not a probability"
-        );
-    }
-
-    #[test]
-    fn best_is_none_when_every_probability_is_missing() {
-        let id = QuestionId::operation();
-        let answers = answers(&id, &[("click", f64::NAN), ("back", f64::NAN)]);
-        assert_eq!(answers.best(&id), None, "no probability, no best");
-    }
-
-    #[test]
-    fn best_keeps_the_earlier_option_on_a_tie() {
-        let id = QuestionId::operation();
-        let answers = answers(&id, &[("wait", 0.1), ("click", 0.45), ("back", 0.45)]);
-        assert_eq!(
-            answers.best(&id),
-            Some(("click", 0.45)),
-            "the first of the tied"
-        );
-    }
-
-    #[test]
-    fn best_is_none_without_an_answer() {
-        let id = QuestionId::operation();
-        assert_eq!(answers(&id, &[]).best(&id), None, "no option, no best");
-        assert_eq!(
-            answers(&id, &[("click", 1.0)]).best(&QuestionId::target()),
-            None,
-            "another question has no answer"
-        );
-    }
-
-    #[test]
-    fn every_question_tells_its_id() {
-        let id = QuestionId::new("error_shown");
-        let prompt = "?".to_owned();
-        for question in [
-            Question::Noul {
-                id: id.clone(),
-                prompt: prompt.clone(),
-            },
-            Question::Choice {
-                id: id.clone(),
-                prompt: prompt.clone(),
-                options: Vec::new(),
-            },
-            Question::Score {
-                id: id.clone(),
-                prompt,
-                levels: Vec::new(),
-            },
-        ] {
-            assert_eq!(question.id(), &id, "the id the question was built with");
-        }
-        assert_eq!(id.as_str(), "error_shown", "the name it was built from");
-    }
-
-    #[test]
-    fn step_asks_the_operation_and_the_element_number() {
-        let ops = vec!["click".to_owned(), "back".to_owned()];
-        assert_eq!(
-            step_questions(&ops, 2),
-            vec![
-                Question::Choice {
-                    id: QuestionId::operation(),
-                    prompt: "次に行う操作の種別を選ぶ".to_owned(),
-                    options: ops.clone(),
-                },
-                Question::Choice {
-                    id: QuestionId::target(),
-                    prompt: "操作する要素の番号を選ぶ".to_owned(),
-                    options: vec!["1".to_owned(), "2".to_owned()],
-                },
-            ],
-            "one choice of the operation, one of the element numbers"
-        );
-    }
-
-    #[test]
-    fn step_without_elements_offers_no_element_number() {
-        let questions = step_questions(&["back".to_owned()], 0);
-        assert_eq!(
-            questions.get(1),
-            Some(&Question::Choice {
-                id: QuestionId::target(),
-                prompt: "操作する要素の番号を選ぶ".to_owned(),
-                options: Vec::new(),
-            }),
-            "no element, no number to choose"
-        );
-    }
-
-    #[test]
-    fn judge_error_message_carries_no_value() {
-        assert_eq!(
-            JudgeError::Exhausted.to_string(),
-            "判断モデルの答えが尽きた",
-            "a fixed message"
-        );
-    }
-
-    #[test]
-    fn question_ids_are_named() {
-        assert_eq!(
-            (
-                QuestionId::operation().as_str(),
-                QuestionId::target().as_str()
-            ),
-            ("operation", "target"),
-            "the names sent to the judge"
-        );
-    }
-}
+mod tests;

@@ -88,7 +88,7 @@ pub struct Observation {
 
 探索モードのゴールの、記憶の側(`Memory::untouched_reachable(開始の画面)` が偽か)を確かめる。問い合わせの回数と組み合わせる判定は `plan` の T-108、T-109 が持つ。画面の作り方は `graph/tests.rs` の補助(`buttons`、`page`、`shown`、`below`、`NONE`)を使う。
 
-7. `all_explored_except_forbidden_is_finished`(T-081): "トップ" `/`(`button "保存"`、`link "ヘルプ"`)と "設定" `/settings`(`button "通知"`)。`record(トップ, 保存, Click, 設定)`、`record(トップ, ヘルプ, Click, トップ)`、`record(設定, 通知, Click, 設定)` のあと、`untouched_reachable(トップ)` は偽、`finished(トップ, 保存)` と `finished(トップ, ヘルプ)` は真。
+7. `all_explored_except_forbidden_is_finished`(T-081): "トップ" `/`(`button "保存"`、`link "ヘルプ"`、`button "退会"`。禁止 `{2}` で `visit`)と "設定" `/settings`(`button "通知"`)。`record(トップ, 保存, Click, 設定)`、`record(トップ, ヘルプ, Click, トップ)`、`record(設定, 通知, Click, 設定)` のあと、`untouched_reachable(トップ)` は偽、`finished(トップ, 保存)` と `finished(トップ, ヘルプ)` は真、`is_operated(トップ, 退会)` は偽(禁止の要素が操作されないままでも探索し終えている)。8 と 9 の "トップ" は、`button "退会"` の無い `button "保存"`、`link "ヘルプ"` だけの画面にする。
 8. `only_forbidden_left_is_finished`(T-082): 7 の "設定" を `button "通知"`、`button "退会"`(禁止 `{1}` で `visit`)にし、"通知" だけ操作済みにすると、`untouched_reachable(トップ)` は偽、`is_operated(設定, 退会)` は偽。
 9. `untouched_on_other_screen_blocks_finished`(T-083): 7 から `record(設定, 通知, …)` を外すと、`untouched_reachable(トップ)` は真、`finished(トップ, 保存)` は偽、`finished(トップ, ヘルプ)` は真。表示領域の外にだけ未操作の要素(`below("link", "通知設定")`)がある "トップ" でも、`untouched_reachable(トップ)` は真。
 

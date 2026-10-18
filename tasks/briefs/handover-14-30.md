@@ -27,3 +27,7 @@
 - `limits.max_duration_secs` を `Option<Duration>` にし、実行全体の窓を `RequestWindow::new(interview.requests_per_hour)` で作る(#26 の brief)。
 - 初期化のコマンドの子に渡す環境変数から、API キーの値を除く(`std::env::vars_os()` と `[api_key.expose()]` を渡す。#28)。
 - #18 の `Reset` の `Debug` は引数を出す。ログに `{:?}` で書かない。直すかは別に決める。
+- 中核の状態機械が、インタビューのモードでは `interview::ask` と `interview::answer`(#20)で問いを組み立て、答えを読むようにつなぐ。12d の候補の絞り込みとの関係もここで決める(#20 の brief)。
+- スクリーンショットをどこから得るかを決める(`ports::Observation` に入れるか、別の効果にするか)。#20 は `shot: Option<&Image>` で受ける(#20、9b の brief)。
+- 判断モデルが自由な文の答え(期待、目的の推測、見えにくい理由)に秘密の値を書き写すことがある。台帳やログに出す前に伏せ字を通す(#20 の brief。#24 とも関わる)。
+- ずれの問いを送るときに `Judge::ask` へ渡す画面の文字列を決める。案は、その URL の型に最初に合った観測の画面(#20 の brief)。
