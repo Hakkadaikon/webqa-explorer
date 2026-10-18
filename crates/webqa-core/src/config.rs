@@ -3,7 +3,10 @@
 //! Reading is split into two steps: [`raw::parse`] reads the YAML into raw
 //! types, and [`validate::validate`] turns them into a checked [`Config`].
 
+pub mod interview;
 mod mode;
+pub mod persona;
+pub mod purpose;
 pub mod raw;
 pub mod validate;
 
@@ -51,6 +54,9 @@ pub enum ConfigError {
     /// Exploring with no operation kind that acts on an element.
     #[error("探索モードでは ops に click か input を1つ以上書く")]
     ExploreNeedsElementOp,
+    /// A problem with the input of an interview run.
+    #[error(transparent)]
+    Interview(#[from] interview::InterviewError),
 }
 
 /// A secret value. Neither `Debug` nor any other formatting shows it.
@@ -92,6 +98,8 @@ pub struct Config {
     pub scenario: Option<Scenario>,
     /// Operation kinds in use. Never empty.
     pub ops: Vec<Op>,
+    /// The interview settings as written, checked only for an interview run.
+    pub interview: Option<interview::RawInterview>,
 }
 
 /// The service under test.
