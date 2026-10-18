@@ -76,44 +76,65 @@ fn mismatched_facts_return_to_idle() {
     mismatched(&sleeping, Facts::Outside(Heard::Woke), &asks);
 }
 
-/// Every exit reason with its JSON.
-fn reasons() -> [(ExitReason, Value); 7] {
+/// Every exit reason with its JSON, whether it is stuck, and the kind.
+fn reasons() -> [(ExitReason, Value, bool, Option<StuckKind>); 7] {
+    let declared = StuckKind::Declared;
+    let no_progress = StuckKind::NoProgress;
     [
-        (ExitReason::GoalAchieved, json!({"reason": "goal_achieved"})),
-        (ExitReason::ReportedDone, json!({"reason": "reported_done"})),
         (
-            ExitReason::Stuck(StuckKind::Declared),
-            json!({"reason": "stuck", "kind": "declared"}),
+            ExitReason::GoalAchieved,
+            json!({"reason": "goal_achieved"}),
+            false,
+            None,
         ),
         (
-            ExitReason::Stuck(StuckKind::NoProgress),
+            ExitReason::ReportedDone,
+            json!({"reason": "reported_done"}),
+            false,
+            None,
+        ),
+        (
+            ExitReason::Stuck(declared),
+            json!({"reason": "stuck", "kind": "declared"}),
+            true,
+            Some(declared),
+        ),
+        (
+            ExitReason::Stuck(no_progress),
             json!({"reason": "stuck", "kind": "no_progress"}),
+            true,
+            Some(no_progress),
         ),
         (
             ExitReason::BudgetExceeded,
             json!({"reason": "budget_exceeded"}),
+            false,
+            None,
         ),
-        (ExitReason::TimeExceeded, json!({"reason": "time_exceeded"})),
-        (ExitReason::UserAborted, json!({"reason": "user_aborted"})),
+        (
+            ExitReason::TimeExceeded,
+            json!({"reason": "time_exceeded"}),
+            false,
+            None,
+        ),
+        (
+            ExitReason::UserAborted,
+            json!({"reason": "user_aborted"}),
+            false,
+            None,
+        ),
     ]
 }
 
 #[test]
 fn exit_reasons_serialize_with_reason_and_kind() {
-    for (reason, value) in reasons() {
+    for (reason, value, stuck, kind) in reasons() {
         assert_eq!(serde_json::to_value(reason).unwrap(), value, "{reason:?}");
         let back: ExitReason = serde_json::from_value(value).unwrap();
         assert_eq!(back, reason, "{reason:?} reads back");
-        let kind = reason.stuck_kind();
-        assert_eq!(
-            reason.is_stuck(),
-            kind.is_some(),
-            "{reason:?} is stuck or not"
-        );
+        assert_eq!(reason.is_stuck(), stuck, "{reason:?} is stuck or not");
+        assert_eq!(reason.stuck_kind(), kind, "{reason:?} has its kind");
     }
-    let declared = ExitReason::Stuck(StuckKind::Declared);
-    assert_eq!(declared.stuck_kind(), Some(StuckKind::Declared), "the kind");
-    assert_eq!(ExitReason::TimeExceeded.stuck_kind(), None, "not stuck");
 }
 
 #[test]
