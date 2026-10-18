@@ -33,3 +33,16 @@ fn back_without_probability_is_low() {
     assert!(is_low(None, 0.7), "no confidence is low");
     assert!(is_low(None, 0.01), "no confidence is low at any threshold");
 }
+
+#[test]
+fn nan_confidence_or_threshold_is_low() {
+    let cases = [
+        (Some(f64::NAN), 0.7, true),
+        (Some(0.9), f64::NAN, true),
+        (Some(f64::NAN), f64::NAN, true),
+        (Some(0.9), 0.7, false),
+    ];
+    for (c, threshold, want) in cases {
+        assert_eq!(is_low(c, threshold), want, "{c:?} {threshold}");
+    }
+}
