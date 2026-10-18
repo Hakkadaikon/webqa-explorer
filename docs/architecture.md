@@ -151,24 +151,25 @@ stateDiagram-v2
 1行は、有効になる条件の関数と、遷移の関数の2つを持つ。
 
 ```rust
-pub(crate) struct Action {
-    pub(crate) name: &'static str,
-    pub(crate) enabled: fn(&State, &Facts) -> bool,
-    pub(crate) fire: fn(State, &Facts) -> Next,
+pub(super) struct Action {
+    pub(super) enabled: fn(&State, &Now) -> bool,
+    pub(super) fire: fn(State, &Now) -> Next,
 }
 
 /// 実行ループへ返すもの。
 pub enum Step {
-    Continue(State, Effect),
+    Continue(Box<State>, Effect),
     Finished(Outcome),
 }
 
 /// 1行の遷移の結果。中核の中だけで使う。
 enum Next {
-    Go(State),
+    Go(Box<State>),
     Out(Step),
 }
 ```
+
+`Now`は、その回の`Facts`と、実行の開始からの経過時間の組である。
 
 表には、外に効果を頼まない行も多い。
 段階を進める行、止める行、応答の異常の行がそうである。
@@ -245,7 +246,7 @@ enum Next {
 実行の行では、その前にカウンタも更新する。
 待機へ戻ったあとは、同じ`Facts`のまま優先順位を上から調べる。
 待機の行が読む画面は、状態に入れた直前の観測である。
-`Facts`から使うのは時刻だけである。
+待機の行が`Facts`から使うものは無く、時刻は`step`の引数で受ける。
 離脱のあとで行き詰まりの回数が閾値に届くことがある。
 そのときは、同じ`core::step`の中で行き詰まりとして終わる。
 
@@ -283,20 +284,25 @@ enum Next {
 ```rust
 async fn run(start: Step, ports: &mut Ports<'_>) -> Result<Outcome, RunError> {
     let mut step = start;
-    while let Step::Continue(state, effect) = step {
-        step = advance(state, effect, ports).await?;
+    loop {
+        match step {
+            Step::Continue(state, effect) => step = advance(*state, effect, ports).await?,
+            Step::Finished(outcome) => return Ok(outcome),
+        }
     }
-    step.into_outcome()
 }
 
 async fn advance(state: State, effect: Effect, ports: &mut Ports<'_>) -> Result<Step, RunError> {
     let facts = ports.perform(effect).await?;
-    Ok(core::step(state, &facts))
+    let now = ports.clock.elapsed();
+    Ok(core::step(state, facts, now))
 }
 ```
 
 `perform`は効果を実行し、結果を`Facts`にして返す。
-`Facts`は時刻のほかに、効果ごとに次のどれかを持つ。
+`Facts`は効果ごとに次のどれかを持つ。
+時刻は`Facts`に入れず、実行の開始からの経過時間を`step`の3つ目の引数で渡す。
+状態と観測は大きいので、`Step::Continue`と`Facts::Page`は`Box`で持つ。
 
 | 効果 | `Facts`に入るもの | 受ける行 |
 |---|---|---|
