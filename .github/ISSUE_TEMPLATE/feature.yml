@@ -1,6 +1,6 @@
 name: 機能
 description: 受け入れシナリオの一まとまりを実装する
-labels: [feature]
+labels: [機能]
 body:
   - type: textarea
     id: background
