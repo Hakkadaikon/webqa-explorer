@@ -77,6 +77,28 @@ fn window_never_goes_back() {
         "a clock going back keeps the window"
     );
     assert_eq!(later.at(secs(10)), later, "an earlier time changes nothing");
+    let back = later.spend(secs(10));
+    assert_eq!(
+        back.index(),
+        1,
+        "spending at an earlier time keeps the window"
+    );
+    assert_eq!(back.used(secs(10)), 2, "and counts in it");
+}
+
+#[test]
+fn spend_counts_from_zero_in_next_window() {
+    let once = RequestWindow::new(cap(2)).spend(secs(10));
+    let next = once.spend(secs(3600));
+    assert_eq!(next.index(), 1, "moved to the next window");
+    assert_eq!(next.used(secs(3600)), 1, "the next window counts from zero");
+
+    let over = RequestWindow::new(cap(2))
+        .spend(secs(10))
+        .spend(secs(10))
+        .spend(secs(10));
+    assert_eq!(over.used(secs(10)), 3, "spend does not stop at the cap");
+    assert!(over.full(secs(10)), "over the cap is still full");
 }
 
 #[test]
