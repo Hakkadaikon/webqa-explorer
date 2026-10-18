@@ -6,6 +6,8 @@ use std::fs;
 use std::future;
 use std::time::Duration;
 
+use tokio::process::Command;
+
 use serde_json::{Value, json};
 use url::{ParseError, Url};
 use webqa_core::judge::{Answers, JudgeError, QuestionId, Usage};
@@ -16,9 +18,14 @@ use webqa_judge::command::{Bridge, CommandJudge};
 
 const SCRIPT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bridge.sh");
 
-/// Each wait takes the next of the script: done at once when `true`, never
-/// done when `false` or when the script has run out.
+/// Each wait takes the next of the script: done at once when `true`, and
+/// done after [`REAL_WAIT`] of real time when `false` or when the script
+/// has run out. A judge that never answers then fails the test with a
+/// timeout instead of stopping it.
 struct Clockwork(VecDeque<bool>);
+
+/// How long a wait that is not cut short takes, in seconds of real time.
+const REAL_WAIT: &str = "5";
 
 impl Clock for Clockwork {
     fn elapsed(&self) -> Duration {
@@ -29,9 +36,19 @@ impl Clock for Clockwork {
         if self.0.pop_front().unwrap_or(false) {
             Box::pin(future::ready(()))
         } else {
-            Box::pin(future::pending())
+            Box::pin(real_wait())
         }
     }
+}
+
+/// Waits [`REAL_WAIT`] seconds of real time by running `sleep`, which is
+/// killed when the wait is dropped.
+async fn real_wait() {
+    let sleep = Command::new("sleep")
+        .arg(REAL_WAIT)
+        .kill_on_drop(true)
+        .status();
+    sleep.await.ok();
 }
 
 /// A clock that follows `script`.
@@ -75,7 +92,8 @@ pub fn bench(
     })
 }
 
-/// The bridge in `mode`, with a clock that never ends the wait.
+/// The bridge in `mode`, with a clock that ends the wait only after
+/// [`REAL_WAIT`] of real time.
 pub fn judge(mode: &str) -> Result<Bench, Box<dyn Error>> {
     bench(&[mode], None, &[])
 }

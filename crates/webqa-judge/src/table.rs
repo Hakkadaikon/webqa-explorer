@@ -61,6 +61,7 @@ mod tests {
     use std::future;
     use std::num::NonZeroU64;
 
+    use tokio::process::Command;
     use url::Url;
     use webqa_core::config::raw::Pricing;
     use webqa_core::judge::{Answers, JudgeError, QuestionId};
@@ -70,17 +71,26 @@ mod tests {
 
     use super::*;
 
-    /// A clock whose waits never end.
-    struct Never;
+    /// A clock that stands at 0. Each wait ends after 5 seconds of real
+    /// time, so a judge that never answers fails the test with a timeout
+    /// instead of stopping it.
+    struct Wall;
 
-    impl Clock for Never {
+    impl Clock for Wall {
         fn elapsed(&self) -> Duration {
             Duration::ZERO
         }
 
         fn sleep_until(&mut self, _at: Duration) -> Pending<'_, ()> {
-            Box::pin(future::pending())
+            five_seconds()
         }
+    }
+
+    /// Waits 5 seconds of real time by running `sleep`, which is killed
+    /// when the wait is dropped.
+    fn five_seconds() -> Pending<'static, ()> {
+        let mut sleep = Box::pin(Command::new("sleep").arg("5").kill_on_drop(true).status());
+        Box::pin(future::poll_fn(move |cx| sleep.as_mut().poll(cx).map(drop)))
     }
 
     fn judge(kind: &str, command: Option<Vec<String>>) -> config::Judge {
@@ -96,13 +106,14 @@ mod tests {
         }
     }
 
-    fn bridge() -> Vec<String> {
+    /// The test bridge run in `mode`.
+    fn bridge(mode: &str) -> Vec<String> {
         let script = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/bridge.sh");
-        ["sh", script, "answer"].map(str::to_owned).to_vec()
+        ["sh", script, mode].map(str::to_owned).to_vec()
     }
 
     fn started(kind: &str, command: Option<Vec<String>>) -> Result<(), StartError> {
-        start(&judge(kind, command), Box::new(Never)).map(|_| ())
+        start(&judge(kind, command), Box::new(Wall)).map(|_| ())
     }
 
     async fn ask(judge: &mut dyn Judge) -> Result<Answers, JudgeError> {
@@ -120,13 +131,14 @@ mod tests {
 
     #[tokio::test]
     async fn selects_judge_by_kind() {
-        let mut command = start(&judge("command", Some(bridge())), Box::new(Never)).unwrap();
+        let judge = judge("command", Some(bridge("answer")));
+        let mut command = start(&judge, Box::new(Wall)).unwrap();
         let answers = ask(command.as_mut()).await.unwrap();
-        let operation = answers.table.get(&QuestionId::operation()).cloned();
         let want = vec![("click".to_owned(), 0.9), ("back".to_owned(), 0.1)];
+        let operation = answers.table.get(&QuestionId::operation()).cloned();
         assert_eq!(operation, Some(want), "the bridge answered");
         let kinds = ["http", "", "Command"];
-        let got = kinds.map(|kind| started(kind, Some(bridge())));
+        let got = kinds.map(|kind| started(kind, Some(bridge("answer"))));
         let want = kinds.map(|kind| Err(StartError::UnknownKind(kind.to_owned())));
         assert_eq!(got, want, "only the exact name");
         let no_command = Err(StartError::NoCommand);

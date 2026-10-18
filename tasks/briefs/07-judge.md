@@ -384,7 +384,7 @@ pub fn start(judge: &config::Judge, clock: Box<dyn Clock>) -> Result<Box<dyn Jud
 
 ### `webqa-judge::table`(単体)
 
-時計は、テストの中の `Never`(`elapsed` は 0、`sleep_until` は終わらない future)を使う。試験用コマンドは `["sh", <env!("CARGO_MANIFEST_DIR") から組んだ tests/fixtures/bridge.sh>, "answer"]`。
+時計は、テストの中の実時間の時計(`elapsed` は 0、`sleep_until` は実時間で5秒たつと終わる future)を使う。答えが来ない変異では、テストが止まらずに `Err(Timeout)` で落ちる。試験用コマンドは `["sh", <env!("CARGO_MANIFEST_DIR") から組んだ tests/fixtures/bridge.sh>, "answer"]`。
 
 9. `selects_judge_by_kind`:
    - `kind: "command"`、上のコマンド、`api_key: None`、`timeout_secs: 30` → `Ok`。返った判断モデルに `ask` すると、`answers.table` の `operation` が `[("click", 0.9), ("back", 0.1)]`(橋渡しが動いている)。
@@ -414,23 +414,23 @@ pub fn start(judge: &config::Judge, clock: Box<dyn Clock>) -> Result<Box<dyn Jud
 
 決まった答え: `{"version":1,"seq":N,"answers":{"operation":[{"option":"click","p":0.9},{"option":"back","p":0.1}],"target":[{"option":"1","p":0.8},{"option":"2","p":0.6}],"error_shown":[{"option":"true","p":0.1}],"goal_reached":[{"option":"true","p":0.0}]},"usage":{"input_tokens":120,"output_tokens":3}}`
 
-テストの時計は、`sleep_until` のたびに台本の真偽を1つ取り出し、真ならすぐ終わり、偽か台本が尽きたら終わらない偽物にする(`elapsed` は 0)。テストの画面は `Redactor::default()` の `screen` と `screen_text` で作る(表示領域 800x600、`button "保存"` を (0,0,10,10) に置くと `"1: button \"保存\""`)。
+テストの時計は、`sleep_until` のたびに台本の真偽を1つ取り出し、真ならすぐ終わり、偽か台本が尽きたら実時間で5秒たつと終わる偽物にする(`elapsed` は 0)。この「実時間の時計」は、答えが来ない変異でテストを止めず、`Err(Timeout)` で落とすためのもの。テストの画面は `Redactor::default()` の `screen` と `screen_text` で作る(表示領域 800x600、`button "保存"` を (0,0,10,10) に置くと `"1: button \"保存\""`)。
 記録先のファイルは `env!("CARGO_TARGET_TMPDIR")` の下に、テストごとに別の名前で作る。
 
-10. `command_bridge_round_trips`(終わらない時計、`answer <記録先>`):
+10. `command_bridge_round_trips`(実時間の時計、`answer <記録先>`):
    - 画面 `"1: button \"保存\""`、`questions(&Ask { ops: &[Click, Back], elements: 1, goal: None })` で `ask` すると、`Answers` が決まった答えと等しい(`table` の4つの問いの選択肢と確率、`usage` が `{ 120, 3 }`)。
    - 同じ判断モデルに、空の画面(要素0件、`""`)と空の問いの列で2回目の `ask` をしても、決まった答えが返る。
    - 記録先の2行を `serde_json::Value` で読むと、1行目は `{"version":1,"seq":1,"screen":"1: button \"保存\"","questions":[{"kind":"choice","id":"operation","prompt":"次に行う操作の種別を選ぶ","options":["click","back"]},{"kind":"choice","id":"target","prompt":"操作する要素の番号を選ぶ","options":["1"]},{"kind":"noul","id":"error_shown","prompt":"画面にエラーの表示があるか"}]}`、2行目は `{"version":1,"seq":2,"screen":"","questions":[]}`。
 11. `api_key_env_reaches_bridge`(`key`): `api_key: Some("dummy-bridge-key")` で起動すると、`operation` の選択肢が `[("dummy-bridge-key", 1.0)]`。`api_key: None` で起動すると `[("absent", 1.0)]`。
 12. `timeout_becomes_judge_error`: `silent` を、真・真の台本の時計で起動する。1回目の `ask` は `Err(Timeout)`、2回目も `Err(Timeout)`(子は止めず、やりとりを続けられる)。
 13. `stale_answer_after_timeout_is_skipped`: `late` を、真・偽の台本の時計で起動する。1回目の `ask` は `Err(Timeout)`。2回目の `ask` は `Ok` で、`operation` が `[("click", 1.0)]`(`seq` 1 への遅れた答えを読み捨てた)。
-14. `bridge_errors_become_judge_errors`(終わらない時計): モードごとに1回 `ask` する。
+14. `bridge_errors_become_judge_errors`(実時間の時計): モードごとに1回 `ask` する。
     `api_error` → `Err(Api)`、`timeout_error` → `Err(Timeout)`、`unknown_error` → `Err(Malformed)`、`garbage` → `Err(Malformed)`、`old_version` → `Err(Malformed)`、`ahead` → `Err(Malformed)`、`string_p` → `Err(Malformed)`、`no_body` → `Err(Malformed)`、`exit` → `Err(Bridge)`。`exit` は2回目の `ask` も `Err(Bridge)`。
     `api_error` の `JudgeError` の `to_string()` と `{:?}` は `"taro@example.test"` を含まない。
 15. `optional_fields_default`(`optional`): `operation` の選択肢は1つで、名前が `"back"`、確率が `NaN`。`error_shown` の確率も `NaN`。`usage` は `{ 0, 0 }`。この答えを `read_answers(&答え, &Ask { ops: &[Back], elements: 0, goal: None })` に通すと `Ok(Verdict { op: Back, confidence: None, targets: vec![], error_shown: None, goal_reached: None, usage: { 0, 0 } })`。
 16. `spawn_failures_are_start_errors`: `command: &[]` → `Err(StartError::NoCommand)`。存在しないプログラム(`["webqa-no-such-bridge"]`)→ `Err(StartError::Spawn)`。
 
-`ask` を呼ぶテストは `#[tokio::test]` で書く。`silent` と `exit` のほかは、終わらない時計でも答えが来るので止まらない。終わらない時計で `silent` を使わない(テストが止まる)。
+`ask` を呼ぶテストは `#[tokio::test]` で書く。`silent` と `exit` のほかは、実時間の時計の5秒より先に答えが来る。待ち時間切れを確かめるテスト(12、13)は、台本の真で時計をすぐ終わらせる。実時間の時計で `silent` を使わない(5秒待つ)。
 
 ## 受け入れ条件
 
