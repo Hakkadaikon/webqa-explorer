@@ -1,4 +1,7 @@
 # Gates before each commit (installed by `just setup`). Mutation and dependency audits run in CI.
+commit-msg:
+  jobs:
+    - run: uv run --no-project --python 3.14 scripts/commit_msg.py {1}
 pre-commit:
   parallel: true
   jobs:

@@ -28,7 +28,7 @@ jobs:
         run: just check
       - name: Dependency audit
         run: just deny
-  mutants:
+  pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -42,6 +42,10 @@ jobs:
           echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
           "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
           "$AQUA_ROOT_DIR/bin/aqua" install
+      - name: Commit messages
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: just commit-msg --range "$BASE..HEAD"
       - name: Mutation test of the changed code
         env:
           BASE: ${{ github.event.pull_request.base.sha }}

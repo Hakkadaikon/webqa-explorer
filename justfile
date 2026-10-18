@@ -79,6 +79,10 @@ docs-check:
     mado --config .config/mado.toml check . </dev/null
     typos --config .config/typos.toml
 
+# コミットメッセージの検査(docs/commit-messages.md)。`just commit-msg <ファイル>` か `just commit-msg --range <範囲>`
+commit-msg *args:
+    uv run --no-project --python 3.14 scripts/commit_msg.py {{ args }}
+
 # 設定とスクリプトの静的解析(GitHub Actions、シェル、Python)
 config-check:
     actionlint
