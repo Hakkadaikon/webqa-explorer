@@ -27,13 +27,15 @@ fn origins(values: &[&str]) -> Vec<AllowedOrigin> {
 
 #[test]
 fn rules_from_config() {
-    let yaml = changed("[\"購入\"]", "[\"公開する\"]");
+    let yaml = changed("[\"購入\"]", "[\"公開する\"]")
+        .replacen("  freeze_threshold: 3\n", "  freeze_threshold: 4\n", 1)
+        .replacen("  stuck_threshold: 3\n", "  stuck_threshold: 5\n", 1);
     let rules = Rules::from_config(&config(&yaml), Mode::Scenario).unwrap();
     let expected = Rules {
         mode: Mode::Scenario,
         ops: ALL_OPS.to_vec(),
-        freeze_threshold: nz(3),
-        stuck_threshold: nz(3),
+        freeze_threshold: nz(4),
+        stuck_threshold: nz(5),
         max_decisions: nz(200),
         requests_per_hour: nz(600),
         max_duration: Some(Duration::from_secs(60)),
