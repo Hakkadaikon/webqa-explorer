@@ -64,6 +64,8 @@ fn redact_source(entry: &RawRedact, env: Env<'_>) -> Result<RedactSource, Config
 
 #[cfg(test)]
 mod tests {
+    use std::mem::discriminant;
+
     use super::super::tests::{ALL_ENV, STATE_OK, value_of};
     use super::super::validate;
     use super::*;
@@ -94,8 +96,8 @@ mod tests {
     fn reads_secrets_without_showing_them(yaml: &str) {
         let config = validate(parse(yaml).unwrap(), ALL_ENV, STATE_OK).unwrap();
         assert_eq!(
-            config.judge.api_key.expose(),
-            "value-of-JEV_API_KEY",
+            config.judge.api_key.as_ref().map(Secret::expose),
+            Some("value-of-JEV_API_KEY"),
             "key read"
         );
         let names: Vec<_> = config.redact.iter().map(|r| r.name.as_str()).collect();
@@ -103,5 +105,26 @@ mod tests {
         let shown = format!("{config:?}");
         assert!(!shown.contains("value-of-"), "Debug hides secrets: {shown}");
         assert!(shown.contains("Secret(***)"), "Debug marks secrets");
+    }
+
+    #[test]
+    fn omitted_api_key_leaves_auth_outside() {
+        let line = "  api_key: { env: JEV_API_KEY }\n";
+        let yaml = changed(line, "");
+        let env = |name: &str| (name != "JEV_API_KEY").then(|| value_of(name));
+        let config = validate(parse(&yaml).unwrap(), &env, STATE_OK).unwrap();
+        let key = config.judge.api_key.as_ref().map(Secret::expose);
+        assert_eq!(key, None, "no key read");
+        let shown = format!("{config:?}");
+        assert!(shown.contains("api_key: None"), "no key: {shown}");
+        for form in ["~", "{}"] {
+            let yaml = changed(line, &format!("  api_key: {form}\n"));
+            let err = parse(&yaml).map(|_| ()).unwrap_err();
+            assert_eq!(
+                discriminant(&err),
+                discriminant(&ConfigError::LiteralApiKey),
+                "{form}: {err:?}"
+            );
+        }
     }
 }
