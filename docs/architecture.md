@@ -73,7 +73,7 @@ crateは次の5つに分ける。
 |---|---|---|---|
 | `webqa-core` | lib | 状態機械、待機中の優先順位、ガードレール、探索の記憶のグラフと候補の絞り込み、段階とdone_when、問題の検出、時間窓、伏せ字、設定の型と検証、イベントの型、ポートのtrait | serde、serde-saphyr、url、regex、thiserror |
 | `webqa-browser` | lib | playwright-rsのアダプタ。アクセシビリティ情報の取得、操作、URL、コンソール、スクリーンショット | webqa-core、playwright-rs、tokio |
-| `webqa-judge` | lib | 判断モデルのアダプタ。台本どおりに答えるスタブと、外部コマンドとの橋渡し | webqa-core、serde_json、tokio |
+| `webqa-judge` | lib | 判断モデルのアダプタ。台本どおりに答えるスタブと、外部コマンドとの橋渡し | webqa-core、serde、serde_json、thiserror、base64、tokio |
 | `webqa-tui` | lib | イベントログの追跡と表示 | webqa-core、tears、ratatui、crossterm、tokio |
 | `webqa` | bin | CLI、実行ループ、時計、記憶・ログ・結果の保存、中断の処理 | 上の全部、clap、tokio、tracing、jiff |
 
@@ -515,10 +515,18 @@ APIのエラーとタイムアウトも、アダプタが`JudgeError`にして�
   設定で指定したコマンドを実行の開始時に1回だけ起動する。
   問いを1行のJSONにして標準入力へ書き、答えを標準出力から1行のJSONで読む。
   各行には橋渡しの形式の版を入れる。
-  JSONの形そのものは、実装の最初に決める。
+  今の版は2である。
+  橋渡しは起動の直後に、版と画像を読めるかの申告を1行で書く。
+  画像を読めると申告した橋渡しにだけ、
+  問いの行に画像を base64 で添える。
+  JSONの形は、`tasks/briefs/`の`07-judge.md`と`19-judge-image-text.md`にある。
+  JEVは真偽、選択、点数の問いだけに答える。
+  そこで、自由な文の問いは、橋渡しがAI Gatewayの言語モデルへ送る。
 
 外部コマンドの中で、ツールの利用者は任意の判断モデルへつなげる。
 APIキーは、設定が参照する環境変数から読み、子プロセスの環境変数として渡す。
+設定でAPIキーを省いたときは渡さない。
+クラウドの環境のNetwork secretsでは、プロキシがキーを差し込むためである。
 答えが待ち時間内に返らなければ、タイムアウトとして応答の異常にする。
 
 JevのAPIの仕様が手に入ったら、HTTPで直結するアダプタを足す。
@@ -1168,6 +1176,7 @@ crates.ioで実在と最新版を確かめた(2026-10-18)。
 | url | 2.5.8 | webqa-core | オリジンの比較 |
 | regex | 1.13.1 | webqa-core | キーワード、伏せ字、読み上げ名、名前の正規化 |
 | thiserror | 2.0.21 | 全部 | エラーの型 |
+| base64 | 0.23.1 | webqa-judge | 橋渡しで画像を送る |
 | tears | 0.11.1 | webqa-tui | TUI |
 | ratatui | 0.30.2 | webqa-tui | 描画 |
 | crossterm | 0.29.0 | webqa-tui | 端末 |
