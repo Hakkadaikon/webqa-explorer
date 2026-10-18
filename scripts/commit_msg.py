@@ -78,7 +78,7 @@ def summary_errors(summary):
 def header_errors(header):
     m = HEADER.match(header)
     if not m:
-        return [f"ヘッダーの形が{header!r}は不正(`種類(範囲)!: 要約` にする)"]
+        return [f"ヘッダー {header!r} の形が違う(`種類(範囲)!: 要約` にする)"]
     return (
         type_errors(m["type"]) + scope_errors(m["scope"]) + summary_errors(m["summary"])
     )
