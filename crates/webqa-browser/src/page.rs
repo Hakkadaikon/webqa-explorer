@@ -111,6 +111,10 @@ fn candidate((entry, found): &(Entry, Probe)) -> Candidate {
 
 /// The paywall's facts. `paywall_texts` lists the visible headings first,
 /// then the names inside dialogs, so the headings alone tell where to cut.
+///
+/// A heading inside a dialog goes into `headings`, not `dialogs`: the
+/// snapshot keeps headings apart from the operable entries. The paywall
+/// check looks through both lists together, so the verdict is the same.
 fn paywall(snapshot: &Snapshot, url: Url, viewport: Viewport, hits: Vec<bool>) -> PaywallFacts {
     let only_headings = Snapshot {
         entries: Vec::new(),
