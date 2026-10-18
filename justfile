@@ -5,7 +5,7 @@ export AQUA_ROOT_DIR := justfile_directory() + "/.aqua"
 export AQUA_CONFIG := justfile_directory() + "/.config/aqua/aqua.yaml"
 export AQUA_POLICY_CONFIG := justfile_directory() + "/.config/aqua/policy.yaml"
 export UV_PYTHON := "3.14"
-export PATH := justfile_directory() + "/.aqua/bin:" + env_var('PATH')
+export PATH := justfile_directory() + "/.aqua/bin:" + justfile_directory() + "/.config/npm/node_modules/.bin:" + env_var('PATH')
 
 _default:
     @just --list
@@ -74,10 +74,15 @@ mutants *args:
 deny:
     cargo deny --config .config/deny.toml check
 
-# 文書の検査(Markdown とスペル)
+# 文書の検査(Markdown、スペル、.omm/ の図)
 docs-check:
     mado --config .config/mado.toml check . </dev/null
     typos --config .config/typos.toml
+    omm validate
+
+# oh-my-mermaid(.omm/ の図と説明)。例: `just omm view`
+omm *args:
+    omm {{ args }}
 
 # コミットメッセージの検査(docs/commit-messages.md)。`just commit-msg <ファイル>` か `just commit-msg --range <範囲>`
 commit-msg *args:

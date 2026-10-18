@@ -1,0 +1,8 @@
+{
+  "name": "webqa-explorer-dev-tools",
+  "private": true,
+  "description": "Node-based developer tools, pinned by package-lock.json and installed by scripts/setup.sh.",
+  "devDependencies": {
+    "oh-my-mermaid": "0.2.0"
+  }
+}

@@ -361,6 +361,41 @@
       "algorithm": "sha256"
     },
     {
+      "id": "http/nodejs.org/dist/v26.12.0/node-v26.12.0-darwin-arm64.tar.gz",
+      "checksum": "2A154D4A5458930E0A2D6A1ECF64EDDF5A2B3E1C13636B609C2ECB042E8C4553",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v26.12.0/node-v26.12.0-darwin-x64.tar.gz",
+      "checksum": "878ECEDE191C7ABC1BFF01D3FB81F7ED81AA1161040DBA18776B8FF8593614B1",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v26.12.0/node-v26.12.0-linux-arm64.tar.gz",
+      "checksum": "EC53C915C3FDD8786C5685ABD25AE3FE9FBA0692307F9811D7CAAADEA1BCAF03",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v26.12.0/node-v26.12.0-linux-x64.tar.gz",
+      "checksum": "D9F88AF72AD34F7DDF8E67289829F1698F54B6254F7D4F54B7453117FF1A3D2C",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v26.12.0/node-v26.12.0-win-x64.zip",
+      "checksum": "50EFAF01A08C520B4BBE499C09A8C5A5C370002C419C0D9DA2C6815D3066A453",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/unofficial-builds.nodejs.org/download/release/v26.12.0/node-v26.12.0-linux-arm64-musl.tar.gz",
+      "checksum": "2E70B6D5ADBAE94546C4D7E01DE7B64C50BF8D3DBFAAD2BB0774942E9DA902B8",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/unofficial-builds.nodejs.org/download/release/v26.12.0/node-v26.12.0-linux-x64-musl.tar.gz",
+      "checksum": "48BA1CDF21E684F13F38B6295F43BFEA951F1FFD008B4CF93361C966B33F6938",
+      "algorithm": "sha256"
+    },
+    {
       "id": "registries/github_content/github.com/aquaproj/aqua-registry/v4.575.0/registry.yaml",
       "checksum": "340BC6F1FA7124077830D090576F9DC538212FDD7869F8DE973E81B0124EFFA1",
       "algorithm": "sha256"
