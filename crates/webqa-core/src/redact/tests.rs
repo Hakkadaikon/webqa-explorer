@@ -51,69 +51,110 @@ fn redacts_configured_values() {
     );
 
     rejects_unusable_rules();
-    replaces_literals_once_longest_first();
+    replaces_once_in_rule_order();
 }
 
 fn rejects_unusable_rules() {
-    let broken = Redactor::new(&[Rule::pattern("壊れた", "(")]).unwrap_err();
-    assert!(
-        broken.to_string().contains("壊れた"),
-        "an invalid regex is rejected with the rule's name: {broken}"
-    );
-    assert!(
-        broken.source().is_some(),
-        "the regex error is kept as the source"
-    );
-
-    let escaping = Redactor::new(&[Rule::pattern("抜け出す", "a)|(b")]).unwrap_err();
-    assert!(
-        escaping.to_string().contains("抜け出す"),
-        "a pattern that only compiles when joined is rejected: {escaping}"
-    );
-
-    let empty_literal = Redactor::new(&[Rule::literal("空の値", "")]).unwrap_err();
-    assert!(
-        empty_literal.to_string().contains("空の値"),
-        "an empty literal is rejected with the rule's name: {empty_literal}"
-    );
-    let empty_match = Redactor::new(&[Rule::pattern("空に一致", "a*")]).unwrap_err();
-    assert!(
-        empty_match.to_string().contains("空に一致"),
-        "a pattern matching the empty string is rejected: {empty_match}"
-    );
-    assert!(
-        empty_match.source().is_none(),
-        "an empty match has no underlying regex error"
-    );
-    assert!(
-        broken.to_string().contains("regular expression")
-            && empty_match.to_string().contains("empty string"),
-        "the message tells why the rule is rejected: {broken} / {empty_match}"
-    );
+    for (rules, name, why) in [
+        (
+            vec![Rule::pattern("壊れた", "(")],
+            "壊れた",
+            "regular expression",
+        ),
+        (
+            vec![Rule::pattern("抜け出す", "a)|(b")],
+            "抜け出す",
+            "regular expression",
+        ),
+        (
+            vec![
+                Rule::pattern("先", "(?P<x>s3cr3t)"),
+                Rule::pattern("後", "(?P<x>b)"),
+            ],
+            "後",
+            "other rules",
+        ),
+        (vec![Rule::literal("空の値", "")], "空の値", "empty string"),
+        (
+            vec![Rule::pattern("空に一致", "a*")],
+            "空に一致",
+            "empty string",
+        ),
+    ] {
+        let err = Redactor::new(&rules).unwrap_err();
+        let shown = err.to_string();
+        assert!(
+            shown.contains(name) && shown.contains(why),
+            "the error names the rule and the reason: {shown}"
+        );
+        assert!(err.source().is_none(), "no regex error is kept: {shown}");
+    }
 }
 
-fn replaces_literals_once_longest_first() {
-    let lengths =
-        Redactor::new(&[Rule::literal("短", "abc"), Rule::literal("長", "abcdef")]).unwrap();
-    assert_eq!(
-        lengths.text("abcdef").into_inner(),
-        "[[長]]",
-        "the longer literal wins regardless of the configured order"
-    );
+fn replaces_once_in_rule_order() {
+    for (rules, input, expected, why) in [
+        (
+            vec![Rule::literal("短", "abc"), Rule::literal("長", "abcdef")],
+            "abcdef",
+            "[[長]]",
+            "the longer literal wins regardless of the configured order",
+        ),
+        (
+            vec![Rule::literal("メール", "x"), Rule::literal("B", "メール")],
+            "x",
+            "[[メール]]",
+            "a replacement is not replaced again",
+        ),
+        (
+            vec![Rule::pattern("p", "hunter"), Rule::literal("pw", "hunter2")],
+            "hunter2",
+            "[[pw]]",
+            "a literal wins over a pattern at the same position",
+        ),
+        (
+            vec![Rule::pattern("先", "ab"), Rule::pattern("後", "abc")],
+            "abc",
+            "[[先]]c",
+            "patterns keep the configured order",
+        ),
+        (
+            vec![Rule::literal("名前", "a.b")],
+            "axb a.b",
+            "axb [[名前]]",
+            "a literal is not read as a regex",
+        ),
+    ] {
+        let redactor = Redactor::new(&rules).unwrap();
+        assert_eq!(redactor.text(input).into_inner(), expected, "{why}");
+    }
+}
 
-    let self_named = Redactor::new(&[Rule::literal("メール", "メール")]).unwrap();
-    assert_eq!(
-        self_named.text("メール").into_inner(),
-        "[[メール]]",
-        "a replacement is not replaced again"
-    );
-
-    let dotted = Redactor::new(&[Rule::literal("名前", "a.b")]).unwrap();
-    assert_eq!(
-        dotted.text("axb a.b").into_inner(),
-        "axb [[名前]]",
-        "a literal is not read as a regex"
-    );
+fn errors_hide_other_rules() {
+    for (rules, secret) in [
+        (
+            [
+                Rule::literal("パスワード", "hunter2"),
+                Rule::pattern("壊れた", "("),
+            ],
+            "hunter2",
+        ),
+        (
+            [
+                Rule::pattern("先", "(?P<x>s3cr3t)"),
+                Rule::pattern("後", "(?P<x>b)"),
+            ],
+            "s3cr3t",
+        ),
+    ] {
+        let err = Redactor::new(&rules).unwrap_err();
+        let (debug, shown) = (format!("{err:?}"), err.to_string());
+        assert!(!debug.contains(secret), "Debug leaked: {debug}");
+        assert!(!shown.contains(secret), "Display leaked: {shown}");
+        assert!(
+            debug.contains("name") && debug.contains("reason"),
+            "Debug shows the name and the reason: {debug}"
+        );
+    }
 }
 
 #[test]
@@ -144,6 +185,8 @@ fn debug_hides_values() {
         shown.contains("パスワード") && shown.contains("メールアドレス"),
         "the redactor shows the rule names: {shown}"
     );
+
+    errors_hide_other_rules();
 }
 
 #[test]

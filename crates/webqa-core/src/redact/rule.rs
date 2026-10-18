@@ -38,25 +38,29 @@ impl Rule {
         }
     }
 
-    /// Checks the rule after it was joined into `combined`.
+    /// Compiles the rule alone, so that a pattern such as `a)|(b`, which
+    /// compiles only when joined, is rejected.
+    pub(super) fn check(&self) -> Result<(), InvalidRule> {
+        Regex::new(&self.regex)
+            .map(drop)
+            .map_err(|_| self.invalid(Reason::SYNTAX))
+    }
+
+    /// Compiles the rules joined so far, ending with this one.
     ///
-    /// Compiling the rule alone stops a pattern such as `a)|(b` that compiles
-    /// only when joined. Before this rule, `combined` did not match the empty
-    /// string, so an empty match now comes from this rule.
-    pub(super) fn check(&self, combined: &Regex) -> Result<(), InvalidRule> {
-        self.compile(&self.regex)?;
-        self.reject_empty(combined)
+    /// The `regex::Error` is dropped, as it holds the other rules' values.
+    /// Before this rule, the joined rules did not match the empty string, so an
+    /// empty match now comes from this rule.
+    pub(super) fn join(&self, joined: &str) -> Result<Regex, InvalidRule> {
+        let regex = Regex::new(joined).map_err(|_| self.invalid(Reason::INCOMPATIBLE))?;
+        self.reject_empty(regex)
     }
 
-    pub(super) fn compile(&self, source: &str) -> Result<Regex, InvalidRule> {
-        Regex::new(source).map_err(|e| self.invalid(Reason::Syntax(e)))
-    }
-
-    fn reject_empty(&self, regex: &Regex) -> Result<(), InvalidRule> {
+    fn reject_empty(&self, regex: Regex) -> Result<Regex, InvalidRule> {
         if regex.is_match("") {
-            return Err(self.invalid(Reason::MatchesEmpty));
+            return Err(self.invalid(Reason::MATCHES_EMPTY));
         }
-        Ok(())
+        Ok(regex)
     }
 
     fn invalid(&self, reason: Reason) -> InvalidRule {
@@ -75,44 +79,36 @@ impl fmt::Debug for Rule {
     }
 }
 
-/// A rule that cannot be used. The message names the rule, never its value or pattern.
-#[derive(Debug)]
+/// A rule that cannot be used. It holds only the rule's name and the reason,
+/// never a value or a pattern.
 pub struct InvalidRule {
     name: String,
     reason: Reason,
 }
 
-#[derive(Debug)]
-enum Reason {
-    Syntax(regex::Error),
-    MatchesEmpty,
-}
+/// Why a rule cannot be used.
+#[derive(Clone, Copy)]
+struct Reason(&'static str);
 
 impl Reason {
-    const fn message(&self) -> &'static str {
-        match self {
-            Self::Syntax(_) => "is not a valid regular expression",
-            Self::MatchesEmpty => "matches the empty string",
-        }
-    }
+    const SYNTAX: Self = Self("is not a valid regular expression");
+    const INCOMPATIBLE: Self = Self("cannot be combined with the other rules");
+    const MATCHES_EMPTY: Self = Self("matches the empty string");
 }
 
 impl fmt::Display for InvalidRule {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "redaction rule \"{}\" {}",
-            self.name,
-            self.reason.message()
-        )
+        write!(f, "redaction rule \"{}\" {}", self.name, self.reason.0)
     }
 }
 
-impl Error for InvalidRule {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match &self.reason {
-            Reason::Syntax(e) => Some(e),
-            Reason::MatchesEmpty => None,
-        }
+impl fmt::Debug for InvalidRule {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("InvalidRule")
+            .field("name", &self.name)
+            .field("reason", &self.reason.0)
+            .finish()
     }
 }
+
+impl Error for InvalidRule {}

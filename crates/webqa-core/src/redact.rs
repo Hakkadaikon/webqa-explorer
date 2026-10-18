@@ -45,7 +45,8 @@ impl Redactor {
     /// # Errors
     ///
     /// Returns [`InvalidRule`] for the first rule that is not a valid regular
-    /// expression or that matches the empty string.
+    /// expression, that cannot be combined with the rules before it, or that
+    /// matches the empty string.
     pub fn new(rules: &[Rule]) -> Result<Self, InvalidRule> {
         let mut ordered: Vec<&Rule> = rules.iter().collect();
         ordered.sort_by_key(|rule| rule.rank);
@@ -53,11 +54,10 @@ impl Redactor {
     }
 
     fn push(mut self, rule: &Rule) -> Result<Self, InvalidRule> {
+        rule.check()?;
         let group = self.regex.as_ref().map_or(1, Regex::captures_len);
         self.parts.push(format!("({})", rule.regex));
-        let regex = rule.compile(&self.parts.join("|"))?;
-        rule.check(&regex)?;
-        self.regex = Some(regex);
+        self.regex = Some(rule.join(&self.parts.join("|"))?);
         self.groups.push((group, format!("[[{}]]", rule.name)));
         Ok(self)
     }
