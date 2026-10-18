@@ -1,0 +1,4 @@
+exclude:
+  - .aqua/**
+  - target/**
+gitignore_excludes: true
