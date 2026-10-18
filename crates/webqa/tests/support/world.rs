@@ -69,7 +69,8 @@ impl QaWorld {
         explore(&mut ports, rules, Memory::default()).await
     }
 
-    /// The rules of the background. The origins that cannot be read allow nothing.
+    /// The rules of the background. An origin that cannot be read fails the
+    /// scenario.
     fn rules(&self) -> Rules {
         let limits = [
             "freeze_threshold",
@@ -79,14 +80,18 @@ impl QaWorld {
         ]
         .map(|name| self.limit(name));
         let origins = self.origins.iter();
-        let allowed = origins.flat_map(|o| AllowedOrigin::parse(o)).collect();
+        let parsed: Vec<_> = origins.map(|o| AllowedOrigin::parse(o)).collect();
+        let readable = parsed.iter().all(Result::is_ok);
+        assert!(readable, "the origins of the background read: {parsed:?}");
+        let allowed = parsed.into_iter().flatten().collect();
         fakes::rules(&OPS, limits, allowed)
     }
 
-    /// A limit of the background; one when it is not set or zero.
+    /// A limit of the background. A limit not set, or zero, fails the scenario.
     fn limit(&self, name: &str) -> NonZeroU32 {
-        let value = self.limits.get(name).copied().unwrap_or_default();
-        NonZeroU32::new(value).unwrap_or(NonZeroU32::MIN)
+        let limit = self.limits.get(name).copied().and_then(NonZeroU32::new);
+        assert!(limit.is_some(), "the background sets {name} above zero");
+        limit.unwrap_or(NonZeroU32::MIN)
     }
 
     /// The page at each origin. A URL that cannot be read gives no page, and
