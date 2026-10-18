@@ -14,7 +14,7 @@
 どの行も受け入れの層を持つ。`webqa/tests/acceptance.rs` が cucumber で、題名が同じ Scenario を走らせる。
 テスト名の欄には、受け入れのほかに、その振る舞いを受け持つ下の層のテストを書いた。単体は `crate::モジュール` の形で、ほかの層はテストのファイルで場所を示す。
 テスト関数の名前には T-ID などの管理番号を入れない。
-issue の欄は、その行を実装する GitHub の issue の番号である。受け入れの配線は全行を #14 が受け持つので、欄には書かない。ただし保留の行の配線は、#13 が済んでから足す。
+issue の欄は、その行を実装する GitHub の issue の番号である。受け入れの配線は全行を #14 が受け持つので、欄には書かない。ただし保留の行の配線は、#13 が済んでから足す。T-050 の受け入れだけは、部品の噛み合わせを先に確かめるため #15 で先に配線する。
 仕様の直しで変わりうる行は「保留」とし、行の3行目に `→ 保留:` で何が変わりうるかを書いた。
 保留の行: T-015、T-021、T-055、T-079、T-081〜T-092
 仕様待ちの issue: #13
@@ -167,7 +167,7 @@ T-018 と T-058 は、行き詰まりの条件に「未操作の要素も新し�
 - [x] T-049 WebExploratoryQA.feature:747(設定と外部境界) [boundary] 「0 以下の閾値・上限や空の操作種別は設定エラーにする」(Examples の各行を1ケースとする)
       → 手法: 境界値分析(blackbox-partition)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate` の `rejects_non_positive_and_empty` / issue: #3
 - [x] T-050 WebExploratoryQA.feature:764(設定と外部境界) [ubiquitous] 「判断モデルを差し替えても同じ探索ができる」
-      → 手法: テストダブル(test-doubles)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-judge::table` の `selects_judge_by_kind`、契約 `webqa-judge/tests/command.rs` の `command_bridge_round_trips` / issue: #7
+      → 手法: テストダブル(test-doubles)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-judge::table` の `selects_judge_by_kind`、契約 `webqa-judge/tests/command.rs` の `command_bridge_round_trips` / issue: #7、#15
 - [x] T-051 WebExploratoryQA.feature:769(設定と外部境界) [nonfunctional] 「判断・操作・画面変化待ちの時間と、判断モデルのコストを記録する」
       → 手法: 時刻依存の封じ込め(flakiness-value)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `records_step_timings_with_fake_clock`、単体 `webqa::store::report` の `cost_from_usage_and_pricing` / issue: #14
 - [x] T-052 WebExploratoryQA.feature:524(固まりとドメイン外からの復帰) [boundary] 「リダイレクトされたら、最終的な遷移先で許可ドメインかどうかを判定する」
@@ -355,7 +355,7 @@ T-042 のゴールデンは、`docs/architecture.md` の「テストの層」の
 | T-047 | ubiquitous | セキュリティテスト(nonfunctional-attributes)、コントラクトテスト(levels-service) | `api_key_env_reaches_bridge` | #7 | [x] | [ ] | 要 |
 | T-048 | unwanted | セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) | `rejects_tls_verification_key` | #3 | [x] | [ ] | 要 |
 | T-049 | boundary | 境界値分析(blackbox-partition)、ネガティブテスト(process-static) | `rejects_non_positive_and_empty` | #3 | [x] | [ ] | 要 |
-| T-050 | ubiquitous | テストダブル(test-doubles)、コントラクトテスト(levels-service) | `selects_judge_by_kind`、`command_bridge_round_trips` | #7 | [x] | [ ] | — |
+| T-050 | ubiquitous | テストダブル(test-doubles)、コントラクトテスト(levels-service) | `selects_judge_by_kind`、`command_bridge_round_trips` | #7、#15 | [x] | [ ] | — |
 | T-051 | nonfunctional | 時刻依存の封じ込め(flakiness-value)、同値分割(blackbox-partition) | `records_step_timings_with_fake_clock`、`cost_from_usage_and_pricing` | #14 | [x] | [ ] | — |
 | T-052 | boundary | コントラクトテスト(levels-service)、同値分割(blackbox-partition) | `judges_final_url`、`reports_final_url_after_redirect` | #4、#9 | [x] | [ ] | 要 |
 | T-053 | unwanted | 同値分割(blackbox-partition) | `counts_each_access_kind` | #12 | [x] | [ ] | 要 |
