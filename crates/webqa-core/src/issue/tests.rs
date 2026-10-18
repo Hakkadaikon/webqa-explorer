@@ -114,6 +114,7 @@ fn placeholder_name_rules() {
         "my icon.svg",
         "LOGO.WEBP",
         "a.jpeg",
+        "logo.v2.png",
         "button",
         "Untitled",
         "[object Object]",
@@ -262,4 +263,8 @@ fn issue_debug_hides_page_text() {
         issue(IssueKind::ErrorDisplay, None, None, Some(0.9))
     );
     assert!(!none.contains('…'), "no evidence shows None: {none}");
+    assert!(
+        none.contains("evidence: None"),
+        "no evidence shows None: {none}"
+    );
 }
