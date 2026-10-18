@@ -1,27 +1,28 @@
 //! Tests of the screen model.
 
 use super::*;
+use crate::redact::{Redacted, Redactor};
 
-const VIEW: Viewport = Viewport {
+pub(super) const VIEW: Viewport = Viewport {
     width: 800,
     height: 600,
 };
 
-const INSIDE: Rect = Rect {
+pub(super) const INSIDE: Rect = Rect {
     x: 0,
     y: 0,
     width: 10,
     height: 10,
 };
 
-const BELOW: Rect = Rect {
+pub(super) const BELOW: Rect = Rect {
     x: 0,
     y: 700,
     width: 10,
     height: 10,
 };
 
-fn el(role: &str, name: &str, value: Option<&str>, rect: Option<Rect>) -> Element {
+pub(super) fn el(role: &str, name: &str, value: Option<&str>, rect: Option<Rect>) -> Element {
     Element {
         role: role.to_owned(),
         name: name.to_owned(),
@@ -30,23 +31,24 @@ fn el(role: &str, name: &str, value: Option<&str>, rect: Option<Rect>) -> Elemen
     }
 }
 
-fn shown(role: &str, name: &str) -> Element {
+pub(super) fn shown(role: &str, name: &str) -> Element {
     el(role, name, None, Some(INSIDE))
 }
 
-fn hidden(role: &str, name: &str) -> Element {
+pub(super) fn hidden(role: &str, name: &str) -> Element {
     el(role, name, None, Some(BELOW))
 }
 
-fn screen(url: &str, elements: Vec<Element>) -> Screen {
-    Screen {
+/// A screen passed through a redactor with no rules.
+pub(super) fn screen(url: &str, elements: Vec<Element>) -> Redacted<Screen> {
+    Redactor::default().screen(Screen {
         url: url::Url::parse(url).unwrap(),
         elements,
-    }
+    })
 }
 
-fn text(s: &Screen) -> String {
-    screen_text(s, VIEW).as_str().to_owned()
+pub(super) fn text(s: &Redacted<Screen>) -> String {
+    screen_text(s, VIEW).as_inner().as_str().to_owned()
 }
 
 #[test]
@@ -118,8 +120,8 @@ fn assert_outside_skipped() {
         ],
     );
     assert_eq!(
-        visible(&s, VIEW),
-        [&s.elements[1], &s.elements[3]],
+        visible(s.as_inner(), VIEW),
+        [&s.as_inner().elements[1], &s.as_inner().elements[3]],
         "only inside elements, in page order"
     );
     assert_eq!(
@@ -144,8 +146,7 @@ fn scroll_changing_viewport_is_change() {
 
 #[test]
 fn scroll_at_bottom_is_unchanged() {
-    let url = "https://app.example.test/list";
-    let base = |value| {
+    let at = |url, value| {
         screen(
             url,
             vec![
@@ -154,107 +155,10 @@ fn scroll_at_bottom_is_unchanged() {
             ],
         )
     };
-    assert!(!changed(&base("a"), &base("a"), VIEW), "same text and URL");
-    assert!(changed(&base("a"), &base("b"), VIEW), "a value differs");
-    let moved = Screen {
-        url: url::Url::parse("https://app.example.test/list?page=2").unwrap(),
-        ..base("a")
-    };
-    assert!(changed(&base("a"), &moved, VIEW), "only the URL differs");
-}
-
-#[test]
-fn scroll_keeps_screen_identity() {
-    let top = screen(
-        "https://app.example.test/list",
-        vec![
-            el("textbox", "名前", Some("a"), Some(INSIDE)),
-            hidden("link", "下"),
-        ],
-    );
-    let bottom = screen(
-        "https://app.example.test/list?page=2",
-        vec![
-            el("textbox", "名前", Some("b"), Some(BELOW)),
-            shown("link", "下"),
-        ],
-    );
-    let id = screen_id(&top);
-    assert_eq!(
-        id,
-        screen_id(&bottom),
-        "viewport, query and value are ignored"
-    );
-    let pairs = [("link", "下"), ("textbox", "名前")];
-    let expected = ScreenId {
-        path: "/list".to_owned(),
-        elements: pairs
-            .iter()
-            .map(|&(r, n)| (r.to_owned(), n.to_owned()))
-            .collect(),
-    };
-    assert_eq!(id, expected, "the path and the (role, name) set");
-}
-
-#[test]
-fn page_element_change_is_new_screen() {
     let url = "https://app.example.test/list";
-    let base = screen(url, vec![shown("button", "保存")]);
-    let id = screen_id(&base);
-    let added = screen(url, vec![shown("button", "保存"), hidden("link", "次")]);
-    assert_ne!(id, screen_id(&added), "an element was added");
-    let renamed = screen(url, vec![shown("button", "送信")]);
-    assert_ne!(id, screen_id(&renamed), "an element was renamed");
-    let moved = screen(
-        "https://app.example.test/other",
-        vec![shown("button", "保存")],
-    );
-    assert_ne!(id, screen_id(&moved), "the path differs");
-}
-
-#[test]
-fn normalize_collapses_digits_and_spaces() {
-    let cases = [
-        ("通知 (3)", "通知 (#)"),
-        ("通知 (12)", "通知 (#)"),
-        ("  保存  する ", "保存 する"),
-        ("通知 (１２)", "通知 (#)"),
-        ("a1 2b", "a# #b"),
-        ("#3", "##"),
-        ("", ""),
-    ];
-    for (input, expected) in cases {
-        assert_eq!(normalize_name(input), expected, "input {input:?}");
-    }
-}
-
-#[test]
-fn element_ids_count_same_role_and_name() {
-    let s = screen(
-        "https://app.example.test/",
-        vec![
-            shown("button", "保存"),
-            hidden("link", "保存"),
-            shown("button", "保存"),
-            shown("button", "通知 (3)"),
-            shown("button", "通知 (4)"),
-        ],
-    );
-    let expected = [
-        ("button", "保存", 0),
-        ("link", "保存", 0),
-        ("button", "保存", 1),
-        ("button", "通知 (#)", 0),
-        ("button", "通知 (#)", 1),
-    ]
-    .map(|(r, n, nth)| ElementId {
-        role: r.to_owned(),
-        name: n.to_owned(),
-        nth,
-    });
-    assert_eq!(
-        element_ids(&s),
-        expected,
-        "nth counts within role and normalized name"
-    );
+    let base = at(url, "a");
+    assert!(!changed(&base, &at(url, "a"), VIEW), "same text and URL");
+    assert!(changed(&base, &at(url, "b"), VIEW), "a value differs");
+    let moved = at("https://app.example.test/list?page=2", "a");
+    assert!(changed(&base, &moved, VIEW), "only the URL differs");
 }

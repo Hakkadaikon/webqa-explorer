@@ -1,9 +1,16 @@
 //! The screen as the agent sees it: elements, viewport, identity and change.
 
+mod debug;
+#[cfg(test)]
+mod identity_tests;
+#[cfg(test)]
+mod privacy_tests;
 #[cfg(test)]
 mod tests;
 
 use std::collections::{BTreeSet, HashMap};
+
+use crate::redact::Redacted;
 
 /// A box in CSS px, relative to the viewport.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,9 +34,8 @@ pub struct Viewport {
     pub height: i64,
 }
 
-/// An operable element. `Debug` is test-only: names and values come from the page.
+/// An operable element. `Debug` hides the name and the value.
 #[derive(Clone, PartialEq, Eq)]
-#[cfg_attr(test, derive(Debug))]
 pub struct Element {
     /// ARIA role.
     pub role: String,
@@ -43,7 +49,6 @@ pub struct Element {
 
 /// A page: its URL and every operable element in page order.
 #[derive(Clone, PartialEq, Eq)]
-#[cfg_attr(test, derive(Debug))]
 pub struct Screen {
     /// URL of the page.
     pub url: url::Url,
@@ -51,9 +56,8 @@ pub struct Screen {
     pub elements: Vec<Element>,
 }
 
-/// The viewport's elements as numbered lines. Not redacted yet.
+/// The viewport's elements as numbered lines.
 #[derive(Clone, PartialEq, Eq)]
-#[cfg_attr(test, derive(Debug))]
 pub struct ScreenText(String);
 
 impl ScreenText {
@@ -66,7 +70,6 @@ impl ScreenText {
 
 /// Identifies a screen: the URL path and the set of (role, normalized name).
 #[derive(Clone, PartialEq, Eq)]
-#[cfg_attr(test, derive(Debug))]
 pub struct ScreenId {
     /// Path of the URL, without the query.
     pub path: String,
@@ -76,7 +79,6 @@ pub struct ScreenId {
 
 /// Identifies an element within a screen.
 #[derive(Clone, PartialEq, Eq)]
-#[cfg_attr(test, derive(Debug))]
 pub struct ElementId {
     /// ARIA role.
     pub role: String,
@@ -113,13 +115,15 @@ pub fn visible(screen: &Screen, viewport: Viewport) -> Vec<&Element> {
 
 /// Numbered lines of the elements inside the viewport, such as `1: button "保存"`.
 #[must_use]
-pub fn screen_text(screen: &Screen, viewport: Viewport) -> ScreenText {
-    let lines: Vec<String> = visible(screen, viewport)
-        .into_iter()
-        .zip(1..)
-        .map(|(e, n)| line(n, e))
-        .collect();
-    ScreenText(lines.join("\n"))
+pub fn screen_text(screen: &Redacted<Screen>, viewport: Viewport) -> Redacted<ScreenText> {
+    screen.map(|s| {
+        let lines: Vec<String> = visible(s, viewport)
+            .into_iter()
+            .zip(1..)
+            .map(|(e, n)| line(n, e))
+            .collect();
+        ScreenText(lines.join("\n"))
+    })
 }
 
 fn line(n: usize, e: &Element) -> String {
@@ -130,15 +134,19 @@ fn line(n: usize, e: &Element) -> String {
     format!("{n}: {} {}{value}", e.role, quote(&e.name))
 }
 
-/// Wraps `s` in `"`, escaping `\` and `"` with a backslash.
+/// Wraps `s` in `"`, escaping `\`, `"` and newlines with a backslash.
 fn quote(s: &str) -> String {
-    format!("\"{}\"", s.replace('\\', "\\\\").replace('"', "\\\""))
+    let escaped = s
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n");
+    format!("\"{escaped}\"")
 }
 
 /// Whether the viewport text or the URL differs.
 #[must_use]
-pub fn changed(prev: &Screen, next: &Screen, viewport: Viewport) -> bool {
-    prev.url.as_str() != next.url.as_str()
+pub fn changed(prev: &Redacted<Screen>, next: &Redacted<Screen>, viewport: Viewport) -> bool {
+    prev.as_inner().url.as_str() != next.as_inner().url.as_str()
         || screen_text(prev, viewport) != screen_text(next, viewport)
 }
 
@@ -177,7 +185,8 @@ fn is_digit(c: char) -> bool {
 
 /// The identity of the screen. The query and the values are not used.
 #[must_use]
-pub fn screen_id(screen: &Screen) -> ScreenId {
+pub fn screen_id(screen: &Redacted<Screen>) -> ScreenId {
+    let screen = screen.as_inner();
     ScreenId {
         path: screen.url.path().to_owned(),
         elements: screen
@@ -190,9 +199,10 @@ pub fn screen_id(screen: &Screen) -> ScreenId {
 
 /// The identity of every element of the page, in page order.
 #[must_use]
-pub fn element_ids(screen: &Screen) -> Vec<ElementId> {
+pub fn element_ids(screen: &Redacted<Screen>) -> Vec<ElementId> {
     let mut seen: HashMap<(String, String), usize> = HashMap::new();
     screen
+        .as_inner()
         .elements
         .iter()
         .map(|e| {

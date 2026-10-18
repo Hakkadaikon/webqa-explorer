@@ -1,6 +1,7 @@
 //! Masks configured secrets before text leaves the process.
 
 mod rule;
+mod screen;
 #[cfg(test)]
 mod tests;
 
@@ -24,6 +25,11 @@ impl<T> Redacted<T> {
     /// Takes the redacted value.
     pub fn into_inner(self) -> T {
         self.0
+    }
+
+    /// Builds a value from the redacted one; it counts as redacted too.
+    pub fn map<U>(&self, f: impl FnOnce(&T) -> U) -> Redacted<U> {
+        Redacted(f(&self.0))
     }
 }
 
