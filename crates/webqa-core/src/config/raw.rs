@@ -349,7 +349,17 @@ scenario:
         let element = login.done_when.element.as_ref().unwrap();
         assert_eq!(element.role, "button", "element role");
         assert_eq!(element.name, "ログアウト", "element name");
+        assert_eq!(raw.ops, all_ops(), "all eight ops when omitted");
+        assert_eq!(raw.ops.len(), 8, "eight ops");
         reads_two_stages_in_order();
+        reads_snake_case_ops();
+    }
+
+    fn reads_snake_case_ops() {
+        let yaml = format!("{EXAMPLE}ops: [click, scroll_down, scroll_up, back]\n");
+        let ops = parse(&yaml).unwrap().ops;
+        let want = [Op::Click, Op::ScrollDown, Op::ScrollUp, Op::Back];
+        assert_eq!(ops, want, "snake_case names");
     }
 
     fn reads_two_stages_in_order() {
@@ -383,6 +393,26 @@ scenario:
         );
         let err = parse(&target).unwrap_err();
         assert!(err.to_string().contains("insecure"), "unknown field: {err}");
+        rejects_unknown_fields_in_nested_forms();
+    }
+
+    /// Forms written inline, including the ones read as one of two shapes.
+    const NESTED_UNKNOWN: [(&str, &str); 4] = [
+        (
+            "api_key: { env: JEV_API_KEY }",
+            "api_key: { env: JEV_API_KEY, tls_verify: false }",
+        ),
+        ("pattern: \"[", "tls_verify: false, pattern: \"["),
+        ("pattern: \"[", "env: TEST_ID, pattern: \"["),
+        ("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, extra: 1 }"),
+    ];
+
+    fn rejects_unknown_fields_in_nested_forms() {
+        let yaml_error = parse("[").unwrap_err();
+        for (from, to) in NESTED_UNKNOWN {
+            let err = parse(&changed(from, to)).unwrap_err();
+            assert_eq!(discriminant(&err), discriminant(&yaml_error), "{to}: {err}");
+        }
     }
 
     #[test]
