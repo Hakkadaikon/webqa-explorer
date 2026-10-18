@@ -1,6 +1,8 @@
 //! The hourly window that limits accesses to the target server.
 
 #[cfg(test)]
+mod flow_tests;
+#[cfg(test)]
 mod tests;
 
 use std::num::NonZeroU32;

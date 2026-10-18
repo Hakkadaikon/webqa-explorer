@@ -10,7 +10,8 @@ use std::time::Duration;
 
 use webqa_core::effect::{Effect, Outside, PageEffect, Touch};
 use webqa_core::event::{Event, Line};
-use webqa_core::machine::{self, Facts, Heard, Outcome, Seen, State, Step};
+use webqa_core::explore::Memory;
+use webqa_core::machine::{self, Facts, Heard, Material, Outcome, Rules, Seen, State, Step};
 use webqa_core::ports::{Browser, BrowserError, Clock, Judge, Store, StoreError};
 use webqa_core::redact::Redactor;
 use webqa_core::screen;
@@ -56,14 +57,19 @@ impl<'a> Ports<'a> {
     }
 }
 
-/// Observes the page, then runs from there, choosing among the operations `ops`.
+/// Observes the page, then runs from there under `rules`, exploring with `memory`.
 ///
 /// # Errors
 ///
 /// [`RunError`] when the browser fails or a record cannot be written.
-pub async fn explore(ports: &mut Ports<'_>, ops: Vec<String>) -> Result<Outcome, RunError> {
+pub async fn explore(
+    ports: &mut Ports<'_>,
+    rules: Rules,
+    memory: Memory,
+) -> Result<Outcome, RunError> {
     let seen = observe(ports).await?;
-    run(machine::start(seen, ops), ports).await
+    let start = machine::start(seen, rules, memory, ports.clock.elapsed());
+    run(start, ports).await
 }
 
 /// Does effects until the core finishes.
@@ -75,7 +81,7 @@ pub async fn run(start: Step, ports: &mut Ports<'_>) -> Result<Outcome, RunError
     let mut step = start;
     loop {
         match step {
-            Step::Continue(state, effect) => step = advance(state, effect, ports).await?,
+            Step::Continue(state, effect) => step = advance(*state, effect, ports).await?,
             Step::Finished(outcome) => return Ok(outcome),
         }
     }
@@ -83,7 +89,7 @@ pub async fn run(start: Step, ports: &mut Ports<'_>) -> Result<Outcome, RunError
 
 async fn advance(state: State, effect: Effect, ports: &mut Ports<'_>) -> Result<Step, RunError> {
     let facts = perform(effect, state.last(), ports).await?;
-    Ok(machine::step(state, facts))
+    Ok(machine::step(state, facts, ports.clock.elapsed()))
 }
 
 /// Does the effect. `last` is the page before it.
@@ -111,9 +117,14 @@ async fn beyond(outside: Outside, ports: &mut Ports<'_>) -> Heard {
 
 async fn on_page(page: PageEffect, last: &Seen, ports: &mut Ports<'_>) -> Result<Facts, RunError> {
     match page {
-        PageEffect::Look(_) => observe(ports).await.map(Facts::Page),
-        PageEffect::Touch(touch) => touched(&touch, last, ports).await.map(Facts::Page),
+        PageEffect::Look(_) => observe(ports).await.map(page_facts),
+        PageEffect::Touch(touch) => touched(&touch, last, ports).await.map(page_facts),
     }
+}
+
+/// The facts of observing `seen`.
+fn page_facts(seen: Seen) -> Facts {
+    Facts::Page(Box::new(seen))
 }
 
 /// Logs the decision, touches the page and logs what came of it.
@@ -149,12 +160,14 @@ async fn executed(before: &Seen, ports: &mut Ports<'_>) -> Result<Seen, RunError
     Ok(after)
 }
 
-/// Reads the page and redacts it.
+/// Reads the page and redacts it, keeping the material from before redaction.
 async fn observe(ports: &mut Ports<'_>) -> Result<Seen, RunError> {
     let observation = ports.browser.observe().await?;
+    let material = Material::plain(&observation.screen, observation.viewport);
     Ok(Seen {
         screen: ports.redactor.screen(observation.screen),
         viewport: observation.viewport,
+        material,
     })
 }
 

@@ -1,16 +1,21 @@
 //! Tests of the run loop with fake ports.
 
 use std::collections::VecDeque;
+use std::num::NonZeroU32;
 
 use url::Url;
-use webqa_core::effect::{Target, Wake};
+use webqa_core::config::raw::Op;
+use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::judge::{JudgeError, QuestionId};
+use webqa_core::machine::{Anomaly, ExitReason, Note};
 use webqa_core::ports::Observation;
 use webqa_core::redact::Rule;
 use webqa_core::screen::ElementId;
 use webqa_judge::scripted::Scripted;
 
-use super::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge, VIEWPORT};
+mod perform;
+
+use super::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 use super::*;
 
 struct Fakes {
@@ -22,8 +27,9 @@ struct Fakes {
 }
 
 impl Fakes {
-    /// The page shows `保存` and a link with a mail address, and goes to
-    /// `/done` after the touch; the judge chooses to click `保存`.
+    /// The page shows `保存` and a link with a mail address, stays while
+    /// `保存` is looked up again, and goes to `/done` after the touch; the
+    /// judge chooses to click `保存`.
     fn new() -> Self {
         let rule = Rule::literal("メールアドレス", "taro@example.test");
         let script = Scripted::default()
@@ -31,7 +37,7 @@ impl Fakes {
             .then(QuestionId::target(), [("1", 0.8), ("2", 0.2)]);
         Self {
             browser: FakeBrowser {
-                pages: VecDeque::from([page("/"), page("/done")]),
+                pages: VecDeque::from([page("/"), page("/"), page("/done")]),
                 ..FakeBrowser::default()
             },
             judge: RecordingJudge {
@@ -56,18 +62,26 @@ impl Fakes {
         )
     }
 
+    /// Runs with one decision, so the run ends after the first operation.
     async fn explore(&mut self) -> Result<Outcome, RunError> {
-        explore(
-            &mut self.ports(),
-            vec!["click".to_owned(), "back".to_owned()],
-        )
-        .await
+        explore(&mut self.ports(), rules(), Memory::default()).await
+    }
+
+    async fn reason(&mut self) -> Result<ExitReason, RunError> {
+        self.explore().await.map(|outcome| outcome.reason)
     }
 
     fn lines(&self) -> Vec<Line> {
         let lines = self.store.lines.iter().cloned();
         lines.map(|v| serde_json::from_value(v).unwrap()).collect()
     }
+}
+
+/// Clicking and going back, with one decision.
+fn rules() -> Rules {
+    let limits = [3, 3, 1, 10].map(|n| NonZeroU32::new(n).unwrap());
+    let app = AllowedOrigin::parse("https://app.example.test").unwrap();
+    fakes::rules(&[Op::Click, Op::Back], limits, vec![app])
 }
 
 fn page(path: &str) -> Observation {
@@ -93,7 +107,8 @@ fn line(seq: u64, event: Event) -> Line {
 #[tokio::test]
 async fn one_step_asks_once_touches_once_and_logs_the_decision_and_the_result() {
     let mut fakes = Fakes::new();
-    assert_eq!(fakes.explore().await, Ok(Outcome::Stepped), "the step ends");
+    let ended = Ok(ExitReason::BudgetExceeded);
+    assert_eq!(fakes.reason().await, ended, "no decision left");
     assert_eq!(
         fakes.judge.texts,
         vec!["1: button \"保存\"\n2: link \"[[メールアドレス]] に送る\"".to_owned()],
@@ -129,8 +144,9 @@ async fn one_step_asks_once_touches_once_and_logs_the_decision_and_the_result() 
 #[tokio::test]
 async fn touching_the_same_page_logs_no_change() {
     let mut fakes = Fakes::new();
-    fakes.browser.pages = VecDeque::from([page("/"), page("/")]);
-    assert_eq!(fakes.explore().await, Ok(Outcome::Stepped), "the step ends");
+    fakes.browser.pages = VecDeque::from([page("/"), page("/"), page("/")]);
+    let ended = Ok(ExitReason::BudgetExceeded);
+    assert_eq!(fakes.reason().await, ended, "no decision left");
     let unchanged = line(
         1,
         Event::Executed {
@@ -145,18 +161,18 @@ async fn touching_the_same_page_logs_no_change() {
 async fn judge_failure_ends_the_run_without_touching() {
     let mut fakes = Fakes::new();
     fakes.judge.script = Scripted::default();
-    assert_eq!(
-        fakes.explore().await,
-        Ok(Outcome::JudgeFailed(JudgeError::Exhausted)),
-        "the core gets the error"
-    );
+    let outcome = fakes.explore().await.unwrap();
+    let ended = ExitReason::BudgetExceeded;
+    assert_eq!(outcome.reason, ended, "no decision left");
+    let failed = [Note::Anomaly(Anomaly::Judge(JudgeError::Exhausted))];
+    assert_eq!(outcome.state.notes(), failed, "the core records the error");
     assert_eq!(fakes.browser.touches, Vec::new(), "nothing touched");
 }
 
 async fn fails_with(breaks: fn(&mut Fakes), error: RunError) {
     let mut fakes = Fakes::new();
     breaks(&mut fakes);
-    assert_eq!(fakes.explore().await, Err(error), "the run stops");
+    assert_eq!(fakes.reason().await, Err(error), "the run stops");
 }
 
 #[tokio::test]
@@ -182,63 +198,4 @@ async fn an_unwritable_decision_stops_the_run() {
 #[tokio::test]
 async fn an_unwritable_result_stops_the_run() {
     fails_with(|f| f.store.limit = Some(1), StoreError.into()).await;
-}
-
-#[tokio::test]
-async fn sleeping_waits_on_the_clock() {
-    let mut fakes = Fakes::new();
-    let wake = Effect::Outside(Outside::Sleep(Wake {
-        at: Duration::from_secs(5),
-    }));
-    let seen = observe(&mut fakes.ports()).await.unwrap();
-    let facts = perform(wake, &seen, &mut fakes.ports()).await;
-    assert_eq!(facts, Ok(Facts::Outside(Heard::Woke)), "woke up");
-    assert_eq!(fakes.clock.now, Duration::from_secs(5), "slept until then");
-}
-
-#[tokio::test]
-async fn looking_observes_the_page_again() {
-    let mut fakes = Fakes::new();
-    let seen = observe(&mut fakes.ports()).await.unwrap();
-    let target = Target {
-        element: ElementId {
-            role: "button".to_owned(),
-            name: "保存".to_owned(),
-            nth: 0,
-        },
-    };
-    let look = Effect::Page(PageEffect::Look(target));
-    let facts = perform(look, &seen, &mut fakes.ports()).await;
-    let done = fakes.redactor.screen(page("/done").screen);
-    let expected = Seen {
-        screen: done,
-        viewport: VIEWPORT,
-    };
-    assert_eq!(facts, Ok(Facts::Page(expected)), "the next page, redacted");
-}
-
-#[test]
-fn run_errors_tell_what_failed() {
-    let messages = [
-        RunError::Browser(BrowserError).to_string(),
-        RunError::Store(StoreError).to_string(),
-    ];
-    assert_eq!(
-        messages,
-        [
-            "ブラウザを操作できない".to_owned(),
-            "記録を書けない".to_owned(),
-        ],
-        "fixed messages"
-    );
-}
-
-#[test]
-fn elapsed_time_is_logged_in_milliseconds() {
-    assert_eq!(
-        millis(Duration::from_micros(2_500)),
-        2,
-        "whole milliseconds"
-    );
-    assert_eq!(millis(Duration::MAX), u64::MAX, "too long saturates");
 }
