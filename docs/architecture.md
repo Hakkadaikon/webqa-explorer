@@ -95,7 +95,7 @@ TUIのコードは`webqa-tui`に分け、CLIの実行ループとは別のプロ
 
 | 仕様の変数 | 実装での置き場所 |
 |---|---|
-| `mode` | 設定から決まる実行のモード(決め打ちシナリオ、探索) |
+| `mode` | CLIのサブコマンド(`run`、`explore`)で決まる実行のモード |
 | `stage` | `State`の今の段階の番号 |
 | `phase` | `State::phase`(待機、判断待ち、確認中、実行、移動中、復旧、終了) |
 | `proposedOp`、`proposedTarget`、`proposedLowConf` | 判断待ちから実行までの間だけ持つ`Proposal` |
@@ -779,6 +779,10 @@ serde_yamlは保守が終わったので使わない。
 待ち時間も0を拒否する。
 確信度の閾値は小数なので、検証の段で0より大きく1以下の有限の値かを確かめる。
 使う操作種別が空なら拒否する。
+実行のモードは設定ではなく、CLIのサブコマンドで決まる。
+そのため、モードによって変わる検査は、設定とモードを受け取る中核の関数で行い、CLIが起動時に呼ぶ。
+探索モードでは、使う操作種別にclickもinputも無ければ(doneだけの場合も含む)設定エラーにする。
+要素を操作できないと、探索が進まないためである。
 環境変数の読み取りは関数として渡し、検証そのものは中核の純粋な関数にする。
 認証状態はPlaywrightの保存形式のJSONファイルを指定し、起動時に形式を確かめる。
 
@@ -1012,12 +1016,14 @@ crates/
         select.rs        候補の絞り込み
       judge.rs           問いの組み立てと応答の検証
       screen.rs          要素の一覧、画面の識別、名前の正規化、画面の変化
+      screen/
+        debug.rs  tests.rs  identity_tests.rs  privacy_tests.rs  url_tests.rs
       effect.rs          入れ子の効果の型
       issue.rs           問題の検出と分類
       window.rs          時間窓
       redact.rs          伏せ字と Redacted<T>
       redact/
-        rule.rs  tests.rs
+        rule.rs  screen.rs  tests.rs
       event.rs           イベントログの型
       config.rs
       config/
