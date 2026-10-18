@@ -26,3 +26,4 @@ Webサービスの探索的テストエージェントを、Rustで作ってい�
 - `agents/`: Claude Code向けのサブエージェント。
   役割分担は[`docs/agents.md`](docs/agents.md)にある。
 - `tasks/`: 実装前の設計検討の記録。設計判断の根拠を遡るときに読む。
+  読み方は[`docs/design-records.md`](docs/design-records.md)にある。
