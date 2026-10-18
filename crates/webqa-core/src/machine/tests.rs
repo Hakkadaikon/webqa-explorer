@@ -1,173 +1,140 @@
-//! Tests of the provisional step.
+//! The end of a run, interruption, facts that do not fit the phase, and the
+//! values the state shows outside.
 
-use std::collections::BTreeMap;
+use serde_json::{Value, json};
 
-use super::*;
-use crate::judge::Usage;
-use crate::redact::Redactor;
-use crate::screen::{Element, Rect};
-
-const VIEWPORT: Viewport = Viewport {
-    width: 100,
-    height: 100,
+use crate::config::raw::Op;
+use crate::effect::Effect;
+use crate::explore::Memory;
+use crate::issue::{Issue, IssueKind};
+use crate::machine::ops::offered;
+use crate::machine::testing::{
+    answer, ask_top, asking, budget, counts, idle, next, nz, page, rules, secs, seen, showed,
+    shows, started, told, top, window,
 };
+use crate::machine::{ExitReason, Facts, Heard, Note, Rules, State, Step, StuckKind, abort, step};
+use crate::redact::Redactor;
 
-fn button(name: &str, y: i64) -> Element {
-    Element {
-        role: "button".to_owned(),
-        name: name.to_owned(),
-        value: None,
-        rect: Some(Rect {
-            x: 0,
-            y,
-            width: 10,
-            height: 10,
-        }),
-    }
-}
-
-/// "隠れ" is below the viewport, so the text numbers "ヘルプ" 1 and "保存" 2.
-fn seen() -> Seen {
-    let screen = Screen {
-        url: url::Url::parse("https://app.example.test/").unwrap(),
-        elements: vec![button("隠れ", 500), button("ヘルプ", 0), button("保存", 20)],
-    };
-    Seen {
-        screen: Redactor::default().screen(screen),
-        viewport: VIEWPORT,
-    }
-}
-
-fn ops() -> Vec<String> {
-    vec!["click".to_owned(), "back".to_owned()]
-}
-
-fn state() -> State {
-    State {
-        last: Box::new(seen()),
-        ops: ops(),
-    }
-}
-
-fn button_id(name: &str) -> ElementId {
-    ElementId {
-        role: "button".to_owned(),
-        name: name.to_owned(),
-        nth: 0,
-    }
-}
-
-fn table(options: &[(&str, f64)]) -> Vec<(String, f64)> {
-    options.iter().map(|(o, p)| ((*o).to_owned(), *p)).collect()
-}
-
-/// The judge chose among `ops` and chose `number`, over "1"; an empty `ops`
-/// leaves the operation without options.
-fn answered(ops: &[(&str, f64)], number: &str) -> Step {
-    let answers = Answers {
-        table: BTreeMap::from([
-            (QuestionId::operation(), table(ops)),
-            (QuestionId::target(), table(&[(number, 0.6), ("1", 0.3)])),
-        ]),
-        usage: Usage::default(),
-    };
-    step(state(), Facts::Outside(Heard::Answered(Ok(answers))))
-}
-
-fn touched(op: &str, target: Option<ElementId>, confidence: f64) -> Step {
-    let touch = Touch {
-        op: op.to_owned(),
-        target,
-        confidence,
-    };
-    Step::Continue(state(), Effect::Page(PageEffect::Touch(touch)))
-}
-
-fn asking() -> Step {
-    let questions = Questions {
-        screen: screen_text(&seen().screen, VIEWPORT),
-        questions: step_questions(&ops(), 2),
-    };
-    Step::Continue(state(), Effect::Outside(Outside::Ask(questions)))
+/// What must not change once the run is over.
+fn kept(state: &State) -> (u32, u32, (u32, u32), usize) {
+    (
+        state.budget().used(),
+        state.window().used(secs(0)),
+        counts(state),
+        state.notes().len(),
+    )
 }
 
 #[test]
-fn start_asks_about_the_visible_elements() {
-    assert_eq!(
-        start(seen(), ops()),
-        asking(),
-        "asks about the two visible elements"
-    );
-    assert_eq!(
-        screen_text(&seen().screen, VIEWPORT).as_inner().as_str(),
-        "1: button \"ヘルプ\"\n2: button \"保存\"",
-        "the text numbers the visible elements only"
-    );
+fn finished_state_stays_finished() {
+    let spent = idle(rules(), seen(&top()), Memory::default()).with_budget(budget(20, 20));
+    let finished = next(spent, secs(0)).state().clone();
+    for facts in [Facts::Outside(Heard::Woke), shows(&top())] {
+        let again = step(finished.clone(), facts, secs(0));
+        assert_eq!(again.reason(), Some(ExitReason::BudgetExceeded), "same end");
+        assert_eq!(again.effect(), None, "nothing to do");
+        assert_eq!(kept(again.state()), kept(&finished), "nothing changes");
+    }
+    assert_eq!(abort(finished).reason, ExitReason::BudgetExceeded, "kept");
+    let aborted = abort(ask_top(rules()));
+    assert_eq!(aborted.reason, ExitReason::UserAborted, "interrupted");
+    let ended = aborted.state.ended();
+    assert_eq!(ended, Some(ExitReason::UserAborted), "ends there");
+}
+
+/// `state` takes `facts` that do not fit, and goes back to waiting.
+fn mismatched(state: &State, facts: Facts, expected: &Effect) {
+    let notes = state.notes().len();
+    let step: Step = step(state.clone(), facts, secs(3600));
+    assert_eq!(step.effect(), Some(expected), "back to waiting");
+    assert_eq!(step.state().notes().len(), notes, "nothing recorded");
+    assert_eq!(counts(step.state()), (0, 0), "counts kept");
 }
 
 #[test]
-fn answers_touch_the_most_probable_operation_and_element() {
-    assert_eq!(
-        answered(&[("back", 0.05), ("click", 0.9), ("wait", 0.05)], "2"),
-        touched("click", Some(button_id("保存")), 0.9),
-        "the second visible element is 保存"
-    );
-    assert_eq!(
-        answered(&[("click", 0.8), ("back", 0.2)], "1"),
-        touched("click", Some(button_id("ヘルプ")), 0.8),
-        "the hidden element is not numbered"
-    );
+fn mismatched_facts_return_to_idle() {
+    let asks = asking(&rules(), &top());
+    let awaiting = ask_top(rules());
+    mismatched(&awaiting, shows(&top()), &asks);
+    let looking = told(&awaiting, answer("click", Some(0.9), Some("1")));
+    mismatched(looking.state(), Facts::Outside(Heard::Woke), &asks);
+    let few = Rules {
+        requests_per_hour: nz(1),
+        ..rules()
+    };
+    let full =
+        idle(few.clone(), seen(&top()), Memory::default()).with_window(window(1, 1, secs(0)));
+    let sleeping = next(full, secs(0)).state().clone();
+    mismatched(&sleeping, shows(&top()), &asking(&few, &top()));
+}
+
+/// Every exit reason with its JSON.
+fn reasons() -> [(ExitReason, Value); 7] {
+    [
+        (ExitReason::GoalAchieved, json!({"reason": "goal_achieved"})),
+        (ExitReason::ReportedDone, json!({"reason": "reported_done"})),
+        (
+            ExitReason::Stuck(StuckKind::Declared),
+            json!({"reason": "stuck", "kind": "declared"}),
+        ),
+        (
+            ExitReason::Stuck(StuckKind::NoProgress),
+            json!({"reason": "stuck", "kind": "no_progress"}),
+        ),
+        (
+            ExitReason::BudgetExceeded,
+            json!({"reason": "budget_exceeded"}),
+        ),
+        (ExitReason::TimeExceeded, json!({"reason": "time_exceeded"})),
+        (ExitReason::UserAborted, json!({"reason": "user_aborted"})),
+    ]
 }
 
 #[test]
-fn element_numbers_outside_the_text_touch_no_element() {
-    for number in ["0", "3", "x", ""] {
+fn exit_reasons_serialize_with_reason_and_kind() {
+    for (reason, value) in reasons() {
+        assert_eq!(serde_json::to_value(reason).unwrap(), value, "{reason:?}");
+        let back: ExitReason = serde_json::from_value(value).unwrap();
+        assert_eq!(back, reason, "{reason:?} reads back");
+        let kind = reason.stuck_kind();
         assert_eq!(
-            answered(&[("back", 0.9)], number),
-            touched("back", None, 0.9),
-            "no element has the number {number:?}"
+            reason.is_stuck(),
+            kind.is_some(),
+            "{reason:?} is stuck or not"
         );
     }
+    let declared = ExitReason::Stuck(StuckKind::Declared);
+    assert_eq!(declared.stuck_kind(), Some(StuckKind::Declared), "the kind");
+    assert_eq!(ExitReason::TimeExceeded.stuck_kind(), None, "not stuck");
 }
 
 #[test]
-fn no_operation_ends_unanswered() {
+fn offered_follows_table_order() {
+    let rules = Rules {
+        ops: vec![Op::Stuck, Op::Click, Op::Back],
+        ..rules()
+    };
+    let names: Vec<&str> = offered(&rules).iter().map(|row| row.name).collect();
     assert_eq!(
-        answered(&[], "1"),
-        Step::Finished(Outcome::Unanswered),
-        "nothing to touch without an operation"
+        names,
+        ["click", "back", "stuck"],
+        "in the order of the table"
     );
 }
 
 #[test]
-fn judge_failure_ends_the_run() {
-    let failed = Heard::Answered(Err(JudgeError::Exhausted));
-    assert_eq!(
-        step(state(), Facts::Outside(failed)),
-        Step::Finished(Outcome::JudgeFailed(JudgeError::Exhausted)),
-        "the error is kept"
-    );
-}
-
-#[test]
-fn waking_asks_again() {
-    assert_eq!(
-        step(state(), Facts::Outside(Heard::Woke)),
-        asking(),
-        "the same questions as at the start"
-    );
-}
-
-#[test]
-fn observing_after_the_touch_ends_the_step() {
-    assert_eq!(
-        step(state(), Facts::Page(seen())),
-        Step::Finished(Outcome::Stepped),
-        "one step only"
-    );
-}
-
-#[test]
-fn the_state_keeps_the_observation() {
-    assert_eq!(state().last(), &seen(), "the page it was started on");
+fn debug_hides_page_text() {
+    let screen = page("https://other.example.net/", &[("button", "山田太郎")]);
+    let state = started(rules(), &screen).state().clone();
+    let state = showed(&state, &screen).state().clone();
+    let issue = Note::Issue(Issue {
+        kind: IssueKind::OutsideDomain,
+        evidence: Some(Redactor::default().text("https://other.example.net/")),
+        label: None,
+        p: None,
+    });
+    for shown in [format!("{state:?}"), format!("{issue:?}")] {
+        assert!(!shown.contains("山田太郎"), "no name in {shown}");
+        assert!(!shown.contains("other.example.net"), "no URL in {shown}");
+    }
 }
