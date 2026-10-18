@@ -71,7 +71,7 @@ test-py:
     cd scripts && COVERAGE_FILE=../target/.coverage uv run --no-project --with coverage==7.16.2 coverage run --branch -m unittest discover -p '*_test.py'
     cd scripts && COVERAGE_FILE=../target/.coverage uv run --no-project --with coverage==7.16.2 coverage report -m --fail-under=100
 
-# 複雑度の判定(CCN <= 3、認知的複雑度 <= 4、Halstead、MI、出口、引数)
+# 複雑度の判定(CCN <= 5、認知的複雑度 <= 6、Halstead、MI、出口、引数)
 metrics:
     sh scripts/metrics.sh --check
 
