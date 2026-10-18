@@ -28,7 +28,7 @@ impl<T> Redacted<T> {
     }
 
     /// Builds a value from the redacted one; it counts as redacted too.
-    pub fn map<U>(&self, f: impl FnOnce(&T) -> U) -> Redacted<U> {
+    pub(crate) fn map<U>(&self, f: impl FnOnce(&T) -> U) -> Redacted<U> {
         Redacted(f(&self.0))
     }
 }

@@ -7,6 +7,8 @@ mod identity_tests;
 mod privacy_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod url_tests;
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -131,13 +133,17 @@ fn line(n: usize, e: &Element) -> String {
         .value
         .as_ref()
         .map_or_else(String::new, |v| format!(" value={}", quote(v)));
-    format!("{n}: {} {}{value}", e.role, quote(&e.name))
+    format!("{n}: {} {}{value}", escaped(&e.role), quote(&e.name))
 }
 
-/// Wraps `s` in `"`, escaping `\`, `"`, control characters and line separators.
+/// Wraps `s` in `"` after [`escaped`].
 fn quote(s: &str) -> String {
-    let escaped: String = s.chars().map(escape).collect();
-    format!("\"{escaped}\"")
+    format!("\"{}\"", escaped(s))
+}
+
+/// Escapes `\`, `"`, control characters and line separators.
+fn escaped(s: &str) -> String {
+    s.chars().map(escape).collect()
 }
 
 /// Characters written with a short backslash escape.

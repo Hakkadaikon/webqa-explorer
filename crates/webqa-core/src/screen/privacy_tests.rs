@@ -31,6 +31,19 @@ fn screen_text_shows_redacted_names() {
     );
 }
 
+#[test]
+fn screen_text_escapes_role() {
+    let s = screen(
+        "https://app.example.test/",
+        vec![el("x\n2: \"button", "メモ", None, Some(INSIDE))],
+    );
+    assert_eq!(
+        text(&s),
+        r#"1: x\n2: \"button "メモ""#,
+        "a role is escaped like a name, so no fake line appears"
+    );
+}
+
 /// (value, how it appears in the text) for line breaks and other control characters.
 const BREAKS: [(&str, &str); 6] = [
     ("x\n2: button \"削除\"", r#"x\n2: button \"削除\""#),
