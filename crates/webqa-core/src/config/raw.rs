@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::num::{NonZeroU32, NonZeroU64};
 use std::path::PathBuf;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::ConfigError;
@@ -57,8 +57,10 @@ pub struct RawJudge {
     pub kind: String,
     /// The bridge command.
     pub command: Option<Vec<String>>,
-    /// The environment variable holding the API key.
-    pub api_key: EnvRef,
+    /// The environment variable holding the API key. When omitted,
+    /// authentication is left outside (a relay or the bridge command).
+    #[serde(default)]
+    pub api_key: Option<EnvRef>,
     /// How long to wait for an answer.
     pub timeout_secs: NonZeroU64,
     /// Prices used to compute the cost.
@@ -207,7 +209,7 @@ pub struct Element {
 }
 
 /// An operation kind.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Op {
     /// Click an element.
