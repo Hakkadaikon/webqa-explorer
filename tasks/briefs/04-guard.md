@@ -29,11 +29,21 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 ### 共通(`guard.rs`)
 
 - `guard.rs` は5つの `pub mod` と、`forbidden` と `paywall` が共有する2つの小さな型だけを持つ。どちらも `pub(crate)`。
-- 文字の畳み込み `fold(&str) -> String`: 全角の ASCII(U+FF01〜U+FF5E)を半角に、全角の空白(U+3000)を半角の空白にし、小文字にし、空白の連なりを半角空白1つにまとめ、前後の空白を除く。`as` は使わず `char::from_u32` で変える。
+- 文字の畳み込み `fold(&str) -> String`: 全角の ASCII(U+FF01〜U+FF5E)を半角に、半角カナ(U+FF61〜U+FF9F)を全角にして濁点・半濁点を前のカナと結合し(`ｶﾞ`→`ガ`、`ﾌﾟ`→`プ`、`ｳﾞ`→`ヴ`。`guard/kana.rs`)、全角の空白(U+3000)を半角の空白にし、小文字にし、`-` を空白と同じに扱い(`Check-out` は `check out`)、空白の連なりを半角空白1つにまとめ、前後の空白を除く。`as` は使わず `char::from_u32` で変える。
 - `Words`: 語の一覧。`Words::new(defaults: &[&str], extra: &[String]) -> Words` は、既定と追加の語をどちらも `fold` して持つ。`fold` して空になる語は捨てる(空の語はどの文字列にも一致してしまうため)。
-  `Words::any_in(&self, text: &str) -> bool` は、`fold(text)` の中に、どれかの語が「境界で区切られて」現れれば真。境界は、一致した範囲の直前と直後の文字が ASCII の英数字でないこと(文字列の端も境界)。日本語の語は前後が英数字でなければよいので、実質は部分一致になる。英語の語は単語として一致する(`pay` は `display` に一致しない、`checkout` は `Checkout` に一致する)。
+  `Words::any_in(&self, text: &str) -> bool` は、`fold(text)` の中に、どれかの語が「境界で区切られて」現れれば真。境界は、語の先頭の文字が ASCII の英数字のときだけ一致した範囲の直前を、末尾の文字が ASCII の英数字のときだけ直後を確かめ、その文字が ASCII の英数字でないこと(文字列の端も境界)。日本語の語は境界を見ないので部分一致になる。英語の語は単語として一致する(レビューでの直し)。判定は次の表のとおり。
+
+  | 文字列 | 語 | 判定 | 理由 |
+  |---|---|---|---|
+  | `購入3点` | `購入` | 一致 | 末尾が英数字でないので後ろを見ない |
+  | `1-Click購入` | `購入` | 一致 | 先頭が英数字でないので前を見ない |
+  | `退会API` | `退会` | 一致 | 同上(後ろ) |
+  | `PayPay` | `pay` | 不一致 | どちらの出現も英字に続かれる |
+  | `Prepay` | `pay` | 不一致 | 前に英字 |
+  | `Display` | `pay` | 不一致 | `pay` を含まない |
+  | `Checkout` | `checkout` | 一致 | 両端が文字列の端 |
 - `Segments`: URL のパスの区切りの一覧。`Segments::new(defaults: &[&str], extra: &[String]) -> Segments` は、各語を小文字にして `-` と `_` を除いて持つ。空になる語は捨てる。
-  `Segments::any_in(&self, url: &url::Url) -> bool` は、URL のパスを `/` で区切った各部分を、小文字にして `-` と `_` を除き、どれかの語と完全に等しければ真。クエリ、フラグメント、ホストは見ない。`/sign-in` は `signin` に、`/Pricing/` は `pricing` に一致し、`/pricing-history` は `pricinghistory` なので `pricing` に一致しない。パスを持たない URL(`javascript:`、`data:`)は、`path_segments()` が無いので偽。
+  `Segments::any_in(&self, url: &url::Url) -> bool` は、URL のパスを `/` で区切った各部分を、パーセント復号し(`%` の後ろが16進2桁でなければそのまま)、小文字にし、`;` 以降と最後の `.` 以降(拡張子)を除き、`-` と `_` を除いて(`guard/path.rs`)、どれかの語と完全に等しければ真。クエリ、フラグメント、ホストは見ない。`/sign-in` は `signin` に、`/Pricing/` は `pricing` に一致し、`/pricing-history` は `pricinghistory` なので `pricing` に一致しない。`/checkout.php`、`/checkout;jsessionid=1`、`/%63heckout` は `checkout` に一致し、日本語の区切り(`プラン`)も復号して比べるので一致する。パスを持たない URL(`javascript:`、`data:`)は、`path_segments()` が無いので偽。2つの区切りの並び(`/order/confirm`、`/account/remove`)では判定しない(既知の見逃し)。
 - 判定軸が複数あるもの(`forbidden`、`paywall`)は、軸ごとに1つの関数にし、`[fn(&Self, &材料) -> bool; N]` の静的な配列を `iter().any` でたどる。
 
 ### 禁止要素(`guard/forbidden.rs`)
@@ -51,7 +61,7 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
     3. 遷移先: `c.href` が `Some` で `segments.any_in` が真
     4. 禁止リスト: `c.forbidden_listed`
 - 既定の語 `pub const DEFAULT_KEYWORDS: &[&str]`(この順で置く):
-  `購入`、`買う`、`注文する`、`注文を確定`、`決済`、`支払`、`課金`、`削除`、`退会`、`解約`、`サインイン`、`カード番号`、`buy`、`purchase`、`checkout`、`check out`、`place order`、`pay`、`payment`、`delete`、`close account`、`unsubscribe`、`cancel subscription`、`sign in`、`sign-in`、`signin`。
+  `購入`、`買う`、`注文する`、`注文を確定`、`注文確定`、`ご注文手続き`、`レジに進む`、`決済`、`支払`、`課金`、`削除`、`退会`、`解約`、`サインイン`、`カード番号`、`buy`、`purchase`、`checkout`、`check out`、`place order`、`order now`、`confirm order`、`pay`、`payment`、`delete`、`close account`、`unsubscribe`、`cancel subscription`、`sign in`、`sign-in`、`signin`。
   `ログイン` と `log in` は入れない(決め打ちシナリオの段階でログインを操作できなくなるため。親の判断待ち)。
 - 既定のパスの区切り `pub const DEFAULT_SEGMENTS: &[&str]`:
   `checkout`、`purchase`、`buy`、`payment`、`pay`、`delete`、`destroy`、`unsubscribe`、`withdraw`、`deactivate`、`closeaccount`、`deleteaccount`、`signin`。
@@ -79,7 +89,7 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 ### 低確信度の「戻る」(`guard/confidence.rs`)
 
 - `pub fn confidence(probabilities: &[f64]) -> Option<f64>`: 有限の値の最大値。空、または有限の値が1つも無ければ `None`。範囲(0〜1)の検証は #7 の応答の検証が受け持つので、ここではしない。
-- `pub fn is_low(confidence: Option<f64>, threshold: f64) -> bool`: `None` なら真。`Some(c)` なら `c < threshold` のとき真(閾値ちょうどは低くない)。`threshold` は設定の `limits.back_confidence`(検証済みで `(0, 1]`)。
+- `pub fn is_low(confidence: Option<f64>, threshold: f64) -> bool`: `None` なら真。`Some(c)` なら `c` が `threshold` 以上でないとき真(閾値ちょうどは低くない。`c` か `threshold` が NaN なら比べられないので真)。`threshold` は設定の `limits.back_confidence`(検証済みで `(0, 1]`)。
 - この関数は「戻る」に対してだけ呼ぶ。操作種別は受けない(呼び分けは #12)。
 
 ### 要素の存在と同一性(`guard/identity.rs`)
@@ -99,7 +109,7 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
   - ホストが無い(`javascript:`、`data:` など)
   - `port_or_known_default()` が `None`
   - パスが `""` と `"/"` 以外、クエリがある、フラグメントがある、ユーザー名かパスワードがある
-  - ホストの `*` が先頭の `*.` 以外にある、または `*.` を除いたホストが空
+  - ホストの `*` が先頭の `*.` 以外にある、または `*.` の後ろの空でないラベルが2つ未満(`*.com`、`*.test`、`*.`。トップレベルドメインごとの許可を防ぐ)
   
   `*.` で始まるホストは `subdomains: true` にして、`*.` を除いたものを `host` に持つ。
 - `#[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)] #[error("許可ドメインはスキーム、ホスト、ポートだけのオリジンで書く")] pub struct InvalidOrigin;` 文に値を入れない。
@@ -129,6 +139,10 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 2. `empty_keyword_is_ignored`: 追加 `["", "  ", "　"]` だけの `Words` は、`"保存"` にも `""` にも一致しない。`Segments` も追加 `["", "-"]` だけなら `https://app.example.test/` に一致しない。
 3. `segments_ignore_case_hyphen_and_query`: 追加 `["signin", "pricing"]` の `Segments` で、`https://app.example.test/sign-in` 真、`https://app.example.test/Sign_In/` 真、`https://app.example.test/en/pricing` 真、`https://app.example.test/pricing-history` 偽、`https://app.example.test/?next=/pricing` 偽、`https://app.example.test/#/pricing` 偽、`data:text/html,pricing` 偽。
 
+3b. `words_check_boundaries_only_at_ascii_ends`: 追加 `["pay", "購入", "退会", "1-click"]` の `Words` で、`"購入3点"` 真、`"1-Click購入"` 真、`"退会API"` 真、`"PayPay"` 偽、`"Prepay"` 偽、`"pay2"` 偽、`"x1-click"` 偽、`"1-click!"` 真。
+3c. `fold_turns_halfwidth_kana_and_hyphens_to_one_form`: `fold` が `"ｻｲﾝｲﾝ"`→`"サインイン"`、`"ｶｰﾄﾞ番号"`→`"カード番号"`、`"ｱｯﾌﾟｸﾞﾚｰﾄﾞ"`→`"アップグレード"`、`"ｳﾞｧ｡｢ｦﾝ｣"`→`"ヴァ。「ヲン」"`、`"ﾞｱﾟ"`→`"゛ア゜"`(結合できない記号は全角のまま)、`"Check-out"`→`"check out"`、`"－Ｃｈｅｃｋ－ｏｕｔ－"`→`"check out"`。
+3d. `segments_decode_and_drop_parameters_and_extensions`: 追加 `["checkout", "プラン"]` の `Segments` で、`/checkout.php`、`/checkout;jsessionid=1`、`/%63heckout`、`/%43HECKOUT`、`/check%2Dout.html`、`/プラン` が真、`/checkout.v2.php`、`/checkouts`、`/%6`、`/%zzcheckout`、`/%+6checkout` が偽。
+
 ### `guard::forbidden`
 
 4. `forbidden_by_keyword`: `Forbidden::default()` で、`href` と `form_action` が `None`、両リストが偽の候補について:
@@ -139,6 +153,8 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
    - 偽: `link "次へ"` で `href` が `https://app.example.test/settings`、`button "検索"` で `form_action` が `https://app.example.test/search`、`link "次へ"` で `href` が `https://app.example.test/login?next=/checkout`(クエリは見ない)。
 6. `forbidden_by_list`: `button "実行"` で `forbidden_listed: true` は真。`button "保存"` で `allowed_listed: true` だけは偽。`button "実行"` で両方真は偽(許可リストが優先する)。
 6b. `allowed_list_wins_over_every_axis`: 名前のキーワード、遷移先、送信先、禁止リストのすべてに当たる候補は、`allowed_listed: true` なら偽、`false` なら真。遷移先だけ、送信先だけで当たる候補も、`allowed_listed: true` なら偽。
+6c. `spelling_variants_are_forbidden`: `Forbidden::default()` で、`"購入3点"`、`"1-Click購入"`、`"退会API"`、`"ｻｲﾝｲﾝ"`、`textbox "ｶｰﾄﾞ番号"`、`"Check-out"`、`"注文確定"`、`"ご注文手続きへ"`、`"レジに進む"`、`"Order now"`、`"Confirm order"`、`"Place order"` が真、`link "PayPay"`、`link "Display"`、`link "Prepay"` が偽。
+6d. `encoded_or_suffixed_destinations_are_forbidden`: `href` `/checkout.php` と `/checkout;jsessionid=1`、`form_action` `/%63heckout` が真、`href` `/checkouts` が偽。
 7. `extra_keywords_extend_defaults`: `Forbidden::new(&["危険".into()])` は `button "危険な操作"` を禁止し、`Forbidden::default()` は禁止しない。`Forbidden::new(&["".into()])` は `button "保存"` を禁止しない。追加しても既定の語は残る(`button "退会"` は真)。
 
 ### `guard::paywall`
@@ -157,6 +173,7 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 
 12. `back_confidence_boundary`: `(閾値, 確率の一覧, is_low)` が、`(0.7, [0.69], 真)`、`(0.7, [0.7], 偽)`、`(0.7, [0.71], 偽)`、`(0.5, [0.6], 偽)`、`(0.5, [0.49], 真)`、`(1.0, [1.0], 偽)`、`(0.7, [0.1, 0.69, 0.2], 真)`、`(0.7, [0.1, 0.7], 偽)`。`is_low(confidence(&一覧), 閾値)` で確かめる。`confidence(&[0.1, 0.7])` は `Some(0.7)`。
 13. `back_without_probability_is_low`: `confidence(&[])` は `None`、`confidence(&[f64::NAN])` は `None`、`confidence(&[f64::NAN, 0.8])` は `Some(0.8)`、`confidence(&[f64::INFINITY])` は `None`。`is_low(None, 0.7)` と `is_low(None, 0.01)` は真。
+13b. `nan_confidence_or_threshold_is_low`: `is_low(Some(NaN), 0.7)`、`is_low(Some(0.9), NaN)`、`is_low(Some(NaN), NaN)` は真、`is_low(Some(0.9), 0.7)` は偽。
 
 ### `guard::identity`
 
@@ -170,7 +187,7 @@ issue #4 のコメント(#3 からの引き継ぎ)にある「許可ドメイン
 
 ### `guard::domain`
 
-19. `allowed_origin_rejects_more_than_origin`: `AllowedOrigin::parse` が `Err(InvalidOrigin)` を返すもの: `""`、`"not an origin"`、`"https://a.*.test"`、`"https://*"`、`"https://*."`、`"https://app.example.test/p?q"`、`"https://app.example.test/path"`、`"https://app.example.test?q"`、`"https://app.example.test#f"`、`"https://user@app.example.test"`、`"https://user:pw@app.example.test"`、`"javascript:alert(1)"`、`"data:text/html,hello"`。`Ok` になるもの: `"https://app.example.test"`、`"https://app.example.test/"`、`"https://*.app.example.test"`、`"http://localhost:8080"`。`InvalidOrigin` の `to_string()` は決めた文と等しい。
+19. `allowed_origin_rejects_more_than_origin`: `AllowedOrigin::parse` が `Err(InvalidOrigin)` を返すもの: `""`、`"not an origin"`、`"https://a.*.test"`、`"https://*"`、`"https://*."`、`"https://*.com"`、`"https://*.test"`、`"https://*.test."`、`"https://app.example.test/p?q"`、`"https://app.example.test/path"`、`"https://app.example.test?q"`、`"https://app.example.test#f"`、`"https://user@app.example.test"`、`"https://user:pw@app.example.test"`、`"javascript:alert(1)"`、`"data:text/html,hello"`。`Ok` になるもの: `"https://app.example.test"`、`"https://app.example.test/"`、`"https://*.app.example.test"`、`"https://*.example.test"`、`"http://localhost:8080"`。`InvalidOrigin` の `to_string()` は決めた文と等しい。
 20. `origin_must_match_exactly`: 許可が `["https://app.example.test"]` のとき、`is_allowed` は:
     - 真: `https://app.example.test/settings`、`https://app.example.test:443/`(既定のポートを明示)、`https://APP.example.test/`
     - 偽: `https://app.example.test.evil.test/`、`https://app.examp1e.test/`、`http://app.example.test/`、`http://app.example.test:443/`(スキームだけが違う)、`https://app.example.test:8443/`、`javascript:alert(1)`、`data:text/html,hello`、`https://sub.app.example.test/`
@@ -195,6 +212,7 @@ fixture は `crates/webqa-core/tests/fixtures/guard/` の JSON。テストの中
 23. `forbidden_fixtures`: `forbidden.json`。行は `{ case, role, name, href, form_action, forbidden_listed, allowed_listed, expect }`(`href` と `form_action` は `null` 可)。`Forbidden::default()` で判定する。少なくとも次を入れる。
     - feature の Examples の行(期待値は `true`。ただし許可リストにも一致する `button "購入テスト"` は `false`)。禁止リストにもキーワードにも当たるが許可リストに当たる行(`false`)。お支払いフォームの `textbox "カード番号"` は `form_action` を `https://shop.example.test/checkout/payment` にする。
     - 見逃しを狙う行(`true`): 全角の `ＢＵＹ ＮＯＷ`、`今すぐ 購入`、`Place order`、`Sign in`、名前の無い画像ボタンで `form_action` が `/checkout`、`link "次へ"` で `href` が `/account/deactivate`、`button "OK"` で `form_action` が `/subscription/unsubscribe`。
+    - 表記ゆれの行(`true`): 半角カナの `ｻｲﾝｲﾝ`、`Check-out`、`購入3点`、`レジに進む`、`href` `/checkout.php`、`form_action` `/%63heckout`。過検知を見る行(`false`): `link "PayPay"`。
     - 過検知を見る行(`false`): ECサイトの `link "商品一覧"`、`button "カートを見る"`、`link "Display settings"`、SaaS の `button "保存"`、`link "請求書の履歴"`(`href` `/billing/history`)、`link "ヘルプ"`。
 24. `paywall_fixtures`: `paywall.json`。行は `{ case, url, headings, dialogs, buttons, hits, expect }`。`Paywall::default()` で判定する。少なくとも次を入れる。
     - feature の Examples の6行(`true`)と、「料金の履歴」の行(`false`)。
