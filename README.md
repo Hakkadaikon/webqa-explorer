@@ -12,7 +12,7 @@ Webサービス向けの探索的テストエージェント。
 検討の記録は`tasks/`にあり、読み方は[`docs/design-records.md`](docs/design-records.md)にまとめた。
 
 開発環境と品質ゲートは用意済みで、実装コードはまだ無い。
-次は、アーキテクチャとディレクトリ構造を決める。
+アーキテクチャとディレクトリ構造は[`docs/architecture.md`](docs/architecture.md)で決めた。
 
 ## 開発環境
 
