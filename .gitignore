@@ -10,3 +10,6 @@ lcov.info
 mutants.out*/
 __pycache__/
 .ruff_cache/
+
+# Claude Code runtime state (.claude/skills is tracked)
+.claude/scheduled_tasks.lock
