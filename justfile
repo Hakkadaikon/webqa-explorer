@@ -35,7 +35,7 @@ worktree-tools:
 fmt:
     cargo fmt --all
     taplo fmt --config .config/taplo.toml
-    ruff format scripts
+    ruff format scripts bridge
     shfmt -w scripts
     yamlfmt -conf .config/yamlfmt.yaml .
     just --fmt --unstable
@@ -44,7 +44,7 @@ fmt:
 fmt-check:
     cargo fmt --all -- --check
     taplo fmt --check --config .config/taplo.toml
-    ruff format --check scripts
+    ruff format --check scripts bridge
     shfmt -d scripts
     yamlfmt -conf .config/yamlfmt.yaml -lint .
     just --fmt --check --unstable
@@ -69,6 +69,7 @@ test-rust:
 # Python のテスト(行・分岐とも 100% 未満で失敗)
 test-py:
     cd scripts && COVERAGE_FILE=../target/.coverage uv run --no-project --with coverage==7.16.2 coverage run --branch -m unittest discover -p '*_test.py'
+    cd bridge && COVERAGE_FILE=../target/.coverage uv run --no-project --with coverage==7.16.2 coverage run --append --branch -m unittest discover -p '*_test.py'
     cd scripts && COVERAGE_FILE=../target/.coverage uv run --no-project --with coverage==7.16.2 coverage report -m --fail-under=100
 
 # 複雑度の判定(CCN <= 5、認知的複雑度 <= 6、Halstead、MI、出口、引数)
@@ -125,9 +126,9 @@ secrets:
 config-check:
     actionlint
     shellcheck scripts/*.sh
-    ruff check scripts
+    ruff check scripts bridge
 
-# コミット前と同じ軽い検査
+# テストとカバレッジを含む全部の検査(CI の check ジョブと同じ)
 check: fmt-check clippy metrics docs-check config-check test
 
 # check を、ほかの worktree の check と重ならないよう1本ずつ回す(共有の target のロックを待つ)

@@ -29,3 +29,4 @@ packages:
     registry: local
   - name: mozilla/rust-code-analysis@v0.0.25
     registry: local
+  - name: mozilla/sccache@v0.18.0

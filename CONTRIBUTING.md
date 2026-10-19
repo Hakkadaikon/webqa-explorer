@@ -40,6 +40,7 @@ Claude Codeで開発するときの役割分担は[`docs/agents.md`](docs/agents
 ```text
 crates/   Rust のワークスペース(実装)
 scripts/  開発用ツール(複雑度の判定、コミットメッセージの検査)
+bridge/   判断モデルの橋渡しのコマンド
 docs/     設計と規約の文書
 skills/   エージェント向けの参照スキル(.claude/skills と .agents/skills からリンク)
 agents/   Claude Code のサブエージェント(.claude/agents からリンク)

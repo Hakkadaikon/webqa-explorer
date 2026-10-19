@@ -3,6 +3,7 @@
 pub mod answer;
 pub mod ask;
 pub mod clue;
+pub mod compare;
 pub mod issue;
 pub mod ledger;
 pub mod natural;

@@ -38,7 +38,7 @@ fn found(issues: Vec<Issue>) -> Record {
     let found = issues.into_iter().map(|issue| Found {
         step: 2,
         issue,
-        shot: "ISSUE_step2.png".to_owned(),
+        shot: Some("ISSUE_step2.png".to_owned()),
     });
     Record {
         found: found.collect(),

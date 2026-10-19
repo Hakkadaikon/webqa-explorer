@@ -271,6 +271,36 @@
       "algorithm": "sha256"
     },
     {
+      "id": "github_release/github.com/mozilla/sccache/v0.18.0/sccache-v0.18.0-aarch64-apple-darwin.tar.gz",
+      "checksum": "308184519B646F5125289E8515B36F6CA65A13A041923994AEBE702348674E8E",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/mozilla/sccache/v0.18.0/sccache-v0.18.0-aarch64-pc-windows-msvc.tar.gz",
+      "checksum": "9C1F3ECAEEAE2E69171FF704867AA99813D2D68AE4D172DD34B11A07037DDD27",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/mozilla/sccache/v0.18.0/sccache-v0.18.0-aarch64-unknown-linux-musl.tar.gz",
+      "checksum": "2B3284D5DA3B46A47DC4229E75BB7B88AC4AA99C8D754FB7D2F84997E5A4354A",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/mozilla/sccache/v0.18.0/sccache-v0.18.0-x86_64-apple-darwin.tar.gz",
+      "checksum": "1DADE83CC49EEB42337565ECCD534B05982820A8E44B851BD7937467A18C7AEF",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/mozilla/sccache/v0.18.0/sccache-v0.18.0-x86_64-pc-windows-msvc.tar.gz",
+      "checksum": "1A63C1BE2BEAB3F04D27E4CC145443E092E02D3DD83A51030989829D7023091B",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/mozilla/sccache/v0.18.0/sccache-v0.18.0-x86_64-unknown-linux-musl.tar.gz",
+      "checksum": "45F1447FBE231E3037BDE351EF70677DD212216C8D62AE7CA409FECC4D6ACC89",
+      "algorithm": "sha256"
+    },
+    {
       "id": "github_release/github.com/mvdan/sh/v3.14.1/shfmt_v3.14.1_darwin_amd64",
       "checksum": "D33EEE0DA0F92835B3562E9767A05CEE7E4EAEEF47DAA03BFD09DA17B4B590A6",
       "algorithm": "sha256"
