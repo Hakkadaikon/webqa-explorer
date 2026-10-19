@@ -2,7 +2,7 @@
 
 - 最初に worktree の中で `just worktree-tools` を実行する。
 - ビルドは本体の checkout の `target/` を共有する(`just` を通せば自動で入る)。`cargo` を直接叩くときは、`CARGO_TARGET_DIR` を `just --evaluate CARGO_TARGET_DIR` の値にし、`CARGO_BUILD_JOBS=2` を付ける(メモリが 3GB しかない)。`cargo clean` はしない(ほかの担当の分も消える)。
-- TDD の途中は、触っているモジュールのテストだけを回す(例: `cargo test -p webqa-core screen`)。`just check-serial`(カバレッジを含む `just check` をロックを取って回す)はコミットの前に1回だけ回す。
+- TDD の途中は、触っているモジュールのテストだけを回す(例: `cargo test -p webqa-core screen`)。全体のテストとカバレッジは手元で回さず、PR の CI で確かめる(2026-10-20 から)。
 - Skill ツールで `implementing` を呼び、その手順で書く。テストを先に書き、Red を確かめてから実装する。
 - 品質ゲートの設定は変えない。除外の注釈を足さない。
 - mutation は回さない(2026-10-18 から)。並列の担当が同時に回すとマシンを取り合うので、親セッションが統合の前に1本ずつ回す。生き残りが出たら、親が担当に戻す。brief の受け入れ条件にある「mutation の生き残り0」は、この親の検査で満たす。
