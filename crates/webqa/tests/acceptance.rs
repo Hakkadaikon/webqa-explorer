@@ -88,10 +88,13 @@ fn ready() -> Vec<&'static str> {
 
 /// How many scenarios of the feature are called `name`.
 fn scenarios_named(name: &str) -> usize {
-    let heading = format!("Scenario: {name}");
+    let headings = [
+        format!("Scenario: {name}"),
+        format!("Scenario Outline: {name}"),
+    ];
     FEATURE
         .lines()
-        .filter(|line| line.trim() == heading)
+        .filter(|line| headings.iter().any(|heading| line.trim() == heading))
         .count()
 }
 
