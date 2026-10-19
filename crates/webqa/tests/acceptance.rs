@@ -54,6 +54,8 @@ mod memory;
 mod recovery;
 #[path = "steps/stages.rs"]
 mod stages;
+#[path = "steps/stages_given.rs"]
+mod stages_given;
 #[path = "steps/step.rs"]
 mod step;
 
