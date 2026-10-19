@@ -96,6 +96,11 @@ impl Store for Slow {
         }
     }
 
+    fn write_ledger<'a>(&'a mut self, text: &'a str) -> Pending<'a, Result<(), StoreError>> {
+        self.order.push("write_ledger");
+        self.inner.write_ledger(text)
+    }
+
     fn write_report<'a>(
         &'a mut self,
         report: &'a Redacted<Value>,

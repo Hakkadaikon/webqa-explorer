@@ -11,7 +11,7 @@ use webqa_core::judge::Image;
 use webqa_core::ports::{Pending, Store, StoreError};
 use webqa_core::redact::Redacted;
 
-use super::paths::{EVENTS, MEMORY, REPORT, RUNS, memory_file};
+use super::paths::{EVENTS, LEDGER, MEMORY, REPORT, RUNS, memory_file};
 use super::screenshots::DIR;
 
 /// The store on the file system. No `Debug` of file contents.
@@ -169,6 +169,10 @@ impl Store for FileStore {
         memory: &'a Redacted<Value>,
     ) -> Pending<'a, Result<(), StoreError>> {
         Box::pin(async move { replace(&self.memory_path(origin), &pretty(memory)).await })
+    }
+
+    fn write_ledger<'a>(&'a mut self, text: &'a str) -> Pending<'a, Result<(), StoreError>> {
+        Box::pin(async move { replace(&self.run.join(LEDGER), text.as_bytes()).await })
     }
 
     fn write_report<'a>(

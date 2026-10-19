@@ -143,6 +143,10 @@ pub trait Store: Send {
         memory: &'a Redacted<Value>,
     ) -> Pending<'a, Result<(), StoreError>>;
 
+    /// Writes the interview ledger of the run as `text`, replacing the one
+    /// written before. The text is already redacted.
+    fn write_ledger<'a>(&'a mut self, text: &'a str) -> Pending<'a, Result<(), StoreError>>;
+
     /// Writes the report of the run.
     fn write_report<'a>(
         &'a mut self,
