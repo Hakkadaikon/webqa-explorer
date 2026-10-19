@@ -1,6 +1,7 @@
 //! The configuration the executable tests write.
 
 use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 
 /// The bridge the judge command starts.
@@ -24,13 +25,15 @@ pub struct Config<'a> {
     pub freeze: u32,
     /// `limits.max_decisions`.
     pub max_decisions: u32,
+    /// `limits.max_duration_secs`.
+    pub max_duration: u32,
     /// An `ops:` line, or empty.
     pub ops: &'a str,
 }
 
 impl<'a> Config<'a> {
     /// The usual configuration of the tests.
-    pub fn new(url: &'a str, mode: &'a str, log: &'a Path) -> Self {
+    pub const fn new(url: &'a str, mode: &'a str, log: &'a Path) -> Self {
         Config {
             url,
             mode,
@@ -40,18 +43,19 @@ impl<'a> Config<'a> {
             kind: "command",
             freeze: 1000,
             max_decisions: 10000,
+            max_duration: 2,
             ops: "",
         }
     }
 
     /// Writes the file in `dir` and returns its path.
-    pub fn write(&self, dir: &Path) -> PathBuf {
+    pub fn write(&self, dir: &Path) -> io::Result<PathBuf> {
         let command = self.command.map_or_else(
             || format!(r#"["{BRIDGE}", "{}", "{}"]"#, self.mode, self.log.display()),
             |c| format!(r#"["{c}"]"#),
         );
         let yaml = format!(
-            r#"target:
+            r"target:
   url: {url}
   allowed_origins: []
 judge:
@@ -65,7 +69,7 @@ judge:
   max_decisions: {max_decisions}
   requests_per_hour: 10000
   page_timeout_secs: 5
-  max_duration_secs: 2
+  max_duration_secs: {max_duration}
   back_confidence: 0.7
   error_confidence: 0.8
 guard:
@@ -77,16 +81,17 @@ guard:
       goal: 開く
       done_when:
         url: /
-"#,
+",
             url = self.url,
             kind = self.kind,
             extra = self.judge_extra,
             freeze = self.freeze,
             max_decisions = self.max_decisions,
+            max_duration = self.max_duration,
             ops = self.ops,
         );
         let path = dir.join("config.yaml");
-        fs::write(&path, yaml).expect("write the configuration");
-        path
+        fs::write(&path, yaml)?;
+        Ok(path)
     }
 }

@@ -14,8 +14,11 @@ stuck) operation='"operation":[{"option":"stuck","p":1.0}]' ;;
 done) operation='"operation":[{"option":"done","p":1.0}]' ;;
 wait) operation='"operation":[{"option":"wait","p":1.0}]' ;;
 click) operation='"operation":[{"option":"click","p":0.9}],"target":[{"option":"1","p":0.9}]' ;;
+broken) operation='"operation":[{"option":"wait","p":1.0}]' ;;
 esac
-flags='"error_shown":[{"option":"true","p":0.0}],"goal_reached":[{"option":"true","p":0.0}],"confusing_display":[{"option":"true","p":0.0}]'
+shown=0.0
+[ "$mode" = broken ] && shown=0.9
+flags='"error_shown":[{"option":"true","p":'$shown'}],"goal_reached":[{"option":"true","p":0.0}],"confusing_display":[{"option":"true","p":0.0}]'
 
 while IFS= read -r line; do
 	printf 'asked\n' >>"$log"
