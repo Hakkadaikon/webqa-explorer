@@ -121,8 +121,15 @@ pub enum Event {
         label: Option<String>,
         /// The judge's confidence.
         p: Option<f64>,
-        /// The file name of its screenshot.
-        screenshot: String,
+        /// The file name of its screenshot; none when it could not be taken.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        screenshot: Option<String>,
+    },
+    /// The browser was asked for an operation it does nothing for.
+    Skipped {
+        /// Why it does nothing, by name: `not_an_input` for typing into an
+        /// element that is not an input field.
+        cause: String,
     },
     /// The scenario moved on to the stage `stage` (from 0) named `name`.
     StageAdvanced {
@@ -166,16 +173,16 @@ impl Event {
         }
     }
 
-    /// The line of `issue`, its screenshot saved as `screenshot`.
+    /// The line of `issue`, its screenshot saved as `screenshot`, if any.
     #[must_use]
-    pub fn found(issue: &Issue, screenshot: &str) -> Self {
+    pub fn found(issue: &Issue, screenshot: Option<&str>) -> Self {
         Self::Issue {
             issue: issue.kind,
             class: issue.class(),
             evidence: issue.evidence.as_ref().map(|e| e.as_inner().clone()),
             label: issue.label.clone(),
             p: issue.p,
-            screenshot: screenshot.to_owned(),
+            screenshot: screenshot.map(str::to_owned),
         }
     }
 
