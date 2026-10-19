@@ -22,9 +22,13 @@ type Fields<'a> = [Field<'a>; 14];
 /// confidence.
 type Tail = (Option<Shot>, Vec<Act>, Count, Option<f64>);
 
-/// An issue of `section`: its first line and its fields.
-pub(super) fn entry(lines: &mut Lines<'_>, section: Section) -> Result<Entry, LedgerError> {
-    let (selected, number) = first_line(lines)?;
+/// An issue of `section`: its `first` line, taken already, and its fields.
+pub(super) fn entry(
+    lines: &mut Lines<'_>,
+    first: Field<'_>,
+    section: Section,
+) -> Result<Entry, LedgerError> {
+    let (selected, number) = first_line(first)?;
     let fields = fields(lines)?;
     let issue = issue(number, &fields)?;
     annotations(&fields).map(|(persona_trait, compared)| Entry {
@@ -37,10 +41,8 @@ pub(super) fn entry(lines: &mut Lines<'_>, section: Section) -> Result<Entry, Le
 }
 
 /// The checkbox and the number. The instruction after them is not read.
-fn first_line(lines: &mut Lines<'_>) -> Result<(bool, Number), LedgerError> {
-    lines
-        .next()
-        .and_then(|(text, line)| checkbox(text).at(line))
+fn first_line((text, line): Field<'_>) -> Result<(bool, Number), LedgerError> {
+    checkbox(text).at(line)
 }
 
 /// The checkbox and the number at the start of `text`.

@@ -131,7 +131,8 @@ fn body(lines: &mut Lines<'_>, section: Section, ledger: &mut Ledger) -> Result<
     if lines.peek() == Some(EMPTY) {
         return nothing(lines);
     }
-    item(lines, section, ledger)?;
+    let first = lines.next()?;
+    item(first, lines, section, ledger)?;
     items(lines, section, ledger)
 }
 
@@ -140,10 +141,12 @@ fn nothing(lines: &mut Lines<'_>) -> Result<(), LedgerError> {
     lines.next().and_then(|_| lines.exact(""))
 }
 
-/// The items of `section` after the first, up to the next heading.
+/// The items of `section` after the first, up to the next heading. Each
+/// round takes the first line of an item, so that the loop always
+/// advances.
 fn items(lines: &mut Lines<'_>, section: Section, ledger: &mut Ledger) -> Result<(), LedgerError> {
-    while lines.peek().is_some_and(is_item) {
-        item(lines, section, ledger)?;
+    while let Some(first) = lines.next_if(is_item) {
+        item(first, lines, section, ledger)?;
     }
     Ok(())
 }
@@ -153,29 +156,45 @@ fn is_item(line: &str) -> bool {
     !line.starts_with(HEADING)
 }
 
-/// An issue, or an unchecked purpose in the unchecked section, and the
-/// blank after it.
-fn item(lines: &mut Lines<'_>, section: Section, ledger: &mut Ledger) -> Result<(), LedgerError> {
-    let read = if is_purpose(section, lines.peek()) {
-        purpose(lines).map(|it| ledger.unchecked_purposes.push(it))
-    } else {
-        entry::entry(lines, section).map(|it| ledger.entries.push(it))
+/// An issue, or an unchecked purpose in the unchecked section, from its
+/// `first` line, and the blank after it.
+fn item(
+    first: Field<'_>,
+    lines: &mut Lines<'_>,
+    section: Section,
+    ledger: &mut Ledger,
+) -> Result<(), LedgerError> {
+    let read = match purpose_of(section, first) {
+        Some(rest) => purpose(rest, ledger),
+        None => issue(lines, first, section, ledger),
     };
     read.and_then(|()| lines.exact(""))
 }
 
-/// Whether the next line is an unchecked purpose of `section`.
-fn is_purpose(section: Section, line: Option<&str>) -> bool {
-    let unchecked = section == Section::Unchecked;
-    unchecked && line.is_some_and(|it| it.starts_with(PURPOSE_LINE))
+/// An issue from its `first` line, into `ledger`.
+fn issue(
+    lines: &mut Lines<'_>,
+    first: Field<'_>,
+    section: Section,
+    ledger: &mut Ledger,
+) -> Result<(), LedgerError> {
+    entry::entry(lines, first, section).map(|it| ledger.entries.push(it))
 }
 
-/// An unchecked purpose.
-fn purpose(lines: &mut Lines<'_>) -> Result<UncheckedPurpose, LedgerError> {
-    lines
-        .after(PURPOSE_LINE)
-        .and_then(json::<WirePurpose>)
-        .map(UncheckedPurpose::from)
+/// What follows the prefix when `first` is an unchecked purpose of
+/// `section`.
+fn purpose_of(section: Section, (text, line): Field<'_>) -> Option<Field<'_>> {
+    let unchecked = section == Section::Unchecked;
+    let rest = unchecked
+        .then_some(text)
+        .and_then(|it| it.strip_prefix(PURPOSE_LINE));
+    rest.map(|rest| (rest, line))
+}
+
+/// An unchecked purpose after its prefix, into `ledger`.
+fn purpose(rest: Field<'_>, ledger: &mut Ledger) -> Result<(), LedgerError> {
+    let read = json::<WirePurpose>(rest).map(UncheckedPurpose::from);
+    read.map(|it| ledger.unchecked_purposes.push(it))
 }
 
 #[cfg(test)]

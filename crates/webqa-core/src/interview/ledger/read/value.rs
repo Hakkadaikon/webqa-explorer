@@ -43,6 +43,13 @@ impl<'a> Lines<'a> {
         Ok((line, self.last))
     }
 
+    /// Takes the next line with its number if `want` accepts it.
+    pub(super) fn next_if(&mut self, want: impl Fn(&str) -> bool) -> Option<Field<'a>> {
+        let (i, line) = self.lines.next_if(|&(_, line)| want(line))?;
+        self.last = i + 1;
+        Some((line, self.last))
+    }
+
     /// Takes the next line, which must be `want`.
     pub(super) fn exact(&mut self, want: &str) -> Result<(), LedgerError> {
         let (line, n) = self.next()?;
