@@ -75,8 +75,8 @@ async fn configure(job: &Job) -> Result<(Setup, Option<Replay>, Start), Stop> {
     let Some((replay, kept)) = script else {
         return Ok((setup, None, Start::Stored));
     };
-    let from = start::given(&setup.origin, kept)?;
-    Ok((setup, Some(replay), from))
+    let from = start::given(&setup.origin, kept);
+    from.map(|from| (setup, Some(replay), from))
 }
 
 /// The judge, the browser, the clocks and the store. The run's

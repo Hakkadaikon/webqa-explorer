@@ -92,11 +92,12 @@ async fn finish(
         interrupt,
         allowance,
     );
-    match written.await {
-        None => Ending::Abandoned,
-        Some(Err(error)) => Ending::Failed(error),
-        Some(Ok(())) => Ending::finished(outcome, ports.record()),
-    }
+    let done = written.await;
+    done.map_or(Ending::Abandoned, |result| {
+        result.map_or_else(Ending::Failed, |()| {
+            Ending::finished(outcome, ports.record())
+        })
+    })
 }
 
 /// Starts the log and the memory, then runs the loop. Gives the outcome and
