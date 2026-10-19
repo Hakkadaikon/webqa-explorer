@@ -13,8 +13,10 @@ use std::path::PathBuf;
 use clap::Parser;
 use tokio::runtime::{Builder, Runtime};
 
+use crate::clock::RealClock;
 use crate::exit::CONFIG_ERROR;
-use crate::{logging, setup};
+use crate::interrupt::CtrlC;
+use crate::{logging, setup, watch};
 use start::Stop;
 
 /// The command line of `webqa`.
@@ -27,7 +29,41 @@ use start::Stop;
 pub struct Cli {
     /// What to do.
     #[command(subcommand)]
-    pub command: Command,
+    pub command: Sub,
+}
+
+/// What the command line asks: a run, or watching one.
+///
+/// Watching is not a [`Command`]: it starts no run, and the stages of
+/// starting never see it.
+#[derive(Debug, PartialEq, Eq, clap::Subcommand)]
+pub enum Sub {
+    /// A run: `run`, `explore` or `replay`.
+    #[command(flatten)]
+    Exec(Command),
+    /// Follows the event log of a run in another process.
+    Watch(WatchArgs),
+}
+
+impl Sub {
+    /// The run to start, or the arguments of watching.
+    ///
+    /// # Errors
+    ///
+    /// The arguments of `watch`, when that is what was asked.
+    pub fn split(self) -> Result<Command, WatchArgs> {
+        match self {
+            Self::Exec(command) => Ok(command),
+            Self::Watch(args) => Err(args),
+        }
+    }
+}
+
+/// The arguments of `watch`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct WatchArgs {
+    /// The directory of the run: `<out>/runs/<run id>`.
+    pub dir: PathBuf,
 }
 
 /// The subcommands.
@@ -127,7 +163,7 @@ fn explain(error: &clap::Error) -> u8 {
     }
 }
 
-fn in_runtime(command: Command) -> u8 {
+fn in_runtime(command: Sub) -> u8 {
     let runtime = Builder::new_current_thread().enable_all().build();
     let done = runtime
         .map_err(Stop::runtime)
@@ -135,10 +171,22 @@ fn in_runtime(command: Command) -> u8 {
     done.unwrap_or_else(app::stopped).code
 }
 
-fn drive(runtime: Runtime, command: Command) -> app::Done {
-    let done = runtime.block_on(app::app(command));
+fn drive(runtime: Runtime, sub: Sub) -> app::Done {
+    let done = match sub.split() {
+        Ok(command) => runtime.block_on(app::app(command)),
+        Err(args) => app::Done {
+            code: runtime.block_on(follow(&args)),
+            abandoned: false,
+        },
+    };
     stop_runtime(runtime, done.abandoned);
     done
+}
+
+/// Watches the run of `args` on the standard output until Ctrl-C.
+async fn follow(args: &WatchArgs) -> u8 {
+    let mut clock = RealClock::start();
+    watch::watch(&args.dir, &mut clock, &mut CtrlC, io::stdout()).await
 }
 
 /// Stops the runtime. When the records were abandoned, work still running

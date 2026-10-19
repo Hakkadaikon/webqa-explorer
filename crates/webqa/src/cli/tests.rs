@@ -33,18 +33,24 @@ fn arguments_are_read() {
     let read_ok = |args: &[&str]| read(args).map(|cli| cli.command);
     assert_eq!(
         read_ok(&["webqa", "explore", "--config", "c.yaml"]),
-        Ok(Command::Explore(run_args("c.yaml", ".webqa")))
+        Ok(Sub::Exec(Command::Explore(run_args("c.yaml", ".webqa"))))
     );
     assert_eq!(
         read_ok(&["webqa", "run", "--config", "c.yaml", "--out", "o"]),
-        Ok(Command::Run(run_args("c.yaml", "o")))
+        Ok(Sub::Exec(Command::Run(run_args("c.yaml", "o"))))
     );
     assert_eq!(
         read_ok(&["webqa", "replay", "r.json", "--config", "c.yaml"]),
-        Ok(Command::Replay(ReplayArgs {
+        Ok(Sub::Exec(Command::Replay(ReplayArgs {
             report: "r.json".into(),
             config: "c.yaml".into(),
             out: ".webqa".into(),
+        })))
+    );
+    assert_eq!(
+        read_ok(&["webqa", "watch", ".webqa/runs/r1"]),
+        Ok(Sub::Watch(WatchArgs {
+            dir: ".webqa/runs/r1".into()
         }))
     );
 }
@@ -53,7 +59,11 @@ fn arguments_are_read() {
 fn bad_arguments_are_errors() {
     let limit = ["webqa", "run", "--config", "c", "--max-duration-secs", "60"];
     assert_eq!(read(&limit), Err(ErrorKind::UnknownArgument));
-    assert_eq!(read(&["webqa", "watch"]), Err(ErrorKind::InvalidSubcommand));
+    assert_eq!(
+        read(&["webqa", "watch"]),
+        Err(ErrorKind::MissingRequiredArgument)
+    );
+    assert_eq!(read(&["webqa", "tail"]), Err(ErrorKind::InvalidSubcommand));
     assert_eq!(
         read(&["webqa", "run"]),
         Err(ErrorKind::MissingRequiredArgument)
@@ -85,7 +95,10 @@ fn an_unknown_judge_kind_is_said_without_its_name() {
 
 #[test]
 fn subcommands_become_jobs() {
-    let job = |args: &[&str]| Cli::try_parse_from(args).map(|cli| start::job(cli.command));
+    let job = |args: &[&str]| {
+        let cli = Cli::try_parse_from(args);
+        cli.map(|cli| cli.command.split().map(start::job))
+    };
     let expected = |source, out: &str| start::Job {
         source,
         config: "c.yaml".into(),
@@ -93,15 +106,23 @@ fn subcommands_become_jobs() {
     };
     assert_eq!(
         job(&["webqa", "run", "--config", "c.yaml"]).ok(),
-        Some(expected(start::Source::Scenario, ".webqa"))
+        Some(Ok(expected(start::Source::Scenario, ".webqa")))
     );
     assert_eq!(
         job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]).ok(),
-        Some(expected(start::Source::Explore, "o"))
+        Some(Ok(expected(start::Source::Explore, "o")))
     );
     assert_eq!(
         job(&["webqa", "replay", "r.json", "--config", "c.yaml"]).ok(),
-        Some(expected(start::Source::Replay("r.json".into()), ".webqa"))
+        Some(Ok(expected(
+            start::Source::Replay("r.json".into()),
+            ".webqa"
+        )))
+    );
+    assert_eq!(
+        job(&["webqa", "watch", "d"]).ok(),
+        Some(Err(WatchArgs { dir: "d".into() })),
+        "watching starts no run"
     );
 }
 
