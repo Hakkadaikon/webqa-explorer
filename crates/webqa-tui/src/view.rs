@@ -73,7 +73,7 @@ const fn changed(event: &Event) -> u64 {
 }
 
 fn reason(event: &Event) -> Option<String> {
-    if let Event::RunFinished { reason } = event {
+    if let Event::RunFinished { reason, .. } = event {
         Some(reason.clone())
     } else {
         None

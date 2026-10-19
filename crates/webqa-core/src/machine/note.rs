@@ -1,5 +1,7 @@
 //! What the core records during a run, for the run loop to log.
 
+use serde::{Deserialize, Serialize};
+
 use super::Seen;
 use crate::issue::{Issue, IssueKind};
 use crate::judge::{JudgeError, Unusable};
@@ -16,7 +18,8 @@ pub enum Note {
 }
 
 /// Why a proposal was stopped.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Rejection {
     /// A forbidden element, or one without material.
     Forbidden,

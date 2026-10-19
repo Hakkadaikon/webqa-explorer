@@ -1,5 +1,6 @@
 //! Playwright adapter of webqa.
 
+mod capture;
 mod console;
 mod identity;
 pub mod launch;
@@ -10,6 +11,7 @@ pub mod snapshot;
 
 pub use launch::{LaunchError, LaunchOptions, PlaywrightBrowser};
 use webqa_core::effect::Touch;
+use webqa_core::judge::Image;
 use webqa_core::ports::{Browser, BrowserError, Observation, Pending};
 
 impl Browser for PlaywrightBrowser {
@@ -19,5 +21,9 @@ impl Browser for PlaywrightBrowser {
 
     fn touch<'a>(&'a mut self, touch: &'a Touch) -> Pending<'a, Result<(), BrowserError>> {
         Box::pin(self.act(touch))
+    }
+
+    fn screenshot(&mut self) -> Pending<'_, Result<Image, BrowserError>> {
+        Box::pin(self.capture())
     }
 }

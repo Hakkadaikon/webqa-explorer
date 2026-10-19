@@ -1,12 +1,17 @@
 //! The exploration memory: screens, their elements, and the edges between them.
 
+mod file;
 #[cfg(test)]
 pub(super) mod tests;
 
 use std::collections::BTreeSet;
 
+use serde::{Deserialize, Serialize};
+
 use crate::redact::Redacted;
 use crate::screen::{ElementId, Screen, ScreenId, element_ids, screen_id};
+
+pub use file::MemoryFileError;
 
 /// A screen in the memory. Only [`Memory`] makes one.
 ///
@@ -15,7 +20,8 @@ use crate::screen::{ElementId, Screen, ScreenId, element_ids, screen_id};
 pub struct ScreenKey(usize);
 
 /// The operation on an element that an edge records.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ElementOp {
     /// A click.
     Click,

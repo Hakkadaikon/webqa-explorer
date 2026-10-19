@@ -12,14 +12,30 @@ webqa-browser.workspace = true
 webqa-core.workspace = true
 webqa-judge.workspace = true
 webqa-tui.workspace = true
-tokio = { workspace = true, features = ["io-util", "macros", "process"] }
+clap = { workspace = true, features = ["derive"] }
+dotenvy.workspace = true
+jiff.workspace = true
+serde.workspace = true
+tokio = { workspace = true, features = [
+  "fs",
+  "io-util",
+  "macros",
+  "process",
+  "rt",
+  "signal",
+  "sync",
+  "time",
+] }
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt"] }
+url.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
 cucumber.workspace = true
-tokio = { workspace = true, features = ["macros", "rt"] }
-url.workspace = true
+insta.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "sync", "time"] }
 
 [[test]]
 name = "acceptance"

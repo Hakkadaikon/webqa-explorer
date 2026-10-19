@@ -5,6 +5,8 @@
 //! back what came of them with the time since the run started.
 
 mod actions;
+#[cfg(test)]
+mod cause_tests;
 pub mod counters;
 mod guards;
 mod material;
@@ -34,7 +36,7 @@ use actions::{Action, MISMATCH, Next, Now};
 pub use material::Material;
 pub use note::{Anomaly, Note, Rejection};
 pub use rules::Rules;
-pub use state::{ExitReason, Phase, State, StuckKind};
+pub use state::{Cause, ExitReason, Phase, State, StuckKind};
 pub use whole::Whole;
 
 /// A redacted observation of the page, with the material of the guardrails.

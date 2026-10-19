@@ -18,7 +18,7 @@ pub use verdict::{Unusable, Verdict, read_answers};
 
 use std::collections::BTreeMap;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Names a question, so that its answer can be found.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
@@ -174,7 +174,8 @@ const fn borrowed((option, p): &(String, f64)) -> (&str, f64) {
 }
 
 /// Why the judge model gave no answers. No variant carries page strings.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, thiserror::Error)]
+#[serde(rename_all = "snake_case")]
 pub enum JudgeError {
     /// The judge has no more answers, such as a script that ran out.
     #[error("判断モデルの答えが尽きた")]
