@@ -3,7 +3,7 @@
 mod detect;
 #[cfg(test)]
 #[path = "../tests/support/fakes.rs"]
-mod fakes;
+pub(crate) mod fakes;
 mod journal;
 mod log;
 mod notes;
@@ -21,6 +21,7 @@ use webqa_core::issue::Probe;
 use webqa_core::machine::{self, Outcome, Rules, State, Step};
 use webqa_core::ports::{Browser, BrowserError, Clock, Judge, Store, StoreError};
 use webqa_core::redact::Redactor;
+use webqa_core::window::RequestWindow;
 
 use crate::interrupt::Interrupt;
 use crate::record::Record;
@@ -187,8 +188,24 @@ pub async fn explore(
     rules: Rules,
     memory: Memory,
 ) -> Result<Outcome, RunError> {
+    let window = RequestWindow::new(rules.requests_per_hour);
+    explore_in(ports, interrupt, rules, memory, window).await
+}
+
+/// As [`explore`], with the core's window `window` instead of a new one.
+///
+/// # Errors
+///
+/// As [`explore`].
+pub async fn explore_in(
+    ports: &mut Ports<'_>,
+    interrupt: &mut dyn Interrupt,
+    rules: Rules,
+    memory: Memory,
+    window: RequestWindow,
+) -> Result<Outcome, RunError> {
     let seen = perform::observe(ports).await?;
-    let start = machine::start(seen, rules, memory, ports.clock.elapsed());
+    let start = machine::start_in(seen, rules, memory, window, ports.clock.elapsed());
     notes::after((0, 0), &start, ports).await?;
     run(start, ports, interrupt).await
 }
