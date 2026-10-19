@@ -52,6 +52,8 @@ mod interrupt;
 mod issues;
 #[path = "steps/load.rs"]
 mod load;
+#[path = "steps/load_access.rs"]
+mod load_access;
 #[path = "steps/memory.rs"]
 mod memory;
 #[path = "steps/recovery.rs"]
