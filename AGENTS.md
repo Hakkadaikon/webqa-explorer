@@ -28,6 +28,7 @@ Webサービスの探索的テストエージェントを、Rustで作ってい�
   実装の前に必ず読む。
 - `skills/`: 作業ごとの手順書(Agent Skills形式)。
   文書を書くときは`writing-docs`、レビューするときは`reviewing-docs`を使う。
+  担当を並列に回すとき、worktree でビルドとテストを回すときは`parallel-work`を使う。
   `.claude/skills`と`.agents/skills`からリンクしている。
 - `agents/`: Claude Code向けのサブエージェント。
   役割分担は[`docs/agents.md`](docs/agents.md)にある。
