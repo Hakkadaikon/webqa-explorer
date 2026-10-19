@@ -17,6 +17,7 @@ use webqa_judge::scripted::Scripted;
 
 mod acts;
 mod events;
+mod failures;
 mod interrupt;
 mod issues;
 mod material;
