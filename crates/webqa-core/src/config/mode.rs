@@ -8,10 +8,30 @@ use crate::event::Mode;
 ///
 /// # Errors
 ///
-/// [`ConfigError::ExploreNeedsElementOp`] when exploring with no operation
-/// kind that acts on an element.
+/// [`ConfigError::NoStages`] when running a scripted scenario with no
+/// `scenario` written, and [`ConfigError::ExploreNeedsElementOp`] when
+/// exploring with no operation kind that acts on an element.
 pub fn check_mode(config: &Config, mode: Mode) -> Result<(), ConfigError> {
-    if mode == Mode::Scenario || config.ops.iter().copied().any(operates_elements) {
+    match mode {
+        Mode::Scenario => scenario_ready(config),
+        Mode::Explore => explore_ready(config),
+    }
+}
+
+/// A scripted scenario needs its stages. An empty list is already rejected
+/// while loading.
+const fn scenario_ready(config: &Config) -> Result<(), ConfigError> {
+    if config.scenario.is_some() {
+        Ok(())
+    } else {
+        Err(ConfigError::NoStages)
+    }
+}
+
+/// Exploration needs an operation kind that acts on an element. It does not
+/// read `scenario`.
+fn explore_ready(config: &Config) -> Result<(), ConfigError> {
+    if config.ops.iter().copied().any(operates_elements) {
         Ok(())
     } else {
         Err(ConfigError::ExploreNeedsElementOp)
