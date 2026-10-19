@@ -7,6 +7,7 @@ import os
 import urllib.error
 from unittest import mock
 
+import gateway
 import jev
 
 SCREEN = '1: button "保存"\n2: link "ヘルプ"'
@@ -62,8 +63,9 @@ def request(questions, seq=1, image=None):
     return json.dumps(line, ensure_ascii=False)
 
 
-def options(model=jev.DEFAULT_MODEL, text_model=None):
-    argv = ["--model", model] + (["--text-model", text_model] if text_model else [])
+def options(model=jev.DEFAULT_MODEL, text_model=None, timeout="30"):
+    argv = ["--model", model, "--timeout", timeout]
+    argv += ["--text-model", text_model] if text_model else []
     return jev.parse_args(argv)
 
 
@@ -113,15 +115,29 @@ class FakeHttp:
         return self.requests[n].get_header(name)
 
 
-def ask(line, http, opts=None, env=None):
-    """The answer line as a dict, or None, with the HTTP and the sleep faked."""
+class Clock:
+    """Gives the times in order, then the last one again and again."""
+
+    def __init__(self, *times):
+        self.times = list(times)
+
+    def __call__(self):
+        return self.times.pop(0) if len(self.times) > 1 else self.times[0]
+
+
+STILL = Clock(0.0)
+
+
+def ask(line, http, opts=None, env=(), now=STILL):
+    """The answer line as a dict, or None, with the HTTP, the sleep and the
+    clock faked. The clock stands still unless `now` is given."""
     waits = []
     with (
-        mock.patch.object(jev, "urlopen", http),
-        mock.patch.object(jev, "sleep", waits.append),
-        mock.patch.dict(os.environ, env or {}, clear=True),
+        mock.patch.object(gateway, "urlopen", http),
+        mock.patch.object(gateway, "sleep", waits.append),
+        mock.patch.dict(os.environ, dict(env), clear=True),
     ):
-        out = jev.handle(line, opts or options())
+        out = jev.handle(line, opts or options(), now)
     return (None if out is None else json.loads(out)), waits
 
 

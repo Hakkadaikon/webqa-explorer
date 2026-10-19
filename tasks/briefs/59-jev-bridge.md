@@ -20,8 +20,8 @@
 
 ## 触ってよいファイル
 
-- `bridge/jev.py`(新規。実行の権限を付ける)
-- `bridge/jev_test.py`(写し方)、`bridge/jev_flow_test.py`(再試行、失敗、全体の流れ)、`bridge/fake.py`(偽の HTTP と要求の組み立て)。テストのファイルを分けたのは、ファイルごとの Halstead の上限のため
+- `bridge/jev.py`(新規。実行の権限を付ける)と `bridge/gateway.py`(HTTP、時間の予算、再試行、失敗。jev.py のファイルの Halstead の上限のため分けた)
+- `bridge/jev_test.py`(写し方)、`bridge/jev_flow_test.py`(再試行、失敗、全体の流れ)、`bridge/jev_budget_test.py`(時間の予算)、`bridge/fake.py`(偽の HTTP、時計、要求の組み立て)。テストのファイルを分けたのは、ファイルごとの Halstead の上限のため
 - `justfile`: Python の整形、静的解析、テストの対象に `bridge` を足すだけ。閾値と設定は変えない。
 - `scripts/metrics.sh`: 複雑度の対象に `bridge` を足すだけ。
 - `docs/quality-gates.md`、`docs/architecture.md`: 対象の範囲と、橋渡しのコマンドの引数を書くだけ。
@@ -36,14 +36,21 @@
 |---|---|---|
 | `--model` | `typesafe-ai/jev-1.14.0` | JEV のモデル。再現のため版を固定した名前を既定にする(`tasks/jev-api.md` の対応しないところ11) |
 | `--text-model` | なし | 自由な文の問いを送る言語モデル。無ければ自由な文の問いを含む要求は `api` の失敗 |
-| `--timeout` | `30` | HTTP の要求1回の待ち時間(秒) |
+| `--timeout` | `30` | 要求の1行あたりの時間の予算(秒)。0以下と数でない値は引数の誤りとして拒む |
 
 - 版の行は `{"version":2,"images":<真偽>}`。`images` は `--model` が `typesafe-ai/jev-1.13.0` か `typesafe-ai/jev-1.14.0` のときだけ `true`。
 - API キーは環境変数 `WEBQA_JUDGE_API_KEY`。あれば `Authorization: Bearer <キー>` を付け、無ければ付けない(Network secrets の中継が足す)。
 - 標準エラーには何も書かない。標準出力は1行ごとに flush する。
 - 標準入力の終わりで終了コード0で終わる。
 
-### 要求の写し方
+#### 時間の予算(親の決定)
+
+- 要求の行を読んだ時刻に、`--timeout` の秒数だけ先を期限にする。時計は `handle` の引数 `now` で差し替えられる(既定は `time.monotonic`)。
+- HTTP の呼び出しのたびに、`urlopen` には期限までの残りの時間を渡す。残りが0以下なら呼ばずに `timeout` の失敗にする。
+- 自由な文の問いの呼び出しも、同じ期限の内に入れる。
+- 429 と 529 の再試行は、待つ秒数が残りの時間より短いときだけ行う。足りなければ再試行せず、そこまでの失敗(`http 429` など)を返す。
+
+## 要求の写し方
 
 入口は `https://ai-gateway.vercel.sh/typesafe/v1/systemone`。本体は `{"model", "state", "questions"}`(画像があれば `assets`)。
 
@@ -77,17 +84,17 @@
 
 | 起きたこと | 答えの行 |
 |---|---|
-| HTTP の 429 か 529 | `retry-after`(整数の秒。無いか読めなければ1、0〜5に収める)だけ待って再試行する。再試行は2回まで。3回目も 429 か 529 なら下の行 |
+| HTTP の 429 か 529 | `retry-after`(整数の秒。無いか読めなければ1、0〜5に収める)だけ待って再試行する。待つ秒数が期限までの残りに足りなければ再試行しない。再試行は2回まで。3回目も 429 か 529 なら下の行 |
 | HTTP の 200 以外 | `{"error":{"kind":"api","message":"http <状態コード>"}}` |
-| つながらない(`URLError`) | `{"error":{"kind":"api","message":"network"}}` |
-| 待ち時間切れ(`TimeoutError`) | `{"error":{"kind":"timeout","message":"timeout"}}` |
+| つながらない、応答の途中で切れた(`URLError`、`OSError`、`http.client.HTTPException`) | `{"error":{"kind":"api","message":"network"}}` |
+| 待ち時間切れ(`TimeoutError`、`URLError` の中の `TimeoutError`)、期限までの残りが無い | `{"error":{"kind":"timeout","message":"timeout"}}` |
 | 応答が JSON として読めない、答えに問いが欠けている、形が違う | `{"error":{"kind":"api","message":"malformed response"}}` |
 | `--text-model` が無いのに自由な文の問いがある | `{"error":{"kind":"api","message":"no text model"}}` |
 | 要求の行が JSON として読めない、`seq` が無い | 何も書かない(中核は待ち時間切れで扱う) |
 
 `message` にキー、画面の文字列、応答の本体を入れない。
 
-## 失敗させるテスト(1〜7 は `bridge/jev_test.py`、8〜13 は `bridge/jev_flow_test.py`)
+## 失敗させるテスト(1〜7 は `bridge/jev_test.py`、8〜13 は `bridge/jev_flow_test.py`、14〜18 は `bridge/jev_budget_test.py`)
 
 HTTP は `jev.urlopen` を偽物に差し替え、ネットワークに出ない。待つことは `jev.sleep` を差し替える。期待値は `assertEqual` で値ごと比べる。
 
@@ -104,6 +111,14 @@ HTTP は `jev.urlopen` を偽物に差し替え、ネットワークに出ない
 11. `test_failures_become_error_lines`: 400、`URLError`、`TimeoutError`、JSON でない応答、問いが欠けた応答が、上の表の行になる。`message` に画面の文字列もキーも含まない。
 12. `test_bad_request_line_is_skipped`: JSON でない行と `seq` の無い行は何も書かず、次の行に答える。
 13. `test_main_loop`: `main` が版の行を書き、要求ごとに1行を書き、入力の終わりで0を返す。スクリプトとして走らせても同じ(`runpy`)。
+
+14. `test_each_call_gets_what_is_left`: `--timeout 30`、時計が 100、110、112、115 と進むと、429(`retry-after: 2`)のあとの2回の `urlopen` の待ち時間は `[20, 15]`、待った秒は `[2]`。
+15. `test_no_retry_when_the_wait_does_not_fit`: 残りが4秒のときの 429(`retry-after: 5`)は待たずに `http 429`。要求は1回。
+16. `test_text_questions_share_the_budget`: 真偽と自由な文の2問で、時計が 0、5、12 なら待ち時間は `[25, 18]`。
+17. `test_no_time_left_is_a_timeout`: 残りが0なら HTTP を呼ばずに `timeout`。
+18. `test_timeout_must_be_more_than_zero`: `0.5` は受け、`0`、`-1`、`nan`、`soon` は終了コード2で拒む。
+
+ほかに、レビューで足したもの: 失敗の表に `URLError(TimeoutError())`(timeout)、`ConnectionResetError`、`RemoteDisconnected`、`IncompleteRead`(network)。`test_main_loop` は答えの行を丸ごと比べる。`test_text_request_has_no_image_header`: 画像のある要求でも、自由な文の問いの要求に `TypeSafe-Danger-Zone-Images` を付けない。
 
 ## 親に決めてほしいこと
 

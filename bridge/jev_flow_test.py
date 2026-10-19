@@ -1,5 +1,6 @@
 """Tests for jev.py: retries, failures and the main loop (run through `just test`)."""
 
+import http.client
 import io
 import json
 import runpy
@@ -8,6 +9,7 @@ import unittest
 import urllib.error
 from unittest import mock
 
+import gateway
 import jev
 from fake import (
     JEV_REPLY,
@@ -62,6 +64,10 @@ class FlowTest(unittest.TestCase):
             (busy(400), error("http 400")),
             (urllib.error.URLError("no route to " + SCREEN), error("network")),
             (TimeoutError(), error("timeout", "timeout")),
+            (urllib.error.URLError(TimeoutError()), error("timeout", "timeout")),
+            (ConnectionResetError(), error("network")),
+            (http.client.RemoteDisconnected(), error("network")),
+            (http.client.IncompleteRead(b""), error("network")),
             (b"not json", error("malformed response")),
             ({"answers": {}}, error("malformed response")),
             (
@@ -87,7 +93,7 @@ class MainTest(unittest.TestCase):
     def run_main(self, lines, argv):
         out = io.StringIO()
         with (
-            mock.patch.object(jev, "urlopen", FakeHttp(JEV_REPLY)),
+            mock.patch.object(gateway, "urlopen", FakeHttp(JEV_REPLY)),
             mock.patch.object(sys, "stdin", io.StringIO("".join(lines))),
             mock.patch.object(sys, "stdout", out),
         ):
@@ -98,8 +104,24 @@ class MainTest(unittest.TestCase):
         lines = [request([NOUL]) + "\n", "garbage\n", request([], seq=2) + "\n"]
         code, out = self.run_main(lines, ["--model", "typesafe-ai/jev"])
         self.assertEqual(code, 0)
-        self.assertEqual(out[0], {"version": 2, "images": False})
-        self.assertEqual([o["seq"] for o in out[1:]], [1, 2])
+        self.assertEqual(
+            out,
+            [
+                {"version": 2, "images": False},
+                {
+                    "version": 2,
+                    "seq": 1,
+                    "answers": {"error_shown": [{"option": "true", "p": 0.08}]},
+                    "usage": {"input_tokens": 426, "output_tokens": 100},
+                },
+                {
+                    "version": 2,
+                    "seq": 2,
+                    "answers": {},
+                    "usage": {"input_tokens": 0, "output_tokens": 0},
+                },
+            ],
+        )
 
     def test_running_the_script_writes_the_declaration(self):
         out = io.StringIO()

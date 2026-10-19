@@ -535,7 +535,8 @@ JEVへの橋渡しは`bridge/jev.py`に置く。
 Pythonの標準ライブラリだけで書き、AI GatewayのTypeSafe互換の入口へ送る。
 引数は、JEVのモデル(`--model`、既定は`typesafe-ai/jev-1.14.0`)、
 自由な文の問いを送る言語モデル(`--text-model`)、
-HTTPの要求1回の待ち時間(`--timeout`、既定は30秒)の3つである。
+要求の1行あたりの時間の予算(`--timeout`、既定は30秒)の3つである。
+予算は行を読んだ時刻から数え、自由な文の問いと再試行の待ちも、その内に収める。
 `--text-model`を書かなければ、自由な文の問いはAPIの失敗として返す。
 写し方は`tasks/briefs/59-jev-bridge.md`にある。
 
@@ -1182,7 +1183,9 @@ share/
   skills/                配布する手引き(ペルソナと目的を書かせる)
 bridge/
   jev.py                 JEVへの橋渡しのコマンド
-  jev_test.py
+  gateway.py             AI GatewayへのHTTP、時間の予算、再試行
+  jev_test.py  jev_flow_test.py  jev_budget_test.py
+  fake.py                テストの偽のHTTPと時計
 ```
 
 `webqa`は、libとbinの2つのターゲットを持つcrateにする。

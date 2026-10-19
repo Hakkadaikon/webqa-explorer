@@ -128,6 +128,13 @@ class TextTest(unittest.TestCase):
         )
         self.assertEqual(answer["usage"], {"input_tokens": 30, "output_tokens": 12})
 
+    def test_text_request_has_no_image_header(self):
+        http = FakeHttp(CHAT_REPLY)
+        image = {"media_type": "image/png", "data": "iVBORw=="}
+        ask(request([TEXT], image=image), http, options(text_model="some/llm"))
+        self.assertEqual(http.requests[0].full_url, jev.CHAT_URL)
+        self.assertEqual(http.header("Typesafe-danger-zone-images"), None)
+
     def test_text_and_jev_usage_add_up(self):
         http = FakeHttp(JEV_REPLY, CHAT_REPLY)
         answer, _ = ask(request([NOUL, TEXT]), http, options(text_model="some/llm"))

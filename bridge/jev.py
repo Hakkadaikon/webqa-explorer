@@ -9,94 +9,42 @@ away, and it could hold page strings. See tasks/briefs/59-jev-bridge.md."""
 
 import argparse
 import json
-import os
 import sys
 import time
-import urllib.error
 import uuid
-from urllib.request import Request, urlopen
+
+from gateway import Budget, Failure, dump, post
 
 JEV_URL = "https://ai-gateway.vercel.sh/typesafe/v1/systemone"
 CHAT_URL = "https://ai-gateway.vercel.sh/v1/chat/completions"
 DEFAULT_MODEL = "typesafe-ai/jev-1.14.0"
 IMAGE_MODELS = ("typesafe-ai/jev-1.13.0", "typesafe-ai/jev-1.14.0")
-KEY_ENV = "WEBQA_JUDGE_API_KEY"
 VERSION = 2
-BUSY = (429, 529)
-RETRIES = 2
-MAX_WAIT = 5
 FORMATS = {"image/png": "png", "image/jpeg": "jpeg"}
 JEV_KINDS = ("noul", "choice", "score")
-
-sleep = time.sleep
-
-
-class Failure(Exception):
-    """A failure to report as an error line; the message holds no secret."""
-
-    def __init__(self, message, kind="api"):
-        super().__init__(message)
-        self.kind = kind
 
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(prog="jev.py")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--text-model")
-    parser.add_argument("--timeout", type=float, default=30.0)
+    parser.add_argument("--timeout", type=seconds, default=30.0)
     return parser.parse_args(argv)
+
+
+def seconds(text):
+    value = float(text)
+    if not value > 0:
+        raise argparse.ArgumentTypeError("must be more than 0")
+    return value
 
 
 def declaration(model):
     return {"version": VERSION, "images": model in IMAGE_MODELS}
 
 
-def dump(value):
-    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-
-
-def headers(images):
-    out = {"Content-Type": "application/json"}
-    key = os.environ.get(KEY_ENV)
-    if key:
-        out["Authorization"] = f"Bearer {key}"
-    if images:
-        out["TypeSafe-Danger-Zone-Images"] = "true"
-    return out
-
-
-def retry_wait(error):
-    try:
-        return max(0, min(int(error.headers.get("Retry-After", "1")), MAX_WAIT))
-    except ValueError:
-        return 1
-
-
-def send(url, body, opts, images=False):
-    """POST once. A failed connection or a timeout becomes Failure; an HTTP
-    error goes up to `post`, which may retry it."""
-    req = Request(url, dump(body).encode(), headers(images), method="POST")
-    try:
-        with urlopen(req, timeout=opts.timeout) as response:
-            return response.read()
-    except urllib.error.HTTPError:
-        raise
-    except urllib.error.URLError:
-        raise Failure("network")
-    except TimeoutError:
-        raise Failure("timeout", "timeout")
-
-
-def post(url, body, opts, images=False, attempt=0):
-    """POST, retrying while the gateway is busy, and read the JSON reply."""
-    try:
-        return json.loads(send(url, body, opts, images))
-    except urllib.error.HTTPError as error:
-        error.close()
-        if error.code not in BUSY or attempt == RETRIES:
-            raise Failure(f"http {error.code}")
-        sleep(retry_wait(error))
-        return post(url, body, opts, images, attempt + 1)
+def has_image(request):
+    return request.get("image") is not None
 
 
 def jev_question(question):
@@ -110,8 +58,8 @@ def jev_question(question):
 
 def jev_body(request, questions, opts):
     body = {"model": opts.model, "state": request["screen"]}
-    image = request.get("image")
-    if image is not None:
+    if has_image(request):
+        image = request["image"]
         shot = f"{uuid.uuid4()}-shot"
         body["state"] = {"screen": request["screen"], "shot": shot}
         asset = {"type": "image", "format": FORMATS[image["media_type"]]}
@@ -140,17 +88,18 @@ def jev_answer(question, answer):
     return row(levels, answer["probabilities"])
 
 
-def ask_jev(request, opts):
+def ask_jev(request, opts, budget):
     questions = [q for q in request["questions"] if q["kind"] in JEV_KINDS]
     if not questions:
         return {}, (0, 0)
-    reply = post(JEV_URL, jev_body(request, questions, opts), opts, "image" in request)
+    body = jev_body(request, questions, opts)
+    reply = post(JEV_URL, body, budget, has_image(request))
     answers = {q["id"]: jev_answer(q, reply["answers"][q["id"]]) for q in questions}
     usage = reply["usage"]
     return answers, (usage["input_tokens"], usage["output_tokens"])
 
 
-def ask_text(screen, question, opts):
+def ask_text(screen, question, opts, budget):
     if not opts.text_model:
         raise Failure("no text model")
     content = f"{question['prompt']}\n\n画面:\n{screen}"
@@ -158,7 +107,7 @@ def ask_text(screen, question, opts):
         "model": opts.text_model,
         "messages": [{"role": "user", "content": content}],
     }
-    reply = post(CHAT_URL, body, opts)
+    reply = post(CHAT_URL, body, budget)
     text = reply["choices"][0]["message"]["content"]
     if not isinstance(text, str):
         raise Failure("malformed response")
@@ -182,16 +131,18 @@ def total(parts):
     }
 
 
-def answer(request, opts):
-    """JEV answers its kinds in one call; each free-text question is one call."""
-    parts = [ask_jev(request, opts)]
-    parts += [ask_text(request["screen"], q, opts) for q in text_questions(request)]
+def answer(request, opts, budget):
+    """JEV answers its kinds in one call; each free-text question is one call.
+    All the calls share the budget of the request line."""
+    screen = request["screen"]
+    parts = [ask_jev(request, opts, budget)]
+    parts += [ask_text(screen, q, opts, budget) for q in text_questions(request)]
     return {"answers": merged(parts), "usage": total(parts)}
 
 
-def reply_to(request, opts):
+def reply_to(request, opts, budget):
     try:
-        return answer(request, opts)
+        return answer(request, opts, budget)
     except Failure as failure:
         return {"error": {"kind": failure.kind, "message": str(failure)}}
     except (ValueError, KeyError, TypeError, IndexError):
@@ -207,13 +158,15 @@ def read_request(line):
         return None
 
 
-def handle(line, opts):
-    """The answer line to a request line, or None to skip the line."""
+def handle(line, opts, now=time.monotonic):
+    """The answer line to a request line, or None to skip the line. The
+    budget of `--timeout` starts when the line is read."""
+    budget = Budget(opts.timeout, now)
     read = read_request(line)
     if read is None:
         return None
     request, seq = read
-    return dump({"version": VERSION, "seq": seq, **reply_to(request, opts)})
+    return dump({"version": VERSION, "seq": seq, **reply_to(request, opts, budget)})
 
 
 def write(text):
