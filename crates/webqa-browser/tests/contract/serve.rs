@@ -3,9 +3,10 @@
 
 use std::collections::HashMap;
 use std::future;
-use std::io::{self, BufRead, BufReader, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
 use std::thread;
+use std::time::Duration;
 
 use playwright_rs::{FulfillOptions, Route};
 use url::Url;
@@ -62,7 +63,9 @@ fn account(cookie: Option<&str>) -> &'static str {
 }
 
 /// Answers one request on 127.0.0.1 with a page of `button "外"`, from
-/// another thread. Returns the port.
+/// another thread. The page forbids evaluating a string as script, as
+/// GitHub's pages do, and goes on loading for 300 ms after it starts.
+/// Returns the port.
 pub fn outside_server() -> Res<u16> {
     let listener = TcpListener::bind("127.0.0.1:0")?;
     let port = listener.local_addr()?.port();
@@ -73,10 +76,20 @@ pub fn outside_server() -> Res<u16> {
 fn answer_once(listener: &TcpListener) -> io::Result<()> {
     let (mut stream, _) = listener.accept()?;
     BufReader::new(&stream).read_line(&mut String::new())?;
-    let body = "<!doctype html><html lang=\"ja\"><button>外</button></html>";
+    let (first, rest) = (
+        "<!doctype html><html lang=\"ja\"><button>外</button>",
+        "</html>",
+    );
     let head = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: close";
-    let response = format!("{head}\r\nContent-Length: {}\r\n\r\n{body}", body.len());
-    stream.write_all(response.as_bytes())
+    let policy = "Content-Security-Policy: script-src 'none'";
+    let length = first.len() + rest.len();
+    let response = format!("{head}\r\n{policy}\r\nContent-Length: {length}\r\n\r\n{first}");
+    stream.write_all(response.as_bytes())?;
+    // The request has been read, so nothing comes: this only waits.
+    stream.set_read_timeout(Some(Duration::from_millis(300)))?;
+    let waited = stream.read_exact(&mut [0; 1]);
+    drop(waited);
+    stream.write_all(rest.as_bytes())
 }
 
 /// A port nothing listens on.
