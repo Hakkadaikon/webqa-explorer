@@ -37,7 +37,9 @@ def parse_args(argv):
 def seconds(text):
     value = float(text)
     if not 0 < value <= MAX_TIMEOUT:
-        raise argparse.ArgumentTypeError("must be more than 0")
+        raise argparse.ArgumentTypeError(
+            f"must be more than 0 and at most {MAX_TIMEOUT}"
+        )
     return value
 
 
