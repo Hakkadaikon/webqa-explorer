@@ -42,6 +42,10 @@ mod ending;
 mod exit;
 #[path = "steps/guard.rs"]
 mod guard;
+#[path = "steps/guard_pages.rs"]
+mod guard_pages;
+#[path = "steps/guard_stale.rs"]
+mod guard_stale;
 #[path = "steps/interrupt.rs"]
 mod interrupt;
 #[path = "steps/issues.rs"]
