@@ -6,7 +6,7 @@ use std::num::NonZeroU32;
 pub use crate::config::persona::tests::persona;
 use crate::config::purpose::{ScreenPurpose, UrlPattern};
 use crate::interview::ask::{
-    EXPECTATION, HARD_TO_SEE, HESITATION, MismatchQuestion, PURPOSE_GUESS, PURPOSE_MATCH,
+    EXPECTATION, HARD_TO_SEE, HESITATION, MismatchQuestion, PURPOSE_GUESS, PURPOSE_MATCH, preamble,
 };
 use crate::interview::issue::Issue;
 use crate::interview::issue::tests::fixture::{
@@ -118,17 +118,6 @@ fn names<'a>(ids: impl Iterator<Item = &'a QuestionId>) -> Vec<String> {
     ids.map(|id| id.as_str().to_owned()).collect()
 }
 
-/// Whether the prompt of the first naturalness question about `issue`
-/// shows each of `lines`.
-pub fn shows(issue: &Issue, lines: [&str; 2]) -> [bool; 2] {
-    let questions = natural_questions(&persona(), GOAL, issue);
-    let prompt = questions
-        .first()
-        .map(|q| format!("{q:?}"))
-        .unwrap_or_default();
-    lines.map(|line| prompt.contains(line))
-}
-
 /// The judge's answer that the issue is not natural, from IT literacy.
 pub fn unnatural() -> Judgement {
     Judgement {
@@ -138,4 +127,61 @@ pub fn unnatural() -> Judgement {
             content: Trait::ItLiteracy.content(&persona()),
         },
     }
+}
+
+/// The description of a sample issue.
+pub const HESITANT: &str = "試行をすべて終えたあと、次の課題をまとめた。
+種類: 判断に迷う
+画面: https://shop.example.test/confirm
+要素: button \"次へ\"
+手がかり: 迷いの度合いが閾値以上、引き返した
+期待: 押すと注文が確定すると思った
+起きた回数: 3回の試行のうち2回";
+
+/// The description of a sample issue.
+pub const VISIBILITY: &str = "試行をすべて終えたあと、次の課題をまとめた。
+種類: 視認性が悪い
+画面: https://shop.example.test/shipping
+要素: button \"クーポンを使う\"
+見えにくい理由: 文字が薄い
+期待: クーポンを入力できると思った
+起きた回数: 3回の試行のうち1回";
+
+/// The description of a sample issue.
+pub const UNREACHED: &str = "試行をすべて終えたあと、次の課題をまとめた。
+種類: 目的に届かない
+画面: https://shop.example.test/shipping
+要素: なし
+終わり方: ペルソナが諦めた
+期待: 次に進むボタンが見つからない
+起きた回数: 3回の試行のうち1回";
+
+/// The description of a sample issue.
+pub const MISMATCH: &str = "試行をすべて終えたあと、次の課題をまとめた。
+種類: 目的のずれ
+画面: URL の型 /products/*
+要素: なし
+書いた目的: 商品をカートに入れる
+推測: 会員登録をする、商品をカートに入れる
+起きた回数: 2回の試行のうち2回";
+
+/// The two naturalness questions about an issue described as `d`.
+pub fn expected_questions(d: &str) -> Vec<Question> {
+    let lead = format!("{}\n\n{d}", preamble(&persona(), GOAL));
+    vec![
+        Question::Choice {
+            id: QuestionId::new("natural"),
+            prompt: format!("{lead}\n\nこのペルソナが、この場面でこう考え、こう操作するのは自然か"),
+            options: vec!["自然".to_owned(), "自然でない".to_owned()],
+        },
+        Question::Choice {
+            id: QuestionId::new("persona_trait"),
+            prompt: format!(
+                "{lead}\n\nこの課題は、ペルソナのどの性質から起きたと考えるかを1つ選ぶ"
+            ),
+            options: ["どんな人か", "ITの慣れ", "達成したいこと", "しないこと"]
+                .map(str::to_owned)
+                .to_vec(),
+        },
+    ]
 }

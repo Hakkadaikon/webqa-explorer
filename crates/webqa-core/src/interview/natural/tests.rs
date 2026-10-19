@@ -4,7 +4,10 @@ pub mod fixture;
 
 use std::num::NonZeroU32;
 
-use fixture::{ids_of, mismatch_of, numbers, patterns, quota, shows, three_purposes, unnatural};
+use fixture::{
+    GOAL, MISMATCH, expected_questions, ids_of, mismatch_of, numbers, patterns, persona, quota,
+    three_purposes, unnatural,
+};
 
 use super::*;
 use crate::interview::issue::tests::fixture::products;
@@ -24,9 +27,6 @@ fn asks_once_per_issue_outside_budget() {
     assert_eq!(numbers(&asked), expected, "by rate, then number");
     assert_eq!(over, vec![], "none over the cap");
     assert_eq!(cap.left(), 47, "one question per issue");
-    let mut once = numbers(&asked);
-    once.dedup();
-    assert_eq!(once.len(), 3, "each number once");
     for issue in &asked {
         let both = ["natural", "persona_trait"].map(str::to_owned).to_vec();
         assert_eq!(ids_of(issue), (both, vec![]), "{:?}", issue.number);
@@ -97,8 +97,12 @@ fn mismatch_questions_take_cap_before_natural() {
     assert_eq!(cap.left(), 0, "used up by the mismatch questions");
     let (asked, over) = natural_round(&mut cap, vec![sample("I-00000001", 2, 3)]);
     assert_eq!(asked, vec![], "no naturalness question");
-    let sections: Vec<Section> = over.iter().map(|it| it.section).collect();
-    assert_eq!(sections, [Section::Unchecked], "the issue is unchecked");
+    let unchecked = Placed {
+        issue: sample("I-00000001", 2, 3),
+        section: Section::Unchecked,
+        persona_trait: None,
+    };
+    assert_eq!(over, vec![unchecked], "the issue is unchecked");
     assert_eq!(mismatch_counts(50, 3), (3, 0, 47), "all three under 50");
     assert_eq!(mismatch_counts(50, 0), (0, 0, 50), "no mismatch question");
 }
@@ -116,13 +120,19 @@ fn mismatch_issue_also_gets_natural_question() {
     assert_eq!(asked, expected, "rate 1 first");
     assert_eq!(over, vec![], "none over the cap");
     assert_eq!(cap.left(), 47, "one question per issue");
-    let lines = [
-        "書いた目的: 商品をカートに入れる",
-        "推測: 会員登録をする、商品をカートに入れる",
-    ];
-    assert_eq!(shows(&mismatch_sample(), lines), [true; 2], "{lines:?}");
+    let questions = natural_questions(&persona(), GOAL, &mismatch_sample());
+    assert_eq!(questions, expected_questions(MISMATCH), "the two questions");
     let placed = place(mismatch_sample(), Some(unnatural()));
-    assert_eq!(placed.section, Section::OffPersona, "not natural");
+    assert_eq!(placed, off_persona(mismatch_sample()), "not natural");
+}
+
+/// `issue` off the persona, from IT literacy.
+fn off_persona(issue: Issue) -> Placed {
+    Placed {
+        issue,
+        section: Section::OffPersona,
+        persona_trait: Some(unnatural().persona_trait),
+    }
 }
 
 #[test]
