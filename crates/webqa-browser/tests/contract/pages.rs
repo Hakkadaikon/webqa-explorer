@@ -48,6 +48,38 @@ async fn storage_state_opens_logged_in_page() {
     assert_eq!(kinds(&o), [("button", "ログイン")], "not logged in");
 }
 
+/// Launches on `/storage` with the stored login of [`state_file`].
+async fn launch_storage() -> Res<PlaywrightBrowser> {
+    let mut options = at("/storage")?;
+    options.storage_state = Some(state_file()?);
+    launch(options, 0).await
+}
+
+#[tokio::test]
+async fn new_context_has_no_previous_storage() {
+    let mut first = launch_storage().await.unwrap();
+    seen(&mut first).await.unwrap();
+    touch(&mut first, "click", Some(id("button", "書く")))
+        .await
+        .unwrap();
+    let written = seen(&mut first).await.unwrap();
+    let both = [
+        ("button", "書く"),
+        ("button", "cookie: session=ok; trial=1"),
+        ("button", "local: 1"),
+    ];
+    assert_eq!(kinds(&written), both, "the first trial wrote");
+    drop(first);
+    let mut second = launch_storage().await.unwrap();
+    let o = seen(&mut second).await.unwrap();
+    let clean = [
+        ("button", "書く"),
+        ("button", "cookie: session=ok"),
+        ("button", "local: null"),
+    ];
+    assert_eq!(kinds(&o), clean, "the second trial starts clean");
+}
+
 #[tokio::test]
 async fn reports_final_url_after_redirect() {
     let port = outside_server().unwrap();
