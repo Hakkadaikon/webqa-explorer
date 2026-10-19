@@ -12,7 +12,8 @@ use crate::world::QaWorld;
 /// The scenarios that have their steps.
 pub const READY: &[&str] = &[
     "探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める",
-    "input は、何も打ち込めなければ skipped として記録して探索済みの要素に数えず、打ち込めれば数える",
+    "何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない",
+    "値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える",
 ];
 
 /// The element named in quotes after `kind`, and whether it has a value.
@@ -60,12 +61,14 @@ async fn skipped_recorded(world: &mut QaWorld, cause: String) {
         .filter(|line| skipped(line))
         .filter_map(|line| line.get("cause").and_then(Value::as_str))
         .collect();
-    let expected = if cause == "なし" {
-        Vec::new()
-    } else {
-        vec![cause.as_str()]
-    };
-    assert_eq!(causes, expected, "the skipped lines");
+    assert_eq!(causes, [cause.as_str()], "the skipped lines");
+}
+
+#[then(expr = "skipped は記録されていない")]
+async fn no_skipped(world: &mut QaWorld) {
+    world.run().await;
+    let kinds = world.kinds();
+    assert!(!kinds.contains(&"skipped".to_owned()), "no skipped line");
 }
 
 /// Whether the element `name` is among the explored, once the run is over.
