@@ -273,11 +273,10 @@ impl QaWorld {
     pub fn answered(&self) -> usize;
     /// The times the clock was asked to sleep until.
     pub fn sleeps(&self) -> &[Duration];
-    /// Whether the judge was called during step `step` (the step it was
-    /// left waiting in counts as the step after the last logged one).
-    pub fn asked_in(&self, step: u64) -> bool;
-    /// The step a When "1ステップを実行する" stands for: the one after the Given ones.
-    pub fn when_step(&self) -> u64;
+    /// What the step of the When was: the first beat after the Given ones.
+    pub fn when_beat(&self) -> Beat;
+    /// Whether the step of the When asked the judge.
+    pub fn when_asked(&self) -> bool;
     /// The browser operations as (op, target name).
     pub fn touched(&self) -> Vec<(String, Option<String>)>;
     /// The names of the elements operated in the memory, every screen.
@@ -306,9 +305,17 @@ impl QaWorld {
 
 `reason()`: `Ending::Finished` の理由。ただし理由が `UserAborted` で、`scene.user_interrupts` が偽なら `None`(土台が止めた)。`Abandoned` と `Failed` と設定エラーは `None`。
 
-`asked_in(step)`: イベントログに `step` が等しい `asked` の行があるか、判断モデルが待ち続けていて(`judge.stalled`)、ログの `asked` と `recovered` の行の最大の `step` に1を足した数が `step` に等しいか。
+拍(`Beat`): 実行がたどった区切りを、イベントログの行から順に並べたもの。
 
-`when_step()`: `given_steps + 1`。
+```rust
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Beat { Ask, Core, Advance, End }
+```
+
+- `asked` の行は `Ask`、`recovered` の行は `Core`、`stage_advanced` の行は `Advance`、`run_finished` の行は `End`(土台が止めた実行の `user_aborted` も `End` だが、判断モデルが待ち続けていれば、その前に `Ask` を1つ足す)。
+- `when_beat()`: Given で積んだ答えの数(`given_steps`)だけ `Ask` を数え、その次の拍。`given_steps` が0なら最初の拍。拍が無ければ `End`。
+- `when_asked()`: `when_beat() == Beat::Ask`。
+- 「1ステップを実行する」の1ステップは、feature の決まり(終了条件の確認 → 問い合わせ → …)のとおり、Given のステップの次の区切りである。段階を進めることも、中核の操作(開き直し、戻り、離脱)も、終わることも1つの区切りに数える。
 
 `poke(later)`: `machine::step(state.clone(), Facts::Outside(Heard::Woke), 終わった時刻 + later)` を `poked` に入れる。判断モデル、ブラウザ、保存先は呼ばない。
 
@@ -358,10 +365,10 @@ pub struct Named(pub ExitReason);   // FromStr で写す。行き詰まりは種
 | `判断モデルが操作 {string} と対象要素 {string} を確信度 {float} で返す` | Given | `Reply::op(op, p).on(name)` を積む |
 | `判断モデルが操作 {string} を返す` | Given | `Reply::op(op, 0.9)` を積む |
 | `判断モデルにまだ問い合わせていない` | Given | 何もしない(答えがまだ積まれていないことを assert で確かめる) |
-| `判断モデルに問い合わせている` | Then | `asked_in(when_step())` |
+| `判断モデルに問い合わせている` | Then | `when_asked()` |
 | `判断モデルへの問い合わせもブラウザ操作も起きない` | Then | `poked` が `Some(Step::Finished(_))` で、`poke` の前後で `asked()` と `touched()` が変わらない(`poke` は偽物を呼ばないので、`poked` の中身だけを確かめれば足りる) |
 | `判断モデルへの問い合わせ回数は {int} 回である` | Then | `asked() == n` |
-| `判断モデルへの問い合わせ回数は増えていない` | Then | `!asked_in(when_step())` |
+| `判断モデルへの問い合わせ回数は増えていない` | Then | `!when_asked()` |
 | `実行がゴール達成として終了している` | Given | 段階 `[("ログイン", "ログインする", url "/")]` を入れ、開始の画面を `/` にする(開始の時点でゴール達成になる)。実行はまだ回さない |
 | `実行は{reason}として終了している` | Then | `Named::matches(world.reason())` |
 | `実行は終了していない` | Then | `reason()` が `None` |
@@ -414,6 +421,6 @@ pub struct Named(pub ExitReason);   // FromStr で写す。行き詰まりは種
 ## 親に決めてほしいこと
 
 1. **止め方(待ち続けたら中断する)**。`14-plan.md` の「親に決めてほしいこと」2。土台が止めた実行は、記憶、終了の行、実行結果を `user_aborted` で書く。受け入れの Then はそれらを見ない決まりにする(見るのは中断の Rule だけで、そこでは `scene.user_interrupts` を真にする)。
-2. **「判断モデルへの問い合わせ回数は増えていない」の読み方**。When の1ステップ(Given のステップの次)の中で判断モデルを呼んでいないこと、と読んだ。実行全体で数えると、そのあと次のステップで問い合わせた回(土台が止めるための呼び出し)まで数えてしまう。
+2. **「判断モデルへの問い合わせ回数は増えていない」の読み方**。When の1ステップ(Given のステップの次の区切り。段階の進み、中核の操作、終わりも1つの区切り)が問い合わせでないこと、と読んだ。実行全体で数えると、そのあと次のステップで問い合わせた回(土台が止めるための呼び出し)まで数えてしまう。
 3. **カバレッジに受け入れの偽物が入ること**。`webqa/tests/` の下の補助も計測に入るので、使わない補助を書くと 100% を割る。5段目の担当が足す補助も同じ決まりにする。
 4. **共通の手順の「操作しても画面が変化しない」を、新しい要素のクリックで作ること**。画面が変わらない操作を同じ要素に繰り返すと、行き詰まりの回数も進み、固まりより先に行き詰まりで終わる(待機の2段目)。feature の前提は「行き詰まりは検出されていない」を足す場面が多いので、新しい要素(`操作1`〜)を順にクリックして固まりの回数だけを進める形にした。探索済みの要素にこれらが加わるので、「探索済みの要素は … のまま」は「… を含む」と読む。

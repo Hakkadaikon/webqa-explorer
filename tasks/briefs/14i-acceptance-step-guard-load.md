@@ -28,7 +28,7 @@ feature の3つの Rule のシナリオ23本を、受け入れのテストとし
 - 共通の手順(14h の表)の文言は書かない。下の「書く手順」の文言だけを書く。パラメータは `{string}`、`{int}`、`{float}` だけ。
 - 手順の関数は、場面(`world.scene`)を組み立てるか、世界の補助を呼んで `assert_eq!` で比べる1〜3行にする。手順の中に `if` を書かない。Examples の値で振る舞いが変わる手順は、値から場面への写し方を表(配列)にして引く。
 - 開始の画面は、最初の許可ドメインの `/`(`scene.start`)。Given が足す要素は `scene.start` に足す。
-- 「1ステップを実行する」の結果は 14h のとおり: Given で積んだ答えのあと、次の問い合わせで判断モデルが待ち続け、土台が止める。止めた実行は「終了していない」。When の1ステップは `world.when_step()`。
+- 「1ステップを実行する」の結果は 14h のとおり: Given で積んだ答えのあと、次の問い合わせで判断モデルが待ち続け、土台が止める。止めた実行は「終了していない」。When の1ステップは、Given の区切りの次の区切り(`world.when_beat()`。14h の「拍」)。
 
 ### 書く手順(`steps/step.rs`。1ステップの問い合わせと実行)
 
@@ -40,12 +40,12 @@ feature の3つの Rule のシナリオ23本を、受け入れのテストとし
 | `決め打ちシナリオを実行している` | Given | `mode` は `Scenario`、段階 `[("ログイン", "ログインする", url "/home")]`(満たさない) |
 | `判断モデルに次の4項目を問い合わせている` | Then | `judge.questions[0]` の名前の列が `["operation", "target", "error_shown", "goal_reached"]`(表の4行を名前に写して比べる)。`operation` の `Choice` の選択肢は `["click", "input", "scroll_down", "scroll_up", "back", "wait", "done", "stuck"]`、`target` は `Choice`(番号)、`error_shown` と `goal_reached` は `Noul`(真偽) |
 | `{string} は禁止要素に分類されておらず、実行の直前にも存在する` | Given | 名前の要素を足す。直前に積んだ答えの操作が `input` なら `textbox(name)`、ほかは `button(name)` |
-| `ブラウザで操作 {string} を実行している` | Then | `touched()` の when_step の操作が `op` |
+| `ブラウザで操作 {string} を実行している` | Then | `touched()` が `[(op, 対象)]`(`click` と `input` は対象 "保存"、ほかは `None`) |
 | `探索済みの要素は {string} だけ である` | Then | `explored()` が `{name}`(Examples の `"保存" だけ` を `<探索済み>` に入れた文。`だけ` と `である` の間に半角空白が入る) |
 | `探索済みの要素は 空 である` | Then | `explored()` が空(`空` の前後に半角空白が入る) |
 | `直前のステップで {string} をクリックしたが画面が変化しなかった` | Given | `button(name)` と `link("ヘルプ")` を足し、`Reply::op("click", 0.9).on(name)` を積む(画面は変わらない) |
 | `判断モデルが対象要素の候補として {string} を {float}、{string} を {float} の確信度で返す` | Given | `Reply::op("click", 0.9).on_ranked(a, pa).on_ranked(b, pb)` を積む |
-| `{string} はクリックしていない` | Then | when_step の操作の対象が `name` でない |
+| `{string} はクリックしていない` | Then | `touched()` の2つ目(When のステップの操作)の対象が `name` でない。あわせて `touched()` が `[("click", "保存"), ("click", "ヘルプ")]` |
 | `対象ページに操作可能な要素が1つも無い` | Given | 開始の画面の要素を空にする |
 | `判断モデルに送った画面状態の操作可能要素の一覧は空である` | Then | `judge.texts[0]` が `""` |
 | `ブラウザで {string} を実行している` | Then | `touched()` に `(op, None)` がある |
@@ -132,7 +132,7 @@ T-012 の6行の場面(どれも `after` に、課金画面でない `/` の画�
 | `現在の時間窓で {int} 回操作した` | Given | `Reply::op("wait", 0.9)` を n 回積む |
 | `時間窓が明ける前に1ステップを実行しようとする` | When | `world.run()` |
 | `判断モデルに問い合わせておらず、ブラウザ操作もしていない` | Then | イベントで、最後の `executed` の行と最初の `waited` の行の間に `asked`、`decided`、`recovered` が無い。`sleeps()` が `[3600秒]` |
-| `時間窓が明けたあとのステップでは問い合わせる` | Then | `asked()` が `answered() + 1`(窓のあとの問い合わせで土台が止めた)、その問い合わせの時の時計が 3600秒以上(`judge` が問われたときの時刻を `texts` と並べて残していなければ、`waited` の行より後に判断モデルが呼ばれたことを `asked_in(when_step())` で確かめる) |
+| `時間窓が明けたあとのステップでは問い合わせる` | Then | `asked()` が `answered() + 1`(窓のあとの問い合わせで土台が止めた)、その問い合わせの時の時計が 3600秒以上(待ち続けた問い合わせは、最後の `waited` の行より後に来ている。`judge.stalled` と、終わったときの時計が3600秒であることで確かめる) |
 | `時間窓の終わりの時刻を過ぎる` | When | `Reply::op("wait", 0.9).at(3601秒)` と `Reply::op("wait", 0.9)` を積んで `world.run()` |
 | `新しい時間窓では {int} 回まで操作できる` | Then | `touched()` が 1 + n 件、`sleeps()` が `[7200秒]`(2つ目の窓で n 回操作して埋まり、3つ目の窓を待つ) |
 | `固まりから復旧するために対象ページを開き直す` | When | 固まりの閾値を 1 にして `world.run()`(1回の操作で画面が変わらず、次のステップで開き直す) |
