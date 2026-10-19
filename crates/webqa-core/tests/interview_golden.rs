@@ -1,5 +1,8 @@
 //! Golden tests of the wording of the interview questions.
 
+#[path = "interview_golden/ledger.rs"]
+mod ledger;
+
 use std::error::Error;
 
 use serde_json::Value;

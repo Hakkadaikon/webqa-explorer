@@ -1,20 +1,27 @@
 //! The run loop: does the effects the core asks for and passes back the facts.
 
+mod detect;
 #[cfg(test)]
 #[path = "../tests/support/fakes.rs"]
 mod fakes;
+mod log;
+mod notes;
+mod perform;
 #[cfg(test)]
 mod tests;
 
-use std::time::Duration;
+use std::collections::BTreeSet;
 
-use webqa_core::effect::{Effect, Outside, PageEffect, Touch};
+use webqa_core::effect::Effect;
 use webqa_core::event::{Event, Line};
 use webqa_core::explore::Memory;
-use webqa_core::machine::{self, Facts, Heard, Material, Outcome, Rules, Seen, State, Step, Whole};
+use webqa_core::issue::Probe;
+use webqa_core::machine::{self, Outcome, Rules, State, Step};
 use webqa_core::ports::{Browser, BrowserError, Clock, Judge, Store, StoreError};
 use webqa_core::redact::Redactor;
-use webqa_core::screen;
+
+use crate::interrupt::Interrupt;
+use crate::record::Record;
 
 /// Why the run stopped before an outcome.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
@@ -27,18 +34,49 @@ pub enum RunError {
     Store(#[from] StoreError),
 }
 
-/// The ports of a run and where it is in the event log.
+/// What the run loop looks for besides the core's own notes.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Detect {
+    /// `limits.error_confidence`: the error display and the semantic
+    /// findings count from this probability.
+    pub error_confidence: f64,
+    /// The semantic findings to ask about each step. Empty asks none.
+    pub probes: Vec<Probe>,
+}
+
+impl Default for Detect {
+    fn default() -> Self {
+        Self {
+            error_confidence: 0.8,
+            probes: Vec::new(),
+        }
+    }
+}
+
+/// The ports of a run, where it is in the event log, and what it did so far.
 pub struct Ports<'a> {
     browser: &'a mut dyn Browser,
     judge: &'a mut dyn Judge,
     clock: &'a mut dyn Clock,
     store: &'a mut dyn Store,
     redactor: &'a Redactor,
+    /// The number of the next line of the log.
     seq: u64,
+    /// The current step: 0 until the first question or core operation.
+    step: u64,
+    detect: Detect,
+    record: Record,
+    /// The names of the screenshots written.
+    shots: BTreeSet<String>,
+    /// Whether a write failed: `log` and the screenshots write nothing after
+    /// that. A write through `store()` neither sees it nor sets it; its
+    /// caller stops.
+    failed: bool,
 }
 
 impl<'a> Ports<'a> {
     /// Gathers the ports. Every page and line passes through `redactor`.
+    /// The run looks for issues as [`Detect::default`] says.
     pub fn new(
         browser: &'a mut dyn Browser,
         judge: &'a mut dyn Judge,
@@ -53,156 +91,117 @@ impl<'a> Ports<'a> {
             store,
             redactor,
             seq: 0,
+            step: 0,
+            detect: Detect::default(),
+            record: Record::default(),
+            shots: BTreeSet::new(),
+            failed: false,
         }
+    }
+
+    /// The same ports, looking for issues as `detect` says.
+    #[must_use]
+    pub fn detecting(self, detect: Detect) -> Self {
+        Self { detect, ..self }
+    }
+
+    /// What the run did so far.
+    #[must_use]
+    pub const fn record(&self) -> &Record {
+        &self.record
+    }
+
+    /// The store, for the records written around the run.
+    pub fn store(&mut self) -> &mut dyn Store {
+        self.store
+    }
+
+    /// The redactor every record passes through.
+    #[must_use]
+    pub const fn redactor(&self) -> &Redactor {
+        self.redactor
+    }
+
+    /// Writes `event` as the next line of the log, with the current step.
+    ///
+    /// # Errors
+    ///
+    /// [`RunError::Store`] when the line cannot be written.
+    pub async fn log(&mut self, event: Event) -> Result<(), RunError> {
+        if self.failed {
+            return Err(StoreError.into());
+        }
+        let line = Line {
+            seq: self.seq,
+            elapsed_ms: log::millis(self.clock.elapsed()),
+            step: Some(self.step).filter(|&step| step > 0),
+            event,
+        };
+        self.seq += 1;
+        // Every field of a line serializes to JSON, so this never falls back.
+        let line = self
+            .redactor
+            .json(serde_json::to_value(&line).unwrap_or_default());
+        let written = self.store.write_event(&line).await;
+        self.kept(written)
+    }
+
+    /// `written`, remembering a failure so that nothing is written after it.
+    pub(super) fn kept(&mut self, written: Result<(), StoreError>) -> Result<(), RunError> {
+        self.failed |= written.is_err();
+        written.map_err(RunError::Store)
     }
 }
 
-/// Observes the page, then runs from there under `rules`, exploring with `memory`.
+/// Observes the page, then runs from there under `rules`, exploring with
+/// `memory`, until the core finishes or the user interrupts.
 ///
 /// # Errors
 ///
 /// [`RunError`] when the browser fails or a record cannot be written.
 pub async fn explore(
     ports: &mut Ports<'_>,
+    interrupt: &mut dyn Interrupt,
     rules: Rules,
     memory: Memory,
 ) -> Result<Outcome, RunError> {
-    let seen = observe(ports).await?;
+    let seen = perform::observe(ports).await?;
     let start = machine::start(seen, rules, memory, ports.clock.elapsed());
-    run(start, ports).await
+    notes::after((0, 0), &start, ports).await?;
+    run(start, ports, interrupt).await
 }
 
-/// Does effects until the core finishes.
+/// Does effects until the core finishes or the user interrupts.
 ///
 /// # Errors
 ///
-/// [`RunError`] when the browser fails or a record cannot be written.
-pub async fn run(start: Step, ports: &mut Ports<'_>) -> Result<Outcome, RunError> {
+/// As [`explore`].
+pub async fn run(
+    start: Step,
+    ports: &mut Ports<'_>,
+    interrupt: &mut dyn Interrupt,
+) -> Result<Outcome, RunError> {
     let mut step = start;
     loop {
         match step {
-            Step::Continue(state, effect) => step = advance(*state, effect, ports).await?,
+            Step::Continue(state, effect) => {
+                let kept = (*state).clone();
+                tokio::select! {
+                    biased;
+                    () = interrupt.wait() => return Ok(machine::abort(kept)),
+                    next = advance(*state, effect, ports) => step = next?,
+                }
+            }
             Step::Finished(outcome) => return Ok(outcome),
         }
     }
 }
 
+/// Does one effect, passes its facts to the core and logs what the core noted.
 async fn advance(state: State, effect: Effect, ports: &mut Ports<'_>) -> Result<Step, RunError> {
-    let facts = perform(effect, state.last(), ports).await?;
-    Ok(machine::step(state, facts, ports.clock.elapsed()))
-}
-
-/// Does the effect. `last` is the page before it.
-async fn perform(effect: Effect, last: &Seen, ports: &mut Ports<'_>) -> Result<Facts, RunError> {
-    match effect {
-        Effect::Outside(outside) => Ok(Facts::Outside(beyond(outside, ports).await)),
-        Effect::Page(page) => on_page(page, last, ports).await,
-    }
-}
-
-async fn beyond(outside: Outside, ports: &mut Ports<'_>) -> Heard {
-    match outside {
-        Outside::Ask(questions) => Heard::Answered(
-            ports
-                .judge
-                .ask(&questions.screen, &questions.questions)
-                .await,
-        ),
-        Outside::Sleep(wake) => {
-            ports.clock.sleep_until(wake.at).await;
-            Heard::Woke
-        }
-    }
-}
-
-async fn on_page(page: PageEffect, last: &Seen, ports: &mut Ports<'_>) -> Result<Facts, RunError> {
-    match page {
-        PageEffect::Look(_) => observe(ports).await.map(page_facts),
-        PageEffect::Touch(touch) => touched(&touch, last, ports).await.map(page_facts),
-    }
-}
-
-/// The facts of observing `seen`.
-fn page_facts(seen: Seen) -> Facts {
-    Facts::Page(Box::new(seen))
-}
-
-/// Logs the decision, touches the page and logs what came of it.
-async fn touched(touch: &Touch, before: &Seen, ports: &mut Ports<'_>) -> Result<Seen, RunError> {
-    record(ports, decided(touch)).await?;
-    ports.browser.touch(touch).await?;
-    executed(before, ports).await
-}
-
-fn decided(touch: &Touch) -> Event {
-    Event::Decided {
-        op: touch.op.clone(),
-        target: touch.target.as_ref().map(|id| id.name.clone()),
-        p: touch.confidence,
-    }
-}
-
-/// Observes the page after the touch and logs whether it changed.
-///
-/// Provisional: `accesses` is always 1, one access per touch, until the
-/// accesses are counted with the time window.
-async fn executed(before: &Seen, ports: &mut Ports<'_>) -> Result<Seen, RunError> {
-    let after = observe(ports).await?;
-    let changed = screen::changed(&before.screen, &after.screen, after.viewport);
-    record(
-        ports,
-        Event::Executed {
-            changed,
-            accesses: 1,
-        },
-    )
-    .await?;
-    Ok(after)
-}
-
-/// Reads the page and redacts it, keeping the material from before redaction.
-/// The whole page is redacted too, its elements under the page's URL.
-async fn observe(ports: &mut Ports<'_>) -> Result<Seen, RunError> {
-    let observation = ports.browser.observe().await?;
-    let material = Material::plain(&observation.screen, observation.viewport);
-    let outline = screen::Screen {
-        url: observation.screen.url.clone(),
-        elements: observation.outline,
-    };
-    Ok(Seen {
-        whole: Whole {
-            outline: ports.redactor.screen(outline),
-            text: ports.redactor.text(&observation.text),
-        },
-        screen: ports.redactor.screen(observation.screen),
-        viewport: observation.viewport,
-        material,
-    })
-}
-
-/// Writes the event as the next line of the log.
-///
-/// Provisional: `step` is always 1, since the run has one step until the
-/// state machine counts its steps.
-async fn record(ports: &mut Ports<'_>, event: Event) -> Result<(), RunError> {
-    let line = Line {
-        seq: ports.seq,
-        elapsed_ms: millis(ports.clock.elapsed()),
-        step: Some(1),
-        event,
-    };
-    ports.seq += 1;
-    // Every field of a line serializes to JSON, so this never falls back.
-    let line = ports
-        .redactor
-        .json(serde_json::to_value(&line).unwrap_or_default());
-    ports
-        .store
-        .write_event(&line)
-        .await
-        .map_err(RunError::Store)
-}
-
-fn millis(elapsed: Duration) -> u64 {
-    u64::try_from(elapsed.as_millis()).unwrap_or(u64::MAX)
+    let before = (state.notes().len(), state.stage());
+    let facts = perform::perform(effect, &state, ports).await?;
+    let next = machine::step(state, facts, ports.clock.elapsed());
+    notes::after(before, &next, ports).await?;
+    Ok(next)
 }

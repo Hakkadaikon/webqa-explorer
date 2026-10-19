@@ -143,7 +143,7 @@ fn press(locator: Locator) -> Done<'static> {
 }
 
 /// The roles of input fields, the only elements `input` types into.
-const FILLABLE: [&str; 4] = ["textbox", "searchbox", "combobox", "spinbutton"];
+pub const FILLABLE: [&str; 4] = ["textbox", "searchbox", "combobox", "spinbutton"];
 
 /// Whether an element of `role` is an input field.
 pub fn fillable(role: &str) -> bool {

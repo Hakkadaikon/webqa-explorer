@@ -39,6 +39,11 @@ jobs:
   pull-request:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    # The mutants of a large PR outlast one runner, so they are split four ways.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -67,4 +72,4 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           git diff "$BASE"...HEAD > pr.diff
-          just mutants --in-diff pr.diff
+          just mutants --in-diff pr.diff --shard ${{ matrix.shard }}/4

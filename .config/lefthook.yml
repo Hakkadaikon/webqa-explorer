@@ -1,4 +1,6 @@
-# Gates before each commit (installed by `just setup`). Mutation and dependency audits run in CI.
+# Gates before each commit (installed by `just setup`). Tests with coverage,
+# mutation and dependency audits run in CI on each PR.
+# Of these, `just check` runs only tests with coverage locally.
 commit-msg:
   jobs:
     - run: uv run --no-project --python 3.14 scripts/commit_msg.py {1}
@@ -15,7 +17,5 @@ pre-commit:
       run: just docs-check
     - name: config
       run: just config-check
-    - name: test
-      run: just test
     - name: secrets
       run: just secrets-staged
