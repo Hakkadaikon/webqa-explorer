@@ -82,10 +82,8 @@ fn priced(usage: Usage, price: Price) -> f64 {
     thousands(usage.output_tokens).mul_add(price.output_per_1k, input)
 }
 
-/// The most tokens counted in one sum, `u32::MAX`.
-const MAX_TOKENS: f64 = 4_294_967_295.0;
-
-/// `tokens` in thousands.
+/// `tokens` in thousands, exact up to `f64`'s 53 bits.
 fn thousands(tokens: u64) -> f64 {
-    u32::try_from(tokens).map_or(MAX_TOKENS, f64::from) / 1000.0
+    let half = |part: u64| f64::from(u32::try_from(part).unwrap_or(u32::MAX));
+    half(tokens >> 32).mul_add(4_294_967_296.0, half(tokens & 0xFFFF_FFFF)) / 1000.0
 }
