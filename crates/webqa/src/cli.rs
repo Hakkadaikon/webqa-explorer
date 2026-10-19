@@ -1,5 +1,6 @@
 //! The command line: subcommands, start-up and the exit code.
 
+pub mod start;
 #[cfg(test)]
 mod tests;
 
