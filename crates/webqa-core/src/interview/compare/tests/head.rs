@@ -118,3 +118,25 @@ fn persona_is_checked_before_purpose() {
     let got = compared(&with_head(base), &previous, 3, 3);
     assert_eq!(got, Err(Mismatch::Persona));
 }
+
+#[test]
+fn previous_head_checked_before_trials() {
+    let base = head(3, goal());
+    let inferred = |text: &str| Goal::Inferred(vec![text.to_owned()]);
+    let other = "https://other.example.test/";
+    let written = |name: &str, goal: &Goal| check_previous(&base, name, goal, &base.start);
+    assert_eq!(written("鈴木さん", &goal()), Err(Mismatch::Persona));
+    assert_eq!(
+        written("佐藤さん", &Goal::Written("別の目的".to_owned())),
+        Err(Mismatch::Goal)
+    );
+    assert_eq!(written("佐藤さん", &goal()), Ok(()));
+    let guessed = Head {
+        goal: inferred("商品を買う"),
+        ..base.clone()
+    };
+    let guess =
+        |text: &str, start: &str| check_previous(&guessed, "佐藤さん", &inferred(text), start);
+    assert_eq!(guess("商品を選ぶ", other), Err(Mismatch::Start));
+    assert_eq!(guess("商品を選ぶ", &base.start), Ok(()));
+}
