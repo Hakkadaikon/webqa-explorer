@@ -12,7 +12,7 @@ async fn records_written_in_order() {
     assert_eq!(exit::code(&ending), 0);
     let tail = &store.order[store.order.len() - 3..];
     assert_eq!(tail, ["write_memory", "write_event", "write_report"]);
-    let last = json!({"kind": "run_finished", "reason": "user_aborted"});
+    let last = json!({"kind": "run_finished", "reason": "user_aborted", "step": 3});
     assert_eq!(ends(&store.inner).1, Some(last));
 }
 
@@ -64,6 +64,7 @@ async fn interrupt_after_finish_keeps_reason() {
     let mut store = Slow::holding(Hold::Once);
     let ending = finished_then_interrupted(&mut store).await;
     assert_eq!(exit::code(&ending), 0);
+    assert_eq!(reason_of(ending), ExitReason::GoalAchieved);
     let last = json!({"kind": "run_finished", "reason": "goal_achieved"});
     assert_eq!(ends(&store.inner).1, Some(last));
     assert_eq!(store.inner.report.unwrap()["reason"], "goal_achieved");

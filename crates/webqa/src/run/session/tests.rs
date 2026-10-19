@@ -13,7 +13,7 @@ use webqa_core::event::Mode;
 use webqa_core::explore::Memory;
 use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::judge::QuestionId;
-use webqa_core::machine::Rules;
+use webqa_core::machine::{ExitReason, Rules};
 use webqa_core::ports::{Judge, Observation, Store};
 use webqa_core::redact::Redactor;
 use webqa_core::screen::ElementId;
@@ -94,7 +94,8 @@ enum Wait {
     Window,
 }
 
-const WAITS: [Wait; 3] = [Wait::Step, Wait::Question(3), Wait::Window];
+/// The waits, and the step the run was at when it was interrupted.
+const WAITS: [(Wait, u64); 3] = [(Wait::Step, 3), (Wait::Question(3), 4), (Wait::Window, 3)];
 
 /// Shows `page` every time.
 fn browser_on(page: &Observation) -> FakeBrowser {
@@ -176,36 +177,44 @@ fn saved_operated(store: &MemoryStore) -> bool {
     memory.is_operated(at, &save())
 }
 
-/// The lines of the store without their numbers and times.
+/// The lines of the store without their numbers and times. The step stays.
 fn kinds(store: &MemoryStore) -> Vec<Value> {
     let bare = |line: &Value| {
         let mut line = line.clone();
         let fields = line.as_object_mut().unwrap();
         fields.remove("seq");
         fields.remove("elapsed_ms");
-        fields.remove("step");
         line
     };
     store.lines.iter().map(bare).collect()
 }
 
-/// The last line and the first line of the log, without their numbers.
+/// The first line and the last line of the log, without their numbers.
 fn ends(store: &MemoryStore) -> (Option<Value>, Option<Value>) {
     let lines = kinds(store);
     (lines.first().cloned(), lines.last().cloned())
 }
 
+/// Why the run ended, which it did with its records written.
+fn reason_of(ending: Ending) -> ExitReason {
+    let Ending::Finished { outcome, .. } = ending else {
+        panic!("the run did not finish: {ending:?}")
+    };
+    outcome.reason
+}
+
 #[tokio::test]
 async fn interrupt_cancels_wait_and_writes_records() {
-    for wait in WAITS {
+    for (wait, step) in WAITS {
         let mut store = MemoryStore::default();
         let ending = on_top(wait, &mut store).await;
         assert_eq!(exit::code(&ending), 0);
+        assert_eq!(reason_of(ending), ExitReason::UserAborted);
         assert!(saved_operated(&store));
         let lines = kinds(&store);
         assert_eq!(
             lines.last(),
-            Some(&json!({"kind": "run_finished", "reason": "user_aborted"}))
+            Some(&json!({"kind": "run_finished", "reason": "user_aborted", "step": step}))
         );
         let first = json!({"kind": "run_started", "schema": 1, "mode": "explore", "started_at": "2026-10-18T02:00:00Z"});
         assert_eq!(lines.first(), Some(&first));

@@ -71,6 +71,9 @@ async fn second_interrupt_abandons_writing() {
     let mut never = FakeInterrupt::on(&[]);
     let out = guard(future::ready(7_u8), &mut never, 0).await;
     assert_eq!(out, Some(7));
+    let mut both = FakeInterrupt::on(&[1]);
+    let out = guard(future::ready(7_u8), &mut both, 0).await;
+    assert_eq!(out, Some(7), "work that is ready wins over an interruption");
 }
 
 #[tokio::test]
