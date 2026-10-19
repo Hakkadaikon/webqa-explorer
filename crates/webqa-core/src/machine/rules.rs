@@ -95,8 +95,9 @@ impl Rules {
     /// name; `None` when it types.
     ///
     /// The element is found the way the browser finds it, by its identity
-    /// among the elements of `screen`, and its name is compared to the keys
-    /// as written, as the browser compares them.
+    /// among the elements of `screen`. The name compared to the keys is the
+    /// one in `screen`, which went through redaction; the browser compares
+    /// the raw name, so the two differ for a name that redaction changes.
     #[must_use]
     pub fn input_skip(
         &self,

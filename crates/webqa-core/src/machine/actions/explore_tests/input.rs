@@ -97,24 +97,32 @@ fn input_is_dropped_when_its_field_is_past_the_options() {
     );
 }
 
-/// Types into "メール", or into "保存", then looks at the page again.
-fn typed(rules: Rules, number: &str) -> Step {
+/// Types into "メール", or into "保存", then looks at `after`.
+fn typed(rules: Rules, number: &str, after: &Screen) -> Step {
     let asked = started(rules, &fielded());
     let looked = told(asked.state(), answer("input", Some(0.9), Some(number)));
     let touched = showed(looked.state(), &fielded());
-    showed(touched.state(), &fielded())
+    showed(touched.state(), after)
 }
 
 #[test]
 fn input_is_remembered_only_when_it_typed() {
     let field = id("textbox", "メール", 0);
-    let typing = typed(valued(&["メール"]), "1");
+    let typing = typed(valued(&["メール"]), "1", &fielded());
     assert!(operated(typing.state(), &fielded(), &field), "typed");
-    let valueless = typed(valued(&[]), "1");
+    let valueless = typed(valued(&[]), "1", &fielded());
     assert!(!operated(valueless.state(), &fielded(), &field), "no value");
-    let button = typed(valued(&["メール"]), "2");
+    let button = typed(valued(&["メール"]), "2", &fielded());
     assert!(
         !operated(button.state(), &fielded(), &save()),
         "not a field"
     );
+}
+
+#[test]
+fn input_is_remembered_after_the_page_loses_the_field() {
+    let field = id("textbox", "メール", 0);
+    let other = page(&format!("{APP}/other"), &[("link", "戻る")]);
+    let typing = typed(valued(&["メール"]), "1", &other);
+    assert!(operated(typing.state(), &fielded(), &field), "typed");
 }
