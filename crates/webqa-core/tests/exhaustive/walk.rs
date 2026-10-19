@@ -7,7 +7,7 @@ use webqa_core::effect::Effect;
 use webqa_core::machine::{Outcome, Rules, State, Step, step};
 
 use super::absorb::{aborts_alike, stays};
-use super::candidates::{Candidates, Choice, fitting, later};
+use super::candidates::{Candidates, Choice, KINDS, fitting, later};
 use super::exits::tied;
 use super::key::key;
 use super::report::{Found, GROUPS, Path, Report};
@@ -113,7 +113,7 @@ fn pass(
     at: Duration,
 ) -> Option<Item> {
     let step = step(item.state.clone(), choice.facts.clone(), at);
-    let after = marks(step.state(), &candidates.marked);
+    let after = marks_after(candidates, item, step.state());
     let t = Transition {
         before: &item.state,
         before_marks: &item.marks,
@@ -141,6 +141,19 @@ fn pass(
             ended(candidates, found, &outcome, &after, path, at);
             None
         }
+    }
+}
+
+/// The operated marks of `after`, the state reached from `item`. Only
+/// recording an operation marks an element, and it always adds an edge
+/// when the element was not operated, so with no edge added the marks of
+/// `item` stand.
+fn marks_after(candidates: &Candidates, item: &Item, after: &State) -> Vec<Vec<bool>> {
+    let edges = |s: &State| s.memory().edge_count();
+    if edges(after) == edges(&item.state) {
+        item.marks.clone()
+    } else {
+        marks(after, &candidates.marked)
     }
 }
 
@@ -194,14 +207,19 @@ fn ended(
     }
 }
 
-/// Passes every fact at every later time to the ended `outcome` again.
+/// Passes a fact of each kind at every later time to the ended `outcome`
+/// again.
 fn absorb(candidates: &Candidates, found: &mut Found, outcome: &Outcome, path: Path, at: Duration) {
     found.absorbed += 1;
     let failures = &mut found.ended;
     let kept = aborts_alike(outcome);
     failures.extend((!kept).then_some(("interrupting an ended run keeps its reason", path)));
+    let kinds = KINDS
+        .iter()
+        .filter_map(|&p| candidates.choices.get(p).map(|c| (p, c)));
+    let kinds: Vec<(usize, &Choice)> = kinds.collect();
     for (time, at) in later(at) {
-        for (position, choice) in candidates.choices.iter().enumerate() {
+        for &(position, choice) in &kinds {
             let again = step((*outcome.state).clone(), choice.facts.clone(), at);
             let failed = !stays(outcome, &again, at);
             let path = path.then((position, time));

@@ -36,6 +36,10 @@ const REPLIES: Range<usize> = 0..37;
 const PAGES: Range<usize> = 37..44;
 const WOKE: Range<usize> = 44..45;
 
+/// One fact of each kind: a reply, a page and waking up. An ended run
+/// takes in no fact, so one of each stands for the others of its kind.
+pub const KINDS: [usize; 3] = [REPLIES.start, PAGES.start, WOKE.start];
+
 /// One fact to pass, with the operation kind of the answer in it.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Choice {
