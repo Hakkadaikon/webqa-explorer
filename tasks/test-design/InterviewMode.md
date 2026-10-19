@@ -192,7 +192,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-041 InterviewMode.feature:389(判断モデルへの問い) [state] 「インタビューのモードでは、画像を扱えると申告したアダプタに、アクセシビリティ情報のテキストとスクリーンショットを渡す」
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask` の `attaches_screenshot_when_judge_reads_images` / issue: #20、#33
 - [x] T-042 InterviewMode.feature:394(判断モデルへの問い) [state] 「探索モードと決め打ちシナリオでは、これまでどおりテキストだけを渡す」(Examples の各行を1ケースとする)
-      → 手法: 同値分割(blackbox-partition)、回帰テスト(levels-operational) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `other_modes_send_text_only` / issue: #31、#33
+      → 手法: 同値分割(blackbox-partition)、回帰テスト(levels-operational) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `other_modes_send_text_only` / issue: #30、#33
 - [x] T-043 InterviewMode.feature:403(判断モデルへの問い) [ubiquitous] 「外部コマンドへの問いの JSON に、特定のモデルに依らない形で画像を入れる」
       → 手法: コントラクトテスト(levels-service)、API スキーマ検証(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-judge::command` の `image_field_shape_is_model_neutral`、契約 `webqa-judge/tests/command.rs` の `bridge_receives_image_field` / issue: #19、#33
 - [x] T-044 InterviewMode.feature:409(判断モデルへの問い) [event] 「判断モデルのアダプタは、どれも起動のときに画像を扱えるかを申告する」(Examples の各行を1ケースとする)
@@ -286,7 +286,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-088 InterviewMode.feature:735(台帳の書式) [ubiquitous] 「要素を持たない課題は、画面と種類で番号を決める」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `elementless_number_from_screen_and_kind`、単体 `webqa-core::interview::issue` の `mismatch_number_from_url_pattern_and_kind` / issue: #22、#33
 - [x] T-089 InterviewMode.feature:741(台帳の書式) [unwanted] 「スクリーンショットの名前は、課題の番号・試行の番号・ステップの番号から作り、パスの区切りを含めない」
-      → 手法: セキュリティテスト(nonfunctional-attributes)、エラー推測(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::screenshots` の `issue_screenshot_name_from_numbers_only`、単体 `webqa::store::screenshots` の `mismatch_screenshot_named_from_first_match` / issue: #31、#33
+      → 手法: セキュリティテスト(nonfunctional-attributes)、エラー推測(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::screenshots` の `issue_screenshot_name_from_numbers_only`、単体 `webqa::store::screenshots` の `mismatch_screenshot_named_from_first_match` / issue: #30、#33
 - [x] T-090 InterviewMode.feature:748(台帳の書式) [ubiquitous] 「台帳を読み戻すと、書いた課題の項目と選択がそのまま戻る」
       → 手法: プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `write_then_read_round_trips` / issue: #24、#33
 - [x] T-091 InterviewMode.feature:754(台帳の書式) [unwanted] 「判断モデルの自由な文に台帳の書式が入っていても、台帳の構造を崩さない」(Examples の各行を1ケースとする)
@@ -437,7 +437,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-039 | boundary | 境界値分析(blackbox-partition) | `zero_finished_trials_has_no_issues` | #24、#33 | [x] | [ ] | 要 |
 | T-040 | event | 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) | `abort_mid_trial_skips_rest`、`finished_plus_cut_equals_started`、`finished_trials_never_exceed_setting` | #30、#33 | [x] | [ ] | 要 |
 | T-041 | state | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `attaches_screenshot_when_judge_reads_images` | #20、#33 | [x] | [ ] | — |
-| T-042 | state | 同値分割(blackbox-partition)、回帰テスト(levels-operational) | `other_modes_send_text_only` | #31、#33 | [x] | [ ] | — |
+| T-042 | state | 同値分割(blackbox-partition)、回帰テスト(levels-operational) | `other_modes_send_text_only` | #30、#33 | [x] | [ ] | — |
 | T-043 | ubiquitous | コントラクトテスト(levels-service)、API スキーマ検証(levels-service) | `image_field_shape_is_model_neutral`、`bridge_receives_image_field` | #19、#33 | [x] | [ ] | — |
 | T-044 | event | コントラクトテスト(levels-service)、テストダブル(test-doubles) | `scripted_declares_image_support`、`bridge_declares_image_support`、`questions_follow_declared_capability` | #19、#20、#33 | [x] | [ ] | — |
 | T-045 | event | コントラクトテスト(levels-service) | `capability_read_from_version_line` | #19、#33 | [x] | [ ] | — |
@@ -484,7 +484,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-086 | ubiquitous | プロパティベーステスト(generative-property) | `same_screen_element_kind_same_number` | #22、#33 | [x] | [ ] | 要 |
 | T-087 | unwanted | 同値分割(blackbox-partition) | `different_key_different_number` | #22、#33 | [x] | [ ] | 要 |
 | T-088 | ubiquitous | 同値分割(blackbox-partition) | `elementless_number_from_screen_and_kind`、`mismatch_number_from_url_pattern_and_kind` | #22、#33 | [x] | [ ] | 要 |
-| T-089 | unwanted | セキュリティテスト(nonfunctional-attributes)、エラー推測(experience-checklist) | `issue_screenshot_name_from_numbers_only`、`mismatch_screenshot_named_from_first_match` | #31、#33 | [x] | [ ] | 要 |
+| T-089 | unwanted | セキュリティテスト(nonfunctional-attributes)、エラー推測(experience-checklist) | `issue_screenshot_name_from_numbers_only`、`mismatch_screenshot_named_from_first_match` | #30、#33 | [x] | [ ] | 要 |
 | T-090 | ubiquitous | プロパティベーステスト(generative-property) | `write_then_read_round_trips` | #24、#33 | [x] | [ ] | 要 |
 | T-091 | unwanted | プロパティベーステスト(generative-property)、エラー推測(experience-checklist)、セキュリティテスト(nonfunctional-attributes) | `free_text_cannot_forge_structure`、`write_then_read_round_trips` | #24、#33 | [x] | [ ] | 要 |
 | T-092 | unwanted | 同値分割(blackbox-partition) | `fix_instruction_stays_one_line` | #24、#33 | [x] | [ ] | 要 |
