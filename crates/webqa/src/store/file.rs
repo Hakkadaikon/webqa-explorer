@@ -118,15 +118,12 @@ fn unless_missing<T>(result: io::Result<T>) -> Result<Option<T>, StoreError> {
 }
 
 /// Writes `bytes` to a temporary file next to `path`, then renames it over
-/// `path`, so a stop half-way keeps the previous version.
+/// `path`, so a stop half-way keeps the previous version. A failure removes
+/// the temporary file.
 async fn replace(path: &Path, bytes: &[u8]) -> Result<(), StoreError> {
     let mut temporary = path.as_os_str().to_owned();
     temporary.push(".tmp");
-    let mut file = File::create(&temporary).await.or(Err(StoreError))?;
-    // Synced even after a failed write; either error keeps `path` as it was.
-    let written = file.write_all(bytes).await;
-    let done = written.and(file.sync_all().await);
-    let done = match done {
+    let done = match write_temporary(Path::new(&temporary), bytes).await {
         Ok(()) => fs::rename(&temporary, path).await,
         Err(error) => Err(error),
     };
@@ -134,6 +131,14 @@ async fn replace(path: &Path, bytes: &[u8]) -> Result<(), StoreError> {
         let _ = fs::remove_file(&temporary).await;
     }
     done.or(Err(StoreError))
+}
+
+/// Creates `temporary` with `bytes` in it, synced.
+async fn write_temporary(temporary: &Path, bytes: &[u8]) -> io::Result<()> {
+    let mut file = File::create(temporary).await?;
+    // Synced even after a failed write; either error keeps the old file.
+    let written = file.write_all(bytes).await;
+    written.and(file.sync_all().await)
 }
 
 impl Store for FileStore {
