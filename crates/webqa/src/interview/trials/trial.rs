@@ -111,6 +111,8 @@ impl Course<'_> {
         Rules {
             mode: Mode::Scenario,
             ops: with_done(&self.plan.rules.ops),
+            // The time limit is the plan's, from the start of the run.
+            max_duration: self.plan.max_duration,
             stages: vec![interview.purpose.stage()],
             stuck_threshold: interview.stuck_threshold,
             ..self.plan.rules.clone()

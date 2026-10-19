@@ -63,11 +63,7 @@ fn deadline(case: &Case) -> Option<Duration> {
 fn rules(case: &Case) -> Fallible<Rules> {
     let limits = [5, 5, 10, case.accesses].map(nz);
     let app = AllowedOrigin::parse(ORIGIN)?;
-    let rules = fakes::rules(&[Op::Click], limits, vec![app]);
-    Ok(Rules {
-        max_duration: deadline(case),
-        ..rules
-    })
+    Ok(fakes::rules(&[Op::Click], limits, vec![app]))
 }
 
 /// The settings of `case`: a reset command that writes a line.

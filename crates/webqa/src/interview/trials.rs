@@ -55,8 +55,10 @@ pub struct Plan {
 }
 
 /// Opens a fresh browser for a trial: a new context with the storage state.
+/// The browser has gone to the start URL when it is returned, so the loop
+/// can observe the first page at once.
 pub trait Launch: Send {
-    /// Opens the browser of the next trial.
+    /// Opens the browser of the next trial, on the start page.
     fn launch(&mut self) -> Pending<'_, Result<Box<dyn Browser>, BrowserError>>;
 }
 
