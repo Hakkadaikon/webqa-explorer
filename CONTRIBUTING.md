@@ -17,10 +17,10 @@ git worktreeで作業するときは、worktreeの中で`just worktree-tools`を
 
 ## コミットする前に
 
-`just check`で、コミット前の検査をまとめて回せる。
-整形、静的解析、複雑度の判定、文書とスペルの検査、テストが対象になる。
+コミットすると、lefthookが整形、静的解析、複雑度の判定、文書とスペルの検査を走らせる。
+テストは、触ったモジュールの分を手で回す。
+`just check`で、テストを含む全部の検査をまとめて回せる。
 テストはカバレッジが100%に届かなければ失敗する。
-コミットするとlefthookが同じ検査を自動で走らせる。
 
 コミットメッセージは、日本語のConventional Commitsで書く。
 規約は[`docs/commit-messages.md`](docs/commit-messages.md)にまとめた。
@@ -28,7 +28,7 @@ git worktreeで作業するときは、worktreeの中で`just worktree-tools`を
 
 ## CI
 
-PRを出すと、GitHub Actionsがコミット前と同じ検査を回す。
+PRを出すと、GitHub Actionsが`just check`を回す。カバレッジ100%のテストはここで確かめる。
 それに加えて、依存の監査、PR内のコミットメッセージの検査を行う。
 変更した箇所にはmutationテストも当てる。
 各検査の基準と、落ちたときの直し方は[`docs/quality-gates.md`](docs/quality-gates.md)にまとめた。
