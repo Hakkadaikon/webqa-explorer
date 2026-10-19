@@ -16,6 +16,7 @@ pub fn check(raw: &RawConfig, read: Read<'_>) -> Result<(), ConfigError> {
         confidence("limits.error_confidence", raw.limits.error_confidence),
         non_empty_ops(&raw.ops),
         non_empty_stages(raw.scenario.as_ref()),
+        leave_paywall(&raw.guard.leave_paywall),
         origins(&raw.target.allowed_origins),
         storage_state(raw.auth.as_ref(), read),
     ]
@@ -53,6 +54,26 @@ fn non_empty_stages(scenario: Option<&Scenario>) -> Result<(), ConfigError> {
         Err(ConfigError::NoStages)
     } else {
         Ok(())
+    }
+}
+
+/// The browser operations that need no target: `webqa-browser`'s table
+/// without `click` and `input`. Copied, since the core does not depend on it.
+const LEAVE_OPS: [&str; 6] = [
+    "back",
+    "scroll_down",
+    "scroll_up",
+    "wait",
+    "reload",
+    "return",
+];
+
+/// Leaving a paywall needs an operation that acts without a target.
+fn leave_paywall(name: &str) -> Result<(), ConfigError> {
+    if LEAVE_OPS.contains(&name) {
+        Ok(())
+    } else {
+        Err(ConfigError::LeavePaywall)
     }
 }
 
@@ -192,5 +213,49 @@ mod tests {
             load(&wildcard).is_ok(),
             "a wildcard at the host's start is accepted"
         );
+    }
+
+    /// Operations that leave without a target.
+    const UNTARGETED: [&str; 6] = [
+        "back",
+        "scroll_down",
+        "scroll_up",
+        "wait",
+        "reload",
+        "return",
+    ];
+
+    /// Operations that need a target, the core's own ones, a name in the wrong
+    /// case and the empty string.
+    const NOT_LEAVING: [&str; 6] = ["click", "input", "done", "stuck", "Back", "\"\""];
+
+    /// The example with `guard.leave_paywall` set to `name`. The comment keeps
+    /// the text changed when `name` is the example's own `back`.
+    fn with_leave_paywall(name: &str) -> String {
+        changed(
+            "leave_paywall: back",
+            &format!("leave_paywall: {name} # changed"),
+        )
+    }
+
+    /// The way out of a paywall once loaded, or the error as its message.
+    fn way_out(yaml: &str) -> Result<String, String> {
+        load(yaml)
+            .map(|config| config.guard.leave_paywall)
+            .map_err(|err| err.to_string())
+    }
+
+    #[test]
+    fn leave_paywall_must_be_untargeted_op() {
+        for name in UNTARGETED {
+            let got = way_out(&with_leave_paywall(name));
+            assert_eq!(got, Ok(name.to_owned()), "{name}");
+        }
+        let want = Err(ConfigError::LeavePaywall.to_string());
+        for name in NOT_LEAVING {
+            assert_eq!(way_out(&with_leave_paywall(name)), want, "{name}");
+        }
+        let omitted = changed("  leave_paywall: back\n", "");
+        assert_eq!(way_out(&omitted), Ok("back".to_owned()), "default");
     }
 }
