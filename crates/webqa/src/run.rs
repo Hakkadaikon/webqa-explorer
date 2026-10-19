@@ -7,6 +7,7 @@ mod fakes;
 mod log;
 mod notes;
 mod perform;
+pub mod session;
 #[cfg(test)]
 mod tests;
 
