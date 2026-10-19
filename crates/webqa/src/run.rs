@@ -11,7 +11,7 @@ use std::time::Duration;
 use webqa_core::effect::{Effect, Outside, PageEffect, Touch};
 use webqa_core::event::{Event, Line};
 use webqa_core::explore::Memory;
-use webqa_core::machine::{self, Facts, Heard, Material, Outcome, Rules, Seen, State, Step};
+use webqa_core::machine::{self, Facts, Heard, Material, Outcome, Rules, Seen, State, Step, Whole};
 use webqa_core::ports::{Browser, BrowserError, Clock, Judge, Store, StoreError};
 use webqa_core::redact::Redactor;
 use webqa_core::screen;
@@ -161,10 +161,19 @@ async fn executed(before: &Seen, ports: &mut Ports<'_>) -> Result<Seen, RunError
 }
 
 /// Reads the page and redacts it, keeping the material from before redaction.
+/// The whole page is redacted too, its elements under the page's URL.
 async fn observe(ports: &mut Ports<'_>) -> Result<Seen, RunError> {
     let observation = ports.browser.observe().await?;
     let material = Material::plain(&observation.screen, observation.viewport);
+    let outline = screen::Screen {
+        url: observation.screen.url.clone(),
+        elements: observation.outline,
+    };
     Ok(Seen {
+        whole: Whole {
+            outline: ports.redactor.screen(outline),
+            text: ports.redactor.text(&observation.text),
+        },
         screen: ports.redactor.screen(observation.screen),
         viewport: observation.viewport,
         material,

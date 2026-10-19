@@ -7,7 +7,7 @@ use std::num::NonZeroU32;
 use std::time::Duration;
 
 use crate::config::Config;
-use crate::config::raw::Op;
+use crate::config::raw::{Op, Stage};
 use crate::event::Mode;
 use crate::guard::domain::{AllowedOrigin, InvalidOrigin, allowed_or_start};
 use crate::guard::forbidden::Forbidden;
@@ -40,13 +40,16 @@ pub struct Rules {
     pub paywall: Paywall,
     /// The operation that leaves a paywall.
     pub leave_paywall: String,
+    /// The stages of the scenario. Explore mode does not read them.
+    pub stages: Vec<Stage>,
 }
 
 impl Rules {
     /// The rules of the checked `config` in `mode`.
     ///
     /// The allowed origins are `target.allowed_origins`, or the origin of
-    /// `target.url` when there are none.
+    /// `target.url` when there are none. The stages are copied in either
+    /// mode, and none without a scenario.
     ///
     /// # Errors
     ///
@@ -74,6 +77,11 @@ impl Rules {
             forbidden: Forbidden::new(&config.guard.forbidden.keywords),
             paywall: Paywall::default(),
             leave_paywall: config.guard.leave_paywall.clone(),
+            stages: config
+                .scenario
+                .as_ref()
+                .map(|scenario| scenario.stages.clone())
+                .unwrap_or_default(),
         })
     }
 }

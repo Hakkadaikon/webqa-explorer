@@ -1,15 +1,17 @@
 //! The judge's answers read into a proposal.
 //!
-//! A minimal reading until issue #7 checks the answers: the first option
-//! of each question, as the judge ranks them.
+//! The answers are checked against what the step offered, and the element
+//! is picked from the ranked numbers, passing over the element of the last
+//! operation when the screen did not change after it.
 
 use super::Seen;
 use super::note::Anomaly;
+use super::offer::{offer, verdict};
 use super::ops::{OpRow, offered};
-use super::rules::Rules;
+use super::state::State;
 use crate::effect::Touch;
 use crate::guard::identity::Target as Identity;
-use crate::judge::{Answers, JudgeError, QuestionId};
+use crate::judge::{Answers, JudgeError, Verdict, pick_target};
 use crate::screen::{ElementId, element_ids, in_viewport};
 
 /// What to do, from the judge's answers or from leaving a paywall.
@@ -29,8 +31,10 @@ pub(super) struct Proposal {
     pub(super) confidence: Option<f64>,
 }
 
-/// The element the judge pointed at.
-struct Pointed {
+/// An element inside the viewport: its number in the screen text, from 1,
+/// and its position in `screen.elements`.
+struct Numbered {
+    number: usize,
     index: usize,
     element: ElementId,
 }
@@ -61,72 +65,69 @@ impl Proposal {
 /// The proposal of the judge's reply, or what was wrong with it.
 pub(super) fn hear(
     reply: &Result<Answers, JudgeError>,
-    rules: &Rules,
-    last: &Seen,
+    state: &State,
 ) -> Result<Proposal, Anomaly> {
-    reply
+    let answers = reply
         .as_ref()
-        .map_err(|error| Anomaly::Judge(error.clone()))
-        .and_then(|answers| read(answers, rules, last))
+        .map_err(|error| Anomaly::Judge(error.clone()))?;
+    let verdict = verdict(answers, &offer(state)).map_err(Anomaly::Unusable)?;
+    Ok(proposal(&verdict, state))
 }
 
-/// Reads the operation kind among those offered and, for an operation on
-/// an element, the element by its number in the screen text of `last`.
-fn read(answers: &Answers, rules: &Rules, last: &Seen) -> Result<Proposal, Anomaly> {
-    let (row, confidence) = chosen(answers, rules).ok_or(Anomaly::Operation)?;
-    let pointed = pointed(row, answers, last)?;
-    Ok(proposal(row, confidence, pointed, last))
-}
-
-/// The offered operation kind the judge chose, with its probability.
-fn chosen(answers: &Answers, rules: &Rules) -> Option<(&'static OpRow, Option<f64>)> {
-    let (name, confidence) = operation(answers)?;
-    let row = offered(rules).into_iter().find(|row| row.name == name)?;
-    Some((row, confidence))
-}
-
-/// The element, for an operation on one; nothing for the others.
-fn pointed(row: &OpRow, answers: &Answers, last: &Seen) -> Result<Option<Pointed>, Anomaly> {
-    row.element
-        .map(|_| target(answers, last).ok_or(Anomaly::Target))
-        .transpose()
-}
-
-fn proposal(
-    row: &'static OpRow,
-    confidence: Option<f64>,
-    pointed: Option<Pointed>,
-    last: &Seen,
-) -> Proposal {
-    let index = pointed.as_ref().map(|p| p.index);
+/// The operation kind chosen and, for an operation on an element, the
+/// element picked from the ranked numbers.
+fn proposal(verdict: &Verdict, state: &State) -> Proposal {
+    let row = row_of(verdict, state);
+    let pointed = row
+        .and_then(|row| row.element)
+        .and_then(|_| pointed(verdict, state));
+    let (element, index, identity) = located(pointed, state);
     Proposal {
-        op: row.name.to_owned(),
-        row: Some(row),
-        element: pointed.map(|p| p.element),
+        op: row.map(|row| row.name.to_owned()).unwrap_or_default(),
+        row,
+        element,
         index,
-        identity: index.and_then(|i| Identity::at(&last.material.nodes, i)),
-        confidence,
+        identity,
+        confidence: verdict.confidence,
     }
 }
 
-/// The most probable operation kind; the first one with a missing
-/// probability when every probability is missing.
-fn operation(answers: &Answers) -> Option<(&str, Option<f64>)> {
-    let id = QuestionId::operation();
-    answers
-        .best(&id)
-        .map(|(name, p)| (name, Some(p)))
-        .or_else(|| first(answers, &id))
+/// The element pointed at, its position in `screen.elements`, and its
+/// reference when the judge was asked.
+fn located(
+    pointed: Option<Numbered>,
+    state: &State,
+) -> (Option<ElementId>, Option<usize>, Option<Identity>) {
+    let index = pointed.as_ref().map(|p| p.index);
+    let identity = index.and_then(|i| Identity::at(&state.last.material.nodes, i));
+    (pointed.map(|p| p.element), index, identity)
 }
 
-fn first<'a>(answers: &'a Answers, id: &QuestionId) -> Option<(&'a str, Option<f64>)> {
-    let (name, _) = answers.table.get(id).and_then(|options| options.first())?;
-    Some((name.as_str(), None))
+/// The row of the operation kind chosen. The answers name an offered kind,
+/// so it is always found.
+fn row_of(verdict: &Verdict, state: &State) -> Option<&'static OpRow> {
+    offered(&state.rules)
+        .into_iter()
+        .find(|row| row.op == verdict.op)
 }
 
-/// The element whose number in the screen text is the most probable answer.
-fn target(answers: &Answers, last: &Seen) -> Option<Pointed> {
-    let (choice, _) = answers.best(&QuestionId::target())?;
+/// The element picked from the ranked numbers.
+fn pointed(verdict: &Verdict, state: &State) -> Option<Numbered> {
+    pick_target(&verdict.targets, avoid(state))
+        .and_then(|number| numbered(&state.last).find(|e| e.number == number))
+}
+
+/// The number of the element of the last operation, when the screen did
+/// not change after it.
+fn avoid(state: &State) -> Option<usize> {
+    let unmoved = state.unmoved.as_ref()?;
+    numbered(&state.last)
+        .find(|e| e.element == *unmoved)
+        .map(|e| e.number)
+}
+
+/// The elements inside the viewport, numbered as in the screen text.
+fn numbered(last: &Seen) -> impl Iterator<Item = Numbered> + '_ {
     let screen = last.screen.as_inner();
     element_ids(&last.screen)
         .into_iter()
@@ -134,6 +135,9 @@ fn target(answers: &Answers, last: &Seen) -> Option<Pointed> {
         .enumerate()
         .filter(|(_, (_, e))| in_viewport(e, last.viewport))
         .zip(1_usize..)
-        .find(|(_, number)| number.to_string() == choice)
-        .map(|((index, (element, _)), _)| Pointed { index, element })
+        .map(|((index, (element, _)), number)| Numbered {
+            number,
+            index,
+            element,
+        })
 }

@@ -1,7 +1,7 @@
 //! What the search must reach, so that no property holds for want of cases.
 
 use webqa_core::issue::{Issue, IssueKind};
-use webqa_core::judge::JudgeError;
+use webqa_core::judge::{JudgeError, QuestionId, Unusable};
 use webqa_core::machine::{Anomaly, ExitReason, Note, Phase, Rejection, StuckKind};
 use webqa_core::redact::Redactor;
 
@@ -68,9 +68,14 @@ fn notes() -> Vec<Note> {
         Note::Rejected(Rejection::Replaced),
         Note::Issue(left),
         Note::Anomaly(Anomaly::Judge(JudgeError::Exhausted)),
-        Note::Anomaly(Anomaly::Operation),
-        Note::Anomaly(Anomaly::Target),
+        not_an_option(QuestionId::operation()),
+        not_an_option(QuestionId::target()),
     ]
+}
+
+/// The anomaly of an option of the question `id` that was not asked.
+const fn not_an_option(id: QuestionId) -> Note {
+    Note::Anomaly(Anomaly::Unusable(Unusable::NotAnOption(id)))
 }
 
 const REASONS: [ExitReason; 5] = [

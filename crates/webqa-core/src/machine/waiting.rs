@@ -2,12 +2,16 @@
 
 use std::time::Duration;
 
-use super::actions::{Action, Next, finish, out, questions, touched};
+use super::actions::{Action, Next, finish, out, touched};
+use super::counters::Counters;
 use super::guards::exploring;
+use super::offer::questions;
 use super::proposal::Proposal;
 use super::state::{ExitReason, Phase, State, StuckKind};
 use crate::effect::{Effect, Outside, Touch, Wake};
-use crate::plan::{Delays, Ends, Goal, Pick, Trouble, Waiting, choose};
+use crate::event::Mode;
+use crate::plan::{Delays, Ends, Goal, Pick, Trouble, Waiting, choose, explore_goal};
+use crate::stage;
 use crate::window::wake_at;
 
 /// The waiting row of the table.
@@ -36,10 +40,22 @@ pub(super) fn waiting(state: &State, now: Duration) -> Waiting {
     }
 }
 
-/// The first tier. Never met until the stages and the goal of explore mode
-/// are wired.
-const fn goal(_: &State) -> Goal {
-    Goal::Unmet
+/// The first tier, on the latest observation: the `done_when` of the
+/// current stage in a scenario, the exploration from the start screen in
+/// explore mode.
+fn goal(state: &State) -> Goal {
+    match state.rules.mode {
+        Mode::Scenario => stage::goal(&state.rules.stages, state.stage, state.last.whole.page()),
+        Mode::Explore => explore_goal(state.budget.used(), reachable(state)),
+    }
+}
+
+/// Whether an untouched element is reachable from the start screen. With no
+/// start screen yet, there may be, so the goal waits.
+fn reachable(state: &State) -> bool {
+    state
+        .origin
+        .is_none_or(|origin| state.memory.untouched_reachable(origin))
 }
 
 /// What a pick does.
@@ -48,9 +64,16 @@ struct Move {
     fire: fn(State, Duration) -> Next,
 }
 
-/// The picks this state machine takes. Going to the next stage and
-/// achieving the goal come with the first tier.
-static MOVES: [Move; 8] = [
+/// What each pick of waiting does.
+static MOVES: [Move; 10] = [
+    Move {
+        pick: Pick::Advance,
+        fire: |state, _| advance(state),
+    },
+    Move {
+        pick: Pick::Achieve,
+        fire: |state, _| finish(state, ExitReason::GoalAchieved),
+    },
     Move {
         pick: Pick::Stuck,
         fire: |state, _| finish(state, ExitReason::Stuck(StuckKind::NoProgress)),
@@ -96,6 +119,14 @@ fn wait(state: State, now: Duration) -> Next {
         .find(|m| m.pick == pick)
         .map_or(ASK, |m| m.fire);
     fire(state, now)
+}
+
+/// Goes to the next stage and waits again, with the counts restarted. The
+/// budget, the window and the memory go on.
+fn advance(mut state: State) -> Next {
+    state.stage = state.stage.saturating_add(1);
+    state.counters = Counters::default();
+    Next::Go(Box::new(state))
 }
 
 /// Sleeps until the next window, or until the time limit if earlier.

@@ -1,0 +1,65 @@
+//! Switching to the next candidate when the screen did not change after an
+//! operation on an element.
+
+use crate::effect::Effect;
+use crate::judge::Answers;
+use crate::machine::testing::{
+    answer, ask_top, asking, id, inside, look, ranked, rules, showed, told, top, touch, with,
+};
+use crate::machine::{State, Step};
+use crate::screen::{ElementId, Screen};
+
+fn save() -> ElementId {
+    id("button", "保存", 0)
+}
+
+fn help() -> ElementId {
+    id("link", "ヘルプ", 0)
+}
+
+/// The judge ranks "保存" over "ヘルプ".
+fn save_first() -> Answers {
+    ranked("click", Some(0.9), &[("1", 0.8), ("2", 0.6)])
+}
+
+/// Clicks the element the answers point at, `element`, and observes `then`.
+fn clicked(state: &State, answers: Answers, element: &ElementId, then: &Screen) -> Step {
+    let looked = told(state, answers);
+    assert_eq!(looked.effect(), Some(&look(element.clone())), "looks it up");
+    let touched = showed(looked.state(), &top());
+    let expected = touch("click", Some(element.clone()), 0.9);
+    assert_eq!(touched.effect(), Some(&expected), "clicks it");
+    showed(touched.state(), then)
+}
+
+/// The effect of the next `answers` after `state`.
+fn next_look(state: &State, answers: Answers) -> Option<Effect> {
+    told(state, answers).effect().cloned()
+}
+
+#[test]
+fn unchanged_target_switches_to_next() {
+    let unchanged = clicked(&ask_top(rules()), save_first(), &save(), &top());
+    assert_eq!(unchanged.effect(), Some(&asking(&rules(), &top())), "asks");
+    let state = unchanged.state();
+    clicked(state, save_first(), &help(), &top());
+    let only = ranked("click", Some(0.9), &[("1", 0.8)]);
+    assert_eq!(next_look(state, only), Some(look(save())), "only one");
+    let unsure = told(state, answer("back", Some(0.5), None));
+    let after_stop = next_look(unsure.state(), save_first());
+    assert_eq!(after_stop, Some(look(help())), "a stop keeps it");
+    nothing_to_pass_over();
+}
+
+/// After a change, or after an operation on no element, the judge's first
+/// pick stands.
+fn nothing_to_pass_over() {
+    let news = with(top(), inside("link", "新着"));
+    let changed = clicked(&ask_top(rules()), save_first(), &save(), &news);
+    let again = next_look(changed.state(), save_first());
+    assert_eq!(again, Some(look(save())), "the screen changed");
+    let scrolled = told(&ask_top(rules()), answer("scroll_down", Some(0.9), None));
+    let still = showed(scrolled.state(), &top());
+    let after_scroll = next_look(still.state(), save_first());
+    assert_eq!(after_scroll, Some(look(save())), "no element operated");
+}

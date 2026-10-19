@@ -98,6 +98,7 @@ pub fn rules() -> Rules {
         forbidden: Forbidden::default(),
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
+        stages: Vec::new(),
     }
 }
 

@@ -24,7 +24,9 @@ pub(super) struct Taken {
     pub(super) from: Option<ScreenKey>,
 }
 
-/// Takes `seen` in as the latest observation.
+/// Takes `seen` in as the latest observation. The first screen inside the
+/// allowed origins becomes the start screen, and the element of the last
+/// operation is forgotten.
 ///
 /// Whether the page is outside is judged on the URL before redaction.
 pub(super) fn take(mut state: State, seen: Seen) -> (State, Taken) {
@@ -32,6 +34,8 @@ pub(super) fn take(mut state: State, seen: Seen) -> (State, Taken) {
     let outside = !is_allowed(&seen.material.paywall.url, &state.rules.allowed);
     let forbidden = forbidden_indices(&state.rules, &seen);
     state.at = (!outside).then(|| state.memory.visit(&seen.screen, &forbidden));
+    state.origin = state.origin.or(state.at);
+    state.unmoved = None;
     let revealed = remember(&mut state, &seen, &forbidden);
     let changed = outside || changed(&state.last.screen, &seen.screen, seen.viewport);
     state.last = Box::new(seen);
@@ -127,7 +131,9 @@ pub(super) fn arrived(state: State, seen: Seen, _: Duration) -> Next {
     idle(settled(state, seen))
 }
 
-/// Takes the page in after an operation and counts what came of it.
+/// Takes the page in after an operation and counts what came of it. The
+/// element operated is kept when the screen did not change, so that the
+/// next answer can move on to another one.
 pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
     let (mut state, taken) = landed(state, seen);
     let explored = explored(&mut state, taken.from);
@@ -136,6 +142,11 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
         explored,
         revealed: taken.revealed,
     });
+    state.unmoved = state
+        .proposal
+        .as_deref()
+        .and_then(|p| p.element.clone())
+        .filter(|_| !taken.changed);
     idle(state)
 }
 

@@ -1,7 +1,7 @@
 //! The pages the browser may show, as observations.
 
 use url::Url;
-use webqa_core::machine::{Material, Seen};
+use webqa_core::machine::{Material, Seen, Whole};
 use webqa_core::redact::Redactor;
 use webqa_core::screen::{Element, Rect, Screen, Viewport};
 
@@ -57,11 +57,14 @@ fn screen(url: Url, elements: &[(&str, &str)]) -> Screen {
     }
 }
 
-/// The observation of `screen`, with the material made from it.
+/// The observation of `screen`, with the material and the whole page made
+/// from it.
 fn seen(screen: Screen) -> Seen {
     let material = Material::plain(&screen, VIEWPORT);
+    let screen = Redactor::default().screen(screen);
     Seen {
-        screen: Redactor::default().screen(screen),
+        whole: Whole::plain(&screen),
+        screen,
         viewport: VIEWPORT,
         material,
     }

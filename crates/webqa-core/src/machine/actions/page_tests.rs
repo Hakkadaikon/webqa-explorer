@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use crate::explore::{ElementOp, Memory};
+use crate::explore::{ElementOp, Memory, ScreenKey};
 use crate::machine::testing::{
     answer, asking, away, below, counts, id, inside, pricing, rules, secs, seen, showed, started,
     told, top, touch, with,
@@ -126,4 +126,24 @@ fn start_takes_first_observation() {
     );
     assert!(outside.state().outside(), "outside");
     assert_eq!(outside.state().memory().screen_count(), 0, "not remembered");
+    start_screen(step.state(), outside.state());
+}
+
+/// The start screen is the first page taken in inside the allowed origins.
+fn start_screen(inside: &State, outside: &State) {
+    let origin = Some(key_of(inside, &top()));
+    assert_eq!(inside.origin(), origin, "the start page");
+    assert_eq!(outside.origin(), None, "no start screen outside");
+    let back = showed(outside, &first());
+    let scrolled = told(back.state(), answer("scroll_down", Some(0.9), None));
+    let later = showed(scrolled.state(), &top()).state().clone();
+    let origin = Some(key_of(&later, &first()));
+    assert_eq!(later.origin(), origin, "the first page inside starts");
+    assert_ne!(origin, Some(key_of(&later, &top())), "not the later page");
+}
+
+/// The key of `screen` in the memory of `state`.
+fn key_of(state: &State, screen: &Screen) -> ScreenKey {
+    let mut memory = state.memory().clone();
+    memory.visit(&seen(screen).screen, &BTreeSet::new())
 }
