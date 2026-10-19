@@ -54,6 +54,11 @@ pub enum ConfigError {
     /// Exploring with no operation kind that acts on an element.
     #[error("探索モードでは ops に click か input を1つ以上書く")]
     ExploreNeedsElementOp,
+    /// `guard.leave_paywall` names no operation that leaves without a target.
+    #[error(
+        "guard.leave_paywall は back、scroll_down、scroll_up、wait、reload、return のどれかにする"
+    )]
+    LeavePaywall,
     /// A problem with the input of an interview run.
     #[error(transparent)]
     Interview(#[from] interview::InterviewError),

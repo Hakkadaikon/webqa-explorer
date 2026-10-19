@@ -8,7 +8,13 @@ use crate::config::validate::validate;
 /// The example with `ops` set to `ops`, validated with every environment
 /// variable set and a storage state in Playwright's format.
 fn with_ops(ops: &str) -> Config {
-    let raw = parse(&format!("{}ops: {ops}\n", example())).unwrap();
+    validated(&format!("{}ops: {ops}\n", example()))
+}
+
+/// `yaml` validated with every environment variable set and a storage state
+/// in Playwright's format.
+fn validated(yaml: &str) -> Config {
+    let raw = parse(yaml).unwrap();
     let state = r#"{"cookies":[],"origins":[]}"#;
     validate(
         raw,
@@ -76,4 +82,19 @@ fn explore_check_with_empty_ops() {
         "explore"
     );
     assert_eq!(outcome(&config, Mode::Scenario), Ok(()), "scenario");
+}
+
+#[test]
+fn scenario_mode_needs_stages() {
+    let without = validated(&example()[..example().find("scenario:").unwrap()]);
+    assert_eq!(
+        outcome(&without, Mode::Scenario),
+        Err(ConfigError::NoStages.to_string()),
+        "scenario without stages"
+    );
+    assert_eq!(outcome(&without, Mode::Explore), Ok(()), "explore");
+    let example = validated(example());
+    for mode in BOTH {
+        assert_eq!(outcome(&example, mode), Ok(()), "example {mode:?}");
+    }
 }
