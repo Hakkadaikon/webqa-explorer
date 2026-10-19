@@ -71,7 +71,7 @@ issue #12 を3本に分けた3本目。順番は `12a-counters-window.md` の冒
    - `GoalAchieved` と `UserAborted` は出ない(12b では1段目が無く、中断は外から来る)。
 9. 続く状態は終わっていない: `Continue` の s2 の `phase()` は `Ended(_)` でも `Idle` でもない。
 10. 探索の記憶は失われない(`MemoryNeverShrinks`): s で操作済みだった候補の要素は、s2(と `o.state`)でも操作済み。`notes()` は s の `notes()` を先頭に持つ(増えるだけ)。
-11. 開き直しは固まりの回数を戻し、行き詰まりの回数を変えない(`RecoveryResetsPageState`、`CountersChangeOnlyBySteps`): `op: "reload"` の `Touch` を返した遷移の s2 は `counters().freeze() == 0`。カウンタが変わるのは、s の `phase()` が `Acting` の遷移か、`reload` を返した遷移だけ。
+11. 開き直しは固まりの回数を戻し、行き詰まりの回数を変えない(`RecoveryResetsPageState`、`CountersChangeOnlyBySteps`): `op: "reload"` の `Touch` を返した遷移の s2 は `counters().freeze() == 0`。カウンタが変わるのは、s の `phase()` が `Acting` の遷移か、`reload` を返した遷移か、戻ったあとも許可ドメインの外に着いた遷移(行き詰まりの回数だけ1増える。architecture.md の「カウンタの更新」)だけ。
 12. 許可ドメインの外では問い合わせず戻る: s2 の `outside()` が真なら、返った効果は `return` か `reload` の `Touch` か `Sleep`。固まりと外が同時に成り立つときに、`reload` と `return` のどちらを採るかは受け入れ条件で決めていない(architecture.md の4段目)ので、どちらも許す。
 
 ### 終了の吸収と、同じ段の終了
