@@ -1,8 +1,42 @@
-# 再開の起点(Claude Code のクラウドへの引き継ぎ、2026-10-18)
+# 再開の起点(2026-10-19 更新)
 
-この文書だけを読めば再開できるように書いた。ほかの引き継ぎ文書(`tasks/loopeng/HANDOFF.md` など)は古いので読まない。
+週の利用上限(10月23日 05:00 UTC に戻る)で止めた。下の「2026-10-19 の状態」から再開する。その下の古い節は、環境や決まりの参照として残す。
 
-## 最初に読むもの
+## 2026-10-19 の状態
+
+### main に入っていないもの(作業ブランチ `claude/stoic-hopper-jp70gf` と、作業中の `claude/wip-*` ブランチ)
+
+`claude/wip-*` は別のマシンで続けるために push した。取り込むときは作業ブランチで `git merge origin/claude/wip-…` する。
+
+| 単位 | 場所 | 状態と次の一手 |
+|---|---|---|
+| 14a・14b | 作業ブランチ(9207dab)、PR #58 | CI の mutation のジョブが、ランナーの停止で2回止まった(資源不足の疑い)。3回目を回した。通ればマージ。また止まれば、手元の mutation の結果(14a は生き残り0、14b は1つで直し済み)を PR に書いて相談する |
+| #24 台帳 | ブランチ `claude/wip-24-ledger` | レビューの直しと mutation の生き残り2つを落とすテストまで済み(1d92b60)。作業ブランチへ取り込む |
+| 14c 保存 | ブランチ `claude/wip-14c-store` | レビュー合格、mutation 生き残り0。should 4件(`input_key` の条件、`usage_section` の件数、`MAX_TOKENS` の境界、失敗時の `.tmp` の後始末)と nit を直してから取り込む |
+| 14d 実行ループ | ブランチ `claude/wip-14d-run-loop` | レビュー不合格(must 3件: 書き込みの失敗のあとに書かないこと、`Act.p`/`Act.target`、入力欄への input で skipped が出ないこと。ほかに should 5件)。直したら親が mutation |
+| 14e 起動の材料 | ブランチ `claude/wip-14e-setup` | 実装済み。レビューと mutation がまだ |
+
+14c と 14d は `Found.shot` と `Event::Issue.screenshot` を `Option<String>` にする変更でつながる(14d が変えた)。統合のときに 14c の `store/report/sections.rs` を `found.shot.as_deref().map(screenshot)` に直す。
+
+### 次にやる順(優先度は `tasks/briefs/14-plan.md` の末尾)
+
+1. 上の表の5つを片づけ、2段目までを PR にする。
+2. 14f(1回の実行の一巡と終了コード)、14g(CLI と `main.rs`)。
+3. 判断モデルの橋渡しのコマンド(`./bridge/jev.py`。JEV の API は `tasks/jev-api.md`)。issue にしてよいかを利用者に聞いている途中。
+4. ここまでで、実物のサイトで探索モードを1回走らせられる。
+5. そのあと #30、#31(インタビューのモード)、受け入れの配線(14h〜14m、#33)、#25、#27、#32、#57。
+
+### 決めたことと注意
+
+- 論点の決定は `tasks/briefs/14-plan.md` の「決まったこと」と各 brief の末尾。利用者が決めたもの: `webqa watch` は #57 に切り出す、記録の出力先は `--out`、制限時間は設定だけ、課題の番号は `I-` と16進8桁 ほか。
+- 担当への頼み方と環境は `tasks/briefs/common.md`(`PLAYWRIGHT_BROWSERS_PATH` と AQUA_* を export してからコミットする。ビルド先は担当ごと)。
+- メモリが 15G しかない。重いビルドは同時に3本まで、`CARGO_BUILD_JOBS=1`。ディスクは取り込み済みの worktree と `target/debug` を消すと空く。
+- PR の本文には `Closes #番号` を書く(以前は書かず、終わった issue を手で閉じた)。
+
+## 以前の引き継ぎ(2026-10-18)
+
+
+### 最初に読むもの
 
 1. `AGENTS.md`(守ること)と `CONTRIBUTING.md`(環境)
 2. `docs/architecture.md`(実装の前に必ず読む)と `docs/quality-gates.md`
@@ -10,7 +44,7 @@
 4. `skills/implementing/SKILL.md`(実装の手順と落とし穴)
 5. `tasks/briefs/common.md`(どの brief にも共通の決まり。秘密の値の扱い、値ごとの比較、空の入力、rebase しない)
 
-## 今の状態
+### 今の状態
 
 | issue | 状態 |
 |---|---|
@@ -25,13 +59,13 @@
 
 テスト項目の台帳は `tasks/test-design/WebExploratoryQA.md`(既存のモード)と `tasks/test-design/InterviewMode.md`。issue の列で、その issue が受け持つ行を引く。照合は `python3 tasks/test-design/tools/check_ledger.py [InterviewMode]`。
 
-## 残りの作業
+### 残りの作業
 
 1. **既存の仕様の直し**: 済み(v6。loop-engineering-reviewer と test-design-reviewer に合格、2026-10-18)。
 2. **インタビューのモードの issue を切る**: 台帳の冒頭の「構成への追加の案」を `docs/architecture.md` のディレクトリ構成とテストの層に反映し、モジュールごとに issue を切って、台帳の issue 列を埋める。
 3. **実装**: 1 issue ずつ brief を書いて実装担当(Opus)に渡し、reviewer に合格まで通して main に入れる。brief の例は `tasks/briefs/`。
 
-## 決まりごと
+### 決まりごと
 
 - リポジトリは公開した(MIT)。秘密の値と手元の絶対パスをファイルに書かない決まりは、これまで以上に守る。
 
@@ -41,14 +75,14 @@
 - コミットメッセージは日本語の Conventional Commits(`docs/commit-messages.md`)。push は main に直接行う。
 - rebase は利用者の承認が要る。main の取り込みは `git merge main` で行う。
 
-## 環境の注意
+### 環境の注意
 
 - 開発ツールは aqua で入れる(`sh scripts/setup.sh`)。git worktree では最初に `just worktree-tools`。
 - `just` を通すビルドは、本体の checkout の `target/` を共有する。2本の担当が同時にカバレッジを測ると、片方のテストの実行ファイルが消えることがあった。同じ置き場では、カバレッジの計測を同時に走らせない。
 - 手元のマシンはメモリが 3GB しかなく、`CARGO_BUILD_JOBS=2` で回していた。
 - ブラウザの契約テストには、Chromium の OS のライブラリが要る。CI では入れる(#9 で設定する)。
 
-## JEV の API キー
+### JEV の API キー
 
 - 当面の実装は、偽物の部品と台本どおりに答える判断モデルで進めるので、キーは要らない。
 - 本物のサイトを回す段になったら、キーはリポジトリにも環境変数にも置かず、クラウドの環境の **Network secrets** に登録する(許可するホストに JEV の API のホスト、ヘッダーに `Authorization`)。手順は https://code.claude.com/docs/en/cloud-environments 。
@@ -62,11 +96,11 @@
   - 1リクエスト 64,000 トークン、状態と最長の問いで 32,000 トークン。料金は入力 0.000000042 ドル/トークン、出力 0。
 - `evaluation` のリクエストとレスポンスの具体的な形(エンドポイント、JSON)はまだ確かめていない。橋渡しのスクリプトを書く担当が、最初に AI Gateway のドキュメント(https://vercel.com/docs/ai-gateway)で確かめる。
 
-## クラウドとローカルの分担(2026-10-18 から)
+### クラウドとローカルの分担(2026-10-18 から)
 
 - 既存の仕様の直しは済んだ。仕様(`tasks/loopeng/WebExploratoryQA.tla` など)を変える必要が出たら、実装を止めて利用者に聞く。
 - #6 は main に入った。#15 を最優先に、#4、#7、#8、#9、#10、#12 を始めてよい。brief は `tasks/briefs/` の形にならって、親のセッションが書く。
 
-## この引き継ぎの時点で動いていたもの
+### この引き継ぎの時点で動いていたもの
 
 - なし(ローカルの作業はすべて push 済み)。
