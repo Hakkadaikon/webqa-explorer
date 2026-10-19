@@ -150,7 +150,12 @@ async fn act(
     ports: &mut Ports<'_>,
 ) -> Result<(Seen, (Duration, Duration)), RunError> {
     let started = ports.clock.elapsed();
-    ports.browser.touch(touch).await?;
+    let step = ports.step;
+    ports
+        .browser
+        .touch(touch)
+        .await
+        .inspect_err(|_| refused(step, touch))?;
     let acted = ports.clock.elapsed();
     let after = observe(ports).await?;
     let settled = ports.clock.elapsed();
@@ -158,10 +163,23 @@ async fn act(
     Ok((after, timings))
 }
 
+/// Says which operation the browser failed, and the role of its target.
+/// No page text goes into the log: the element's name is in the `decided`
+/// line of the event log.
+fn refused(step: u64, touch: &Touch) {
+    let role = touch.target.as_ref().map(|id| id.role.as_str());
+    tracing::error!(step, op = %touch.op, role, "the browser failed to operate the page");
+}
+
 /// Reads the page and redacts it, keeping the material from before
 /// redaction, then records the issues it shows.
 pub(super) async fn observe(ports: &mut Ports<'_>) -> Result<Seen, RunError> {
-    let observation = ports.browser.observe().await?;
+    let step = ports.step;
+    let observation = ports
+        .browser
+        .observe()
+        .await
+        .inspect_err(|_| tracing::error!(step, "the browser failed to read the page"))?;
     let redactor = ports.redactor;
     let console: Vec<Redacted<String>> = observation
         .console

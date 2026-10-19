@@ -8,6 +8,7 @@ mod contract {
     pub mod identity;
     pub mod ops;
     pub mod pages;
+    pub mod policy;
     pub mod port;
     pub mod probes;
     pub mod serve;
