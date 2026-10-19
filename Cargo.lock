@@ -3521,6 +3521,7 @@ dependencies = [
 name = "webqa-tui"
 version = "0.1.0"
 dependencies = [
+ "crossterm",
  "insta",
  "ratatui",
  "thiserror 2.0.21",

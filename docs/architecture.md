@@ -55,7 +55,7 @@ flowchart TD
   judge --> core
   tui --> core
   browser --> pw[playwright-rs]
-  tui --> tears[tears / ratatui]
+  tui --> ratatui
 ```
 
 `webqa-core`は、ワークスペースの中のほかのcrateに依存しない。
@@ -74,7 +74,7 @@ crateは次の5つに分ける。
 | `webqa-core` | lib | 状態機械、待機中の優先順位、ガードレール、探索の記憶のグラフと候補の絞り込み、段階とdone_when、問題の検出、時間窓、伏せ字、設定の型と検証、イベントの型、ポートのtrait | serde、serde-saphyr、url、regex、thiserror |
 | `webqa-browser` | lib | playwright-rsのアダプタ。アクセシビリティ情報の取得、操作、URL、コンソール、スクリーンショット | webqa-core、playwright-rs、tokio |
 | `webqa-judge` | lib | 判断モデルのアダプタ。台本どおりに答えるスタブと、外部コマンドとの橋渡し | webqa-core、serde、serde_json、thiserror、base64、tokio |
-| `webqa-tui` | lib | イベントログの追跡と表示 | webqa-core、tears、ratatui、crossterm、tokio |
+| `webqa-tui` | lib | イベントログの追跡と表示 | webqa-core、ratatui、crossterm |
 | `webqa` | bin | CLI、実行ループ、時計、記憶・ログ・結果の保存、中断の処理 | 上の全部、clap、tokio、tracing、jiff |
 
 今ある空の`crates/webqa`は、製品名と同じ名前なのでCLIのcrateとして使う。
@@ -942,15 +942,25 @@ scenario:
 各行の時刻が要るときは、TUIが開始時刻と経過時間から求める。
 CLIは1行書くたびにフラッシュする。
 
-TUIは、tearsのタイマーの購読で一定間隔ごとにファイルを読む。
+TUIは、`webqa watch <実行のディレクトリ>`で起動する。
+注入した時計で200ミリ秒ごとに、読む、描く、待つを繰り返す。
 前回読んだ位置から先だけを読み、改行で終わっていない最後の行は次回に回す。
 ファイルの変更通知は使わない。
-タイマーで読み直せば足りるからである。
+一定間隔で読み直せば足りるからである。
 変更通知のcrateは、ライセンスのCC0-1.0が今の監査の設定を通らない。
+tearsのタイマーも使わない。
+繰り返しは数行で書け、時計を注入しておけば待たずにテストできる。
+
+端末はrawモードにしない。
+描くときは画面を消して、端末の大きさの領域に1画面を書く。
+大きさを読めないとき(制御端末が無いとき)は80×24で描く。
+`run_finished`を読んだら、読むのをやめて最後の画面を残す。
 
 TUIの状態の更新は、イベントを1つずつ畳み込む純粋な関数にする。
 描画はratatuiのテスト用の端末で行い、ゴールデンテストにする。
 実行中の画面からの操作は終了だけにし、実行の状態は変えない。
+終了はCtrl-Cで受け、終了コード0で終わる。
+rawモードにしないので、キーを読む処理は持たない。
 インタビューのモードでは、終わった実行の台帳を開く画面も足す。
 こちらは課題の選択を台帳のMarkdownに書き戻す(`docs/superpowers/specs/2026-10-18-interview-mode-design.md`)。
 
@@ -977,7 +987,7 @@ playwright-rsは自前のCtrl-C処理で終了コード130のまま抜けるの�
 ## 非同期ランタイム、エラー、ログ
 
 非同期ランタイムはtokioにする。
-playwright-rsとtearsがどちらもtokioに依存しているので、ほかを選ぶ余地は無い。
+playwright-rsがtokioに依存しているので、ほかを選ぶ余地は無い。
 実行ループは1つのタスクで順に進める。
 並行にするのは、中断の受け取りとコンソールの収集だけにする。
 
@@ -1244,7 +1254,6 @@ crates.ioで実在と最新版を確かめた(2026-10-18)。
 | regex | 1.13.1 | webqa-core | キーワード、伏せ字、読み上げ名、名前の正規化 |
 | thiserror | 2.0.21 | 全部 | エラーの型 |
 | base64 | 0.23.1 | webqa-judge | 橋渡しで画像を送る |
-| tears | 0.11.1 | webqa-tui | TUI |
 | ratatui | 0.30.2 | webqa-tui | 描画 |
 | crossterm | 0.29.0 | webqa-tui | 端末 |
 | clap | 4.6.7 | webqa | 引数 |
