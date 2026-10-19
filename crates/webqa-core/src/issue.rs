@@ -1,5 +1,6 @@
 //! Issues found on a page: their kinds, classes and detection.
 
+mod answered;
 mod debug;
 mod name;
 #[cfg(test)]
@@ -12,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::redact::Redacted;
 use crate::screen::{Element, Screen};
 
+pub use answered::{Probe, answered_issues, probe_questions, probes};
 pub use name::is_placeholder_name;
 
 /// What an issue is about.
