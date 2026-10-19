@@ -42,11 +42,13 @@ pub struct Meta {
 }
 
 /// The report of a run that ended for `reason`, through the redactor.
+/// `start_memory` is the memory the run started from, as a memory file.
 #[must_use]
 pub fn build(
     record: &Record,
     reason: ExitReason,
     meta: &Meta,
+    start_memory: &Value,
     redactor: &Redactor,
 ) -> Redacted<Value> {
     let report = json!({
@@ -60,6 +62,7 @@ pub fn build(
         "steps": sections::steps_section(&record.acts, &meta.inputs),
         "calls": sections::calls_section(&record.calls),
         "issues": sections::issues_section(&record.found),
+        "start_memory": start_memory,
     });
     redactor.json(report)
 }

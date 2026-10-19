@@ -59,6 +59,22 @@ expression: "serde_json::to_string_pretty(&report).unwrap()"
   "mode": "explore",
   "reason": "budget_exceeded",
   "schema": 1,
+  "start_memory": {
+    "edges": [],
+    "origin": "https://app.example.test",
+    "schema": 1,
+    "screens": [
+      {
+        "elements": [
+          {
+            "name": "保存",
+            "nth": 0,
+            "role": "button"
+          }
+        ]
+      }
+    ]
+  },
   "started_at": "2026-10-18T02:00:00Z",
   "steps": [
     {

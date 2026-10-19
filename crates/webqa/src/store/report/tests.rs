@@ -111,6 +111,7 @@ pub fn report() -> Value {
         &record(),
         ExitReason::BudgetExceeded,
         &meta(),
+        &start_memory(),
         &Redactor::default(),
     )
     .into_inner()
@@ -194,7 +195,14 @@ fn report_names_redacted_and_values_left_out() {
         vec![("連絡先は taro@example.test".to_owned(), 0.5)],
     );
     record.calls[0].reply = Ok(answers);
-    let report = build(&record, ExitReason::BudgetExceeded, &meta(), &redactor).into_inner();
+    let report = build(
+        &record,
+        ExitReason::BudgetExceeded,
+        &meta(),
+        &start_memory(),
+        &redactor,
+    )
+    .into_inner();
     let text = report.to_string();
     assert_eq!(
         (text.contains("taro@example.test"), name.as_str()),
@@ -214,6 +222,7 @@ fn stuck_kind_in_report() {
         &record(),
         ExitReason::Stuck(StuckKind::NoProgress),
         &meta(),
+        &start_memory(),
         &Redactor::default(),
     )
     .into_inner();
@@ -225,3 +234,6 @@ fn stuck_kind_in_report() {
 }
 
 mod edges;
+mod memory;
+
+pub use self::memory::start_memory;
