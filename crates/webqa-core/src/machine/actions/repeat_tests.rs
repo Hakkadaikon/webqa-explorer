@@ -4,9 +4,10 @@
 use crate::effect::Effect;
 use crate::judge::Answers;
 use crate::machine::testing::{
-    answer, ask_top, asking, id, inside, look, ranked, rules, showed, told, top, touch, with,
+    answer, ask_top, asking, counters, id, inside, look, ranked, rules, secs, seen, showed, told,
+    top, touch, with,
 };
-use crate::machine::{State, Step};
+use crate::machine::{Facts, State, Step, step};
 use crate::screen::{ElementId, Screen};
 
 fn save() -> ElementId {
@@ -62,4 +63,44 @@ fn nothing_to_pass_over() {
     let still = showed(scrolled.state(), &top());
     let after_scroll = next_look(still.state(), save_first());
     assert_eq!(after_scroll, Some(look(save())), "no element operated");
+}
+
+/// Clicks "保存" and observes the same top page, one step short of the
+/// freeze threshold before the click.
+fn unchanged_before_reload() -> Step {
+    let looked = told(&ask_top(rules()), save_first());
+    let touched = showed(looked.state(), &top());
+    let frozen = touched.state().clone().with_counters(counters(2, 0));
+    showed(&frozen, &top())
+}
+
+#[test]
+fn reload_forgets_the_unchanged_target() {
+    let reloading = unchanged_before_reload();
+    let reload = touch("reload", None, 1.0);
+    assert_eq!(reloading.effect(), Some(&reload), "reloads");
+    let reloaded = showed(reloading.state(), &top());
+    assert_eq!(reloaded.effect(), Some(&asking(&rules(), &top())), "asks");
+    let after = next_look(reloaded.state(), save_first());
+    assert_eq!(after, Some(look(save())), "the judge's first pick stands");
+}
+
+#[test]
+fn aborted_look_up_forgets_the_unchanged_target() {
+    let unchanged = clicked(&ask_top(rules()), save_first(), &save(), &top());
+    let looked = told(unchanged.state(), save_first());
+    assert_eq!(
+        looked.effect(),
+        Some(&look(help())),
+        "looks the next one up"
+    );
+    let mut swapped = seen(&top());
+    swapped.material.nodes[1].node = "x9".to_owned();
+    let aborted = step(
+        looked.state().clone(),
+        Facts::Page(Box::new(swapped)),
+        secs(0),
+    );
+    let after = next_look(aborted.state(), save_first());
+    assert_eq!(after, Some(look(save())), "the judge's first pick stands");
 }
