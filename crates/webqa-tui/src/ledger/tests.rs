@@ -173,3 +173,20 @@ fn detail_lines_show_mismatch_and_empty_expectation() {
     let lines = lines_of(6, hesitant, Vec::new());
     assert_eq!(lines[4..], ["理由 同じ2つの画面を行き来した", "期待 -"]);
 }
+
+#[test]
+fn detail_lines_show_dash_for_empty_guesses_and_trait_content() {
+    let mismatch = Detail::Mismatch {
+        purpose: "注文する".to_owned(),
+        guesses: Vec::new(),
+    };
+    assert_eq!(
+        lines_of(7, mismatch, Vec::new())[4],
+        "理由 書いた目的 注文する / 推測 -"
+    );
+    let mut ledger = sample().unwrap();
+    let persona_trait = ledger.entries[2].persona_trait.as_mut().unwrap();
+    persona_trait.content = String::new();
+    let screen = Screen::new(ledger).fold(Input::Down).fold(Input::Down);
+    assert_eq!(lines(screen.current().unwrap())[3], "性質 ITの慣れ: -");
+}

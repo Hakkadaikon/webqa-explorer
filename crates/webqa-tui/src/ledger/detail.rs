@@ -26,7 +26,7 @@ pub fn lines(entry: &Entry) -> Vec<String> {
     let persona = entry
         .persona_trait
         .as_ref()
-        .map(|persona| format!("{}: {}", persona.which.label(), persona.content));
+        .map(|persona| format!("{}: {}", persona.which.label(), dash(&persona.content)));
     vec![
         format!("指示 {}", instruction(issue)),
         format!("種類 {}", issue.kind().label()),
@@ -52,7 +52,7 @@ fn reason(detail: &Detail) -> String {
         Detail::Visibility { reason, .. } => reason.clone(),
         Detail::Unreached { halt, .. } => halt.label().to_owned(),
         Detail::Mismatch { purpose, guesses } => {
-            format!("書いた目的 {purpose} / 推測 {}", guesses.join("、"))
+            format!("書いた目的 {purpose} / 推測 {}", dash(&guesses.join("、")))
         }
     }
 }

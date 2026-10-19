@@ -4,7 +4,6 @@ use ratatui::{
     Frame,
     widgets::{Block, Paragraph},
 };
-use webqa_core::interview::issue::KINDS;
 
 use super::detail::{lines, row};
 use super::{Screen, notice_text};
@@ -20,10 +19,7 @@ pub fn render(screen: &Screen, frame: &mut Frame) {
 }
 
 fn list_title(screen: &Screen) -> String {
-    let kind = screen
-        .filter
-        .and_then(|kind| KINDS.iter().find(|(row, _)| *row == kind))
-        .map(|(_, name)| format!(" ({name})"));
+    let kind = screen.filter.map(|kind| format!(" ({})", kind.label()));
     format!("台帳{}", kind.unwrap_or_default())
 }
 

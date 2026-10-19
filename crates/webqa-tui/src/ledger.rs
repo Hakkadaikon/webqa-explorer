@@ -133,6 +133,7 @@ impl Screen {
                 ..self
             },
             Input::Open => Self { open: true, ..self },
+            // Only Close arrives here; `fold` handles the others itself.
             Input::Close | Input::Filter(_) | Input::Saved(_) | Input::ChangedOutside => Self {
                 open: false,
                 ..self
