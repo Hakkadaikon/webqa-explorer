@@ -1,5 +1,7 @@
 # issue #57 webqa watch でイベントログを追って TUI を回す
 
+文中の `ファイル:行` は、この brief を書いた時点の行を指す。
+
 共通の決まりは `common.md`。進め方は skill `parallel-work`(全体のテストとカバレッジは PR の CI で確かめる)。
 
 ## 背景
