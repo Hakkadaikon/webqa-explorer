@@ -13,7 +13,7 @@ const DOCUMENTED: [&str; 4] = [
 ];
 
 /// One line of each kind added after the documented ones.
-const ADDED: [&str; 10] = [
+const ADDED: [&str; 12] = [
     r#"{"seq":1,"elapsed_ms":0,"kind":"memory_reset","cause":"unreadable"}"#,
     r#"{"seq":2,"elapsed_ms":1200,"step":1,"kind":"asked","input_tokens":120,"output_tokens":3,"think_ms":1200}"#,
     r#"{"seq":3,"elapsed_ms":1300,"step":2,"kind":"recovered","op":"reload","cause":"frozen"}"#,
@@ -21,8 +21,10 @@ const ADDED: [&str; 10] = [
     r#"{"seq":5,"elapsed_ms":1500,"step":2,"kind":"anomaly","cause":"not_an_option","question":"operation"}"#,
     r#"{"seq":6,"elapsed_ms":1600,"step":2,"kind":"anomaly","cause":"timeout"}"#,
     r#"{"seq":7,"elapsed_ms":1700,"step":5,"kind":"issue","issue":"error_display","class":"confirmed","evidence":null,"label":null,"p":0.9,"screenshot":"ISSUE_error_display_step5.png"}"#,
+    r#"{"seq":7,"elapsed_ms":1750,"step":5,"kind":"issue","issue":"console_error","class":"confirmed","evidence":"boom","label":null,"p":null}"#,
     r#"{"seq":8,"elapsed_ms":1800,"step":5,"kind":"stage_advanced","stage":1,"name":"投稿"}"#,
     r#"{"seq":9,"elapsed_ms":1900,"step":5,"kind":"waited","until_ms":3600000}"#,
+    r#"{"seq":10,"elapsed_ms":1950,"step":6,"kind":"skipped","cause":"not_an_input"}"#,
     r#"{"seq":10,"elapsed_ms":2000,"kind":"run_finished","reason":"stuck","stuck":"no_progress"}"#,
 ];
 
@@ -145,9 +147,13 @@ fn issue_events() {
         evidence: Some("https://other.example.net/".to_owned()),
         label: None,
         p: None,
-        screenshot: shot.to_owned(),
+        screenshot: Some(shot.to_owned()),
     };
-    assert_eq!(Event::found(&outside, shot), found, "a confirmed issue");
+    assert_eq!(
+        Event::found(&outside, Some(shot)),
+        found,
+        "a confirmed issue"
+    );
     let semantic = Issue {
         kind: IssueKind::Semantic,
         evidence: None,
@@ -160,8 +166,8 @@ fn issue_events() {
         evidence: None,
         label: Some("わかりにくい表示".to_owned()),
         p: Some(0.85),
-        screenshot: "ISSUE_semantic_step3.png".to_owned(),
+        screenshot: None,
     };
-    let named = Event::found(&semantic, "ISSUE_semantic_step3.png");
-    assert_eq!(named, reference, "a reference issue");
+    let named = Event::found(&semantic, None);
+    assert_eq!(named, reference, "a reference issue without a screenshot");
 }

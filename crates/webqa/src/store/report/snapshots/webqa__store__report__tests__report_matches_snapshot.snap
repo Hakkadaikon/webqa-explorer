@@ -1,0 +1,97 @@
+---
+source: crates/webqa/src/store/report/tests.rs
+expression: "serde_json::to_string_pretty(&report).unwrap()"
+---
+{
+  "calls": [
+    {
+      "answers": {
+        "error_shown": [
+          [
+            "true",
+            0.9
+          ]
+        ],
+        "operation": [
+          [
+            "input",
+            0.9
+          ],
+          [
+            "back",
+            0.1
+          ]
+        ],
+        "target": [
+          [
+            "1",
+            0.8
+          ]
+        ]
+      },
+      "error": null,
+      "step": 1,
+      "think_ms": 1200,
+      "usage": {
+        "input_tokens": 120,
+        "output_tokens": 3
+      }
+    },
+    {
+      "answers": null,
+      "error": "timeout",
+      "step": 2,
+      "think_ms": 800,
+      "usage": null
+    }
+  ],
+  "issues": [
+    {
+      "class": "confirmed",
+      "evidence": null,
+      "kind": "error_display",
+      "label": null,
+      "p": 0.9,
+      "screenshot": "screenshots/ISSUE_error_display_step1.png",
+      "step": 1
+    }
+  ],
+  "mode": "explore",
+  "reason": "budget_exceeded",
+  "schema": 1,
+  "started_at": "2026-10-18T02:00:00Z",
+  "steps": [
+    {
+      "act_ms": 300,
+      "cause": "judge",
+      "input": "メールアドレス",
+      "op": "input",
+      "p": 0.9,
+      "settle_ms": 500,
+      "step": 1,
+      "target": {
+        "name": "メールアドレス",
+        "nth": 0,
+        "role": "textbox"
+      }
+    },
+    {
+      "act_ms": 100,
+      "cause": "frozen",
+      "input": null,
+      "op": "reload",
+      "p": 1.0,
+      "settle_ms": 200,
+      "step": 3,
+      "target": null
+    }
+  ],
+  "stuck": null,
+  "target": "https://app.example.test/",
+  "usage": {
+    "calls": 2,
+    "cost": 0.000126,
+    "input_tokens": 120,
+    "output_tokens": 3
+  }
+}
