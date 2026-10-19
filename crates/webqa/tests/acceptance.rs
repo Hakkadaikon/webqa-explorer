@@ -56,6 +56,10 @@ mod recovery;
 mod stages;
 #[path = "steps/step.rs"]
 mod step;
+#[path = "steps/step_reply.rs"]
+mod step_reply;
+#[path = "steps/step_run.rs"]
+mod step_run;
 
 use std::collections::BTreeSet;
 use std::time::Duration;
