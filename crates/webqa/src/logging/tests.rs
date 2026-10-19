@@ -53,6 +53,20 @@ fn init_writes_kept_events() {
     let text = logs.text();
     assert!(text.contains("kept"), "kept in {text}");
     assert!(!text.contains("value-of-TEST_EMAIL"), "no input in {text}");
+}
+
+#[test]
+fn init_sets_the_global_logs_once() {
+    let logs = Logs::default();
+    init(logs.clone());
+    // A second subscriber is ignored: the first one still writes.
     init(sink);
-    init(sink);
+    tracing::warn!(target: "webqa::run", "warned");
+    tracing::info!(target: "webqa::run", "informed");
+    let text = logs.text();
+    assert!(text.contains("warned"), "warn kept in {text}");
+    assert!(
+        !text.contains("informed"),
+        "info dropped by default in {text}"
+    );
 }

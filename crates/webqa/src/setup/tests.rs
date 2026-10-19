@@ -7,7 +7,6 @@ use std::time::Duration;
 
 use webqa_core::config::raw::{Op, parse};
 use webqa_core::config::validate::validate;
-use webqa_core::redact::Rule;
 
 use super::*;
 
@@ -197,14 +196,13 @@ fn cases() -> Vec<Case> {
 
 fn bad_pattern() -> Case {
     let pattern = r#"pattern: "[\\w.+-]+@[\\w-]+\\.[\\w.]+""#;
-    let invalid = Redactor::new(&[Rule::pattern("メールアドレス", "(")]).unwrap_err();
     Case {
         yaml: changed(pattern, r#"pattern: "(""#),
         mode: Mode::Explore,
         env: ALL_ENV,
         read: STATE_OK,
         kind: None,
-        message: invalid.to_string(),
+        message: r#"redaction rule "メールアドレス" is not a valid regular expression"#.to_owned(),
     }
 }
 
