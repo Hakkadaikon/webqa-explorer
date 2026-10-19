@@ -98,11 +98,6 @@ fn check_after_stop(mut world: QaWorld) {
 async fn check_configured() {
     let mut world = clicking();
     world.configured();
-    world.scene.origins.clear();
-    world
-        .scene
-        .origins
-        .push("https://app.example.test".to_owned());
     world.run().await;
     assert_eq!(
         world.ran().config_error,
@@ -138,6 +133,7 @@ async fn check_configured() {
             None,
             "a run that did not finish has no reason"
         );
+        assert_eq!(stopped.when_beat(), Beat::End, "it has no beat but the end");
     }
 }
 

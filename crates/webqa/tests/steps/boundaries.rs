@@ -13,8 +13,6 @@ pub const READY: &[&str] = &["判断モデルを差し替えても同じ探索�
     expr = "判断モデルとして、操作 {string} と対象要素 {string} を返すだけのスタブを設定している"
 )]
 fn stub(world: &mut QaWorld, op: String, target: String) {
-    world.scene.show_button(&target);
-    let reply = Reply::op(&op, 1.0).on(&target);
-    world.scene.replies.push_back(reply);
-    drop((op, target));
+    world.scene.show_button(target.clone());
+    world.scene.replies.push_back(Reply::op(op, 1.0).on(target));
 }

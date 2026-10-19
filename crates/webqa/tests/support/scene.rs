@@ -203,10 +203,11 @@ impl Scene {
     }
 
     /// Makes the start page show a button named `name`, if it does not.
-    pub fn show_button(&mut self, name: &str) {
+    pub fn show_button(&mut self, name: impl Into<String>) {
+        let name = name.into();
         let shown = self.start.elements.iter().any(|e| e.name == name);
         if !shown {
-            self.start.elements.push(PageSpec::button(name));
+            self.start.elements.push(PageSpec::button(&name));
         }
     }
 
