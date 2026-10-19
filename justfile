@@ -128,7 +128,7 @@ config-check:
     shellcheck scripts/*.sh
     ruff check scripts bridge
 
-# コミット前と同じ軽い検査
+# テストとカバレッジを含む全部の検査(CI の check ジョブと同じ)
 check: fmt-check clippy metrics docs-check config-check test
 
 # check を、ほかの worktree の check と重ならないよう1本ずつ回す(共有の target のロックを待つ)

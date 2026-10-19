@@ -536,6 +536,7 @@ Pythonの標準ライブラリだけで書き、AI GatewayのTypeSafe互換の�
 引数は、JEVのモデル(`--model`、既定は`typesafe-ai/jev-1.14.0`)、
 自由な文の問いを送る言語モデル(`--text-model`)、
 要求の1行あたりの時間の予算(`--timeout`、既定は30秒)の3つである。
+`--timeout`は0より大きく3600以下の秒数で、外れた値は引数の誤り(終了コード2)になる。
 予算は行を読んだ時刻から数え、自由な文の問いと再試行の待ちも、その内に収める。
 1回の待ちの上限は残りの時間である。
 応答の本体を細切れに送られると、期限を超えることがある(中核の`judge.timeout_secs`が打ち切る)。
@@ -871,7 +872,7 @@ target:
   allowed_origins: ["https://app.example.test", "https://*.app.example.test"]
 judge:
   kind: command
-  command: ["./bridge/jev.py", "--text-model", "<言語モデルの名前>"]
+  command: ["./bridge/jev.py", "--text-model", "<言語モデルの名前>", "--timeout", "25"]
   api_key: { env: JEV_API_KEY }
   timeout_secs: 30
   pricing: { input_per_1k: 0.0, output_per_1k: 0.0 }
