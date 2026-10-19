@@ -374,8 +374,8 @@ pub struct Named(pub ExitReason);   // FromStr で写す。行き詰まりは種
 | `実行は終了していない` | Then | `reason()` が `None` |
 | `実行は終了しておらず、次のステップで判断モデルに問い合わせる` | Then | `reason()` が `None` で、`judge.stalled` |
 | `探索モードを起動しようとする` | When | `scene.mode = Explore`、`scene.yaml` が無ければ `BASE` にして `run()` |
-| `探索済みの要素は {string} である` | Given | 開始の画面に `button(name)` を足し(無ければ)、`Reply::op("click", 0.9).on(name)` を積む |
-| `操作しても画面が変化しないステップが {int} 回続いている` | Given | 開始の画面に `button("操作{i}")`(i は 1〜n)を足し、それぞれへの `click` を積む(新しい要素を操作するので、行き詰まりの回数は進まず、固まりの回数だけが n になる) |
+| `探索済みの要素は {string} である` | Given | 開始の画面に `button(name)` が無ければ足し、`Reply::op("click", 0.9).on(name)` を積む |
+| `操作しても画面が変化しないステップが {int} 回続いている` | Given | 開始の画面に `button("操作{i}")`(i は 1〜n)が無ければ足し、それぞれへの `click` を積む(新しい要素を操作するので、行き詰まりの回数は進まず、固まりの回数だけが n になる) |
 | `時間窓の操作回数は {int} 回のままである` | Then | `window_used() == n` |
 | `終了コードは {int} である` | Then | `ran().code == n` |
 | `終了理由はゴール達成のままである` | Then | `poked` があればその理由、無ければ `reason()` が `GoalAchieved` |
