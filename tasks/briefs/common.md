@@ -2,7 +2,7 @@
 
 - 最初に worktree の中で `just worktree-tools` を実行する。
 - ビルドは本体の checkout の `target/` を共有する(`just` を通せば自動で入る)。`cargo` を直接叩くときは、`CARGO_TARGET_DIR` を `just --evaluate CARGO_TARGET_DIR` の値にし、`CARGO_BUILD_JOBS=2` を付ける(メモリが 3GB しかない)。`cargo clean` はしない(ほかの担当の分も消える)。
-- TDD の途中は、触っているモジュールのテストだけを回す(例: `cargo test -p webqa-core screen`)。`just check`(カバレッジを含む)はコミットの前に1回だけ回す。
+- TDD の途中は、触っているモジュールのテストだけを回す(例: `cargo test -p webqa-core screen`)。全体のテストとカバレッジは手元で回さず、PR の CI で確かめる(2026-10-20 から)。
 - Skill ツールで `implementing` を呼び、その手順で書く。テストを先に書き、Red を確かめてから実装する。
 - 品質ゲートの設定は変えない。除外の注釈を足さない。
 - mutation は回さない(2026-10-18 から)。並列の担当が同時に回すとマシンを取り合うので、親セッションが統合の前に1本ずつ回す。生き残りが出たら、親が担当に戻す。brief の受け入れ条件にある「mutation の生き残り0」は、この親の検査で満たす。
@@ -13,4 +13,4 @@
 - コミットは worktree のブランチに積む。push しない。rebase しない(main の取り込みが要るときは `git merge main`)。
 - 報告: 状態、コミットの一覧、`just check` の結果、ゲートで落ちた回数(ゲートごと)、気になった点。
 - 環境: 本体の checkout の `.aqua/bin` を PATH に入れ、`AQUA_ROOT_DIR`(本体の `.aqua`)、`AQUA_CONFIG`、`AQUA_POLICY_CONFIG`(作業している木の `.config/aqua/` の下)、`CARGO_BUILD_JOBS=2`、`PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright` を export する。`git commit` もこの環境で行う(フックが just と Chromium を使う)。
-- ビルドは自分専用の `CARGO_TARGET_DIR` と `CARGO_LLVM_COV_TARGET_DIR`(worktree の中の `target/<名前>`)で行い、終わったら消す。共有の `target/` には、ほかの worktree の成果物が混ざる。scratchpad に置くものも、自分だけの名前のディレクトリに入れる。
+- ビルドの置き場、`just check-serial`、環境変数(`CARGO_PROFILE_DEV_DEBUG`、`RUSTFLAGS`)は、Skill ツールで `parallel-work` を呼んで従う(2026-10-19 から)。自分専用の `CARGO_TARGET_DIR` は作らない。scratchpad に置くものは、自分だけの名前のディレクトリに入れる。

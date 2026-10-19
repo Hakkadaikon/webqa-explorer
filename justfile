@@ -131,5 +131,9 @@ config-check:
 # コミット前と同じ軽い検査
 check: fmt-check clippy metrics docs-check config-check test
 
+# check を、ほかの worktree の check と重ならないよう1本ずつ回す(共有の target のロックを待つ)
+check-serial:
+    python3 -c 'import fcntl, subprocess, sys; f = open(sys.argv[1], "w"); fcntl.flock(f, fcntl.LOCK_EX); sys.exit(subprocess.call(["just", "check"]))' "$CARGO_TARGET_DIR/.check.lock"
+
 # CI で回す全部の検査
 ci: check deny
