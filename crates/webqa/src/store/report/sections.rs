@@ -103,7 +103,7 @@ fn issue(found: &Found) -> Value {
     let named = fields
         .into_iter()
         .map(|(key, value)| (key.to_owned(), value));
-    let shot = Some(screenshot(&found.shot));
+    let shot = found.shot.as_deref().map(screenshot);
     let entry: Map<String, Value> = named.chain(shot).collect();
     Value::Object(entry)
 }
