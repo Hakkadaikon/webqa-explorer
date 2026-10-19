@@ -82,3 +82,27 @@ async fn nothing_is_written_after_a_failed_write() {
         assert_eq!(fakes.store.writes, limit + 1, "stopped at {limit}");
     }
 }
+
+#[tokio::test]
+async fn nothing_is_written_after_a_failed_screenshot() {
+    let mut fakes = Fakes::new();
+    fakes.stay_on(&fakes::page(&url("/"), &[("button", "icon_save.png")]));
+    fakes.store.limit = Some(0);
+    let mut ports = fakes.ports();
+    let run = explore(
+        &mut ports,
+        &mut super::Never,
+        super::rules(),
+        Memory::default(),
+    )
+    .await;
+    assert_eq!(
+        run.map(|o| o.reason),
+        Err(StoreError.into()),
+        "the shot fails"
+    );
+    let again = ports.log(Event::Waited { until_ms: 0 }).await;
+    assert_eq!(again, Err(StoreError.into()), "refused after the shot");
+    drop(ports);
+    assert_eq!(fakes.store.writes, 1, "only the screenshot was written");
+}

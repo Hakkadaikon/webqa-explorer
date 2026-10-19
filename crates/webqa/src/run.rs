@@ -68,7 +68,9 @@ pub struct Ports<'a> {
     record: Record,
     /// The names of the screenshots written.
     shots: BTreeSet<String>,
-    /// Whether a write failed: nothing is written after that.
+    /// Whether a write failed: `log` and the screenshots write nothing after
+    /// that. A write through `store()` neither sees it nor sets it; its
+    /// caller stops.
     failed: bool,
 }
 
