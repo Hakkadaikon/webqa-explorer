@@ -209,7 +209,7 @@ flowchart LR
 
 残り:
 
-- 14l(探索の記憶と問題の記録)と 14m(設定と外部境界、中断、終了コード)の brief は、まだ無い。14h が入ったあとに書く。
+- 14l と 14m の brief は、14h のあとに書いた(`14l-acceptance-memory-issues.md`、`14m-acceptance-config-interrupt-exit.md`)。採った案は `tasks/decisions.md`。
 - `docs/architecture.md` の受け入れシナリオの数は、feature の Scenario の数(既存のモード113本)に合わせて直した。
 
 14b の実装で決めたこと:

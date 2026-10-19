@@ -2,6 +2,8 @@
 
 共通の決まりは同じディレクトリの `common.md`。分け方は `14-plan.md`。
 
+**実装のあとの差し替え(2026-10-20)**: 引数 `--max-duration-secs` は作らない(制限時間は設定だけ。`14-plan.md` の14gの決定)。時計は判断モデルとブラウザの起動のあとから数え、判断モデルには別の時計を渡す(`tasks/decisions.md`)。下の引数の定義、起動の順の表の段4〜6、テスト3と7の該当する記述は、この2点で読み替える。
+
 **14e と 14f が入ってから始める**(14a〜14d も入っている)。14e の `setup::{load, dotenv, Setup, BrowserPlan}`、`clock::{RealClock, Wall}`、`logging::init`、14f の `run::session::{conduct, Plan, Ending}`、`exit::{code, CONFIG_ERROR, RUNTIME_ERROR}`、14c の `store::FileStore`、`store::report::{Meta, Price}`、`replay::Replay`、14d の `run::{Ports, Detect}` を使う。始める前に main の実物を読み、型とシグネチャがこの brief と違えば NEEDS_CONTEXT で返す。
 
 並行して 14h(受け入れの土台)が回る。触るファイルは重ならない。
@@ -189,7 +191,7 @@ impl Interrupt for CtrlC {
    - `explore --max-duration-secs 1` も `"time_exceeded"` で 0。
    - 2回の実行で `<out>/memory/` の記憶のファイルは1つ(同じ対象)。
 4. `interrupt_writes_records_then_exits`(T-097): 橋渡しは `silent`。`explore` を起動し、記録のファイルに `asked` が書かれるまで待つ(`recv_timeout(50ms)` を繰り返す。60秒で諦めて失敗)。`kill -INT <子の pid>` を `std::process::Command::new("kill")` で送る。終了コードは 0。`report.json` の `reason` は `"user_aborted"`、`events.jsonl` の最後の行の `reason` は `"user_aborted"`、`<out>/memory/` に記憶のファイルがある。
-5. `replay_reruns_report`(T-042): `max_decisions: 2` にした設定で、橋渡しを `click` にして `explore` する(2回 "保存" をクリックして判断予算切れ。終了コード 0)。その `report.json` を `replay` に渡す。`replay` の設定は、橋渡しの答え方を `silent` にしたもの(判断モデルを使わないことを確かめるため)。`replay` の終了コードは 0、新しい実行のディレクトリの `report.json` の `steps` の `op` と `target` の列は元と等しく、`calls` の `answers` の列も元と等しい。`replay` の橋渡しの記録のファイルは無い(橋渡しを起動していない)。
+5. `replay_reruns_report`(T-042): `max_decisions: 2` にした設定で、橋渡しを `click` にして `explore` する(1回目は "保存" をクリックし、2回目は保存を避けて操作にならず、判断予算切れ。終了コード 0。`steps` は1本、`calls` は2本)。その `report.json` を `replay` に渡す。`replay` の設定は、橋渡しの答え方を `silent` にしたもの(判断モデルを使わないことを確かめるため)。`replay` の終了コードは 0、新しい実行のディレクトリの `report.json` の `steps` の `op` と `target` の列は元と等しく、`calls` の `answers` の列も元と等しい。`replay` の橋渡しの記録のファイルは無い(橋渡しを起動していない)。
 6. `judge_start_failure_exits`: `judge.command` を無いプログラムにした設定の `explore` は 3(起動できない。`Spawn`)、`judge.kind: other` の設定は 2(`UnknownKind`)。どちらも `<out>/runs` が無い。
 
 単体(`cli/tests.rs`):

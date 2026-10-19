@@ -11,8 +11,8 @@ use jiff::tz::TimeZone;
 use tokio::time::{Instant, sleep_until};
 use webqa_core::ports::{Clock, Pending};
 
-/// The clock of a run. Clones share the start, so the judge's bridge and
-/// the run loop measure the same elapsed time.
+/// The clock of a run. Clones share the start. The run loop starts its own
+/// once the browser is up, and the judge's bridge keeps the one it began with.
 #[derive(Debug, Clone, Copy)]
 pub struct RealClock {
     start: Instant,
