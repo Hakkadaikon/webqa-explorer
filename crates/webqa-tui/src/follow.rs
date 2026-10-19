@@ -49,10 +49,12 @@ impl Follow {
     }
 }
 
-/// The area to draw in: the terminal's size, or 80×24 when unknown.
+/// The area to draw in: the terminal's size, or 80×24 when unknown
+/// (a size with a zero side is no size).
 #[must_use]
 pub fn area(size: Option<(u16, u16)>) -> Rect {
-    let (width, height) = size.unwrap_or((80, 24));
+    let known = size.filter(|&(width, height)| width > 0 && height > 0);
+    let (width, height) = known.unwrap_or((80, 24));
     Rect::new(0, 0, width, height)
 }
 
@@ -141,5 +143,8 @@ mod tests {
     fn area_falls_back_when_size_is_unknown() {
         assert_eq!(area(None), Rect::new(0, 0, 80, 24));
         assert_eq!(area(Some((120, 40))), Rect::new(0, 0, 120, 40));
+        for zero in [(0, 24), (80, 0), (0, 0)] {
+            assert_eq!(area(Some(zero)), Rect::new(0, 0, 80, 24), "{zero:?}");
+        }
     }
 }
