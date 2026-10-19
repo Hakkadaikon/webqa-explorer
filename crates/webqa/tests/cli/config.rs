@@ -31,6 +31,8 @@ pub struct Config<'a> {
     pub max_duration: u32,
     /// An `ops:` line, or empty.
     pub ops: &'a str,
+    /// Lines at the end of the file, such as an `interview:` section.
+    pub tail: &'a str,
 }
 
 impl<'a> Config<'a> {
@@ -48,6 +50,7 @@ impl<'a> Config<'a> {
             error_confidence: 0.8,
             max_duration: 2,
             ops: "",
+            tail: "",
         }
     }
 
@@ -84,7 +87,7 @@ guard:
       goal: 開く
       done_when:
         url: /
-",
+{tail}",
             url = self.url,
             kind = self.kind,
             extra = self.judge_extra,
@@ -93,6 +96,7 @@ guard:
             error_confidence = self.error_confidence,
             max_duration = self.max_duration,
             ops = self.ops,
+            tail = self.tail,
         );
         let path = dir.join("config.yaml");
         fs::write(&path, yaml)?;

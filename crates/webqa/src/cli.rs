@@ -1,6 +1,8 @@
 //! The command line: subcommands, start-up and the exit code.
 
 pub mod app;
+pub mod check;
+pub mod interview;
 pub mod start;
 #[cfg(test)]
 mod tests;
@@ -39,6 +41,50 @@ pub enum Command {
     Explore(RunArgs),
     /// Runs again the operations of a report.
     Replay(ReplayArgs),
+    /// The subcommands that do not run the core.
+    #[command(flatten)]
+    Other(Other),
+}
+
+/// The subcommands that do not run the core.
+#[derive(Debug, PartialEq, Eq, clap::Subcommand)]
+pub enum Other {
+    /// Interviews the target as a persona, trial after trial.
+    Interview(InterviewArgs),
+    /// Checks the form of a persona or purpose document.
+    CheckDocs(CheckDocsArgs),
+}
+
+/// The arguments of `interview`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct InterviewArgs {
+    /// The configuration file.
+    #[arg(long)]
+    pub config: PathBuf,
+    /// Where the records go.
+    #[arg(long, default_value = ".webqa")]
+    pub out: PathBuf,
+    /// The ledger of the run before, to compare with.
+    #[arg(long)]
+    pub previous: Option<PathBuf>,
+}
+
+/// The kinds of documents `check-docs` reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum DocKind {
+    /// A persona document.
+    Persona,
+    /// A purpose document.
+    Purpose,
+}
+
+/// The arguments of `check-docs`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct CheckDocsArgs {
+    /// What the document is.
+    pub kind: DocKind,
+    /// The document.
+    pub file: PathBuf,
 }
 
 /// The arguments of `run` and `explore`.

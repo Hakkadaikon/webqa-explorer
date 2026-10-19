@@ -85,24 +85,31 @@ fn an_unknown_judge_kind_is_said_without_its_name() {
 
 #[test]
 fn subcommands_become_jobs() {
-    let job = |args: &[&str]| Cli::try_parse_from(args).map(|cli| start::job(cli.command));
+    let job = |args: &[&str]| {
+        Cli::try_parse_from(args)
+            .ok()
+            .and_then(|cli| start::job(cli.command).ok())
+    };
     let expected = |source, out: &str| start::Job {
         source,
         config: "c.yaml".into(),
         out: out.into(),
     };
     assert_eq!(
-        job(&["webqa", "run", "--config", "c.yaml"]).ok(),
+        job(&["webqa", "run", "--config", "c.yaml"]),
         Some(expected(start::Source::Scenario, ".webqa"))
     );
     assert_eq!(
-        job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]).ok(),
+        job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]),
         Some(expected(start::Source::Explore, "o"))
     );
     assert_eq!(
-        job(&["webqa", "replay", "r.json", "--config", "c.yaml"]).ok(),
+        job(&["webqa", "replay", "r.json", "--config", "c.yaml"]),
         Some(expected(start::Source::Replay("r.json".into()), ".webqa"))
     );
+    let docs = ["webqa", "check-docs", "persona", "a"];
+    assert_eq!(job(&docs), None);
+    assert_eq!(job(&["webqa", "interview", "--config", "a"]), None);
 }
 
 #[tokio::test]

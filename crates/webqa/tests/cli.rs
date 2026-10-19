@@ -6,6 +6,8 @@ mod case;
 mod config;
 #[path = "cli/exec.rs"]
 mod exec;
+#[path = "cli/interview.rs"]
+mod interview;
 #[path = "cli/modes.rs"]
 mod modes;
 #[path = "cli/site.rs"]

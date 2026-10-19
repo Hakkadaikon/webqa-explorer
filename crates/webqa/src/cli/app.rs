@@ -10,6 +10,7 @@ use webqa_core::redact::Redactor;
 
 use super::Command;
 use super::start::{self, Job, Stop};
+use super::{Other, check, interview};
 use crate::clock::{RealClock, Wall};
 use crate::exit;
 use crate::interrupt::CtrlC;
@@ -20,6 +21,9 @@ use crate::setup::Setup;
 use crate::store::file::FileStore;
 use crate::store::report::{Meta, Price};
 use webqa_core::issue::probes;
+
+/// What is said when the records were left unwritten.
+pub(super) const ABANDONED: &str = "記録を書き終える前に中断した";
 
 /// How the command ended.
 #[derive(Debug, PartialEq, Eq)]
@@ -45,7 +49,15 @@ struct Parts {
 
 /// Runs `command` and says how it ended on the standard error.
 pub async fn app(command: Command) -> Done {
-    match prepare(&start::job(command)).await {
+    match start::job(command) {
+        Ok(job) => run(&job).await,
+        Err(Other::Interview(args)) => interview::app(args).await,
+        Err(Other::CheckDocs(args)) => check::app(&args),
+    }
+}
+
+async fn run(job: &Job) -> Done {
+    match prepare(job).await {
         Ok(parts) => finish(parts).await,
         Err(stop) => stopped(stop),
     }
@@ -134,7 +146,7 @@ async fn finish(mut parts: Parts) -> Done {
 pub(super) fn describe(ending: &Ending, dir: &Path) -> String {
     match ending {
         Ending::Finished { outcome, .. } => finished_line(outcome.reason, dir),
-        Ending::Abandoned => "記録を書き終える前に中断した".to_owned(),
+        Ending::Abandoned => ABANDONED.to_owned(),
         Ending::Failed(error) => error.to_string(),
     }
 }
