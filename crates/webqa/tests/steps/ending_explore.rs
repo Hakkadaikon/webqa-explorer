@@ -43,7 +43,7 @@ fn asked_once(world: &mut QaWorld) {
 fn only_forbidden_left(world: &mut QaWorld, name: String) {
     let elements = vec![PageSpec::button("保存"), PageSpec::button(&name)];
     world.scene.start.elements = elements;
-    let screens: &[(&str, &[(&str, &str)])] = &[("/", &[("button", "保存"), ("button", "退会")])];
+    let screens: &[(&str, &[(&str, &str)])] = &[("/", &[("button", "保存"), ("button", &name)])];
     remember(&mut world.scene, screens, &[(0, "保存", 0)]);
     drop(name);
 }
@@ -72,6 +72,8 @@ fn another_screen_left(world: &mut QaWorld, from: String, to: String, name: Stri
         ("/settings", &[("button", &name)]),
     ];
     remember(&mut world.scene, screens, &[(0, "保存", 1)]);
+    // One answer that stops the step, so the check runs after a question.
+    held(world, 1);
     drop((from, to, name));
 }
 
