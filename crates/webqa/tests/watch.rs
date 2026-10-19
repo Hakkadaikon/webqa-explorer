@@ -76,6 +76,14 @@ fn watching(dir: &Path) -> io::Result<Watching> {
     })
 }
 
+impl Drop for Watching {
+    /// Stops the whole group, so that a test that ends early leaves nothing running.
+    fn drop(&mut self) {
+        let group = format!("-{}", self.pid);
+        drop(Command::new("kill").args(["-KILL", "--", &group]).status());
+    }
+}
+
 impl Watching {
     /// Reads the output until it shows `text`; each chunk may take [`LIMIT`].
     fn until_shown(&mut self, text: &str) -> io::Result<()> {

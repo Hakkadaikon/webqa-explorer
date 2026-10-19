@@ -1,6 +1,11 @@
 //! Tests of the memory a replay starts from.
 
 use serde_json::json;
+use std::collections::BTreeSet;
+use url::Url;
+use webqa_core::explore::ElementOp;
+use webqa_core::redact::Redactor;
+use webqa_core::screen::{Element, ElementId, Screen};
 
 use super::*;
 
@@ -39,4 +44,41 @@ fn start_memory_of_another_origin_is_empty() {
         panic!("a memory of another origin starts a replay empty")
     };
     assert_eq!(memory.screen_count(), 0);
+}
+
+/// A memory with a screen of one button, operated.
+fn saved() -> Memory {
+    let element = Element {
+        role: "button".to_owned(),
+        name: "保存".to_owned(),
+        value: None,
+        rect: None,
+    };
+    let url = Url::parse("https://app.example.test/").unwrap();
+    let screen = Redactor::default().screen(Screen {
+        url,
+        elements: vec![element],
+    });
+    let mut memory = Memory::default();
+    let at = memory.visit(&screen, &BTreeSet::new());
+    let id = ElementId {
+        role: "button".to_owned(),
+        name: "保存".to_owned(),
+        nth: 0,
+    };
+    memory.record(at, &id, ElementOp::Click, at);
+    memory
+}
+
+#[test]
+fn given_keeps_the_start_memory_of_the_report() {
+    let kept = saved().to_json(ORIGIN);
+    let Ok(Start::Given(memory)) = given(ORIGIN, Some(kept.clone())) else {
+        panic!("the kept memory starts the replay")
+    };
+    assert_eq!(
+        (memory.screen_count(), memory.to_json(ORIGIN)),
+        (1, kept),
+        "the memory of the report, not an empty one"
+    );
 }

@@ -4,6 +4,7 @@ use std::env::temp_dir;
 use std::fs::{self, OpenOptions};
 use std::future::{pending, ready};
 use std::io::{ErrorKind, Write};
+use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::process::id;
 use std::time::Duration;
@@ -18,12 +19,28 @@ const DECIDED: &str =
 const FINISHED: &str =
     r#"{"seq":9,"elapsed_ms":60000,"kind":"run_finished","reason":"goal_achieved"}"#;
 
-/// A new empty directory for the test `name`.
-fn workdir(name: &str) -> PathBuf {
+/// A new empty directory for the test `name`, removed when dropped.
+struct Workdir(PathBuf);
+
+impl Deref for Workdir {
+    type Target = Path;
+
+    fn deref(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl Drop for Workdir {
+    fn drop(&mut self) {
+        drop(fs::remove_dir_all(&self.0));
+    }
+}
+
+fn workdir(name: &str) -> Workdir {
     let dir = temp_dir().join(format!("webqa-watch-{name}-{}", id()));
     drop(fs::remove_dir_all(&dir));
     fs::create_dir_all(&dir).unwrap();
-    dir
+    Workdir(dir)
 }
 
 fn append(path: &Path, text: &str) {
@@ -88,7 +105,8 @@ fn plain(bytes: &[u8]) -> String {
 
 #[test]
 fn appended_reads_after_offset() {
-    let path = workdir("appended").join("events.jsonl");
+    let dir = workdir("appended");
+    let path = dir.join("events.jsonl");
     assert_eq!(appended(&path, 0).unwrap(), (vec![], 0));
     append(&path, "0123456789");
     assert_eq!(appended(&path, 0).unwrap(), (b"0123456789".to_vec(), 10));
@@ -131,7 +149,8 @@ async fn watch_draws_and_waits_after_finish() {
 
 #[tokio::test]
 async fn missing_dir_exits_two() {
-    let dir = workdir("missing").join("nothing");
+    let base = workdir("missing");
+    let dir = base.join("nothing");
     let mut clock = FakeClock {
         log: dir.join("events.jsonl"),
         finish_on: 0,

@@ -115,3 +115,25 @@ async fn replay_leaves_broken_stored_memory_alone() {
         "nothing moved aside, noted or written"
     );
 }
+
+#[tokio::test]
+async fn replay_starts_from_non_empty_given_memory() {
+    let given = Memory::from_json(&saved_text(), ORIGIN).unwrap();
+    let mut store = MemoryStore::default();
+    let targets = first_targets(Start::Given(given), &mut store).await;
+    assert_eq!(
+        targets,
+        ["2", "3", "4"],
+        "保存 was operated in the given memory"
+    );
+}
+
+#[tokio::test]
+async fn report_keeps_memory_from_before_the_run() {
+    let mut store = stored();
+    first_targets(Start::Stored, &mut store).await;
+    let before: Value = serde_json::from_str(&saved_text()).unwrap();
+    let after: Value = serde_json::from_str(&store.memories[ORIGIN]).unwrap();
+    let kept = store.report.unwrap()["start_memory"].clone();
+    assert_eq!((kept == before, kept == after), (true, false));
+}
