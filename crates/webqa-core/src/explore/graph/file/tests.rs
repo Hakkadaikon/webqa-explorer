@@ -6,18 +6,29 @@ use serde_json::{Value, json};
 use super::super::tests::{button, forbid, page, shown};
 use super::*;
 use crate::explore::graph::{ElementOp, ScreenKey};
+use crate::redact::Redacted;
+use crate::screen::Screen;
 
 const APP: &str = "https://app.example.test";
+
+/// `/` with "保存" and "ヘルプ".
+fn top_page() -> Redacted<Screen> {
+    page("/", vec![shown("button", "保存"), shown("link", "ヘルプ")])
+}
+
+/// `/settings` with "通知" and "退会".
+fn settings_page() -> Redacted<Screen> {
+    page(
+        "/settings",
+        vec![shown("button", "通知"), shown("button", "退会")],
+    )
+}
 
 /// `/` with "保存" and "ヘルプ", `/settings` with "通知" and the forbidden
 /// "退会", and the click on "保存" that moved from the first to the second.
 fn two_screens() -> Memory {
     let mut memory = Memory::default();
-    let top = page("/", vec![shown("button", "保存"), shown("link", "ヘルプ")]);
-    let settings = page(
-        "/settings",
-        vec![shown("button", "通知"), shown("button", "退会")],
-    );
+    let (top, settings) = (top_page(), settings_page());
     let s1 = memory.visit(&top, &forbid(&[]));
     let s2 = memory.visit(&settings, &forbid(&[1]));
     memory.record(s1, &button("保存"), ElementOp::Click, s2);
@@ -84,6 +95,19 @@ fn memory_json_round_trips() {
     );
     assert_eq!(reread(&Memory::default()).screen_count(), 0, "empty");
     many_screens_read_back();
+    revisits_read_back(back);
+}
+
+/// The pages of [`two_screens`] visited again after reading back are the
+/// screens already there.
+fn revisits_read_back(mut back: Memory) {
+    let (top, settings) = (top_page(), settings_page());
+    let keys = [
+        back.visit(&top, &forbid(&[])),
+        back.visit(&settings, &forbid(&[1])),
+    ];
+    assert_eq!(keys, [ScreenKey(0), ScreenKey(1)], "the same screens");
+    assert_eq!(back.screen_count(), 2, "no screen added");
 }
 
 /// Eleven screens, so that `s10` sorts before `s2` as text.
@@ -136,6 +160,22 @@ fn edge_to_nowhere(value: &mut Value) {
     value["edges"][0]["to"] = json!("s9");
 }
 
+fn edge_past_the_last(value: &mut Value) {
+    value["edges"][0]["to"] = json!("s3");
+}
+
+fn edge_from_zero(value: &mut Value) {
+    value["edges"][0]["from"] = json!("s0");
+}
+
+fn zero_in_front(value: &mut Value) {
+    renamed(value, "s1", "s01");
+}
+
+fn sign_in_front(value: &mut Value) {
+    renamed(value, "s1", "s+1");
+}
+
 fn edge_of_scrolling(value: &mut Value) {
     value["edges"][0]["op"] = json!("scroll_down");
 }
@@ -145,7 +185,7 @@ fn without_forbidden(value: &mut Value) {
     first.as_object_mut().unwrap().remove("forbidden");
 }
 
-fn unusable_files() -> [(String, MemoryFileError); 10] {
+fn unusable_files() -> [(String, MemoryFileError); 14] {
     use MemoryFileError::{Origin, Schema, Unreadable};
     let no_schema = json!({"origin": APP, "screens": {}, "edges": []}).to_string();
     [
@@ -158,6 +198,10 @@ fn unusable_files() -> [(String, MemoryFileError); 10] {
         (changed(skipped_number), Unreadable),
         (changed(not_named_s), Unreadable),
         (changed(edge_to_nowhere), Unreadable),
+        (changed(edge_past_the_last), Unreadable),
+        (changed(edge_from_zero), Unreadable),
+        (changed(zero_in_front), Unreadable),
+        (changed(sign_in_front), Unreadable),
         (changed(edge_of_scrolling), Unreadable),
     ]
 }
