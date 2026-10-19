@@ -123,6 +123,15 @@ fn appended_reports_a_log_that_cannot_be_read() {
     assert_eq!(read.map_err(|e| e.kind()), Err(ErrorKind::IsADirectory));
 }
 
+#[test]
+fn appended_reports_an_offset_that_cannot_be_reached() {
+    let dir = workdir("unreachable");
+    let path = dir.join("events.jsonl");
+    append(&path, "0123456789");
+    let read = appended(&path, u64::MAX);
+    assert_eq!(read.map_err(|e| e.kind()), Err(ErrorKind::InvalidInput));
+}
+
 #[tokio::test]
 async fn watch_draws_and_waits_after_finish() {
     let dir = workdir("finish");
@@ -145,6 +154,26 @@ async fn watch_draws_and_waits_after_finish() {
     let text = plain(&out);
     assert!(text.contains("保存"), "{text:?}");
     assert!(text.contains("goal_achieved"), "{text:?}");
+}
+
+#[tokio::test]
+async fn interrupt_while_following_exits_zero() {
+    let dir = workdir("following");
+    let log = dir.join("events.jsonl");
+    append(&log, &format!("{STARTED}\n{DECIDED}\n"));
+    let mut clock = FakeClock {
+        log,
+        finish_on: 0,
+        sleeps: vec![],
+    };
+    let (mut out, mut err) = (Vec::new(), Vec::new());
+    let code = watch(&dir, &mut clock, &mut AtOnce, &mut out, &mut err).await;
+    assert_eq!((code, err), (0, vec![]));
+    assert_eq!(
+        clock.sleeps.len(),
+        4,
+        "the run did not finish: it kept reading"
+    );
 }
 
 #[tokio::test]

@@ -4,7 +4,6 @@
 mod tests;
 
 use std::fs::File;
-use std::future::pending;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::Path;
 use std::time::Duration;
@@ -36,7 +35,8 @@ pub fn appended(path: &Path, offset: u64) -> io::Result<(Vec<u8>, u64)> {
     file.seek(SeekFrom::Start(offset))?;
     let mut bytes = vec![];
     file.read_to_end(&mut bytes)?;
-    Ok((bytes, file.stream_position()?))
+    let read = u64::try_from(bytes.len()).unwrap_or_default();
+    Ok((bytes, offset.saturating_add(read)))
 }
 
 /// Follows the run in `dir` until interrupted; the exit code. A missing
@@ -54,11 +54,15 @@ pub async fn watch(
     }
     let log = dir.join("events.jsonl");
     let work = follow(&log, clock, &mut out);
-    guard(work, interrupt, 0).await.unwrap_or(0)
+    // Once the run finished, the last screen stays until the next Ctrl-C.
+    if guard(work, interrupt, 0).await.is_some() {
+        interrupt.wait().await;
+    }
+    0
 }
 
-/// Reads, draws and waits, and after `run_finished` only waits to be stopped.
-async fn follow(log: &Path, clock: &mut dyn Clock, out: &mut impl Write) -> u8 {
+/// Reads, draws and waits until `run_finished` is read.
+async fn follow(log: &Path, clock: &mut dyn Clock, out: &mut impl Write) {
     let mut view = Follow::default();
     let mut offset = 0;
     let mut at = clock.elapsed();
@@ -71,7 +75,7 @@ async fn follow(log: &Path, clock: &mut dyn Clock, out: &mut impl Write) -> u8 {
             drop(draw(out, view.state()));
         }
         if view.finished() {
-            return pending().await;
+            break;
         }
         at += INTERVAL;
         clock.sleep_until(at).await;

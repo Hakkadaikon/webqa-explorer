@@ -64,12 +64,20 @@ pub fn area(size: Option<(u16, u16)>) -> Rect {
 ///
 /// When `out` cannot be written.
 pub fn draw<W: Write>(out: &mut W, state: &State) -> io::Result<()> {
-    queue!(out, Clear(ClearType::All), MoveTo(0, 0))?;
+    let mut frame = Vec::new();
+    paint(&mut frame, state);
+    out.write_all(&frame).and_then(|()| out.flush())
+}
+
+/// Writes the screen into memory, where a write cannot fail.
+fn paint(frame: &mut Vec<u8>, state: &State) {
+    drop(queue!(frame, Clear(ClearType::All), MoveTo(0, 0)));
     let viewport = Viewport::Fixed(area(size().ok()));
-    let backend = CrosstermBackend::new(out);
-    let mut terminal = Terminal::with_options(backend, TerminalOptions { viewport })?;
-    terminal.draw(|frame| render(state, frame))?;
-    Ok(())
+    let backend = CrosstermBackend::new(frame);
+    let options = TerminalOptions { viewport };
+    let drawn = Terminal::with_options(backend, options)
+        .and_then(|mut terminal| terminal.draw(|frame| render(state, frame)).map(drop));
+    drop(drawn);
 }
 
 #[cfg(test)]
@@ -116,6 +124,25 @@ mod tests {
         assert!(!follow.finished());
         follow.read(&joined(&EXAMPLE[3..]));
         assert!(follow.finished());
+    }
+
+    /// A writer that takes everything, and is closed when flushed.
+    struct Closed;
+
+    impl Write for Closed {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            Ok(bytes.len())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Err(io::ErrorKind::BrokenPipe.into())
+        }
+    }
+
+    #[test]
+    fn draw_reports_a_closed_output() {
+        let drawn = draw(&mut Closed, &State::default());
+        assert_eq!(drawn.map_err(|e| e.kind()), Err(io::ErrorKind::BrokenPipe));
     }
 
     #[test]
