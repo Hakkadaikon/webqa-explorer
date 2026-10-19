@@ -84,6 +84,7 @@ fn priced(usage: Usage, price: Price) -> f64 {
 
 /// `tokens` in thousands, exact up to `f64`'s 53 bits.
 fn thousands(tokens: u64) -> f64 {
+    // The parts always fit in a u32, so the fallback is never used.
     let half = |part: u64| f64::from(u32::try_from(part).unwrap_or(u32::MAX));
     half(tokens >> 32).mul_add(4_294_967_296.0, half(tokens & 0xFFFF_FFFF)) / 1000.0
 }

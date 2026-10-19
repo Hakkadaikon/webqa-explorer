@@ -71,6 +71,8 @@ async fn full_disk_keeps_previous_memory() {
         (Err(StoreError), before),
         "the first version"
     );
+    let left = crate::files(&out.join("memory")).unwrap();
+    assert_eq!(left, [APP_FILE], "no temporary file left");
 }
 
 #[tokio::test]
