@@ -390,7 +390,7 @@ pub fn step_issues(run: &Run<'_>) -> Vec<Issue>
 #[derive(Debug, Clone, PartialEq)]
 pub enum Ruling {
     /// The judge said the guesses differ: a mismatch issue.
-    Mismatch(Issue),
+    Mismatch(Box<Issue>),
     /// The judge said the guesses mean the written purpose.
     Same,
     /// The answer was unusable: the screen purpose goes to the unchecked
@@ -581,3 +581,8 @@ pub fn rank(a: &Issue, b: &Issue) -> Ordering
 5. 目的に届かない課題の止まった画面は、最後に問い合わせたステップの画面(親の決定)。
 6. 判断に迷う課題の対象要素は、判断モデルが選んだ要素(親の決定)。
 7. T-086 は表の例のテストで書き、proptest は #30 で入れたあとに性質のテストを足す(案A。親の決定)。
+
+## 実装で変わったこと
+
+- `Ruling::Mismatch` は `Box<Issue>` を持つ(clippy の `large_enum_variant` のため)。作るときは `Ruling::Mismatch(Box::new(issue))`。
+- テストの材料(fixture と sample の項目)は `pub(crate) mod tests` の中で `pub` にした。`click1()` は定数 `CLICK1` にした。
