@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+<title>storage</title>
+<button onclick="store()">書く</button>
+<div id="view"></div>
+<script>
+function show() {
+  const view = document.getElementById("view");
+  view.innerHTML = "";
+  const shown = [
+    "cookie: " + document.cookie,
+    "local: " + localStorage.getItem("trial"),
+  ];
+  for (const text of shown) {
+    const button = document.createElement("button");
+    button.textContent = text;
+    view.appendChild(button);
+  }
+}
+function store() {
+  document.cookie = "trial=1; path=/; Secure";
+  localStorage.setItem("trial", "1");
+  show();
+}
+show();
+</script>
+</html>
