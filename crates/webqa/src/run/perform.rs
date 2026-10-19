@@ -114,7 +114,9 @@ async fn announce(
 ) -> Result<(), RunError> {
     let event = asker(touch, cause, &mut ports.step);
     ports.log(event).await?;
-    let skip = state.rules().input_skip(touch.target.as_ref());
+    let skip = state
+        .rules()
+        .input_skip(&state.last().screen, touch.target.as_ref());
     if let Some(why) = skip.filter(|_| touch.op == INPUT) {
         ports.log(log::skipped(why)).await?;
     }

@@ -13,7 +13,8 @@ use crate::event::Mode;
 use crate::guard::domain::{AllowedOrigin, InvalidOrigin, allowed_or_start};
 use crate::guard::forbidden::Forbidden;
 use crate::guard::paywall::Paywall;
-use crate::screen::{ElementId, fillable, normalize_name};
+use crate::redact::Redacted;
+use crate::screen::{Element, ElementId, Screen, element_ids, fillable};
 
 /// What the state machine follows during a run.
 #[derive(Debug, Clone, PartialEq)]
@@ -44,7 +45,7 @@ pub struct Rules {
     pub leave_paywall: String,
     /// The stages of the scenario. Explore mode does not read them.
     pub stages: Vec<Stage>,
-    /// The normalized names of the inputs that have a value to type.
+    /// The names of the inputs that have a value to type, as written.
     pub input_names: BTreeSet<String>,
 }
 
@@ -86,26 +87,35 @@ impl Rules {
                 .as_ref()
                 .map(|scenario| scenario.stages.clone())
                 .unwrap_or_default(),
-            input_names: config
-                .inputs
-                .keys()
-                .map(String::as_str)
-                .map(normalize_name)
-                .collect(),
+            input_names: config.inputs.keys().cloned().collect(),
         })
     }
 
-    /// Why `input` on `target` does nothing, by name; `None` when it types.
+    /// Why `input` on `target`, an element of `screen`, does nothing, by
+    /// name; `None` when it types.
     ///
-    /// The names are compared normalized, as the core knows them, so a name
-    /// that differs from a key only in digits or spaces counts as the key.
+    /// The element is found the way the browser finds it, by its identity
+    /// among the elements of `screen`, and its name is compared to the keys
+    /// as written, as the browser compares them.
     #[must_use]
-    pub fn input_skip(&self, target: Option<&ElementId>) -> Option<&'static str> {
-        match target {
-            Some(id) if fillable(&id.role) => {
-                (!self.input_names.contains(&id.name)).then_some("no_input_value")
-            }
-            _ => Some("not_an_input"),
-        }
+    pub fn input_skip(
+        &self,
+        screen: &Redacted<Screen>,
+        target: Option<&ElementId>,
+    ) -> Option<&'static str> {
+        let field = named(screen, target).filter(|e| fillable(&e.role));
+        field.map_or(Some("not_an_input"), |e| {
+            (!self.input_names.contains(&e.name)).then_some("no_input_value")
+        })
     }
+}
+
+/// The element of `screen` that `target` identifies.
+fn named<'a>(screen: &'a Redacted<Screen>, target: Option<&ElementId>) -> Option<&'a Element> {
+    let ids = element_ids(screen);
+    let found = ids.into_iter().zip(&screen.as_inner().elements);
+    found
+        .into_iter()
+        .find(|(id, _)| Some(id) == target)
+        .map(|(_, e)| e)
 }

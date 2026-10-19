@@ -11,7 +11,8 @@ use crate::explore::{Candidate, Candidates, candidates};
 use crate::judge::{
     self, Answers, Ask, MAX_OPTIONS, Question, QuestionId, Unusable, Verdict, read_answers,
 };
-use crate::screen::{screen_text, visible};
+use crate::redact::Redacted;
+use crate::screen::{Screen, screen_text, visible};
 
 /// The operation kinds offered when no element is a candidate, in the
 /// order of the table of operation kinds.
@@ -75,6 +76,7 @@ fn explored(state: &State, elements: usize) -> Offer {
             candidates(&state.memory, at, &last.screen, last.viewport),
             ops,
             &state.rules,
+            &last.screen,
         )
     });
     Offer {
@@ -87,13 +89,18 @@ fn explored(state: &State, elements: usize) -> Offer {
 
 /// The elements of the tier, or the moves when no element is a candidate.
 /// `input` stays only when an element offered can take a value.
-fn tiered(tier: Candidates, ops: Vec<Op>, rules: &Rules) -> (Vec<Op>, Option<Vec<usize>>) {
+fn tiered(
+    tier: Candidates,
+    ops: Vec<Op>,
+    rules: &Rules,
+    screen: &Redacted<Screen>,
+) -> (Vec<Op>, Option<Vec<usize>>) {
     match tier {
         Candidates::Untouched(c) | Candidates::Unfinished(c) => {
             let offered = offerable(c);
             let types = offered
                 .iter()
-                .any(|c| rules.input_skip(Some(&c.id)).is_none());
+                .any(|c| rules.input_skip(screen, Some(&c.id)).is_none());
             let numbers = offered.iter().map(|c| c.number).collect();
             (without_input(ops, types), Some(numbers))
         }

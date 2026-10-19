@@ -111,23 +111,31 @@ fn invalid_origin_is_rejected() {
 #[test]
 fn input_does_nothing_without_a_field_or_a_value() {
     let rules = Rules {
-        input_names: BTreeSet::from(["メール#".to_owned()]),
+        input_names: BTreeSet::from(["メール1".to_owned()]),
         ..testing::rules()
     };
-    let id = |role: &str, name: &str| ElementId {
+    let shown = testing::seen(&testing::page(
+        "https://app.example.test/",
+        &[
+            ("textbox", "メール1"),
+            ("textbox", "メール2"),
+            ("link", "メール1"),
+        ],
+    ));
+    let id = |role: &str, nth| ElementId {
         role: role.to_owned(),
-        name: name.to_owned(),
-        nth: 0,
+        name: "メール#".to_owned(),
+        nth,
     };
     let cases = [
-        (Some(id("textbox", "メール#")), None),
-        (Some(id("link", "メール#")), Some("not_an_input")),
-        (Some(id("textbox", "検索")), Some("no_input_value")),
-        (Some(id("link", "検索")), Some("not_an_input")),
+        (Some(id("textbox", 0)), None),
+        (Some(id("textbox", 1)), Some("no_input_value")),
+        (Some(id("link", 0)), Some("not_an_input")),
+        (Some(id("textbox", 2)), Some("not_an_input")),
         (None, Some("not_an_input")),
     ];
     let skips = cases
         .clone()
-        .map(|(target, _)| rules.input_skip(target.as_ref()));
+        .map(|(target, _)| rules.input_skip(&shown.screen, target.as_ref()));
     assert_eq!(skips, cases.map(|(_, skip)| skip), "why input does nothing");
 }

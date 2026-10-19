@@ -5,6 +5,7 @@ use std::collections::BTreeSet;
 
 use super::{APP, options, save};
 use crate::config::raw::Op;
+use crate::judge::MAX_OPTIONS;
 use crate::machine::testing::{answer, explore, id, operated, page, showed, started, told};
 use crate::machine::{Rules, Step};
 use crate::screen::Screen;
@@ -28,10 +29,15 @@ pub(super) fn valued(names: &[&str]) -> Rules {
     }
 }
 
+/// The operation kinds offered at the start of `screen`.
+fn operations(rules: Rules, screen: &Screen) -> Vec<String> {
+    let asked = started(rules, screen);
+    options(asked.effect())[0].clone()
+}
+
 /// Whether the operation kinds offered at the start of `screen` have `input`.
 fn offers_input(rules: Rules, screen: &Screen) -> bool {
-    let asked = started(rules, screen);
-    options(asked.effect())[0].contains(&"input".to_owned())
+    operations(rules, screen).contains(&"input".to_owned())
 }
 
 #[test]
@@ -60,15 +66,35 @@ fn input_is_offered_only_for_a_field_with_a_value() {
 fn input_stays_when_the_rules_offer_nothing_else() {
     let screen = page(&format!("{APP}/"), &[("button", "保存")]);
     let cases = [
-        (vec![Op::Input], true),
-        (vec![Op::Input, Op::Done], true),
-        (vec![Op::Click, Op::Input], false),
+        (vec![Op::Input], vec!["input"]),
+        (vec![Op::Input, Op::Done], vec!["input"]),
+        (vec![Op::Click, Op::Input], vec!["click"]),
     ];
     let offered = cases.clone().map(|(ops, _)| {
         let rules = Rules { ops, ..valued(&[]) };
-        offers_input(rules, &screen)
+        operations(rules, &screen)
     });
-    assert_eq!(offered, cases.map(|(_, stays)| stays), "input stays");
+    assert_eq!(offered, cases.map(|(_, kinds)| kinds), "the kinds offered");
+}
+
+/// The buttons "b1" to `buttons`, then the field "メール".
+fn crowded(buttons: usize) -> Screen {
+    let names: Vec<String> = (1..=buttons).map(|n| format!("b{n}")).collect();
+    let mut elements: Vec<(&str, &str)> = names.iter().map(|n| ("button", n.as_str())).collect();
+    elements.push(("textbox", "メール"));
+    page(&format!("{APP}/"), &elements)
+}
+
+#[test]
+fn input_is_dropped_when_its_field_is_past_the_options() {
+    let last = MAX_OPTIONS;
+    let cases = [(last - 1, true), (last, false)];
+    let offered = cases.map(|(buttons, _)| offers_input(valued(&["メール"]), &crowded(buttons)));
+    assert_eq!(
+        offered,
+        cases.map(|(_, offered)| offered),
+        "the field is number 255 or 256"
+    );
 }
 
 /// Types into "メール", or into "保存", then looks at the page again.
