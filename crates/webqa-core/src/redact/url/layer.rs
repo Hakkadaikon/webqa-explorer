@@ -1,9 +1,27 @@
 //! One layer of `%` decoding that keeps where each byte came from.
 
+use std::iter::successors;
 use std::ops::Range;
 
 /// The character written for bytes that are not UTF-8.
 const REPLACEMENT: char = char::REPLACEMENT_CHARACTER;
+
+/// How many times a string is decoded at most.
+const DEPTH: usize = 3;
+
+/// `encoded` decoded once, twice and three times, stopping early when a
+/// decoding changes nothing.
+pub fn layers(encoded: &str, plus: bool) -> impl Iterator<Item = String> {
+    successors(Some(Decoded::new(encoded, plus).text), move |layer| {
+        Some(Decoded::new(layer, plus).text).filter(|next| next != layer)
+    })
+    .take(DEPTH)
+}
+
+/// `encoded` decoded as many times as [`layers`] goes.
+pub fn deepest(encoded: &str, plus: bool) -> String {
+    layers(encoded, plus).last().unwrap_or_default()
+}
 
 /// A string decoded once, with the span of the encoded string behind each
 /// byte of it.
@@ -73,7 +91,7 @@ fn escape(encoded: &[u8], at: usize, first: u8) -> Option<u8> {
     (first == b'%')
         .then(|| hex_at(encoded, at + 1).zip(hex_at(encoded, at + 2)))
         .flatten()
-        .map(|(high, low)| (high << 4) | low)
+        .map(|(high, low)| high * 16 + low)
 }
 
 /// A byte that is not an escape. With `plus`, a `+` reads as a space.

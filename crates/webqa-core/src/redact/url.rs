@@ -3,11 +3,18 @@
 //! A part is first read with its `%` escapes decoded once, and each match is
 //! written over the span of the encoded string behind it. Then each piece of
 //! the part is decoded up to three times, and a piece whose deeper decoding
-//! shows a secret is replaced as a whole. What masking does not touch keeps
-//! its encoding, so a URL with no secret stays as it was.
+//! shows a secret is replaced as a whole. Last, the result is checked for a
+//! secret at any depth, and the whole part is replaced when one still shows.
+//! What masking does not touch keeps its encoding, so a URL with no secret
+//! stays as it was.
 
+mod check;
+#[cfg(test)]
+mod embedded_tests;
 mod layer;
 mod pieces;
+#[cfg(test)]
+mod tests;
 
 use std::ops::Range;
 
@@ -27,15 +34,37 @@ const WRITTEN: &AsciiSet = &NON_ALPHANUMERIC
     .remove(b'[')
     .remove(b']');
 
-/// The readings of a path or a fragment: a `+` is itself.
-const PLAIN: &[bool] = &[false];
-/// The readings of a query: a `+` as itself first, then as a space.
-const FORM: &[bool] = &[false, true];
+/// How one part of a URL is read and written.
+struct Part {
+    /// Whether a `+` reads as a space, in each reading in turn.
+    readings: &'static [bool],
+    /// What splits the part into pieces.
+    separators: &'static [char],
+    /// What the part replaced as a whole leaves unescaped.
+    kept: &'static AsciiSet,
+}
 
-/// The pieces of a path.
-const SEGMENTS: &[char] = &['/'];
-/// The pieces of a query: each name and each value.
-const PAIRS: &[char] = &['&', '='];
+/// A `+` is itself, and each segment is a piece.
+const PATH: Part = Part {
+    readings: &[false],
+    separators: &['/'],
+    kept: &WRITTEN.remove(b'/'),
+};
+
+/// A `+` reads as itself first, then as a space. Each name and each value is
+/// a piece.
+const QUERY: Part = Part {
+    readings: &[false, true],
+    separators: &['&', '='],
+    kept: &WRITTEN.remove(b'&').remove(b'='),
+};
+
+/// A `+` is itself, and the whole fragment is one piece.
+const FRAGMENT: Part = Part {
+    readings: &[false],
+    separators: &[],
+    kept: WRITTEN,
+};
 
 impl Redactor {
     /// The URL as it may leave the process: its path, query and fragment
@@ -59,35 +88,36 @@ impl Redactor {
     }
 
     fn mask_path(&self, url: &mut Url) {
-        if let Some(path) = self.mask_part(url.path(), PLAIN, SEGMENTS) {
+        if let Some(path) = self.mask_part(url.path(), &PATH) {
             url.set_path(&path);
         }
     }
 
     fn mask_query(&self, url: &mut Url) {
-        let query = url.query().and_then(|q| self.mask_part(q, FORM, PAIRS));
+        let query = url.query().and_then(|q| self.mask_part(q, &QUERY));
         if query.is_some() {
             url.set_query(query.as_deref());
         }
     }
 
-    /// The fragment is a single piece.
     fn mask_fragment(&self, url: &mut Url) {
-        let fragment = url.fragment().and_then(|f| self.mask_part(f, PLAIN, &[]));
+        let fragment = url.fragment().and_then(|f| self.mask_part(f, &FRAGMENT));
         if fragment.is_some() {
             url.set_fragment(fragment.as_deref());
         }
     }
 
-    /// One encoded part, masked in each of `readings`. `None` when nothing
-    /// was masked.
-    fn mask_part(&self, encoded: &str, readings: &[bool], separators: &[char]) -> Option<String> {
+    /// One encoded part, masked in each of its readings and checked for a
+    /// secret left at any depth. `None` when nothing was masked.
+    fn mask_part(&self, encoded: &str, part: &Part) -> Option<String> {
+        let readings = part.readings;
         let spans = each_reading(encoded, readings, |s, plus| self.mask_spans(s, plus));
         let current = spans.as_deref().unwrap_or(encoded);
-        each_reading(current, readings, |s, plus| {
-            self.mask_pieces(s, separators, plus)
+        let pieces = each_reading(current, readings, |s, plus| {
+            self.mask_pieces(s, part.separators, plus)
         })
-        .or(spans)
+        .or(spans);
+        self.checked(encoded, pieces, part)
     }
 
     /// `encoded` decoded once, with each match written over the span of

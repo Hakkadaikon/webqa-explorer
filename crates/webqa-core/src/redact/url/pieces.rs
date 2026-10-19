@@ -1,15 +1,10 @@
 //! Pieces of a URL whose secret shows only after decoding more than once.
 
-use std::iter::successors;
-
 use percent_encoding::utf8_percent_encode;
 
 use super::super::Redactor;
 use super::WRITTEN;
-use super::layer::Decoded;
-
-/// How many times a piece is decoded at most.
-const DEPTH: usize = 3;
+use super::layer::layers;
 
 impl Redactor {
     /// `encoded` with each piece between `separators` replaced as a whole
@@ -43,18 +38,11 @@ impl Redactor {
     }
 
     /// The first of the second and third decodings that masking changes,
-    /// masked and encoded once. Decoding stops when it changes nothing.
+    /// masked and encoded once.
     fn mask_deep(&self, body: &str, plus: bool) -> Option<String> {
-        successors(Some(decoded(body, plus)), |layer| {
-            Some(decoded(layer, plus)).filter(|next| next != layer)
-        })
-        .skip(1)
-        .take(DEPTH - 1)
-        .find_map(|layer| self.masked(&layer))
-        .map(|masked| utf8_percent_encode(&masked, WRITTEN).to_string())
+        layers(body, plus)
+            .skip(1)
+            .find_map(|layer| self.masked(&layer))
+            .map(|masked| utf8_percent_encode(&masked, WRITTEN).to_string())
     }
-}
-
-fn decoded(encoded: &str, plus: bool) -> String {
-    Decoded::new(encoded, plus).text
 }
