@@ -64,7 +64,8 @@ fn finding(answers: &Answers, probe: &Probe) -> Finding {
 }
 
 /// The probability of the option `"true"` of the question `id`. `None`
-/// when there is no answer, no such option, or it is `NaN`.
+/// when there is no answer or no such option. A `NaN` never reaches a
+/// threshold, so it records nothing.
 fn yes(answers: &Answers, id: &QuestionId) -> Option<f64> {
     answers
         .table
@@ -72,5 +73,4 @@ fn yes(answers: &Answers, id: &QuestionId) -> Option<f64> {
         .iter()
         .find(|(option, _)| option == "true")
         .map(|(_, p)| *p)
-        .filter(|p| !p.is_nan())
 }
