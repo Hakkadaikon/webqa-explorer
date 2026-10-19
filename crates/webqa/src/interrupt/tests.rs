@@ -12,7 +12,7 @@ use webqa_core::event::Mode;
 use webqa_core::explore::Memory;
 use webqa_core::guard::forbidden::Forbidden;
 use webqa_core::guard::paywall::Paywall;
-use webqa_core::machine::{self, ExitReason, Material, Rules, Seen, Step, Whole};
+use webqa_core::machine::{self, ExitReason, Material, Rules, Seen, Whole};
 use webqa_core::ports::Pending;
 use webqa_core::redact::Redactor;
 use webqa_core::screen::{Element, Screen, Viewport};
@@ -105,11 +105,8 @@ fn goal_state() -> Box<machine::State> {
         screen,
         viewport,
     };
-    let Step::Finished(done) = machine::start(seen, rules(), Memory::default(), Duration::ZERO)
-    else {
-        unreachable!("the only stage is done at the start")
-    };
-    done.state
+    let start = machine::start(seen, rules(), Memory::default(), Duration::ZERO);
+    Box::new(start.state().clone())
 }
 
 fn rules() -> Rules {
