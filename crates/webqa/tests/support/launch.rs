@@ -9,6 +9,7 @@ use crate::interview::trials::Launch;
 use webqa_core::ports::{Browser, BrowserError, Pending};
 
 use crate::run::fakes::FakeBrowser;
+use crate::run::fakes::stuck::stuck;
 
 /// Hands out one browser per launch, in order, and fails when none is left.
 #[derive(Debug, Default)]
@@ -30,7 +31,7 @@ impl Launch for FakeLaunch {
         self.launched += 1;
         self.counted.extend(self.counting.as_deref().map(lines));
         if self.hangs {
-            return Box::pin(future::pending());
+            return stuck();
         }
         let next = self.browsers.pop_front().map(boxed);
         Box::pin(future::ready(next.ok_or(BrowserError)))

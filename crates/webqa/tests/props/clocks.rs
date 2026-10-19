@@ -19,6 +19,8 @@ use webqa_core::screen::ScreenText;
 
 use crate::fakes::{FakeBrowser, RecordingJudge};
 
+use crate::fakes::stuck::stuck;
+
 /// A minute, in milliseconds.
 pub const MINUTE_MS: u64 = 60_000;
 
@@ -54,7 +56,7 @@ impl Clock for Virtual {
     fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
         let ms = u64::try_from(at.as_millis()).unwrap_or(u64::MAX);
         if !ms.is_multiple_of(MINUTE_MS) {
-            return Box::pin(future::pending());
+            return stuck();
         }
         self.sleeps.push(Sleep {
             at_ms: ms,
@@ -129,7 +131,7 @@ impl Interrupt for Fires {
         if self.from.is_some_and(|from| self.calls >= from) {
             Box::pin(future::ready(()))
         } else {
-            Box::pin(future::pending())
+            stuck()
         }
     }
 }

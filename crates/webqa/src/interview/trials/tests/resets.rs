@@ -29,7 +29,7 @@ impl Clock for Gauged {
             self.slept = true;
             Box::pin(future::ready(()))
         } else {
-            Box::pin(future::pending())
+            stuck()
         }
     }
 }
@@ -50,7 +50,7 @@ impl Clock for Watching {
 
     fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
         if !at.as_secs().is_multiple_of(3600) {
-            return Box::pin(future::pending());
+            return stuck();
         }
         self.at_sleep.push(lines(&self.out));
         self.now = at;
