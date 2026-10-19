@@ -12,3 +12,5 @@
 - テスト名と期待値は brief のとおり。brief に無い設計の判断が要るときは、実装を止めて NEEDS_CONTEXT で返す。
 - コミットは worktree のブランチに積む。push しない。rebase しない(main の取り込みが要るときは `git merge main`)。
 - 報告: 状態、コミットの一覧、`just check` の結果、ゲートで落ちた回数(ゲートごと)、気になった点。
+- 環境: 本体の checkout の `.aqua/bin` を PATH に入れ、`AQUA_ROOT_DIR`(本体の `.aqua`)、`AQUA_CONFIG`、`AQUA_POLICY_CONFIG`(作業している木の `.config/aqua/` の下)、`CARGO_BUILD_JOBS=2`、`PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright` を export する。`git commit` もこの環境で行う(フックが just と Chromium を使う)。
+- ビルドは自分専用の `CARGO_TARGET_DIR` と `CARGO_LLVM_COV_TARGET_DIR`(worktree の中の `target/<名前>`)で行い、終わったら消す。共有の `target/` には、ほかの worktree の成果物が混ざる。scratchpad に置くものも、自分だけの名前のディレクトリに入れる。
