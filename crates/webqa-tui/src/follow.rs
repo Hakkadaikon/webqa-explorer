@@ -1,12 +1,18 @@
 //! What the viewer has read of one run, and where to draw it.
 
+use std::io::{self, Write};
 use std::mem::take;
 
+use crossterm::cursor::MoveTo;
+use crossterm::queue;
+use crossterm::terminal::{Clear, ClearType, size};
+use ratatui::backend::CrosstermBackend;
 use ratatui::layout::Rect;
+use ratatui::{Terminal, TerminalOptions, Viewport};
 use webqa_core::event::Line;
 
 use crate::tail::Tail;
-use crate::view::State;
+use crate::view::{State, render};
 
 /// What the viewer has read of one run.
 #[derive(Debug, Default)]
@@ -48,6 +54,20 @@ impl Follow {
 pub fn area(size: Option<(u16, u16)>) -> Rect {
     let (width, height) = size.unwrap_or((80, 24));
     Rect::new(0, 0, width, height)
+}
+
+/// Clears the screen and draws `state` on it, as large as the terminal.
+///
+/// # Errors
+///
+/// When `out` cannot be written.
+pub fn draw<W: Write>(out: &mut W, state: &State) -> io::Result<()> {
+    queue!(out, Clear(ClearType::All), MoveTo(0, 0))?;
+    let viewport = Viewport::Fixed(area(size().ok()));
+    let backend = CrosstermBackend::new(out);
+    let mut terminal = Terminal::with_options(backend, TerminalOptions { viewport })?;
+    terminal.draw(|frame| render(state, frame))?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -94,6 +114,27 @@ mod tests {
         assert!(!follow.finished());
         follow.read(&joined(&EXAMPLE[3..]));
         assert!(follow.finished());
+    }
+
+    #[test]
+    fn draw_writes_the_state() {
+        let mut out = Vec::new();
+        draw(&mut out, &folded(&EXAMPLE)).unwrap();
+        let text = plain(&out);
+        assert!(text.contains("保存"), "{text:?}");
+        assert!(text.contains("goal_achieved"), "{text:?}");
+    }
+
+    /// The text of terminal output, without the escape sequences. Cells
+    /// after a wide character are skipped by cursor moves, which hide it.
+    fn plain(bytes: &[u8]) -> String {
+        let step = |escaped: &mut bool, c: char| {
+            let inside = *escaped || c == '\x1b';
+            *escaped = inside && !c.is_ascii_alphabetic();
+            Some((!inside).then_some(c))
+        };
+        let text = String::from_utf8_lossy(bytes);
+        text.chars().scan(false, step).flatten().collect()
     }
 
     #[test]
