@@ -96,7 +96,7 @@ fn with(source: Source, args: RunArgs) -> Job {
     }
 }
 
-/// Stage 1: the text of the configuration file.
+/// The text of the configuration file.
 ///
 /// # Errors
 ///
@@ -106,7 +106,7 @@ pub async fn config_text(path: &Path) -> Result<String, Stop> {
     read.map_err(|_| Stop::config("設定ファイルを読めない"))
 }
 
-/// Stage 2: the mode, and for a replay the judge that gives back the report.
+/// The mode, and for a replay the judge that gives back the report.
 ///
 /// # Errors
 ///
@@ -126,7 +126,7 @@ async fn replayed(path: &Path) -> Result<(Mode, Option<Replay>), Stop> {
     Ok((mode, Some(replay)))
 }
 
-/// Stage 3: the checked configuration.
+/// The checked configuration.
 ///
 /// # Errors
 ///
@@ -137,7 +137,7 @@ pub fn setup(yaml: &str, mode: Mode) -> Result<Setup, Stop> {
     setup::load(yaml, mode, &env, &read).map_err(Stop::config)
 }
 
-/// Stage 6: the judge, the replay or the one the configuration names.
+/// The judge, the replay or the one the configuration names.
 ///
 /// # Errors
 ///
@@ -166,7 +166,7 @@ pub fn judge_stop(error: StartError) -> Stop {
     }
 }
 
-/// Stage 7: the browser, 1280x720.
+/// The browser, 1280x720.
 ///
 /// # Errors
 ///
@@ -192,7 +192,7 @@ pub async fn browser(plan: BrowserPlan, redactor: Redactor) -> Result<Playwright
         .map_err(Stop::runtime)
 }
 
-/// Stage 8: the directory of the run.
+/// The directory of the run.
 ///
 /// # Errors
 ///

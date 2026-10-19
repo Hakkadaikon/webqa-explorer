@@ -66,7 +66,7 @@ async fn prepare(job: &Job) -> Result<Parts, Stop> {
     launch(job, setup, replay).await
 }
 
-/// Stages 1 to 3: the configuration and the mode.
+/// The configuration and the mode.
 async fn configure(job: &Job) -> Result<(Setup, Option<Replay>), Stop> {
     let yaml = start::config_text(&job.config).await?;
     let (mode, replay) = start::script(&job.source).await?;
@@ -74,7 +74,7 @@ async fn configure(job: &Job) -> Result<(Setup, Option<Replay>), Stop> {
     Ok((setup, replay))
 }
 
-/// Stages 4 to 8: the judge, the browser, the clocks and the store. The run's
+/// The judge, the browser, the clocks and the store. The run's
 /// time starts once the browser is up; the judge's bridge keeps its own.
 async fn launch(job: &Job, setup: Setup, replay: Option<Replay>) -> Result<Parts, Stop> {
     let judge = start::judge(replay, &setup, RealClock::start()).await?;
@@ -111,7 +111,7 @@ async fn launch(job: &Job, setup: Setup, replay: Option<Replay>) -> Result<Parts
     })
 }
 
-/// Stages 9 and 10: the run, and what it says about its end.
+/// The run, and what it says about its end.
 async fn finish(mut parts: Parts) -> Done {
     let dir = parts.store.run_dir().to_path_buf();
     let mut wired = Ports::new(

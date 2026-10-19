@@ -2,6 +2,8 @@
 
 共通の決まりは同じディレクトリの `common.md`。分け方は `14-plan.md`。
 
+**実装のあとの差し替え(2026-10-20)**: 引数 `--max-duration-secs` は作らない(制限時間は設定だけ。`14-plan.md` の14gの決定)。時計は判断モデルとブラウザの起動のあとから数え、判断モデルには別の時計を渡す(`tasks/decisions.md`)。下の引数の定義、起動の順の表の段4〜6、テスト3と7の該当する記述は、この2点で読み替える。
+
 **14e と 14f が入ってから始める**(14a〜14d も入っている)。14e の `setup::{load, dotenv, Setup, BrowserPlan}`、`clock::{RealClock, Wall}`、`logging::init`、14f の `run::session::{conduct, Plan, Ending}`、`exit::{code, CONFIG_ERROR, RUNTIME_ERROR}`、14c の `store::FileStore`、`store::report::{Meta, Price}`、`replay::Replay`、14d の `run::{Ports, Detect}` を使う。始める前に main の実物を読み、型とシグネチャがこの brief と違えば NEEDS_CONTEXT で返す。
 
 並行して 14h(受け入れの土台)が回る。触るファイルは重ならない。
