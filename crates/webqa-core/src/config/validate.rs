@@ -11,6 +11,7 @@ use url::Url;
 
 use super::raw::RawConfig;
 use super::{Config, ConfigError, Judge, Target};
+pub use check::LEAVE_OPS;
 use check::check;
 use secrets::{Secrets, secret};
 
