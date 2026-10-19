@@ -11,6 +11,7 @@ use webqa_core::machine::ExitReason;
 use webqa_core::ports::{Clock, Judge, Store};
 use webqa_core::redact::Redactor;
 
+use super::after::{Asker, Findings, findings};
 use super::record::{self, Trial};
 use super::{Plan, Stopped};
 use crate::run::{Kept, RunError};
@@ -48,8 +49,14 @@ pub(super) async fn records(closing: Closing<'_>, stopped: Stopped) -> Result<Cl
         trials: &records,
         images: closing.judge.reads_images(),
     };
+    let mut asker = Asker {
+        judge: &mut *closing.judge,
+        clock: &mut *closing.clock,
+        done: &mut closing.kept.record,
+    };
+    let found = findings(&mut asker, closing.plan, &run).await;
     let compared = compare(
-        ledger(closing.plan, &run),
+        ledger(closing.plan, &run, found),
         closing.plan.previous.as_ref(),
         &run,
     );
@@ -83,11 +90,11 @@ fn record<'a>((trial, views): (&Trial, &'a Vec<Seen<'a>>)) -> Record<'a> {
     }
 }
 
-/// The ledger of `run`: its head only.
-fn ledger(plan: &Plan, run: &Run<'_>) -> Ledger {
+/// The ledger of `run` with what the questions after the trials found.
+fn ledger(plan: &Plan, run: &Run<'_>, found: Findings) -> Ledger {
     let outcomes: Vec<Outcome> = run.trials.iter().map(|trial| trial.outcome).collect();
     let interview = &plan.interview;
-    Ledger {
+    let mut ledger = Ledger {
         head: Head {
             persona: interview.persona.name.clone(),
             goal: goal(&interview.purpose.aim, run),
@@ -95,9 +102,11 @@ fn ledger(plan: &Plan, run: &Run<'_>) -> Ledger {
             finished: tally(&outcomes).finished,
             images: run.images,
         },
-        entries: Vec::new(),
-        unchecked_purposes: Vec::new(),
-    }
+        entries: found.entries,
+        unchecked_purposes: found.unchecked,
+    };
+    ledger.arrange();
+    ledger
 }
 
 /// The purpose of the run: the written one, or what the judge guessed.

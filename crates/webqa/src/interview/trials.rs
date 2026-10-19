@@ -5,6 +5,7 @@
 //! the purpose as its one stage. A trial counts for the ledger when it
 //! finishes; the time limit or an interruption cuts it and the run.
 
+mod after;
 mod course;
 mod open;
 mod record;

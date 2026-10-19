@@ -1,46 +1,10 @@
 //! Tests of the window the trials share, and of the deadline across them.
 
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::AtomicU64;
 
-use webqa_core::judge::{Answers, JudgeError, Question};
-use webqa_core::redact::Redacted;
-use webqa_core::screen::ScreenText;
-
+use super::stubs::{Thinking, Ticking};
 use super::*;
-
-/// A clock that tells the time its judge's thinking moved it to.
-struct Ticking(Arc<AtomicU64>);
-
-impl Clock for Ticking {
-    fn elapsed(&self) -> Duration {
-        Duration::from_millis(self.0.load(Ordering::SeqCst))
-    }
-
-    fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
-        let millis = u64::try_from(at.as_millis()).unwrap();
-        self.0.store(millis, Ordering::SeqCst);
-        Box::pin(future::ready(()))
-    }
-}
-
-/// A judge that takes `minutes` of the clock `now` to answer.
-struct Thinking {
-    inner: RecordingJudge,
-    now: Arc<AtomicU64>,
-    minutes: u64,
-}
-
-impl Judge for Thinking {
-    fn ask<'a>(
-        &'a mut self,
-        screen: &'a Redacted<ScreenText>,
-        questions: &'a [Question],
-    ) -> Pending<'a, Result<Answers, JudgeError>> {
-        self.now.fetch_add(self.minutes * 60_000, Ordering::SeqCst);
-        self.inner.ask(screen, questions)
-    }
-}
 
 /// Names the lines of the touches and the waits of the core.
 const MARKS: [&str; 2] = ["executed", "waited"];
@@ -98,8 +62,9 @@ async fn budget_resets_per_trial() {
     let mut world = world(2, 100, &["click", "click"]);
     world.plan.rules.max_decisions = nz(1);
     world.run().await;
+    let decisions = world.picked(&["asked"]).len();
     assert_eq!(
-        (world.judge.texts.len(), world.ledger().map(|l| l.head)),
+        (decisions, world.ledger().map(|l| l.head)),
         (2, Some(head(2))),
         "each trial spent its own decision"
     );
@@ -156,11 +121,11 @@ async fn core_window_count_starts_at_zero() {
 
 /// Runs `world` with a judge that takes 20 minutes to answer, and the
 /// time limit at 60 minutes.
-async fn slow_run(world: &mut World, ops: &[&'static str]) -> Ending {
+pub(super) async fn slow_run(world: &mut World, script: Scripted) -> Ending {
     let now = Arc::new(AtomicU64::new(0));
     let mut judge = Thinking {
         inner: RecordingJudge {
-            script: script(ops),
+            script,
             ..RecordingJudge::default()
         },
         now: Arc::clone(&now),
@@ -184,7 +149,7 @@ async fn slow_run(world: &mut World, ops: &[&'static str]) -> Ending {
 async fn deadline_measured_from_run_start() {
     let mut world = world(3, 100, &[]);
     let ops = [trial_ops(1, "done"), trial_ops(1, "done")].concat();
-    let ending = slow_run(&mut world, &ops).await;
+    let ending = slow_run(&mut world, script(&ops)).await;
     let finished = world.picked(&["trial_finished"]);
     let timed_out = Ending::Wrote {
         stopped: Stopped::TimeUp,

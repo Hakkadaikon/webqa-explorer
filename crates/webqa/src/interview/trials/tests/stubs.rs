@@ -6,11 +6,17 @@ use std::fs;
 use std::future;
 use std::path::PathBuf;
 use std::process;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
-use webqa_core::ports::{Clock, Pending};
+use webqa_core::judge::{Answers, JudgeError, Question};
+use webqa_core::ports::{Clock, Judge, Pending};
+use webqa_core::redact::Redacted;
+use webqa_core::screen::ScreenText;
 
 use crate::interrupt::Interrupt;
+use crate::run::fakes::RecordingJudge;
 
 /// The user who never interrupts.
 pub(super) struct Never;
@@ -69,4 +75,37 @@ pub(super) fn scratch(name: &str) -> PathBuf {
 /// A variable of the reset command's environment.
 pub(super) fn var(name: &str, value: impl Into<OsString>) -> (OsString, OsString) {
     (OsString::from(name), value.into())
+}
+
+/// A clock that tells the time its judge's thinking moved it to.
+pub(super) struct Ticking(pub(super) Arc<AtomicU64>);
+
+impl Clock for Ticking {
+    fn elapsed(&self) -> Duration {
+        Duration::from_millis(self.0.load(Ordering::SeqCst))
+    }
+
+    fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
+        let millis = u64::try_from(at.as_millis()).unwrap();
+        self.0.store(millis, Ordering::SeqCst);
+        Box::pin(future::ready(()))
+    }
+}
+
+/// A judge that takes `minutes` of the clock `now` to answer.
+pub(super) struct Thinking {
+    pub(super) inner: RecordingJudge,
+    pub(super) now: Arc<AtomicU64>,
+    pub(super) minutes: u64,
+}
+
+impl Judge for Thinking {
+    fn ask<'a>(
+        &'a mut self,
+        screen: &'a Redacted<ScreenText>,
+        questions: &'a [Question],
+    ) -> Pending<'a, Result<Answers, JudgeError>> {
+        self.now.fetch_add(self.minutes * 60_000, Ordering::SeqCst);
+        self.inner.ask(screen, questions)
+    }
 }

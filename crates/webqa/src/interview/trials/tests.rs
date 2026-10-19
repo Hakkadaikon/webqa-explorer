@@ -24,7 +24,9 @@ use webqa_core::redact::Redactor;
 use webqa_judge::scripted::Scripted;
 
 mod ends;
+mod findings;
 mod opening;
+mod purposes;
 mod resets;
 mod stubs;
 mod trials;
@@ -95,15 +97,21 @@ fn plan(trials: u32) -> Plan {
     }
 }
 
-/// The judge chooses the operations `ops` in turn, on the first element.
+/// The judge chooses the operations `ops` in turn, on the first element,
+/// without hesitating.
 fn script(ops: &[&str]) -> Scripted {
+    hesitating(ops, 0.0)
+}
+
+/// As [`script`], with the probability `hesitation` that the judge hesitated.
+fn hesitating(ops: &[&str], hesitation: f64) -> Scripted {
     ops.iter().fold(Scripted::default(), |script, &op| {
         script
             .then(QuestionId::operation(), [(op, 0.9)])
             .then(QuestionId::target(), [("1", 0.8)])
             .then(QuestionId::error_shown(), [("true", 0.0)])
             .then(QuestionId::goal_reached(), [("true", 0.0)])
-            .then(QuestionId::new(HESITATION), [("true", 0.0)])
+            .then(QuestionId::new(HESITATION), [("true", hesitation)])
             .then_text(QuestionId::new(EXPECTATION), "保存される")
             .then_text(QuestionId::new(PURPOSE_GUESS), GUESS)
     })
