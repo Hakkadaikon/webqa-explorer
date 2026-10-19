@@ -16,6 +16,7 @@ use std::fs;
 use std::io;
 
 use case::{Case, assert_refused, field};
+use config::Config;
 use serde_json::Value;
 
 fn reason(report: &Value) -> Option<&str> {
@@ -123,5 +124,50 @@ fn semantic_findings_use_the_configured_confidence() -> io::Result<()> {
         confusing.1.first().map(String::as_str),
         Some("semantic/わかりにくい表示")
     );
+    Ok(())
+}
+
+#[test]
+fn a_replay_that_cannot_be_read_exits_two() -> io::Result<()> {
+    let case = Case::new("replay_unreadable")?;
+    let no_report = case.dir.join("no-report.json");
+    fs::write(&no_report, "{}")?;
+    let report = no_report.display().to_string();
+    let output = case.run(&["replay", &report], &case.config("stuck"), &[])?;
+    assert_eq!(exec::code(&output), Some(2));
+    assert!(!case.runs_exist(), "no run directory");
+    let missing = case.dir.join("missing.json").display().to_string();
+    let output = case.run(&["replay", &missing], &case.config("stuck"), &[])?;
+    assert_eq!(exec::code(&output), Some(2));
+    Ok(())
+}
+
+#[test]
+fn a_browser_that_cannot_start_exits_three() -> io::Result<()> {
+    let case = Case::new("browser_start_failure")?;
+    // Nothing listens on port 1.
+    let config = Config::new("http://127.0.0.1:1/", "stuck", &case.log);
+    let output = case.explore(&config)?;
+    assert_eq!(exec::code(&output), Some(3));
+    assert!(!case.runs_exist(), "no run directory");
+    Ok(())
+}
+
+#[test]
+fn an_output_that_cannot_be_made_exits_three() -> io::Result<()> {
+    let case = Case::new("store_start_failure")?;
+    let file = case.dir.join("file");
+    fs::write(&file, "")?;
+    let config = case.config("stuck");
+    let path = config.write(&case.dir)?;
+    let args = [
+        "explore",
+        "--config",
+        &case::arg(&path),
+        "--out",
+        &case::arg(&file.join("out")),
+    ];
+    let output = exec::run(&case.dir, &args)?;
+    assert_eq!(exec::code(&output), Some(3));
     Ok(())
 }

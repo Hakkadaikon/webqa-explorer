@@ -131,7 +131,7 @@ async fn finish(mut parts: Parts) -> Done {
 }
 
 /// The line that says how the run ended.
-pub(super) fn describe(ending: &Ending, dir: &Path) -> String {
+pub(crate) fn describe(ending: &Ending, dir: &Path) -> String {
     match ending {
         Ending::Finished { outcome, .. } => finished_line(outcome.reason, dir),
         Ending::Abandoned => "記録を書き終える前に中断した".to_owned(),

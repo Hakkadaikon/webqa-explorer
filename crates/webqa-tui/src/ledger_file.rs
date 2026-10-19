@@ -64,9 +64,10 @@ impl LedgerFile {
         let text = ledger::set_selection(&self.text, number, selected)?;
         // shortcut: 読み直しと書き込みの間の保存は見分けない、ロックが要る使い方が出たら直す
         fs::write(&self.path, &text)?;
-        let ledger = ledger::read(&text)?;
-        self.text = text;
-        Ok(ledger)
+        // `set_selection` changed one checkbox of a text it read, so this read
+        // cannot fail; it has no `?` because no input would reach its error side.
+        let read = ledger::read(&text);
+        read.inspect(|_| self.text = text).map_err(Into::into)
     }
 
     /// Reads the file again and checks it is what was last read or written.
