@@ -1,5 +1,6 @@
 //! Tests of setting the selection of an issue in a ledger text.
 
+use super::checked;
 use crate::interview::issue::Number;
 use crate::interview::ledger::read::tests::broken::broken;
 use crate::interview::ledger::tests::{GOLDEN, golden};
@@ -84,6 +85,27 @@ fn set_selection_changes_only_checkbox() {
         assert_eq!(got, Err(LedgerError::Malformed { line }), "line {line}");
     }
     same_number_twice();
+    longer_numbers_kept();
+}
+
+/// Lines given to the line rewriting, and how they come out when
+/// `I-5334A6B3` is unset. A number followed by more characters is another
+/// number, so its line is kept. Such lines cannot be read back, so they
+/// are given to the line rewriting directly.
+const LINES: [(&str, Option<&str>); 5] = [
+    ("- [x] I-5334A6B30 別の課題\n", None),
+    ("- [x] I-5334A6B3x 別の課題\n", None),
+    ("- [x] I-5334A6B3 指示\n", Some("- [ ] I-5334A6B3 指示\n")),
+    ("- [x] I-5334A6B3\r\n", Some("- [ ] I-5334A6B3\r\n")),
+    ("- [x] I-5334A6B3", Some("- [ ] I-5334A6B3")),
+];
+
+/// Only the line of the number itself is rewritten.
+fn longer_numbers_kept() {
+    for (line, expected) in LINES {
+        let got = checked(line, number("I-5334A6B3"), ' ');
+        assert_eq!(got.as_deref(), expected, "{line:?}");
+    }
 }
 
 /// Both issues with the same number are set.
