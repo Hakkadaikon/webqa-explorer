@@ -4,6 +4,9 @@ mod rule;
 mod screen;
 #[cfg(test)]
 mod tests;
+mod url;
+#[cfg(test)]
+mod url_tests;
 
 use std::fmt;
 
