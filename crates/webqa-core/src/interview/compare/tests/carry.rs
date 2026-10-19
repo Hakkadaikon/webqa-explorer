@@ -63,7 +63,7 @@ fn selection_carries_to_remaining() {
 
 #[test]
 fn new_issue_unselected() {
-    let previous = ledger(3, vec![body(sample(X, 2, 3))]);
+    let previous = ledger(3, vec![body(at_a(X, 3))]);
     let now = ledger(
         3,
         vec![Entry {
@@ -71,12 +71,15 @@ fn new_issue_unselected() {
             ..body(sample(Y, 1, 3))
         }],
     );
-    let got = compared(&now, &previous, 3, 3).unwrap();
-    let found = got
-        .entries
-        .iter()
-        .find(|it| it.issue.number == Number::parse(Y).unwrap());
-    assert_eq!(found, Some(&body(sample(Y, 1, 3))));
+    let mut expected = ledger(
+        3,
+        vec![
+            body(sample(Y, 1, 3)),
+            gone(&previous.entries[0], Compared::Resolved, count(0, 3, 3)),
+        ],
+    );
+    expected.arrange();
+    assert_eq!(compared(&now, &previous, 3, 3), Ok(expected));
 }
 
 #[test]

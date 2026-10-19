@@ -106,3 +106,15 @@ fn written_runs_ignore_start_url() {
     let now = with_head(head(3, goal()));
     assert_eq!(compared(&now, &previous, 3, 3), Ok(now));
 }
+
+#[test]
+fn persona_is_checked_before_purpose() {
+    let base = head(3, goal());
+    let previous = with_head(Head {
+        persona: "鈴木さん".to_owned(),
+        goal: Goal::Written("別の目的".to_owned()),
+        ..base.clone()
+    });
+    let got = compared(&with_head(base), &previous, 3, 3);
+    assert_eq!(got, Err(Mismatch::Persona));
+}

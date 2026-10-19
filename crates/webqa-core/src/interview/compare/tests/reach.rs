@@ -97,11 +97,11 @@ fn invalid_pattern_reaches_nothing_and_first_duplicate_wins() {
         place: Place::Pattern(String::new()),
         ..mismatch_sample()
     };
-    let twin = Issue {
-        count: count(1, 1, 0),
-        ..at_a(Z, 0)
+    let twin = Entry {
+        selected: true,
+        ..body(at_a(Z, 5))
     };
-    let previous = ledger(3, vec![body(invalid), body(at_a(Z, 3)), body(twin)]);
+    let previous = ledger(3, vec![body(invalid), body(at_a(Z, 3)), twin]);
     let mut expected = ledger(
         3,
         vec![

@@ -5,7 +5,7 @@ use crate::interview::issue::tests::fixture::{
     CUT, GOAL, cart, count, product, record, run, screen, seen,
 };
 use crate::interview::issue::tests::sample::{mismatch_sample, sample};
-use crate::interview::issue::{Count, Issue, Number, Place, Record, ScreenMark};
+use crate::interview::issue::{Count, Issue, Place, Record, ScreenMark};
 use crate::interview::ledger::tests::{entry, head};
 use crate::interview::ledger::{Compared, Entry, Goal, Head, Ledger};
 use crate::interview::natural::{Placed, Section};
