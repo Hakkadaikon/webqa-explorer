@@ -90,6 +90,12 @@ const fn timed_out(error: &Error) -> bool {
 /// the timeout even while a navigation is pending.
 const LOADED: &str = "document.readyState === 'complete'";
 
+/// Resolves at `load`, or after `ms` milliseconds.
+const IN_PAGE: &str = "ms => new Promise(done => { \
+    if (document.readyState === 'complete') { done(); return; } \
+    addEventListener('load', () => done(), { once: true }); \
+    setTimeout(done, ms); })";
+
 impl PlaywrightBrowser {
     /// Runs the touch, then waits for the page it started to load or for the
     /// timeout. On a timeout the loading stops, so the page stays as it was.
@@ -113,15 +119,24 @@ impl PlaywrightBrowser {
 
     /// Waits for the document to load. The driver's wait runs `LOADED` by
     /// `eval` in the page, which a page's script policy can forbid once the
-    /// document is still loading; then the polling of `wait_for_load_state`
-    /// does it.
-    // shortcut: that wait ends at Playwright's 30 s, not at the page timeout;
-    // upgrade when a page that forbids `eval` also stalls its load.
+    /// document is still loading; then the page itself waits, with a script
+    /// that is no `eval` and a timer of the page timeout.
     async fn wait_loaded(&self) -> playwright_rs::Result<()> {
         match self.page.wait_for_function(LOADED, None).await {
-            Err(error) if forbidden_eval(&error) => self.page.wait_for_load_state(None).await,
+            Err(error) if forbidden_eval(&error) => self.wait_in_page().await,
             waited => waited.map(drop),
         }
+    }
+
+    /// Waits in the page for `load` or for the page timeout. A failure, such
+    /// as a document replaced meanwhile, ends the wait: the observation
+    /// that follows fails if the page is really gone.
+    async fn wait_in_page(&self) -> playwright_rs::Result<()> {
+        let limit = self.page.default_timeout_ms();
+        let waited: playwright_rs::Result<serde_json::Value> =
+            self.page.evaluate(IN_PAGE, Some(&limit)).await;
+        drop(waited);
+        Ok(())
     }
 
     /// Stops a navigation still pending: while one is, the page runs no
