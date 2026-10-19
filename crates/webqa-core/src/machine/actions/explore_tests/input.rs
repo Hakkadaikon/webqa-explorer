@@ -4,6 +4,7 @@
 use std::collections::BTreeSet;
 
 use super::{APP, options, save};
+use crate::config::raw::Op;
 use crate::machine::testing::{answer, explore, id, operated, page, showed, started, told};
 use crate::machine::{Rules, Step};
 use crate::screen::Screen;
@@ -53,6 +54,16 @@ fn input_is_offered_only_for_a_field_with_a_value() {
         cases.map(|(_, _, expected)| expected),
         "input offered"
     );
+}
+
+#[test]
+fn input_stays_when_the_rules_offer_nothing_else() {
+    let only = Rules {
+        ops: vec![Op::Input],
+        ..valued(&[])
+    };
+    let screen = page(&format!("{APP}/"), &[("button", "保存")]);
+    assert!(offers_input(only, &screen), "the only kind stays");
 }
 
 /// Types into "メール", or into "保存", then looks at the page again.
