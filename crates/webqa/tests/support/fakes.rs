@@ -2,7 +2,7 @@
 //!
 //! The acceptance tests use them, and so do the unit tests of `run`.
 
-use std::collections::VecDeque;
+use std::collections::{BTreeMap, VecDeque};
 use std::future;
 use std::num::NonZeroU32;
 use std::time::Duration;
@@ -16,7 +16,7 @@ use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::guard::forbidden::{Candidate, Forbidden};
 use webqa_core::guard::identity::Node;
 use webqa_core::guard::paywall::{Paywall, PaywallFacts};
-use webqa_core::judge::{Answers, JudgeError, Question};
+use webqa_core::judge::{Answers, Image, ImageFormat, JudgeError, Question};
 use webqa_core::machine::Rules;
 use webqa_core::ports::{
     Browser, BrowserError, Clock, Judge, Observation, Pending, Store, StoreError,
@@ -24,6 +24,11 @@ use webqa_core::ports::{
 use webqa_core::redact::Redacted;
 use webqa_core::screen::{Element, Rect, Screen, ScreenText, Viewport};
 use webqa_judge::scripted::Scripted;
+
+/// A future that is ready with `value`.
+fn ready<T: Send + 'static>(value: T) -> Pending<'static, T> {
+    Box::pin(future::ready(value))
+}
 
 /// The viewport of every fake page.
 pub const VIEWPORT: Viewport = Viewport {
@@ -148,8 +153,11 @@ impl Judge for RecordingJudge {
     }
 }
 
+/// The bytes of every fake screenshot: the start of a PNG signature.
+pub const PNG: [u8; 4] = [0x89, b'P', b'N', b'G'];
+
 /// Shows the pages in order and records the touches. Fails when no page is
-/// left, and fails every touch when broken.
+/// left, and fails every touch when broken. Every screenshot is [`PNG`].
 #[derive(Debug, Default)]
 pub struct FakeBrowser {
     /// The pages still to show.
@@ -158,11 +166,13 @@ pub struct FakeBrowser {
     pub touches: Vec<Touch>,
     /// Whether touches fail.
     pub broken: bool,
+    /// How many screenshots were taken.
+    pub shots: usize,
 }
 
 impl Browser for FakeBrowser {
     fn observe(&mut self) -> Pending<'_, Result<Observation, BrowserError>> {
-        Box::pin(future::ready(self.pages.pop_front().ok_or(BrowserError)))
+        ready(self.pages.pop_front().ok_or(BrowserError))
     }
 
     fn touch<'a>(&'a mut self, touch: &'a Touch) -> Pending<'a, Result<(), BrowserError>> {
@@ -172,7 +182,12 @@ impl Browser for FakeBrowser {
         } else {
             Ok(())
         };
-        Box::pin(future::ready(result))
+        ready(result)
+    }
+
+    fn screenshot(&mut self) -> Pending<'_, Result<Image, BrowserError>> {
+        self.shots += 1;
+        ready(Ok(Image::new(ImageFormat::Png, PNG.to_vec())))
     }
 }
 
@@ -190,17 +205,39 @@ impl Clock for FakeClock {
 
     fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
         self.now = at;
-        Box::pin(future::ready(()))
+        ready(())
     }
 }
 
-/// Keeps the lines in memory. Fails once it holds `limit` lines.
+/// Keeps the records in memory. Once it has taken `limit` writes of any
+/// kind (lines, memories, reports, screenshots), it fails every write.
 #[derive(Debug, Default)]
 pub struct MemoryStore {
     /// The lines written, including the ones that failed.
     pub lines: Vec<Value>,
-    /// How many lines it takes; `None` takes them all.
+    /// How many writes it takes; `None` takes them all.
     pub limit: Option<usize>,
+    /// The memory files by origin, as written.
+    pub memories: BTreeMap<String, String>,
+    /// The memory files moved aside, by origin, in order.
+    pub aside: Vec<(String, String)>,
+    /// The report, once written.
+    pub report: Option<Value>,
+    /// The screenshots written, by name, in order.
+    pub shots: Vec<(String, Image)>,
+    /// How many writes of any kind were asked for.
+    pub writes: usize,
+}
+
+impl MemoryStore {
+    /// Counts one write, failed once the store is full. What the write
+    /// wrote is kept either way.
+    fn wrote(&mut self) -> Pending<'static, Result<(), StoreError>> {
+        let full = self.limit.is_some_and(|limit| self.writes >= limit);
+        self.writes += 1;
+        let result = if full { Err(StoreError) } else { Ok(()) };
+        ready(result)
+    }
 }
 
 impl Store for MemoryStore {
@@ -208,9 +245,48 @@ impl Store for MemoryStore {
         &'a mut self,
         line: &'a Redacted<Value>,
     ) -> Pending<'a, Result<(), StoreError>> {
-        let full = self.limit.is_some_and(|limit| self.lines.len() >= limit);
         self.lines.push(line.as_inner().clone());
-        let result = if full { Err(StoreError) } else { Ok(()) };
-        Box::pin(future::ready(result))
+        self.wrote()
+    }
+
+    fn read_memory<'a>(
+        &'a mut self,
+        origin: &'a str,
+    ) -> Pending<'a, Result<Option<String>, StoreError>> {
+        ready(Ok(self.memories.get(origin).cloned()))
+    }
+
+    fn set_aside_memory<'a>(&'a mut self, origin: &'a str) -> Pending<'a, Result<(), StoreError>> {
+        let moved = self.memories.remove(origin);
+        let named = moved.map(|memory| (origin.to_owned(), memory));
+        self.aside.extend(named);
+        ready(Ok(()))
+    }
+
+    fn write_memory<'a>(
+        &'a mut self,
+        origin: &'a str,
+        memory: &'a Redacted<Value>,
+    ) -> Pending<'a, Result<(), StoreError>> {
+        let text = serde_json::to_string(memory.as_inner()).unwrap_or_default();
+        self.memories.insert(origin.to_owned(), text);
+        self.wrote()
+    }
+
+    fn write_report<'a>(
+        &'a mut self,
+        report: &'a Redacted<Value>,
+    ) -> Pending<'a, Result<(), StoreError>> {
+        self.report.replace(report.as_inner().clone());
+        self.wrote()
+    }
+
+    fn write_screenshot<'a>(
+        &'a mut self,
+        name: &'a str,
+        image: &'a Image,
+    ) -> Pending<'a, Result<(), StoreError>> {
+        self.shots.push((name.to_owned(), image.clone()));
+        self.wrote()
     }
 }

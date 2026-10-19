@@ -105,6 +105,9 @@ pub trait Browser: Send {
 
     /// Operates the page.
     fn touch<'a>(&'a mut self, touch: &'a Touch) -> Pending<'a, Result<(), BrowserError>>;
+
+    /// Takes a PNG screenshot of the page as it is now.
+    fn screenshot(&mut self) -> Pending<'_, Result<Image, BrowserError>>;
 }
 
 /// The clock.
@@ -122,6 +125,35 @@ pub trait Store: Send {
     fn write_event<'a>(
         &'a mut self,
         line: &'a Redacted<Value>,
+    ) -> Pending<'a, Result<(), StoreError>>;
+
+    /// Reads the memory file of `origin`. `Ok(None)` when there is none.
+    fn read_memory<'a>(
+        &'a mut self,
+        origin: &'a str,
+    ) -> Pending<'a, Result<Option<String>, StoreError>>;
+
+    /// Moves the memory file of `origin` aside, under a name that keeps it.
+    fn set_aside_memory<'a>(&'a mut self, origin: &'a str) -> Pending<'a, Result<(), StoreError>>;
+
+    /// Replaces the memory file of `origin`.
+    fn write_memory<'a>(
+        &'a mut self,
+        origin: &'a str,
+        memory: &'a Redacted<Value>,
+    ) -> Pending<'a, Result<(), StoreError>>;
+
+    /// Writes the report of the run.
+    fn write_report<'a>(
+        &'a mut self,
+        report: &'a Redacted<Value>,
+    ) -> Pending<'a, Result<(), StoreError>>;
+
+    /// Writes a screenshot under `name` (a file name, no directory).
+    fn write_screenshot<'a>(
+        &'a mut self,
+        name: &'a str,
+        image: &'a Image,
     ) -> Pending<'a, Result<(), StoreError>>;
 }
 

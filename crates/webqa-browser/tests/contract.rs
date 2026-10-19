@@ -13,8 +13,11 @@ mod contract {
     pub mod session;
 }
 
+use contract::port::{at, launch};
 use contract::session::{ORIGIN, Session};
 use webqa_browser::snapshot::{Entry, Snapshot};
+use webqa_core::judge::ImageFormat;
+use webqa_core::ports::Browser;
 use webqa_core::screen::{Element, Viewport, visible};
 
 const VIEW: Viewport = Viewport {
@@ -96,4 +99,19 @@ async fn parses_live_snapshot() {
     );
     let headings: Vec<&str> = parsed.headings.iter().map(|h| h.name.as_str()).collect();
     assert_eq!(headings, ["見出し"], "the page's heading");
+}
+
+/// The first 8 bytes of every PNG file.
+const PNG_SIGNATURE: [u8; 8] = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+#[tokio::test]
+async fn screenshot_is_png() {
+    let mut browser = launch(at("/viewport").unwrap(), 0).await.unwrap();
+    let image = browser.screenshot().await.unwrap();
+    assert_eq!(image.format(), ImageFormat::Png, "a PNG");
+    assert_eq!(
+        image.bytes().get(..8),
+        Some(PNG_SIGNATURE.as_slice()),
+        "starts with the PNG signature"
+    );
 }
