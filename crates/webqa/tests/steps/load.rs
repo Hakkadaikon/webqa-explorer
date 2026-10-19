@@ -38,16 +38,17 @@ async fn try_before_the_window_ends(world: &mut QaWorld) {
     world.run().await;
 }
 
-/// The kinds of the log lines from the last `executed` to the first
+/// The kinds of the log lines from the last `executed` before the first
 /// `waited`, which the core spent waiting for the window.
 fn before_waiting(world: &QaWorld) -> Vec<String> {
     let kinds = world.kinds();
-    let last = found(
-        kinds.iter().rposition(|kind| kind == "executed"),
-        "an operation",
-    );
     let wait = found(kinds.iter().position(|kind| kind == "waited"), "a wait");
-    kinds.get(last..wait).unwrap_or_default().to_vec()
+    let before = found(kinds.get(..wait), "the lines before the wait");
+    let last = found(
+        before.iter().rposition(|kind| kind == "executed"),
+        "an operation before the wait",
+    );
+    found(before.get(last..), "the lines from the operation").to_vec()
 }
 
 #[then(expr = "判断モデルに問い合わせておらず、ブラウザ操作もしていない")]
