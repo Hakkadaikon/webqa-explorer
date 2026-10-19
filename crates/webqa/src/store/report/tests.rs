@@ -86,7 +86,7 @@ pub fn record() -> Record {
     let found = vec![Found {
         step: 1,
         issue,
-        shot: "ISSUE_error_display_step1.png".to_owned(),
+        shot: Some("ISSUE_error_display_step1.png".to_owned()),
     }];
     Record { calls, acts, found }
 }
