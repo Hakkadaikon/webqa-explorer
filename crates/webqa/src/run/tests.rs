@@ -2,21 +2,41 @@
 
 use std::collections::VecDeque;
 use std::num::NonZeroU32;
+use std::time::Duration;
+use std::{future, iter};
 
 use url::Url;
 use webqa_core::config::raw::Op;
 use webqa_core::guard::domain::AllowedOrigin;
-use webqa_core::judge::{JudgeError, QuestionId};
-use webqa_core::machine::{Anomaly, ExitReason, Note};
-use webqa_core::ports::Observation;
+use webqa_core::judge::QuestionId;
+use webqa_core::machine::ExitReason;
+use webqa_core::ports::{Observation, Pending};
 use webqa_core::redact::Rule;
 use webqa_core::screen::ElementId;
 use webqa_judge::scripted::Scripted;
 
+mod events;
+mod interrupt;
+mod issues;
+mod material;
 mod perform;
+mod probes;
+mod shots;
+mod steps;
+mod timing;
+mod writes;
 
 use super::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 use super::*;
+
+/// The user who never interrupts.
+struct Never;
+
+impl Interrupt for Never {
+    fn wait(&mut self) -> Pending<'_, ()> {
+        Box::pin(future::pending())
+    }
+}
 
 struct Fakes {
     browser: FakeBrowser,
@@ -24,25 +44,25 @@ struct Fakes {
     clock: FakeClock,
     store: MemoryStore,
     redactor: Redactor,
+    rules: Rules,
+    detect: Detect,
+    /// What the last run recorded.
+    record: Record,
 }
 
 impl Fakes {
     /// The page shows `保存` and a link with a mail address, stays while
     /// `保存` is looked up again, and goes to `/done` after the touch; the
-    /// judge chooses to click `保存`.
+    /// judge chooses to click `保存`, with one decision.
     fn new() -> Self {
         let rule = Rule::literal("メールアドレス", "taro@example.test");
-        let script = Scripted::default()
-            .then(QuestionId::operation(), [("click", 0.9), ("back", 0.1)])
-            .then(QuestionId::target(), [("1", 0.8), ("2", 0.2)])
-            .then(QuestionId::error_shown(), [("true", 0.0)]);
         Self {
             browser: FakeBrowser {
                 pages: VecDeque::from([page("/"), page("/"), page("/done")]),
                 ..FakeBrowser::default()
             },
             judge: RecordingJudge {
-                script,
+                script: script(&[("click", 0.9, "1")]),
                 ..RecordingJudge::default()
             },
             clock: FakeClock {
@@ -50,6 +70,9 @@ impl Fakes {
             },
             store: MemoryStore::default(),
             redactor: Redactor::new(&[rule]).unwrap(),
+            rules: rules(),
+            detect: Detect::default(),
+            record: Record::default(),
         }
     }
 
@@ -61,142 +84,111 @@ impl Fakes {
             &mut self.store,
             &self.redactor,
         )
+        .detecting(self.detect.clone())
     }
 
-    /// Runs with one decision, so the run ends after the first operation.
+    /// Runs under `self.rules` until the core finishes, and keeps the record.
     async fn explore(&mut self) -> Result<Outcome, RunError> {
-        explore(&mut self.ports(), rules(), Memory::default()).await
+        let rules = self.rules.clone();
+        let mut ports = self.ports();
+        let outcome = explore(&mut ports, &mut Never, rules, Memory::default()).await;
+        let record = ports.record().clone();
+        self.record = record;
+        outcome
     }
 
     async fn reason(&mut self) -> Result<ExitReason, RunError> {
         self.explore().await.map(|outcome| outcome.reason)
     }
 
+    /// Shows `page` every time it is observed.
+    fn stay_on(&mut self, page: &Observation) {
+        self.browser.pages = iter::repeat_n(page.clone(), 10).collect();
+    }
+
     fn lines(&self) -> Vec<Line> {
         let lines = self.store.lines.iter().cloned();
         lines.map(|v| serde_json::from_value(v).unwrap()).collect()
     }
+
+    /// The kind of each line, in order.
+    fn kinds(&self) -> Vec<String> {
+        let kinds = self.store.lines.iter().map(|v| v["kind"].clone());
+        kinds.map(|k| k.as_str().unwrap().to_owned()).collect()
+    }
+
+    /// The step and the event of each line whose kind is one of `kinds`.
+    fn picked(&self, kinds: &[&str]) -> Vec<(Option<u64>, Event)> {
+        let lines = self.lines().into_iter().zip(self.kinds());
+        let wanted = lines.filter(|(_, kind)| kinds.contains(&kind.as_str()));
+        wanted.map(|(line, _)| (line.step, line.event)).collect()
+    }
+}
+
+/// Runs `rules` on the ports given, from the start of the run.
+async fn run_on(
+    browser: &mut dyn Browser,
+    judge: &mut dyn Judge,
+    clock: &mut dyn Clock,
+    store: &mut MemoryStore,
+    redactor: &Redactor,
+    rules: Rules,
+) -> (Result<ExitReason, RunError>, Record) {
+    let mut ports = Ports::new(browser, judge, clock, store, redactor);
+    let outcome = explore(&mut ports, &mut Never, rules, Memory::default()).await;
+    (outcome.map(|o| o.reason), ports.record().clone())
+}
+
+/// Answers each step with the operation `op` at `p` on element `target`,
+/// and no error shown.
+fn script(steps: &[(&str, f64, &str)]) -> Scripted {
+    steps
+        .iter()
+        .fold(Scripted::default(), |script, &(op, p, target)| {
+            script
+                .then(QuestionId::operation(), [(op, p)])
+                .then(QuestionId::target(), [(target, 0.8)])
+                .then(QuestionId::error_shown(), [("true", 0.0)])
+        })
 }
 
 /// Clicking and going back, with one decision.
 fn rules() -> Rules {
-    let limits = [3, 3, 1, 10].map(|n| NonZeroU32::new(n).unwrap());
+    limited(&[Op::Click, Op::Back], 1, 10)
+}
+
+/// The operation kinds `ops`, with `decisions` and `requests` an hour.
+fn limited(ops: &[Op], decisions: u32, requests: u32) -> Rules {
+    let limits = [3, 3, decisions, requests].map(|n| NonZeroU32::new(n).unwrap());
     let app = AllowedOrigin::parse("https://app.example.test").unwrap();
-    fakes::rules(&[Op::Click, Op::Back], limits, vec![app])
+    fakes::rules(ops, limits, vec![app])
+}
+
+fn url(path: &str) -> Url {
+    Url::parse("https://app.example.test")
+        .unwrap()
+        .join(path)
+        .unwrap()
 }
 
 fn page(path: &str) -> Observation {
-    let url = Url::parse("https://app.example.test")
-        .unwrap()
-        .join(path)
-        .unwrap();
     fakes::page(
-        &url,
+        &url(path),
         &[("button", "保存"), ("link", "taro@example.test に送る")],
     )
 }
 
-fn line(seq: u64, event: Event) -> Line {
-    Line {
-        seq,
-        elapsed_ms: 1500,
-        step: Some(1),
-        event,
-    }
+/// A page at `/` with the one button `name`, the console holding `console`.
+fn one(name: &str, console: &[&str]) -> Observation {
+    let mut page = fakes::page(&url("/"), &[("button", name)]);
+    page.console = console.iter().map(|&e| e.to_owned()).collect();
+    page
 }
 
-#[tokio::test]
-async fn one_step_asks_once_touches_once_and_logs_the_decision_and_the_result() {
-    let mut fakes = Fakes::new();
-    let ended = Ok(ExitReason::BudgetExceeded);
-    assert_eq!(fakes.reason().await, ended, "no decision left");
-    assert_eq!(
-        fakes.judge.texts,
-        vec!["1: button \"保存\"\n2: link \"[[メールアドレス]] に送る\"".to_owned()],
-        "asked once, with the address masked"
-    );
-    let save = ElementId {
+fn save() -> ElementId {
+    ElementId {
         role: "button".to_owned(),
         name: "保存".to_owned(),
         nth: 0,
-    };
-    let touch = Touch {
-        op: "click".to_owned(),
-        target: Some(save),
-        confidence: 0.9,
-    };
-    assert_eq!(fakes.browser.touches, vec![touch], "touched once");
-    let decided = Event::Decided {
-        op: "click".to_owned(),
-        target: Some("保存".to_owned()),
-        p: 0.9,
-    };
-    let executed = Event::Executed {
-        changed: true,
-        accesses: 1,
-    };
-    assert_eq!(
-        fakes.lines(),
-        vec![line(0, decided), line(1, executed)],
-        "one line for the decision, one for the result"
-    );
-}
-
-#[tokio::test]
-async fn touching_the_same_page_logs_no_change() {
-    let mut fakes = Fakes::new();
-    fakes.browser.pages = VecDeque::from([page("/"), page("/"), page("/")]);
-    let ended = Ok(ExitReason::BudgetExceeded);
-    assert_eq!(fakes.reason().await, ended, "no decision left");
-    let unchanged = line(
-        1,
-        Event::Executed {
-            changed: false,
-            accesses: 1,
-        },
-    );
-    assert_eq!(fakes.lines().get(1), Some(&unchanged), "the page stayed");
-}
-
-#[tokio::test]
-async fn judge_failure_ends_the_run_without_touching() {
-    let mut fakes = Fakes::new();
-    fakes.judge.script = Scripted::default();
-    let outcome = fakes.explore().await.unwrap();
-    let ended = ExitReason::BudgetExceeded;
-    assert_eq!(outcome.reason, ended, "no decision left");
-    let failed = [Note::Anomaly(Anomaly::Judge(JudgeError::Exhausted))];
-    assert_eq!(outcome.state.notes(), failed, "the core records the error");
-    assert_eq!(fakes.browser.touches, Vec::new(), "nothing touched");
-}
-
-async fn fails_with(breaks: fn(&mut Fakes), error: RunError) {
-    let mut fakes = Fakes::new();
-    breaks(&mut fakes);
-    assert_eq!(fakes.reason().await, Err(error), "the run stops");
-}
-
-#[tokio::test]
-async fn no_page_to_start_from_stops_the_run() {
-    fails_with(|f| f.browser.pages.clear(), BrowserError.into()).await;
-}
-
-#[tokio::test]
-async fn a_failed_touch_stops_the_run() {
-    fails_with(|f| f.browser.broken = true, BrowserError.into()).await;
-}
-
-#[tokio::test]
-async fn no_page_after_the_touch_stops_the_run() {
-    fails_with(|f| drop(f.browser.pages.pop_back()), BrowserError.into()).await;
-}
-
-#[tokio::test]
-async fn an_unwritable_decision_stops_the_run() {
-    fails_with(|f| f.store.limit = Some(0), StoreError.into()).await;
-}
-
-#[tokio::test]
-async fn an_unwritable_result_stops_the_run() {
-    fails_with(|f| f.store.limit = Some(1), StoreError.into()).await;
+    }
 }
