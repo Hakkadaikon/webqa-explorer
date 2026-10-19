@@ -7,6 +7,7 @@ use std::{future, iter};
 
 use url::Url;
 use webqa_core::config::raw::Op;
+use webqa_core::event::Line;
 use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::judge::QuestionId;
 use webqa_core::machine::ExitReason;
@@ -22,6 +23,7 @@ mod issues;
 mod material;
 mod perform;
 mod probes;
+mod resume;
 mod shots;
 mod steps;
 mod timing;
