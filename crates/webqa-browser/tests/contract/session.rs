@@ -16,7 +16,7 @@ pub type Res<T> = Result<T, Box<dyn Error>>;
 pub const ORIGIN: &str = "https://app.example.test";
 
 /// The fixture pages by path.
-const PAGES: [(&str, &str); 10] = [
+const PAGES: [(&str, &str); 11] = [
     ("/viewport", include_str!("../fixtures/pages/viewport.html")),
     ("/identity", include_str!("../fixtures/pages/identity.html")),
     ("/parse", include_str!("../fixtures/pages/parse.html")),
@@ -27,6 +27,7 @@ const PAGES: [(&str, &str); 10] = [
     ("/ops", include_str!("../fixtures/pages/ops.html")),
     ("/console", include_str!("../fixtures/pages/console.html")),
     ("/start", include_str!("../fixtures/pages/start.html")),
+    ("/storage", include_str!("../fixtures/pages/storage.html")),
 ];
 
 /// A browser with one page of an 800x600 viewport.
