@@ -43,7 +43,7 @@ T-110、T-111 の単体は `webqa-core::machine::actions` に置く。段階を�
 T-108 の全状態の探索は、候補の画面に「操作可能な要素が0件」と「操作可能な要素が禁止要素だけ」の2つを含める。どちらも探索してよい要素が空になる画面で、これが無いと問い合わせの前にゴール達成にしないことを確かめられない。
 T-112 は、探索モードで使う操作種別に click も input も無い(done だけの場合も含む)設定を、設定エラーにする行である。要素を操作できないと探索が進まないためで、issue #3(設定の読み込みと検証)の追加の直しとして足した。実行のモードは設定でなく CLI のサブコマンドで決まるので、単体の `explore_mode_needs_click_or_input` は、検証済みの設定とモードを引数に取る中核の関数を確かめる。CLI が起動時にこの関数を呼ぶことは、T-044 の実行ファイルのテスト `explore_without_click_or_input_exits_two`(終了コード2)が確かめる。
 T-113 は、issue #4 で利用者が「許可リストは禁止より優先する」と決めたので足した。それまで T-007 の Examples にあった「許可リストにも一致するが名前が "購入" を含むボタン」の行を、操作する側の Scenario に移したもので、feature の行番号がずれた出典をあわせて直した。
-シナリオモードでも、何も起きなかった input は記憶に数えず、値の無い入力欄への input は skipped(no_input_value)で記録する。T-114 は、設定の操作種別が done を除くと input だけなら input を残す例外を、単体テストで確かめる。T-114、T-115 は、issue #62〜#64 で利用者が「探索モードでは、対象に合わせない操作を選択肢から外し、記憶にも数えない」と決めたので足した。T-084 の Scenario は、入力欄が無い開始の画面で、選択肢が input を除く6種になるように直した。値の設定された入力欄があるかは、設定の inputs の名前と、入力欄の役割で決める。
+シナリオモードでも、何も起きなかった input は記憶に数えず、値の無い入力欄への input は skipped(no_input_value)で記録する。T-114 は、設定の操作種別が done を除くと input だけなら input を残す例外を、単体テストで確かめる。T-114、T-115 は、issue #62〜#64 で利用者が「探索モードでは、対象に合わせない操作を選択肢から外し、記憶にも数えない」と決めたので足した。T-084 の Scenario は、入力欄が無い開始の画面で、選択肢が input を除く6種になるように直した。値の設定された入力欄があるかは、設定の inputs の名前と、入力欄の役割で決める。 T-116 は、打てた input の Scenario を T-115 の Outline から分けたもので、打てた input は skipped を記録せず探索済みに数えることを確かめる。
 
 ## 用語定義(抽出より先に埋める)
 
@@ -167,7 +167,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-041 WebExploratoryQA.feature:773(問題の記録) [unwanted] 「意味の判断が要る検出は、判断モデルだけの判定なら参考情報として記録する」
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `judge_only_detection_is_reference` / issue: #8
 - [x] T-042 WebExploratoryQA.feature:778(問題の記録) [ubiquitous] 「実行結果は再実行できる形で出力する」
-      → 手法: ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::report` の `report_matches_snapshot`、実行ファイル `webqa/tests/cli.rs` の `replay_reruns_report` / issue: #14
+      → 手法: ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::report` の `report_matches_snapshot`、実行ファイル `webqa/tests/cli.rs` の `replay_reruns_report`、単体 `webqa::run::session` の `replay_starts_from_given_memory_and_keeps_stored`、単体 `webqa::run::session` の `stored_start_is_written_back`、単体 `webqa::store::report` の `report_keeps_start_memory`、単体 `webqa::store::report` の `start_memory_is_redacted`、単体 `webqa::replay` の `from_report_reads_start_memory`、単体 `webqa::cli::start` の `broken_start_memory_is_config_error` / issue: #14、#61
 - [x] T-043 WebExploratoryQA.feature:786(設定と外部境界) [event] 「テスト対象・入力値・段階を YAML の設定で定義して実行する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `reads_target_inputs_and_stages` / issue: #3
 - [x] T-044 WebExploratoryQA.feature:791(設定と外部境界) [ubiquitous] 「決め打ちシナリオと探索モードを同じツールで実行する」
