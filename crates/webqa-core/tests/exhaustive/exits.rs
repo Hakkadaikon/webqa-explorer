@@ -1,8 +1,10 @@
 //! Why the run ended, and what the state shows of it.
 
+use webqa_core::judge::QuestionId;
 use webqa_core::machine::{ExitReason, Phase, StuckKind};
 
 use super::candidates::{STOP, TWO};
+use super::rows::not_an_option;
 use super::view::{Property, Transition, all, implies};
 
 const DECLARED: ExitReason = ExitReason::Stuck(StuckKind::Declared);
@@ -26,10 +28,11 @@ pub static REASONS: [Property; 8] = [
         holds: |t| implies(t.reason() == Some(DECLARED), t.op == Some("stuck")),
     },
     Property {
-        name: "the answer stuck that ends the run declares it stuck",
+        name: "the answer stuck offered that ends the run declares it stuck",
         holds: |t| {
+            let offered = !t.adds(&not_an_option(QuestionId::operation()));
             implies(
-                t.reason().is_some() && t.op == Some("stuck"),
+                all(&[t.reason().is_some(), t.op == Some("stuck"), offered]),
                 t.reason() == Some(DECLARED),
             )
         },
@@ -51,13 +54,16 @@ pub static REASONS: [Property; 8] = [
         },
     },
     Property {
-        name: "neither the goal nor an interruption ends the run",
-        holds: |t| {
-            t.reason() != Some(ExitReason::GoalAchieved)
-                && t.reason() != Some(ExitReason::UserAborted)
-        },
+        name: "an interruption does not end the run",
+        holds: |t| t.reason() != Some(ExitReason::UserAborted),
     },
 ];
+
+/// Without stages, the goal of a scenario is never met.
+pub static NO_GOAL: [Property; 1] = [Property {
+    name: "the goal does not end a scenario without stages",
+    holds: |t| t.reason() != Some(ExitReason::GoalAchieved),
+}];
 
 /// The run going on is in a phase waiting for facts.
 pub static GOING_ON: [Property; 1] = [Property {
@@ -101,12 +107,13 @@ fn going_on(t: &Transition) -> bool {
     all(&[phase != Phase::Idle, t.after().ended().is_none()])
 }
 
-/// Ended out of budget, at the time limit, not stuck, and not on an
-/// answer that ends the run by itself.
+/// Ended out of budget, at the time limit, neither on the goal nor stuck,
+/// and not on an answer that ends the run by itself.
 pub fn tied(t: &Transition) -> bool {
     let after = t.after();
     all(&[
         t.reason().is_some(),
+        t.reason() != Some(ExitReason::GoalAchieved),
         after.budget().exhausted(),
         t.at >= STOP,
         !after.counters().is_stuck(TWO),

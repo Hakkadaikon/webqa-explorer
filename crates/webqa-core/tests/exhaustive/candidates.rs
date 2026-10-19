@@ -5,14 +5,14 @@ use std::num::NonZeroU32;
 use std::ops::Range;
 use std::time::Duration;
 
-use webqa_core::config::raw::Op;
+use webqa_core::config::raw::{DoneWhen, Element as Wanted, Op, Stage};
 use webqa_core::event::Mode;
 use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::guard::forbidden::Forbidden;
 use webqa_core::guard::paywall::Paywall;
 use webqa_core::machine::{Facts, Heard, Phase, Rules, Seen};
 
-use super::rows::{Row, rows};
+use super::rows::Row;
 
 #[path = "answers.rs"]
 mod answers;
@@ -55,14 +55,15 @@ pub struct Candidates {
 }
 
 impl Candidates {
-    pub fn new() -> Self {
+    /// The candidates, with the `rows` to reach.
+    pub fn new(rows: Vec<Row>) -> Self {
         let pages = pages::seen_all();
         let marked = pages::MARKED.iter().filter_map(|&page| pages.get(page));
         Self {
             choices: choices(&pages),
             marked: marked.cloned().collect(),
             pages,
-            rows: rows(),
+            rows,
         }
     }
 
@@ -99,6 +100,52 @@ pub fn rules() -> Rules {
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
         stages: Vec::new(),
+    }
+}
+
+/// The rules with three stages: logging in on the settings page, checking
+/// for the link "ヘルプ", and buying where the forbidden button shows.
+pub fn staged_rules() -> Rules {
+    let stages = vec![
+        stage("ログイン", url("/settings")),
+        stage("確認", element("link", "ヘルプ")),
+        stage("購入", element("button", pages::BUY)),
+    ];
+    Rules { stages, ..rules() }
+}
+
+/// The rules in explore mode.
+pub fn explore_rules() -> Rules {
+    Rules {
+        mode: Mode::Explore,
+        ..rules()
+    }
+}
+
+fn stage(name: &str, done_when: DoneWhen) -> Stage {
+    Stage {
+        name: name.to_owned(),
+        goal: format!("{name}を済ませる"),
+        done_when,
+    }
+}
+
+fn url(path: &str) -> DoneWhen {
+    DoneWhen {
+        url: Some(path.to_owned()),
+        element: None,
+        text: None,
+    }
+}
+
+fn element(role: &str, name: &str) -> DoneWhen {
+    DoneWhen {
+        url: None,
+        element: Some(Wanted {
+            role: role.to_owned(),
+            name: name.to_owned(),
+        }),
+        text: None,
     }
 }
 

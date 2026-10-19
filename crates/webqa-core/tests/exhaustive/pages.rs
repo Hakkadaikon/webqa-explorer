@@ -13,6 +13,8 @@ pub const SETTINGS: usize = 1;
 pub const PRICING: usize = 2;
 /// The page outside the allowed origin.
 pub const AWAY: usize = 3;
+/// The page without elements.
+pub const EMPTY: usize = 4;
 /// The page with only a forbidden button.
 pub const CART: usize = 5;
 

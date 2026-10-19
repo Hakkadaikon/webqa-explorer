@@ -17,7 +17,7 @@ pub struct Row {
     pub reached: Box<dyn Fn(&Transition) -> bool + Send + Sync>,
 }
 
-fn row(name: &str, reached: impl Fn(&Transition) -> bool + Send + Sync + 'static) -> Row {
+pub fn row(name: &str, reached: impl Fn(&Transition) -> bool + Send + Sync + 'static) -> Row {
     Row {
         name: name.to_owned(),
         reached: Box::new(reached),
@@ -53,6 +53,11 @@ fn effects() -> Vec<Row> {
     ]
 }
 
+/// The anomaly of an option of the question `id` that was not asked.
+pub const fn not_an_option(id: QuestionId) -> Note {
+    Note::Anomaly(Anomaly::Unusable(Unusable::NotAnOption(id)))
+}
+
 /// The rejections, landing outside, and the anomalies of the answers.
 fn notes() -> Vec<Note> {
     let left = Issue {
@@ -71,11 +76,6 @@ fn notes() -> Vec<Note> {
         not_an_option(QuestionId::operation()),
         not_an_option(QuestionId::target()),
     ]
-}
-
-/// The anomaly of an option of the question `id` that was not asked.
-const fn not_an_option(id: QuestionId) -> Note {
-    Note::Anomaly(Anomaly::Unusable(Unusable::NotAnOption(id)))
 }
 
 const REASONS: [ExitReason; 5] = [
