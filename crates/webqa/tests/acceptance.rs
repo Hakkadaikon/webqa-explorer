@@ -42,12 +42,18 @@ mod ending;
 mod exit;
 #[path = "steps/guard.rs"]
 mod guard;
+#[path = "steps/guard_pages.rs"]
+mod guard_pages;
+#[path = "steps/guard_stale.rs"]
+mod guard_stale;
 #[path = "steps/interrupt.rs"]
 mod interrupt;
 #[path = "steps/issues.rs"]
 mod issues;
 #[path = "steps/load.rs"]
 mod load;
+#[path = "steps/load_access.rs"]
+mod load_access;
 #[path = "steps/memory.rs"]
 mod memory;
 #[path = "steps/recovery.rs"]
@@ -56,6 +62,10 @@ mod recovery;
 mod stages;
 #[path = "steps/step.rs"]
 mod step;
+#[path = "steps/step_reply.rs"]
+mod step_reply;
+#[path = "steps/step_run.rs"]
+mod step_run;
 
 use std::collections::BTreeSet;
 use std::time::Duration;
