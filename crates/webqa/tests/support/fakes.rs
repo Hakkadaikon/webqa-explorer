@@ -163,6 +163,8 @@ pub struct FakeBrowser {
     pub touches: Vec<Touch>,
     /// Whether touches fail.
     pub broken: bool,
+    /// Whether screenshots fail.
+    pub unshootable: bool,
     /// How many screenshots were taken.
     pub shots: usize,
 }
@@ -184,7 +186,12 @@ impl Browser for FakeBrowser {
 
     fn screenshot(&mut self) -> Pending<'_, Result<Image, BrowserError>> {
         self.shots += 1;
-        ready(Ok(Image::new(ImageFormat::Png, PNG.to_vec())))
+        let shot = Image::new(ImageFormat::Png, PNG.to_vec());
+        ready(if self.unshootable {
+            Err(BrowserError)
+        } else {
+            Ok(shot)
+        })
     }
 }
 

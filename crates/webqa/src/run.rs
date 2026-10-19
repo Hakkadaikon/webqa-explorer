@@ -4,6 +4,7 @@ mod detect;
 #[cfg(test)]
 #[path = "../tests/support/fakes.rs"]
 pub(crate) mod fakes;
+mod interviewing;
 mod journal;
 mod log;
 mod notes;
@@ -26,6 +27,7 @@ use webqa_core::window::RequestWindow;
 use crate::interrupt::Interrupt;
 use crate::record::Record;
 
+pub use interviewing::{Interviewing, Taken};
 pub use journal::Journal;
 
 /// Why the run stopped before an outcome.
@@ -73,6 +75,9 @@ pub struct Ports<'a> {
     record: Record,
     /// The names of the screenshots written.
     shots: BTreeSet<String>,
+    /// The interview's questions in place of the core's: `None` for the
+    /// other modes.
+    interview: Option<Interviewing>,
 }
 
 /// What a run keeps from one browser to the next: the log's counters, what
@@ -108,7 +113,25 @@ impl<'a> Ports<'a> {
             detect: Detect::default(),
             record: Record::default(),
             shots: BTreeSet::new(),
+            interview: None,
         }
+    }
+
+    /// The same ports, asking the interview's questions in place of the
+    /// core's.
+    #[must_use]
+    pub fn interviewing(self, interview: Interviewing) -> Self {
+        Self {
+            interview: Some(interview),
+            ..self
+        }
+    }
+
+    /// The steps of the interview that asked the judge, which are no longer
+    /// kept. Empty outside the interview.
+    pub fn take_steps(&mut self) -> Vec<Taken> {
+        let interview = self.interview.as_mut();
+        interview.map(Interviewing::take).unwrap_or_default()
     }
 
     /// The same ports, going on from what an earlier run with another

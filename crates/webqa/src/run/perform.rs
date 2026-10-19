@@ -7,6 +7,7 @@ use webqa_browser::FILLABLE;
 use webqa_core::effect::{Effect, Outside, PageEffect, Questions, Touch};
 use webqa_core::event::Event;
 use webqa_core::issue::{answered_issues, probe_questions};
+use webqa_core::judge::{Answers, JudgeError};
 use webqa_core::machine::{Cause, Facts, Heard, Material, Seen, State, Whole};
 use webqa_core::ports::Observation;
 use webqa_core::redact::{Redacted, Redactor};
@@ -26,14 +27,14 @@ pub(super) async fn perform(
     ports: &mut Ports<'_>,
 ) -> Result<Facts, RunError> {
     match effect {
-        Effect::Outside(outside) => beyond(outside, ports).await.map(Facts::Outside),
+        Effect::Outside(outside) => beyond(outside, state, ports).await.map(Facts::Outside),
         Effect::Page(page) => on_page(page, state, ports).await.map(page_facts),
     }
 }
 
-async fn beyond(outside: Outside, ports: &mut Ports<'_>) -> Result<Heard, RunError> {
+async fn beyond(outside: Outside, state: &State, ports: &mut Ports<'_>) -> Result<Heard, RunError> {
     match outside {
-        Outside::Ask(questions) => ask(questions, ports).await,
+        Outside::Ask(questions) => ask(questions, state, ports).await,
         Outside::Sleep(wake) => {
             ports.log(log::waited(wake.at)).await?;
             ports.clock.sleep_until(wake.at).await;
@@ -44,12 +45,14 @@ async fn beyond(outside: Outside, ports: &mut Ports<'_>) -> Result<Heard, RunErr
 
 /// Asks the judge, the semantic findings after the core's questions, and
 /// records the call and the issues its answers show.
-async fn ask(questions: Questions, ports: &mut Ports<'_>) -> Result<Heard, RunError> {
+async fn ask(
+    questions: Questions,
+    state: &State,
+    ports: &mut Ports<'_>,
+) -> Result<Heard, RunError> {
     ports.step += 1;
-    let mut asking = questions.questions;
-    asking.extend(probe_questions(&ports.detect.probes));
     let started = ports.clock.elapsed();
-    let reply = ports.judge.ask(&questions.screen, &asking).await;
+    let reply = call(questions, state, ports).await;
     let think = ports.clock.elapsed().saturating_sub(started);
     ports.log(log::asked(&reply, think)).await?;
     ports.record.calls.push(Call {
@@ -64,6 +67,28 @@ async fn ask(questions: Questions, ports: &mut Ports<'_>) -> Result<Heard, RunEr
     );
     note_issues(ports, issues).await?;
     Ok(Heard::Answered(reply))
+}
+
+/// Asks the judge: the interview's questions when the ports interview,
+/// otherwise the core's, then the semantic findings.
+async fn call(
+    questions: Questions,
+    state: &State,
+    ports: &mut Ports<'_>,
+) -> Result<Answers, JudgeError> {
+    let extra = probe_questions(&ports.detect.probes);
+    let Some(mut interview) = ports.interview.take() else {
+        let mut asking = questions.questions;
+        asking.extend(extra);
+        return ports.judge.ask(&questions.screen, &asking).await;
+    };
+    let (browser, judge) = (&mut *ports.browser, &mut *ports.judge);
+    let step = ports.step;
+    let reply = interview
+        .ask((browser, judge), &questions.screen, state, step, extra)
+        .await;
+    ports.interview = Some(interview);
+    reply
 }
 
 async fn on_page(page: PageEffect, state: &State, ports: &mut Ports<'_>) -> Result<Seen, RunError> {

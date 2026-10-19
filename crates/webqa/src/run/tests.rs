@@ -19,6 +19,7 @@ use webqa_judge::scripted::Scripted;
 mod acts;
 mod events;
 mod interrupt;
+mod interviewing;
 mod issues;
 mod material;
 mod perform;
