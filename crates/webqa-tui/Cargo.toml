@@ -9,6 +9,7 @@ license.workspace = true
 
 [dependencies]
 ratatui.workspace = true
+thiserror.workspace = true
 webqa-core.workspace = true
 
 [dev-dependencies]
