@@ -23,7 +23,7 @@ async fn runs_configured_trials_into_one_ledger() {
 }
 
 #[tokio::test]
-async fn each_trial_opens_fresh_browser() {
+async fn each_trial_opens_fresh_browser_with_storage_state() {
     let mut world = World::new(2);
     world.run().await;
     let kinds = world.kinds();

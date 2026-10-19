@@ -127,7 +127,7 @@ fn judged(script: Scripted) -> Scripted {
 }
 
 #[tokio::test]
-async fn free_text_is_redacted_before_ledger_and_log() {
+async fn free_text_redacted_before_ledger_and_log() {
     let secret = "yamada-taro";
     let mut world = World::new(1);
     world.redactor = Redactor::new(&[Rule::literal("氏名", secret)]).unwrap();
