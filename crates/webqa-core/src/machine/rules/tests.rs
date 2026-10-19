@@ -87,11 +87,11 @@ fn other_values_follow_the_configuration() {
         "  max_duration_secs: 60    # 書かなければ時間切れは起きない\n",
         "",
     );
-    let yaml = yaml.replacen("  leave_paywall: back\n", "  leave_paywall: close\n", 1);
+    let yaml = yaml.replacen("  leave_paywall: back\n", "  leave_paywall: reload\n", 1);
     let yaml = format!("{yaml}ops: [click, back]\n");
     let rules = Rules::from_config(&config(&yaml), Mode::Scenario).unwrap();
     assert_eq!(rules.max_duration, None, "no time limit");
-    assert_eq!(rules.leave_paywall, "close", "the way out");
+    assert_eq!(rules.leave_paywall, "reload", "the way out");
     assert_eq!(rules.ops, [Op::Click, Op::Back], "the operation kinds");
 }
 
