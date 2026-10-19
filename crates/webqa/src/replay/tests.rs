@@ -1,0 +1,87 @@
+//! Tests of the judge that replays a report.
+
+use serde_json::json;
+use url::Url;
+use webqa_core::judge::QuestionId;
+use webqa_core::machine::ExitReason;
+use webqa_core::redact::{Redacted, Redactor};
+use webqa_core::screen::{Screen, ScreenText, Viewport, screen_text};
+
+use super::*;
+use crate::store::report::build;
+use crate::store::report::tests::{first_answers, meta, record, report};
+
+fn screen() -> Redacted<ScreenText> {
+    let screen = Screen {
+        url: Url::parse("https://app.example.test/").unwrap(),
+        elements: Vec::new(),
+    };
+    let viewport = Viewport {
+        width: 800,
+        height: 600,
+    };
+    screen_text(&Redactor::default().screen(screen), viewport)
+}
+
+#[tokio::test]
+async fn replay_gives_back_recorded_replies() {
+    let (mode, mut replay) = Replay::from_report(&report().to_string()).unwrap();
+    assert_eq!(mode, Mode::Explore, "the mode of the run");
+    let text = screen();
+    let replies = [
+        replay.ask(&text, &[]).await,
+        replay.ask(&text, &[]).await,
+        replay.ask(&text, &[]).await,
+    ];
+    let expected = [
+        Ok(first_answers()),
+        Err(JudgeError::Timeout),
+        Err(JudgeError::Exhausted),
+    ];
+    assert_eq!(replies, expected, "the replies in order, then none left");
+    nan_comes_back_as_nan().await;
+}
+
+async fn nan_comes_back_as_nan() {
+    let mut record = record();
+    let mut answers = first_answers();
+    let operation = QuestionId::operation();
+    answers
+        .table
+        .insert(operation.clone(), vec![("back".to_owned(), f64::NAN)]);
+    record.calls[0].reply = Ok(answers);
+    let report = build(
+        &record,
+        ExitReason::BudgetExceeded,
+        &meta(),
+        &Redactor::default(),
+    );
+    let text = report.into_inner().to_string();
+    let (_, mut replay) = Replay::from_report(&text).unwrap();
+    let back = replay.ask(&screen(), &[]).await.unwrap();
+    let p = back.table[&operation][0].1;
+    assert!(p.is_nan(), "a missing probability is NaN again: {p}");
+}
+
+#[test]
+fn unreadable_report_is_error() {
+    let mut schema2 = report();
+    schema2["schema"] = json!(2);
+    let mut calls_text = report();
+    calls_text["calls"] = json!("calls");
+    let texts = [
+        String::new(),
+        "{}".to_owned(),
+        schema2.to_string(),
+        calls_text.to_string(),
+    ];
+    for text in texts {
+        let read = Replay::from_report(&text).map(|(mode, _)| mode);
+        assert_eq!(read, Err(ReplayError), "not a report: {text}");
+    }
+    assert_eq!(
+        ReplayError.to_string(),
+        "実行結果を再実行の台本として読めない",
+        "a fixed message"
+    );
+}
