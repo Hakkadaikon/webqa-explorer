@@ -39,18 +39,17 @@ async fn clicked(world: &mut QaWorld, name: String) {
 
 #[given(expr = "判断モデルが操作 {string} と対象要素 {string} を確信度 {float} で返す")]
 fn replies_on(world: &mut QaWorld, op: String, name: String, p: f64) {
-    world.scene.replies.push_back(Reply::op(&op, p).on(&name));
-    drop((op, name));
+    world.scene.replies.push_back(Reply::op(op, p).on(name));
 }
 
 #[given(expr = "判断モデルが操作 {string} を返す")]
 fn replies(world: &mut QaWorld, op: String) {
-    world.scene.replies.push_back(Reply::op(&op, 0.9));
-    drop(op);
+    world.scene.replies.push_back(Reply::op(op, 0.9));
 }
 
 #[given(expr = "判断モデルにまだ問い合わせていない")]
 fn not_asked_yet(world: &mut QaWorld) {
+    // `take` because a step takes the world mutably; `is_none` would not.
     assert!(world.ran.take().is_none(), "the run has not started");
     assert!(world.scene.replies.is_empty(), "no reply is queued yet");
 }
@@ -126,22 +125,22 @@ async fn start_exploring(world: &mut QaWorld) {
 }
 
 /// The start page shows a button named `name`, and the judge clicks it.
-fn click_on(world: &mut QaWorld, name: &str) {
-    world.scene.show_button(name);
+fn click_on(world: &mut QaWorld, name: impl Into<String>) {
+    let name = name.into();
+    world.scene.show_button(name.clone());
     let click = Reply::op("click", 0.9).on(name);
     world.scene.replies.push_back(click);
 }
 
 #[given(expr = "探索済みの要素は {string} である")]
 fn explored(world: &mut QaWorld, name: String) {
-    click_on(world, &name);
-    drop(name);
+    click_on(world, name);
 }
 
 #[given(expr = "操作しても画面が変化しないステップが {int} 回続いている")]
 fn unchanged_steps(world: &mut QaWorld, times: usize) {
     for number in 1..=times {
-        click_on(world, &format!("操作{number}"));
+        click_on(world, format!("操作{number}"));
     }
 }
 
@@ -190,16 +189,12 @@ fn key_written(world: &mut QaWorld) {
 async fn config_fails(world: &mut QaWorld) {
     world.run().await;
     let ran = world.ran();
-    let sentence = ran.config_error.clone();
-    assert!(sentence.is_some(), "the configuration was rejected");
-    let sentence = sentence.unwrap_or_default();
+    assert_ne!(ran.config_error, None, "the configuration was rejected");
+    let sentence = ran.config_error.clone().unwrap_or_default();
+    let leaked: Vec<&str> = ["sk-live-123", "value-of-"]
+        .into_iter()
+        .filter(|secret| sentence.contains(secret))
+        .collect();
+    assert_eq!(leaked, Vec::<&str>::new(), "the sentence hides the secrets");
     assert_eq!(ran.code, 2, "the exit code of a configuration error");
-    assert!(
-        !sentence.contains("sk-live-123"),
-        "the sentence hides the key"
-    );
-    assert!(
-        !sentence.contains("value-of-"),
-        "the sentence hides the variable"
-    );
 }

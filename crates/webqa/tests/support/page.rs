@@ -232,12 +232,12 @@ impl ElementSpec {
     }
 }
 
-/// The element at `position`: 40px apart from the top, or below the viewport.
 fn button_names(shown: &[&ElementSpec]) -> Vec<String> {
     let buttons = shown.iter().filter(|e| e.role == "button");
     buttons.map(|e| e.name.clone()).collect()
 }
 
+/// The element at `position`: 40px apart from the top, or below the viewport.
 fn shape((spec, position): (&ElementSpec, i64)) -> Element {
     placed(&spec.role, &spec.name, spec.below, position)
 }
