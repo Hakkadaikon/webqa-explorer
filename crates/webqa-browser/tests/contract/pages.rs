@@ -29,9 +29,11 @@ async fn collects_console_errors() {
 /// A storage state in Playwright's format with the cookie `session=ok`.
 const STATE: &str = r#"{"cookies":[{"name":"session","value":"ok","domain":"app.example.test","path":"/","expires":-1,"httpOnly":false,"secure":true,"sameSite":"Lax"}],"origins":[]}"#;
 
-fn state_file() -> Res<PathBuf> {
+/// Writes [`STATE`] to a file of its own for the test `name`, so that tests
+/// running at once never read a file another one is writing.
+fn state_file(name: &str) -> Res<PathBuf> {
     let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR"));
-    let path = dir.join("webqa-browser-storage-state.json");
+    let path = dir.join(format!("webqa-browser-storage-state-{name}.json"));
     fs::write(&path, STATE)?;
     Ok(path)
 }
@@ -39,13 +41,45 @@ fn state_file() -> Res<PathBuf> {
 #[tokio::test]
 async fn storage_state_opens_logged_in_page() {
     let mut options = at("/account").unwrap();
-    options.storage_state = Some(state_file().unwrap());
+    options.storage_state = Some(state_file("logged-in").unwrap());
     let mut browser = launch(options, 0).await.unwrap();
     let o = seen(&mut browser).await.unwrap();
     assert_eq!(kinds(&o), [("button", "ログアウト")], "logged in");
     let mut browser = launch(at("/account").unwrap(), 0).await.unwrap();
     let o = seen(&mut browser).await.unwrap();
     assert_eq!(kinds(&o), [("button", "ログイン")], "not logged in");
+}
+
+/// Launches on `/storage` with the stored login of [`state_file`].
+async fn launch_storage() -> Res<PlaywrightBrowser> {
+    let mut options = at("/storage")?;
+    options.storage_state = Some(state_file("fresh")?);
+    launch(options, 0).await
+}
+
+#[tokio::test]
+async fn new_context_has_no_previous_storage() {
+    let mut first = launch_storage().await.unwrap();
+    seen(&mut first).await.unwrap();
+    touch(&mut first, "click", Some(id("button", "書く")))
+        .await
+        .unwrap();
+    let written = seen(&mut first).await.unwrap();
+    let both = [
+        ("button", "書く"),
+        ("button", "cookie: session=ok; trial=1"),
+        ("button", "local: 1"),
+    ];
+    assert_eq!(kinds(&written), both, "the first trial wrote");
+    drop(first);
+    let mut second = launch_storage().await.unwrap();
+    let o = seen(&mut second).await.unwrap();
+    let clean = [
+        ("button", "書く"),
+        ("button", "cookie: session=ok"),
+        ("button", "local: null"),
+    ];
+    assert_eq!(kinds(&o), clean, "the second trial starts clean");
 }
 
 #[tokio::test]
