@@ -36,6 +36,8 @@ mod boundaries;
 mod common;
 #[path = "steps/config.rs"]
 mod config;
+#[path = "steps/config_limits.rs"]
+mod config_limits;
 #[path = "steps/ending.rs"]
 mod ending;
 #[path = "steps/ending_budget.rs"]
@@ -48,6 +50,8 @@ mod ending_stuck;
 mod ending_time;
 #[path = "steps/exit.rs"]
 mod exit;
+#[path = "steps/exit_scenes.rs"]
+mod exit_scenes;
 #[path = "steps/guard.rs"]
 mod guard;
 #[path = "steps/guard_pages.rs"]
@@ -106,8 +110,10 @@ fn ready() -> Vec<&'static str> {
         memory::READY,
         issues::READY,
         config::READY,
+        config_limits::READY,
         interrupt::READY,
         exit::READY,
+        exit_scenes::READY,
     ]
     .concat()
 }
