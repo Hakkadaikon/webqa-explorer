@@ -125,8 +125,15 @@ async fn replace(path: &Path, bytes: &[u8]) -> Result<(), StoreError> {
     let mut file = File::create(&temporary).await.or(Err(StoreError))?;
     // Synced even after a failed write; either error keeps `path` as it was.
     let written = file.write_all(bytes).await;
-    written.and(file.sync_all().await).or(Err(StoreError))?;
-    fs::rename(&temporary, path).await.or(Err(StoreError))
+    let done = written.and(file.sync_all().await);
+    let done = match done {
+        Ok(()) => fs::rename(&temporary, path).await,
+        Err(error) => Err(error),
+    };
+    if done.is_err() {
+        let _ = fs::remove_file(&temporary).await;
+    }
+    done.or(Err(StoreError))
 }
 
 impl Store for FileStore {

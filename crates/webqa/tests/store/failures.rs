@@ -83,3 +83,25 @@ async fn blocked_temporary_file_fails() {
     let made = store.run_dir().join("report.json").exists();
     assert_eq!((written, made), (Err(StoreError), false), "no report");
 }
+
+#[tokio::test]
+async fn failed_write_removes_temporary_file() {
+    let out = out("failed_write_removes_temporary_file").unwrap();
+    let mut store = FileStore::create(&out, "run-1").await.unwrap();
+    let blocked = out.join("memory").join(APP_FILE);
+    fs::create_dir(&blocked).unwrap();
+    fs::write(blocked.join("keep"), "").unwrap();
+    let saved = save(
+        &mut store,
+        APP,
+        &remembered().unwrap(),
+        &Redactor::default(),
+    )
+    .await;
+    let left = crate::files(&out.join("memory")).unwrap();
+    assert_eq!(
+        (saved, left),
+        (Err(StoreError), vec![APP_FILE.to_owned()]),
+        "no temporary file after a refused rename"
+    );
+}
