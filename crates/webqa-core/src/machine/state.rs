@@ -202,6 +202,13 @@ impl State {
         self.origin
     }
 
+    /// The element of the last operation, when the screen did not change
+    /// after it.
+    #[must_use]
+    pub const fn unmoved(&self) -> Option<&ElementId> {
+        self.unmoved.as_ref()
+    }
+
     /// Why the run ended, if it has.
     #[must_use]
     pub const fn ended(&self) -> Option<ExitReason> {

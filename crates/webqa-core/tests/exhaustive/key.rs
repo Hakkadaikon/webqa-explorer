@@ -21,8 +21,8 @@ pub fn knows(report: &Report, step: &Step, at: Duration) -> bool {
 }
 
 /// What tells states apart: the counts, where the run is, the stage, the
-/// start screen, the memory, the time and the last effect. Not the notes,
-/// which only grow.
+/// start screen, the element passed over, the memory, the time and the last
+/// effect. Not the notes, which only grow.
 pub fn key(
     candidates: &Candidates,
     state: &State,
@@ -33,7 +33,7 @@ pub fn key(
     let window = state.window();
     let memory = state.memory();
     format!(
-        "{:?} {:?} {} {} {} {} {:?} {} {:?} {} {} {marks:?} {at:?} {effect:?}",
+        "{:?} {:?} {} {} {} {} {:?} {} {:?} {:?} {} {} {marks:?} {at:?} {effect:?}",
         state.phase(),
         state.counters(),
         state.budget().used(),
@@ -43,6 +43,7 @@ pub fn key(
         candidates.page_of(state.last()),
         state.stage(),
         state.origin(),
+        state.unmoved().map(|e| (&e.role, &e.name, e.nth)),
         memory.screen_count(),
         memory.edge_count(),
     )

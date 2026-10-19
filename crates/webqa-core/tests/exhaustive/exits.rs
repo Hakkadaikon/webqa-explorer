@@ -1,5 +1,6 @@
 //! Why the run ended, and what the state shows of it.
 
+use webqa_core::event::Mode;
 use webqa_core::judge::QuestionId;
 use webqa_core::machine::{ExitReason, Phase, StuckKind};
 
@@ -30,7 +31,9 @@ pub static REASONS: [Property; 8] = [
     Property {
         name: "the answer stuck offered that ends the run declares it stuck",
         holds: |t| {
-            let offered = !t.adds(&not_an_option(QuestionId::operation()));
+            let narrowed = t.before.rules().mode == Mode::Explore;
+            let refused = t.adds(&not_an_option(QuestionId::operation()));
+            let offered = !all(&[narrowed, refused]);
             implies(
                 all(&[t.reason().is_some(), t.op == Some("stuck"), offered]),
                 t.reason() == Some(DECLARED),
