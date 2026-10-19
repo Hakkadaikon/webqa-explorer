@@ -55,6 +55,34 @@ fn prompt_includes_persona_fields() {
     assert!(inferred.contains(expected), "{inferred}");
 }
 
+#[test]
+fn prompt_trims_every_persona_field() {
+    let padded = Persona {
+        it_literacy: "基本操作だけ\n".to_owned(),
+        wants: "プレゼントを注文する\n".to_owned(),
+        avoids: vec![
+            " URL を打たない ".to_owned(),
+            "\t開発者ツールを開かない\n".to_owned(),
+        ],
+        ..persona()
+    };
+    let padded_lines = preamble(&padded, "  注文まで進む\n");
+    assert_eq!(
+        lines(&padded_lines).get(3..9),
+        Some(
+            &[
+                "ITの慣れ: 基本操作だけ",
+                "達成したいこと: プレゼントを注文する",
+                "しないこと:",
+                "- URL を打たない",
+                "- 開発者ツールを開かない",
+                "目指すこと: 注文まで進む",
+            ][..]
+        ),
+        "every field trimmed"
+    );
+}
+
 /// The eight questions of a step with an image.
 fn eight() -> Vec<Question> {
     vec![

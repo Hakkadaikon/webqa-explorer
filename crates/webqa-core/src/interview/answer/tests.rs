@@ -1,6 +1,7 @@
 //! Tests of reading the answers of an interview step.
 
 mod cases;
+mod sight;
 
 use std::collections::BTreeMap;
 
