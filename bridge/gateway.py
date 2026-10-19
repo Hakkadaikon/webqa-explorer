@@ -7,7 +7,7 @@ import json
 import os
 import time
 import urllib.error
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 KEY_ENV = "WEBQA_JUDGE_API_KEY"
 BUSY = (429, 529)
@@ -15,6 +15,17 @@ RETRIES = 2
 MAX_WAIT = 5
 
 sleep = time.sleep
+
+
+class NoRedirect(HTTPRedirectHandler):
+    """Keeps the key from following a redirect to another host: a 3xx
+    comes back as an HTTPError, which `post` reports as `http 3xx`."""
+
+    def redirect_request(self, *args):
+        return None
+
+
+urlopen = build_opener(NoRedirect).open
 
 
 def dump(value):

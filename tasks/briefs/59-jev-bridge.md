@@ -21,7 +21,7 @@
 ## 触ってよいファイル
 
 - `bridge/jev.py`(新規。実行の権限を付ける)と `bridge/gateway.py`(HTTP、時間の予算、再試行、失敗。jev.py のファイルの Halstead の上限のため分けた)
-- `bridge/jev_test.py`(写し方)、`bridge/jev_flow_test.py`(再試行、失敗、全体の流れ)、`bridge/jev_budget_test.py`(時間の予算)、`bridge/fake.py`(偽の HTTP、時計、要求の組み立て)。テストのファイルを分けたのは、ファイルごとの Halstead の上限のため
+- `bridge/jev_test.py`(写し方)、`bridge/gateway_test.py`(リダイレクトを辿らないこと。手元の HTTP サーバーで確かめる)、`bridge/jev_flow_test.py`(再試行、失敗、全体の流れ)、`bridge/jev_budget_test.py`(時間の予算)、`bridge/fake.py`(偽の HTTP、時計、要求の組み立て)。テストのファイルを分けたのは、ファイルごとの Halstead の上限のため
 - `justfile`: Python の整形、静的解析、テストの対象に `bridge` を足すだけ。閾値と設定は変えない。
 - `scripts/metrics.sh`: 複雑度の対象に `bridge` を足すだけ。
 - `docs/quality-gates.md`、`docs/architecture.md`: 対象の範囲と、橋渡しのコマンドの引数を書くだけ。
@@ -85,6 +85,7 @@
 | 起きたこと | 答えの行 |
 |---|---|
 | HTTP の 429 か 529 | `retry-after`(整数の秒。無いか読めなければ1、0〜5に収める)だけ待って再試行する。待つ秒数が期限までの残りに足りなければ再試行しない。再試行は2回まで。3回目も 429 か 529 なら下の行 |
+| リダイレクト(3xx) | 辿らない(キーを別のホストへ送らないため)。下の行の `http 3xx` |
 | HTTP の 200 以外 | `{"error":{"kind":"api","message":"http <状態コード>"}}` |
 | つながらない、応答の途中で切れた(`URLError`、`OSError`、`http.client.HTTPException`) | `{"error":{"kind":"api","message":"network"}}` |
 | 待ち時間切れ(`TimeoutError`、`URLError` の中の `TimeoutError`)、期限までの残りが無い | `{"error":{"kind":"timeout","message":"timeout"}}` |
@@ -117,6 +118,8 @@ HTTP は `gateway.urlopen` を偽物に差し替え、ネットワークに出�
 16. `test_text_questions_share_the_budget`: 真偽と自由な文の2問で、時計が 0、5、12 なら待ち時間は `[25, 18]`。
 17. `test_no_time_left_is_a_timeout`: 残りが0なら HTTP を呼ばずに `timeout`。
 18. `test_timeout_must_be_more_than_zero`: `0.5` と `3600` は受け、`0`、`-1`、`nan`、`inf`、`1e300`、`3600.5`、`soon` は終了コード2で拒む。待つ秒数と残りが等しいとき(残り5秒で `retry-after: 5`)も再試行しない。
+
+`bridge/gateway_test.py` の `test_redirect_is_an_error_and_not_followed`: 手元の HTTP サーバーが 302 を返すと、答えは `http 302` で、サーバーへの要求は1回(キー付き)だけ。
 
 ほかに、レビューで足したもの: 失敗の表に `URLError(TimeoutError())`(timeout)、`ConnectionResetError`、`RemoteDisconnected`、`IncompleteRead`(network)。`test_main_loop` は答えの行を丸ごと比べる。`test_text_request_has_no_image_header`: 画像のある要求でも、自由な文の問いの要求に `TypeSafe-Danger-Zone-Images` を付けない。
 
