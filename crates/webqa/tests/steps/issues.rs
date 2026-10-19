@@ -7,6 +7,7 @@ use webqa_core::issue::IssueKind;
 
 use crate::judge::Reply;
 use crate::page::{ElementSpec, PageSpec};
+use crate::scene::found;
 use crate::world::QaWorld;
 
 #[path = "issues_report.rs"]
@@ -35,7 +36,7 @@ fn found_of(world: &QaWorld, kind: &str) -> Vec<Value> {
     issues.filter(|line| line["issue"] == kind).collect()
 }
 
-/// The page shown after the click on "保存", whose console says `error`.
+/// Shows the button "保存" and has the judge click it.
 fn click_save(world: &mut QaWorld) {
     world.scene.show_button("保存");
     world
@@ -66,7 +67,7 @@ fn results_shown(world: &mut QaWorld, before: usize) {
 
 #[given(expr = "{int} ステップ目で判断モデルがエラー表示ありを確信度 {float} で返す")]
 fn error_at(world: &mut QaWorld, nth: usize, p: f64) {
-    progress(world, nth - 1);
+    progress(world, found(nth.checked_sub(1), "the steps count from 1"));
     world
         .scene
         .replies
@@ -111,6 +112,15 @@ async fn shot_saved(world: &mut QaWorld, nth: u64) {
     assert!(
         names.contains(&&name),
         "the shot {name} was saved: {names:?}"
+    );
+    let has = (
+        name.contains("error_display"),
+        name.contains(&nth.to_string()),
+    );
+    assert_eq!(
+        has,
+        (true, true),
+        "the name has the kind and the step: {name}"
     );
 }
 

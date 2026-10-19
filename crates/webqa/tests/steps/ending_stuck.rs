@@ -75,12 +75,14 @@ async fn not_recorded_as_goal(world: &mut QaWorld) {
 
 #[given(expr = "探索済みの要素は {string} だけである")]
 fn explored_only(world: &mut QaWorld, name: String) {
+    assert_eq!(name, "保存", "the screen has operated 保存");
     stuck_screen(world);
     drop(name);
 }
 
 #[given(expr = "判断モデルは毎回、操作 {string} を返し、そのたびに画面は変化する")]
 fn scrolls_every_time(world: &mut QaWorld, op: String) {
+    assert_eq!(op, "scroll_down", "the scrolls are of no_progress");
     no_progress(world, 3);
     drop(op);
 }
@@ -127,12 +129,14 @@ async fn does_not_end_after_two_more(world: &mut QaWorld) {
     expr = "スクロールすると、まだ表示領域に現れていなかった未操作のリンク {string} が表示領域に現れる"
 )]
 fn scroll_reveals(world: &mut QaWorld, name: String) {
+    assert_eq!(name, "通知設定", "the link revealed is the one of revealed");
     world.scene.after.push_back(revealed());
     drop(name);
 }
 
 #[given(expr = "判断モデルが操作 {string} を返し、スクロールで画面は変化する")]
 fn scrolls_once(world: &mut QaWorld, op: String) {
+    assert_eq!(op, "scroll_down", "the scroll is of no_progress");
     no_progress(world, 1);
     drop(op);
 }

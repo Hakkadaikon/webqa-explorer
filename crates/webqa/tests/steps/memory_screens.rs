@@ -87,6 +87,7 @@ async fn same_screen(world: &mut QaWorld, screen: String) {
 #[then(expr = "探索の記憶に新しい画面は加わっていない")]
 async fn no_new_screen(world: &mut QaWorld) {
     world.run().await;
+    assert_eq!(screen_count(world), 1, "the one screen of before");
     assert_eq!(routes(world), [], "no edge");
 }
 

@@ -101,6 +101,7 @@ fn judge_replied(world: &mut QaWorld, op: String, name: String) {
 
 #[given(expr = "{string} をクリックしたあと、ページの応答を待っている")]
 fn page_pending(world: &mut QaWorld, name: String) {
+    assert_eq!(name, "ヘルプ", "the button the judge clicked");
     world.scene.stall = Stall::Touch;
     fire_at(world, 0);
     drop(name);
