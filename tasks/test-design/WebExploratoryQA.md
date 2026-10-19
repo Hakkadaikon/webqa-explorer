@@ -359,7 +359,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-039 | event | 同値分割(blackbox-partition) | `placeholder_accessible_names_are_issues` | #8 | [x] | [ ] | — |
 | T-040 | event | コントラクトテスト(levels-service)、同値分割(blackbox-partition) | `console_error_is_issue`、`collects_console_errors` | #8、#9 | [x] | [ ] | — |
 | T-041 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) | `judge_only_detection_is_reference` | #8 | [x] | [ ] | — |
-| T-042 | ubiquitous | ゴールデンテスト(oracle-past-output) | `report_matches_snapshot`、`replay_reruns_report` | #14 | [x] | [ ] | — |
+| T-042 | ubiquitous | ゴールデンテスト(oracle-past-output) | `report_matches_snapshot`、`replay_reruns_report`、`replay_starts_from_given_memory_and_keeps_stored`、`stored_start_is_written_back`、`report_keeps_start_memory`、`start_memory_is_redacted`、`from_report_reads_start_memory`、`broken_start_memory_is_config_error` | #14、#61 | [x] | [ ] | — |
 | T-043 | event | 同値分割(blackbox-partition) | `reads_target_inputs_and_stages` | #3 | [x] | [ ] | — |
 | T-044 | ubiquitous | 同値分割(blackbox-partition) | `runs_scenario_and_explore_modes`、`explore_without_click_or_input_exits_two` | #14 | [x] | [ ] | — |
 | T-045 | optional | コントラクトテスト(levels-service) | `storage_state_opens_logged_in_page` | #9 | [x] | [ ] | 要 |
