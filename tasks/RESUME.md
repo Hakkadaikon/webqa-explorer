@@ -4,15 +4,17 @@
 
 ## 2026-10-19 の状態
 
-### main に入っていないもの(作業ブランチ `claude/stoic-hopper-jp70gf` と worktree)
+### main に入っていないもの(作業ブランチ `claude/stoic-hopper-jp70gf` と、作業中の `claude/wip-*` ブランチ)
+
+`claude/wip-*` は別のマシンで続けるために push した。取り込むときは作業ブランチで `git merge origin/claude/wip-…` する。
 
 | 単位 | 場所 | 状態と次の一手 |
 |---|---|---|
 | 14a・14b | 作業ブランチ(9207dab)、PR #58 | CI の mutation のジョブが、ランナーの停止で2回止まった(資源不足の疑い)。3回目を回した。通ればマージ。また止まれば、手元の mutation の結果(14a は生き残り0、14b は1つで直し済み)を PR に書いて相談する |
-| #24 台帳 | `.claude/worktrees/agent-aac6c41babaca14de` | レビューの直しまで済み。`ledger/select/tests.rs` の未コミットの変更(mutation の生き残り2つを落とすテスト。親が落ちることを確かめた)をコミットして、作業ブランチへ取り込む |
-| 14c 保存 | `.claude/worktrees/agent-ab3af356d505e7c56` | レビュー合格、mutation 生き残り0。should 4件(`input_key` の条件、`usage_section` の件数、`MAX_TOKENS` の境界、失敗時の `.tmp` の後始末)と nit を直してから取り込む |
-| 14d 実行ループ | `.claude/worktrees/agent-ab25f5bb922de9e67` | レビュー不合格(must 3件: 書き込みの失敗のあとに書かないこと、`Act.p`/`Act.target`、入力欄への input で skipped が出ないこと。ほかに should 5件)。途中で止めた担当の変更が `.claude/worktrees/agent-a0753419a2eca6289` にあるかもしれないので先に見る。直したら親が mutation |
-| 14e 起動の材料 | `.claude/worktrees/agent-a14bc45903d009908` | 実装済み。レビューと mutation がまだ |
+| #24 台帳 | ブランチ `claude/wip-24-ledger` | レビューの直しと mutation の生き残り2つを落とすテストまで済み(1d92b60)。作業ブランチへ取り込む |
+| 14c 保存 | ブランチ `claude/wip-14c-store` | レビュー合格、mutation 生き残り0。should 4件(`input_key` の条件、`usage_section` の件数、`MAX_TOKENS` の境界、失敗時の `.tmp` の後始末)と nit を直してから取り込む |
+| 14d 実行ループ | ブランチ `claude/wip-14d-run-loop` | レビュー不合格(must 3件: 書き込みの失敗のあとに書かないこと、`Act.p`/`Act.target`、入力欄への input で skipped が出ないこと。ほかに should 5件)。直したら親が mutation |
+| 14e 起動の材料 | ブランチ `claude/wip-14e-setup` | 実装済み。レビューと mutation がまだ |
 
 14c と 14d は `Found.shot` と `Event::Issue.screenshot` を `Option<String>` にする変更でつながる(14d が変えた)。統合のときに 14c の `store/report/sections.rs` を `found.shot.as_deref().map(screenshot)` に直す。
 
