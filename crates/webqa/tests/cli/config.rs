@@ -25,6 +25,8 @@ pub struct Config<'a> {
     pub freeze: u32,
     /// `limits.max_decisions`.
     pub max_decisions: u32,
+    /// `limits.error_confidence`.
+    pub error_confidence: f64,
     /// `limits.max_duration_secs`.
     pub max_duration: u32,
     /// An `ops:` line, or empty.
@@ -43,6 +45,7 @@ impl<'a> Config<'a> {
             kind: "command",
             freeze: 1000,
             max_decisions: 10000,
+            error_confidence: 0.8,
             max_duration: 2,
             ops: "",
         }
@@ -71,7 +74,7 @@ judge:
   page_timeout_secs: 5
   max_duration_secs: {max_duration}
   back_confidence: 0.7
-  error_confidence: 0.8
+  error_confidence: {error_confidence}
 guard:
   forbidden: {{ keywords: [], selectors: [] }}
   allowed: {{ selectors: [] }}
@@ -87,6 +90,7 @@ guard:
             extra = self.judge_extra,
             freeze = self.freeze,
             max_decisions = self.max_decisions,
+            error_confidence = self.error_confidence,
             max_duration = self.max_duration,
             ops = self.ops,
         );

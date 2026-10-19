@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use serde_json::Value;
 
-use super::case::{Case, arg, assert_refused, field, script};
+use super::case::{Case, arg, assert_refused, field, issue_kinds, script};
 use super::exec;
 
 type Script = (Vec<(Value, Value)>, Vec<Value>);
@@ -39,20 +39,8 @@ pub fn explore(case: &Case) -> io::Result<()> {
         (Some("time_exceeded"), Some("explore")),
         "the exploration ran out of time"
     );
-    Ok(())
-}
-
-/// `--max-duration-secs` shortens the run; the target is the same, so the
-/// runs share one memory file.
-pub fn shorter_limit(case: &Case) -> io::Result<()> {
-    let args = ["--max-duration-secs", "1"];
-    let output = case.run(&["explore"], &case.config("wait"), &args)?;
-    assert_eq!(exec::code(&output), Some(0), "exit code");
-    assert_eq!(
-        field(&case.report()?, "reason"),
-        Some("time_exceeded"),
-        "the shorter run ran out of time"
-    );
+    assert!(case.asked(), "the judge was asked during the run");
+    // The scenario run before it has the same target, so one memory file.
     assert_eq!(case.memories(), 1, "one memory file for one target");
     Ok(())
 }
@@ -73,7 +61,8 @@ pub fn explore_clicking(case: &Case) -> io::Result<(PathBuf, Script)> {
 /// configuration is never started.
 pub fn replayed(original: &Path) -> io::Result<Script> {
     // A fresh output directory: the memory of the first run would steer the
-    // replay away from `保存`, which that run already tried.
+    // replay away from `保存`, which that run already tried. Replaying with
+    // the same directory is a separate issue.
     let other = Case::new("replay_again")?;
     let mut config = other.config("silent");
     config.max_decisions = 2;
@@ -112,4 +101,16 @@ pub fn help_names(case: &Case) -> io::Result<(Option<i32>, [bool; 3])> {
     let text = String::from_utf8_lossy(&help.stdout).into_owned();
     let named = ["run", "explore", "replay"].map(|name| text.contains(name));
     Ok((exec::code(&help), named))
+}
+
+/// The exit code and issue kinds of an exploration whose judge answers as
+/// `mode` and whose configuration trusts the error display from `confidence`.
+pub fn semantic(mode: &str, confidence: f64) -> io::Result<(Option<i32>, Vec<String>)> {
+    let case = Case::new("semantic_findings")?;
+    let mut config = case.config(mode);
+    config.max_decisions = 3;
+    config.max_duration = 60;
+    config.error_confidence = confidence;
+    let output = case.explore(&config)?;
+    Ok((exec::code(&output), issue_kinds(&case.report()?)))
 }

@@ -129,7 +129,7 @@ pub fn interrupt_when_asked(case: &Case, running: &Running) -> io::Result<()> {
 
 fn interrupt(pid: u32) -> io::Result<()> {
     let status = Command::new("kill")
-        .args(["-INT", &pid.to_string()])
+        .args(["-INT", "--", &format!("-{pid}")])
         .status()?;
     assert!(status.success(), "kill sent the signal");
     Ok(())
@@ -150,10 +150,17 @@ pub fn script(report: &Value) -> (Vec<(Value, Value)>, Vec<Value>) {
 /// The kinds of the issues of `report`.
 pub fn issue_kinds(report: &Value) -> Vec<String> {
     let issues = report.get("issues").and_then(Value::as_array);
-    let kinds = issues.map(|all| all.iter().filter_map(|i| field(i, "kind")));
-    kinds
-        .map(|kinds| kinds.map(str::to_owned).collect())
-        .unwrap_or_default()
+    let named = issues.map(|all| all.iter().map(issue_name));
+    named.map(Iterator::collect).unwrap_or_default()
+}
+
+/// The kind of an issue, with the label of a semantic one.
+fn issue_name(issue: &Value) -> String {
+    let kind = field(issue, "kind").unwrap_or_default();
+    match field(issue, "label") {
+        Some(label) if kind == "semantic" => format!("{kind}/{label}"),
+        _ => kind.to_owned(),
+    }
 }
 
 /// The path of `file`, as an argument.

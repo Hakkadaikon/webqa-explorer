@@ -3,6 +3,7 @@
 use std::ffi::OsStr;
 use std::fs;
 use std::io;
+use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 use std::sync::mpsc::{self, Receiver};
@@ -36,6 +37,9 @@ pub fn start<S: AsRef<OsStr>>(dir: &Path, args: &[S]) -> io::Result<Running> {
     let child = Command::new(env!("CARGO_BIN_EXE_webqa"))
         .args(args)
         .current_dir(dir)
+        // Its own process group, so a test can signal the whole group as a
+        // terminal does for Ctrl-C.
+        .process_group(0)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

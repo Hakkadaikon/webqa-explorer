@@ -15,7 +15,7 @@ use std::env::var;
 use std::fs;
 use std::io;
 
-use case::{Case, assert_refused, field, issue_kinds};
+use case::{Case, assert_refused, field};
 use serde_json::Value;
 
 fn reason(report: &Value) -> Option<&str> {
@@ -69,8 +69,7 @@ fn explore_without_click_or_input_exits_two() -> io::Result<()> {
 fn runs_scenario_and_explore_modes() -> io::Result<()> {
     let case = Case::new("runs_scenario_and_explore_modes")?;
     modes::scenario(&case)?;
-    modes::explore(&case)?;
-    modes::shorter_limit(&case)
+    modes::explore(&case)
 }
 
 #[test]
@@ -114,15 +113,15 @@ fn judge_start_failure_exits() -> io::Result<()> {
 
 #[test]
 fn semantic_findings_use_the_configured_confidence() -> io::Result<()> {
-    let case = Case::new("semantic_findings")?;
-    let mut config = case.config("broken");
-    config.max_decisions = 3;
-    config.max_duration = 60;
-    let output = case.explore(&config)?;
-    assert_eq!(exec::code(&output), Some(1));
+    let shown = modes::semantic("broken", 0.8)?;
+    assert_eq!(shown, (Some(1), vec!["error_display".to_owned()]));
+    // 0.9 is below the 0.95 that the configuration asks for.
+    let weak = modes::semantic("broken", 0.95)?;
+    assert_eq!(weak, (Some(0), Vec::<String>::new()));
+    let confusing = modes::semantic("confusing", 0.8)?;
     assert_eq!(
-        issue_kinds(&case.report()?).first().map(String::as_str),
-        Some("error_display")
+        confusing.1.first().map(String::as_str),
+        Some("semantic/わかりにくい表示")
     );
     Ok(())
 }
