@@ -24,6 +24,7 @@ insta = "1.49.0"
 jiff = "0.2.38"
 percent-encoding = "2.3.2"
 playwright-rs = "0.20.1"
+proptest = { version = "1.12.0", default-features = false, features = ["std"] }
 ratatui = "0.30.2"
 regex = "1.13.1"
 serde = { version = "1.0.229", features = ["derive"] }
