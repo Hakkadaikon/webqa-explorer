@@ -7,7 +7,7 @@ use crate::effect::Effect;
 use crate::judge::{Answers, QuestionId, Unusable};
 use crate::machine::testing::{
     APP, EXPLORE_OPS, answer, ask_with, asked_for, asked_only, below, budget, explore, id, idle,
-    look, memory_of, next, options_of, page, ranked, secs, seen, started, told, top, with,
+    inside, look, memory_of, next, options_of, page, ranked, secs, seen, started, told, top, with,
 };
 use crate::machine::{Anomaly, Note, Rules, State, Step};
 use crate::screen::{ElementId, Screen};
@@ -126,4 +126,15 @@ fn explore_targets_follow_candidates() {
     let clicked = told(asked.state(), answer("click", Some(0.9), Some("1")));
     assert_eq!(clicked.effect(), Some(&look(save())), "保存");
     moves::moves_tier();
+}
+
+#[test]
+fn explore_targets_stop_at_option_limit() {
+    let many = (1..=256).fold(page(&format!("{APP}/many"), &[]), |screen, n| {
+        with(screen, inside("button", &format!("項目{n}")))
+    });
+    let asked = started(explore(), &many);
+    let targets = options_of(asked.effect(), &QuestionId::target());
+    let expected: Vec<String> = (1..=255).map(|n| n.to_string()).collect();
+    assert_eq!(targets, expected, "255 offered, 256 left out");
 }

@@ -5,8 +5,8 @@ use super::{all_clicked, not_an_option, settings};
 use crate::explore::Memory;
 use crate::judge::{Answers, JudgeError, QuestionId};
 use crate::machine::testing::{
-    APP, EXPLORE_OPS, MOVES, answer, ask_with, asked_only, budget, explore, heard, id, idle,
-    memory_of, next, operated, page, picked, secs, seen, showed, started, top,
+    APP, EXPLORE_OPS, MOVES, answer, ask_with, asked_only, away, budget, explore, heard, id, idle,
+    memory_of, next, operated, page, picked, secs, seen, showed, started, top, touch,
 };
 use crate::machine::{Anomaly, ExitReason, Note, State, Step};
 use crate::plan::Pick;
@@ -90,4 +90,13 @@ fn not_yet(notice_page: &Screen) {
     let first = reachable(notice_page, &all, 0);
     let asked = ask_with(&top(), asked_only(&MOVES, 2, &[]));
     assert_eq!(first.effect(), Some(&asked), "asks before the goal");
+}
+
+#[test]
+fn explore_goal_waits_without_start_screen() {
+    let outside = idle(explore(), seen(&away()), Memory::default());
+    assert_eq!(outside.origin(), None, "no start screen yet");
+    let back = next(outside.with_budget(budget(20, 1)), secs(0));
+    assert_eq!(back.reason(), None, "not achieved");
+    assert_eq!(back.effect(), Some(&touch("return", None, 1.0)), "returns");
 }
