@@ -145,6 +145,18 @@ async fn interrupted(
     gate: &Arc<Notify>,
     store: &mut dyn Store,
 ) -> Ending {
+    let mut user = user_for(wait, gate);
+    run_with(user.as_mut(), wait, page, gate, store).await
+}
+
+/// [`interrupted`] with the interruptions of `user`.
+async fn run_with(
+    user: &mut dyn Interrupt,
+    wait: Wait,
+    page: &Observation,
+    gate: &Arc<Notify>,
+    store: &mut dyn Store,
+) -> Ending {
     let mut clock = Windowed {
         inner: FakeClock::default(),
         gate: Arc::clone(gate),
@@ -153,8 +165,7 @@ async fn interrupted(
     let redactor = Redactor::default();
     let (mut browser, mut judge) = (browser_on(page), judge_for(wait, gate));
     let mut ports = Ports::new(&mut browser, &mut judge, &mut clock, store, &redactor);
-    let mut user = user_for(wait, gate);
-    conduct(&mut ports, user.as_mut(), rules(requests), &plan()).await
+    conduct(&mut ports, user, rules(requests), &plan()).await
 }
 
 /// The run on `top`, interrupted while waiting on `wait`, into `store`.

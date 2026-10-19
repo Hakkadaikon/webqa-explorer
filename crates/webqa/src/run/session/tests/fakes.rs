@@ -45,6 +45,8 @@ pub struct Slow {
     pub inner: MemoryStore,
     pub hold: Hold,
     pub order: Vec<&'static str>,
+    /// Whether the memory can be read.
+    pub readable: bool,
 }
 
 impl Slow {
@@ -53,6 +55,7 @@ impl Slow {
             inner: MemoryStore::default(),
             hold,
             order: Vec::new(),
+            readable: true,
         }
     }
 }
@@ -70,6 +73,9 @@ impl Store for Slow {
         &'a mut self,
         origin: &'a str,
     ) -> Pending<'a, Result<Option<String>, StoreError>> {
+        if !self.readable {
+            return Box::pin(future::ready(Err(StoreError)));
+        }
         self.inner.read_memory(origin)
     }
 

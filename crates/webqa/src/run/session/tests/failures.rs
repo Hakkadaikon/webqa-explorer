@@ -1,5 +1,6 @@
 //! Tests of the runs that go wrong.
 
+use super::fakes::*;
 use super::*;
 
 #[tokio::test]
@@ -60,4 +61,27 @@ async fn confirmed_issue_sets_ending() {
     let issues = store.report.unwrap()["issues"].clone();
     assert_eq!(issues.as_array().unwrap().len(), 1);
     assert_eq!(issues[0]["kind"], "accessible_name");
+}
+
+#[tokio::test]
+async fn unreadable_memory_ends_failed() {
+    let mut store = Slow::holding(Hold::Once);
+    store.readable = false;
+    let ending = on_top(Wait::Step, &mut store).await;
+    assert_eq!(format!("{ending:?}"), "Failed(Store(StoreError))");
+    assert_eq!(exit::code(&ending), 3);
+    assert_eq!(store.inner.report, None);
+}
+
+#[tokio::test]
+async fn a_reset_that_cannot_be_logged_ends_failed() {
+    let mut store = MemoryStore {
+        limit: Some(1),
+        ..MemoryStore::default()
+    };
+    store.memories.insert(ORIGIN.to_owned(), "{".to_owned());
+    let ending = on_top(Wait::Step, &mut store).await;
+    assert_eq!(format!("{ending:?}"), "Failed(Store(StoreError))");
+    assert_eq!(exit::code(&ending), 3);
+    assert_eq!((store.report, store.memories.len()), (None, 0));
 }

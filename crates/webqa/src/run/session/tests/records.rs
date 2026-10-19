@@ -1,6 +1,9 @@
 //! Tests of what is written at the end of a run.
 
+use std::path::Path;
+
 use super::fakes::*;
+use crate::cli::app::describe;
 use webqa_core::config::raw::{DoneWhen, Stage};
 
 use super::*;
@@ -20,9 +23,17 @@ async fn records_written_in_order() {
 async fn second_interrupt_while_writing_abandons() {
     let gate = Arc::new(Notify::new());
     let mut store = Slow::holding(Hold::Forever(Arc::clone(&gate)));
-    let ending = interrupted(Wait::Question(3), &top(), &gate, &mut store).await;
+    // Fires on three waits in a row, so that a wait the run should not make
+    // ends at once instead of hanging.
+    let mut user = Counting {
+        calls: 0,
+        fire_on: BTreeSet::from([10, 11, 12]),
+    };
+    let ending = run_with(&mut user, Wait::Step, &top(), &gate, &mut store).await;
     assert_eq!(format!("{ending:?}"), "Abandoned");
     assert_eq!(exit::code(&ending), 3);
+    // The tenth wait ended the run; the eleventh, while writing, abandoned it.
+    assert_eq!(user.calls, 11);
     assert_eq!(store.inner.report, None);
     let last = ends(&store.inner).1.unwrap();
     assert_ne!(last["kind"], "run_finished");
@@ -64,6 +75,8 @@ async fn interrupt_after_finish_keeps_reason() {
     let mut store = Slow::holding(Hold::Once);
     let ending = finished_then_interrupted(&mut store).await;
     assert_eq!(exit::code(&ending), 0);
+    let said = describe(&ending, Path::new("runs/x"));
+    assert_eq!(said, "終了理由 goal_achieved、記録 runs/x");
     assert_eq!(reason_of(ending), ExitReason::GoalAchieved);
     let last = json!({"kind": "run_finished", "reason": "goal_achieved"});
     assert_eq!(ends(&store.inner).1, Some(last));
