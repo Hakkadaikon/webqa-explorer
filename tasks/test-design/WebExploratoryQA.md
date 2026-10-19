@@ -43,7 +43,7 @@ T-110、T-111 の単体は `webqa-core::machine::actions` に置く。段階を�
 T-108 の全状態の探索は、候補の画面に「操作可能な要素が0件」と「操作可能な要素が禁止要素だけ」の2つを含める。どちらも探索してよい要素が空になる画面で、これが無いと問い合わせの前にゴール達成にしないことを確かめられない。
 T-112 は、探索モードで使う操作種別に click も input も無い(done だけの場合も含む)設定を、設定エラーにする行である。要素を操作できないと探索が進まないためで、issue #3(設定の読み込みと検証)の追加の直しとして足した。実行のモードは設定でなく CLI のサブコマンドで決まるので、単体の `explore_mode_needs_click_or_input` は、検証済みの設定とモードを引数に取る中核の関数を確かめる。CLI が起動時にこの関数を呼ぶことは、T-044 の実行ファイルのテスト `explore_without_click_or_input_exits_two`(終了コード2)が確かめる。
 T-113 は、issue #4 で利用者が「許可リストは禁止より優先する」と決めたので足した。それまで T-007 の Examples にあった「許可リストにも一致するが名前が "購入" を含むボタン」の行を、操作する側の Scenario に移したもので、feature の行番号がずれた出典をあわせて直した。
-T-114 は、設定の操作種別が input だけなら input を残す例外を、単体テストで確かめる。T-114、T-115 は、issue #62〜#64 で利用者が「探索モードでは、対象に合わせない操作を選択肢から外し、記憶にも数えない」と決めたので足した。T-084 の Scenario は、入力欄が無い開始の画面で、選択肢が input を除く6種になるように直した。値の設定された入力欄があるかは、設定の inputs の名前と、入力欄の役割で決める。
+T-114 は、設定の操作種別が done を除くと input だけなら input を残す例外を、単体テストで確かめる。T-114、T-115 は、issue #62〜#64 で利用者が「探索モードでは、対象に合わせない操作を選択肢から外し、記憶にも数えない」と決めたので足した。T-084 の Scenario は、入力欄が無い開始の画面で、選択肢が input を除く6種になるように直した。値の設定された入力欄があるかは、設定の inputs の名前と、入力欄の役割で決める。
 
 ## 用語定義(抽出より先に埋める)
 
@@ -311,7 +311,7 @@ T-114 は、設定の操作種別が input だけなら input を残す例外を
 - [x] T-113 WebExploratoryQA.feature:140(ガードレール) [event] 「許可リストに一致する要素は、禁止のキーワードを含んでも操作する」
       → 手法: ゴールデンテスト(oracle-past-output)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard` の `allowed_list_wins_over_every_axis` / issue: #4
 - [x] T-114 WebExploratoryQA.feature:655(探索の記憶と優先順位) [state] 「探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める」(Examples の各行を1ケースとする)
-      → 手法: 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_offered_only_for_a_field_with_a_value`、単体 `webqa-core::machine::rules` の `input_does_nothing_without_a_field_or_a_value` / issue: #62、#63
+      → 手法: 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_offered_only_for_a_field_with_a_value`、単体 `webqa-core::machine::rules` の `input_does_nothing_without_a_field_or_a_value`、単体 `webqa-core::machine::actions` の `input_stays_when_the_rules_offer_nothing_else` / issue: #62、#63
 - [x] T-115 WebExploratoryQA.feature:667(探索の記憶と優先順位) [unwanted] 「何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_remembered_only_when_it_typed`、単体 `webqa::run` の `input_that_does_nothing_is_recorded_and_run_continues` / issue: #62、#64
 
@@ -436,7 +436,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-111 | state | 状態遷移テスト(blackbox-state) | `advance_into_met_stage_moves_on_without_ops` | #13 | [x] | [ ] | 要 |
 | T-112 | unwanted | ネガティブテスト(process-static)、同値分割(blackbox-partition) | `explore_mode_needs_click_or_input`、`explore_without_click_or_input_exits_two` | #17、#14 | [x] | [ ] | 要 |
 | T-113 | event | ゴールデンテスト(oracle-past-output)、同値分割(blackbox-partition) | `allowed_list_wins_over_every_axis` | #4 | [x] | [ ] | 要 |
-| T-114 | state | 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) | `input_is_offered_only_for_a_field_with_a_value`、`input_does_nothing_without_a_field_or_a_value` | #62、#63 | [x] | [ ] | 要 |
+| T-114 | state | 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) | `input_is_offered_only_for_a_field_with_a_value`、`input_does_nothing_without_a_field_or_a_value`、`input_stays_when_the_rules_offer_nothing_else` | #62、#63 | [x] | [ ] | 要 |
 | T-115 | unwanted | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `input_is_remembered_only_when_it_typed`、`input_that_does_nothing_is_recorded_and_run_continues` | #62、#64 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行

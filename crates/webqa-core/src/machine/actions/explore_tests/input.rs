@@ -58,12 +58,17 @@ fn input_is_offered_only_for_a_field_with_a_value() {
 
 #[test]
 fn input_stays_when_the_rules_offer_nothing_else() {
-    let only = Rules {
-        ops: vec![Op::Input],
-        ..valued(&[])
-    };
     let screen = page(&format!("{APP}/"), &[("button", "保存")]);
-    assert!(offers_input(only, &screen), "the only kind stays");
+    let cases = [
+        (vec![Op::Input], true),
+        (vec![Op::Input, Op::Done], true),
+        (vec![Op::Click, Op::Input], false),
+    ];
+    let offered = cases.clone().map(|(ops, _)| {
+        let rules = Rules { ops, ..valued(&[]) };
+        offers_input(rules, &screen)
+    });
+    assert_eq!(offered, cases.map(|(_, stays)| stays), "input stays");
 }
 
 /// Types into "メール", or into "保存", then looks at the page again.
