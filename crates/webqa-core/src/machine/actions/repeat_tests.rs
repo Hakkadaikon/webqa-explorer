@@ -104,3 +104,12 @@ fn aborted_look_up_forgets_the_unchanged_target() {
     let after = next_look(aborted.state(), save_first());
     assert_eq!(after, Some(look(save())), "the judge's first pick stands");
 }
+
+#[test]
+fn unchanged_target_is_kept_until_the_screen_changes() {
+    let unchanged = clicked(&ask_top(rules()), save_first(), &save(), &top());
+    assert_eq!(unchanged.state().unmoved(), Some(&save()), "kept");
+    let news = with(top(), inside("link", "新着"));
+    let changed = clicked(&ask_top(rules()), save_first(), &save(), &news);
+    assert_eq!(changed.state().unmoved(), None, "the screen changed");
+}

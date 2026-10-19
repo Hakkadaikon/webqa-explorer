@@ -32,3 +32,16 @@ fn masked_names() {
     let shown = format!("{seen:?}");
     assert!(!shown.contains("山田太郎"), "no name in {shown}");
 }
+
+#[test]
+fn whole_debug_shows_only_the_outline() {
+    let rules = [Rule::literal("氏名", "山田太郎")];
+    let redactor = Redactor::new(&rules).unwrap();
+    let screen = page(&format!("{APP}/"), &[("link", "山田太郎")]);
+    let whole = Whole {
+        outline: redactor.screen(screen),
+        text: redactor.text("山田太郎さんの注文"),
+    };
+    let expected = r#"Whole { outline: Redacted(Screen { path: "/", elements: 1 }), .. }"#;
+    assert_eq!(format!("{whole:?}"), expected, "the path and the count");
+}
