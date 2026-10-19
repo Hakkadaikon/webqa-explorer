@@ -2,6 +2,7 @@
 //! edited checkboxes.
 
 pub(in crate::interview::ledger) mod broken;
+mod compared;
 
 use crate::config::raw::Op;
 use crate::interview::clue::Clue;

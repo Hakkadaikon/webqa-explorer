@@ -62,9 +62,11 @@ pub(super) const FIELDS: [&str; 14] = [
     "前回との照らし合わせ",
 ];
 /// The comparisons with the previous run, with their names.
-pub(super) const COMPARED: [(Compared, &str); 2] = [
+pub(super) const COMPARED: [(Compared, &str); 4] = [
     (Compared::New, "新しく出た"),
     (Compared::Remaining, "残っている"),
+    (Compared::Resolved, "解消した"),
+    (Compared::Unverified, "確かめられなかった"),
 ];
 
 /// The name of `key` in `table`, or `""` when the table lacks it.
