@@ -7,7 +7,9 @@ use std::process::{Command, id};
 use std::task::Poll;
 use std::time::Duration;
 
-use tokio::task::yield_now;
+use std::sync::mpsc::channel;
+
+use tokio::task::{spawn_blocking, yield_now};
 use url::Url;
 use webqa_core::config::raw::{DoneWhen, Op, Stage};
 use webqa_core::event::Mode;
@@ -143,7 +145,12 @@ fn rules() -> Rules {
 
 #[tokio::test]
 async fn ctrl_c_resolves_the_wait() {
-    let waiting = tokio::spawn(async { CtrlC.wait().await });
+    // Waited for on a blocking thread, so a wait that never ends fails instead of hanging.
+    let (done, finished) = channel();
+    drop(tokio::spawn(async move {
+        CtrlC.wait().await;
+        let _sent = done.send(());
+    }));
     // The signal handler is registered when the wait is first polled.
     yield_now().await;
     let sent = Command::new("kill")
@@ -151,5 +158,6 @@ async fn ctrl_c_resolves_the_wait() {
         .status()
         .map(|s| s.success());
     assert_eq!(sent.ok(), Some(true));
-    assert_eq!(waiting.await.ok(), Some(()));
+    let waited = spawn_blocking(move || finished.recv_timeout(Duration::from_secs(5))).await;
+    assert_eq!(waited.ok().and_then(Result::ok), Some(()));
 }

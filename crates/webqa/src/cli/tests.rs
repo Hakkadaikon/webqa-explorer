@@ -2,6 +2,8 @@
 
 use std::path::Path;
 use std::sync::mpsc::channel;
+use std::thread;
+use std::time::Duration;
 
 use crate::clock::Wall;
 use crate::run::RunError;
@@ -199,7 +201,13 @@ fn an_abandoned_runtime_does_not_wait_for_blocked_work() {
     let (release, blocked) = channel::<()>();
     let runtime = Builder::new_current_thread().build().unwrap();
     drop(runtime.spawn_blocking(move || blocked.recv()));
-    stop_runtime(runtime, true);
+    // Stopped on another thread, so a stop that waits fails here instead of hanging.
+    let (done, stopped) = channel();
+    thread::spawn(move || {
+        stop_runtime(runtime, true);
+        let _sent = done.send(());
+    });
+    assert_eq!(stopped.recv_timeout(Duration::from_secs(5)), Ok(()));
     drop(release);
     let runtime = Builder::new_current_thread().build().unwrap();
     stop_runtime(runtime, false);
