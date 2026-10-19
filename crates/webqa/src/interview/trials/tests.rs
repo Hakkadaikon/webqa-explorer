@@ -26,60 +26,20 @@ use webqa_judge::scripted::Scripted;
 mod ends;
 mod opening;
 mod resets;
+mod stubs;
 mod trials;
 mod waits;
+mod windows;
 
 #[path = "../../../tests/support/launch.rs"]
 mod launch;
 
 use self::launch::FakeLaunch;
+use self::stubs::{Fires, Never, Stalled};
 use super::*;
 use crate::run::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 
 const ORIGIN: &str = "https://app.example.test";
-
-/// The user who never interrupts.
-struct Never;
-
-impl Interrupt for Never {
-    fn wait(&mut self) -> Pending<'_, ()> {
-        Box::pin(future::pending())
-    }
-}
-
-/// Interrupts on the calls of `wait` numbered in `fire_on`, from 1.
-struct Fires {
-    calls: usize,
-    fire_on: Vec<usize>,
-}
-
-impl Interrupt for Fires {
-    fn wait(&mut self) -> Pending<'_, ()> {
-        self.calls += 1;
-        if self.fire_on.contains(&self.calls) {
-            Box::pin(future::ready(()))
-        } else {
-            Box::pin(future::pending())
-        }
-    }
-}
-
-/// A clock that stands at `now` and never wakes from a sleep.
-struct Stalled {
-    now: Duration,
-    sleeps: Vec<Duration>,
-}
-
-impl Clock for Stalled {
-    fn elapsed(&self) -> Duration {
-        self.now
-    }
-
-    fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
-        self.sleeps.push(at);
-        Box::pin(future::pending())
-    }
-}
 
 const FIXTURES: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/reset/");
 
@@ -148,15 +108,20 @@ fn plan(trials: u32) -> Plan {
     }
 }
 
-/// The judge says the purpose is reached after the first look.
-fn done(times: usize) -> Scripted {
-    (0..times).fold(Scripted::default(), |script, _| {
+/// The judge chooses the operations `ops` in turn, on the first element.
+fn script(ops: &[&str]) -> Scripted {
+    ops.iter().fold(Scripted::default(), |script, &op| {
         script
-            .then(QuestionId::operation(), [("done", 0.9)])
+            .then(QuestionId::operation(), [(op, 0.9)])
             .then(QuestionId::target(), [("1", 0.8)])
             .then(QuestionId::error_shown(), [("true", 0.0)])
             .then(QuestionId::goal_reached(), [("true", 0.0)])
     })
+}
+
+/// The judge says the purpose is reached after the first look, `times` times.
+fn done(times: usize) -> Scripted {
+    script(&vec!["done"; times])
 }
 
 /// A browser that shows the top page forever.
@@ -251,6 +216,14 @@ impl World {
         world.plan.interview.requests_per_hour = nz(2);
         world.plan.rules.requests_per_hour = nz(2);
         world
+    }
+
+    /// The kind of each line of the log that is one of `kinds`, in order.
+    fn picked(&self, kinds: &[&str]) -> Vec<String> {
+        let all = self.kinds();
+        all.into_iter()
+            .filter(|kind| kinds.contains(&kind.as_str()))
+            .collect()
     }
 
     /// The kind of each line of the log, in order.
