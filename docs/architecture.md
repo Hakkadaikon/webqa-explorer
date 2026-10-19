@@ -971,7 +971,7 @@ clippyの`print_stdout`と`print_stderr`は、`println!`と`eprintln!`を止め�
 | 保存 | `webqa/tests/`、`webqa-tui/tests/` | 記憶と実行結果のファイルの読み書き。台帳の書き戻しと、外での書き換えの検出 | `CARGO_TARGET_TMPDIR`の下の一時ディレクトリ |
 | 性質 | `webqa/tests/` | 試行の外のループの安全性(実行全体の窓、期限、試行の数) | 偽の時計、ブラウザ、初期化のコマンド、判断モデル。乱数のseedと試行回数を固定する |
 | 文書 | `webqa/tests/` | 配布する手引きの形 | なし |
-| 受け入れ | `webqa/tests/` | 受け入れシナリオ242本(既存のモード111本、インタビューのモード131本) | 偽のブラウザ、判断モデル、時計、保存先、初期化のコマンド |
+| 受け入れ | `webqa/tests/` | 受け入れシナリオ244本(既存のモード113本、インタビューのモード131本) | 偽のブラウザ、判断モデル、時計、保存先、初期化のコマンド |
 | 実行ファイル | `webqa/tests/` | 起動、設定エラー、終了コード、中断、再実行、形式の検査 | Chromium |
 
 受け入れシナリオは、cucumber crateでRustのテストとして走らせる。
@@ -1078,6 +1078,8 @@ crates/
           find.rs  gather.rs  label.rs  mismatch.rs  number.rs  rank.rs  record.rs
         outcome.rs       試行の結末と、目的に届かない試行の数え方
         natural.rs       自然さの問いと区分、問いの回数の上限
+        natural/
+          answer.rs  question.rs  quota.rs
         ledger.rs        台帳の書き出しと読み戻し、選択の書き換え
         compare.rs       前回の台帳との照らし合わせ
         schedule.rs      次の試行を始めるかの判定と、中核に渡す窓の上限
