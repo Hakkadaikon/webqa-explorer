@@ -1,6 +1,7 @@
 //! The store that keeps the records in memory.
 
 use std::collections::BTreeMap;
+use std::future;
 
 use serde_json::Value;
 use webqa_core::judge::Image;
@@ -29,6 +30,8 @@ pub struct MemoryStore {
     pub shots: Vec<(String, Image)>,
     /// How many writes of any kind were asked for.
     pub writes: usize,
+    /// Whether the write of the ledger never finishes.
+    pub hangs_on_ledger: bool,
 }
 
 impl MemoryStore {
@@ -76,6 +79,9 @@ impl Store for MemoryStore {
     }
 
     fn write_ledger<'a>(&'a mut self, text: &'a str) -> Pending<'a, Result<(), StoreError>> {
+        if self.hangs_on_ledger {
+            return Box::pin(future::pending());
+        }
         self.ledger = Some(text.to_owned());
         self.wrote()
     }

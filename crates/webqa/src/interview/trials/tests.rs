@@ -27,6 +27,7 @@ mod ends;
 mod findings;
 mod opening;
 mod purposes;
+mod records;
 mod resets;
 mod stubs;
 mod trials;
@@ -105,6 +106,11 @@ fn script(ops: &[&str]) -> Scripted {
 
 /// As [`script`], with the probability `hesitation` that the judge hesitated.
 fn hesitating(ops: &[&str], hesitation: f64) -> Scripted {
+    expecting(ops, hesitation, "保存される")
+}
+
+/// As [`hesitating`], with the judge expecting `expectation` at each step.
+fn expecting(ops: &[&str], hesitation: f64, expectation: &str) -> Scripted {
     ops.iter().fold(Scripted::default(), |script, &op| {
         script
             .then(QuestionId::operation(), [(op, 0.9)])
@@ -112,7 +118,7 @@ fn hesitating(ops: &[&str], hesitation: f64) -> Scripted {
             .then(QuestionId::error_shown(), [("true", 0.0)])
             .then(QuestionId::goal_reached(), [("true", 0.0)])
             .then(QuestionId::new(HESITATION), [("true", hesitation)])
-            .then_text(QuestionId::new(EXPECTATION), "保存される")
+            .then_text(QuestionId::new(EXPECTATION), expectation)
             .then_text(QuestionId::new(PURPOSE_GUESS), GUESS)
     })
 }
