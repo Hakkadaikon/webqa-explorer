@@ -2,7 +2,7 @@
 
 use super::Seen;
 use crate::issue::{Issue, IssueKind};
-use crate::judge::JudgeError;
+use crate::judge::{JudgeError, Unusable};
 
 /// One record. The notes only grow; the run loop reads the new ones.
 #[derive(Debug, Clone, PartialEq)]
@@ -33,10 +33,8 @@ pub enum Rejection {
 pub enum Anomaly {
     /// The judge failed.
     Judge(JudgeError),
-    /// No operation kind, or one that was not offered.
-    Operation,
-    /// An operation on an element without a number of the screen text.
-    Target,
+    /// The answers arrived but cannot be used.
+    Unusable(Unusable),
 }
 
 /// The issue of landing on `seen`, outside the allowed origins.

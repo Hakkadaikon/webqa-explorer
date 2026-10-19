@@ -8,24 +8,33 @@ use std::time::Duration;
 
 use super::counters::{Budget, Counters};
 use super::observe::counted;
-use super::ops::offered;
 use super::state::State;
 use super::{Facts, Heard, Rules, Seen, Step, step};
 use crate::config::raw::Op;
-use crate::effect::{Effect, Outside, PageEffect, Questions, Target, Touch};
+use crate::effect::{Effect, PageEffect, Target, Touch};
 use crate::event::Mode;
 use crate::explore::Memory;
 use crate::guard::domain::AllowedOrigin;
 use crate::guard::forbidden::Forbidden;
 use crate::guard::paywall::Paywall;
-use crate::judge::{Answers, JudgeError, Question, QuestionId, Usage, step_questions};
+use crate::judge::{Answers, JudgeError, QuestionId, Usage};
 use crate::plan::{Pick, choose};
-use crate::screen::{ElementId, Screen, screen_text, visible};
+use crate::screen::{ElementId, Screen};
 use crate::window::RequestWindow;
 
+mod questions;
 mod screens;
+mod stages;
 
-pub use screens::{APP, VIEWPORT, away, below, inside, page, pricing, seen, shows, top, with};
+pub use questions::{
+    EXPLORE_OPS, MOVES, ask_with, asked, asked_for, asked_only, asking, options_of,
+};
+pub use screens::{
+    APP, VIEWPORT, away, below, heading, inside, page, pricing, seen, seen_whole, shows, top, with,
+};
+pub use stages::{
+    done_both, done_element, done_text, done_url, explore, memory_of, stage, staged, two,
+};
 
 /// Every operation kind, in the order of the table.
 pub const ALL_OPS: [Op; 8] = [
@@ -64,6 +73,7 @@ pub fn rules() -> Rules {
         forbidden: Forbidden::default(),
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
+        stages: Vec::new(),
     }
 }
 
@@ -71,16 +81,30 @@ fn options(options: &[(&str, f64)]) -> Vec<(String, f64)> {
     options.iter().map(|(o, p)| ((*o).to_owned(), *p)).collect()
 }
 
-/// The judge chose `op` with `p` (missing when `None`) and the element `target`.
+/// The judge chose `op` with `p` (missing when `None`) and the element
+/// `target`. It sees no error and does not see the goal reached.
 pub fn answer(op: &str, p: Option<f64>, target: Option<&str>) -> Answers {
+    let targets: Vec<(&str, f64)> = target.iter().map(|n| (*n, 0.9)).collect();
+    with_targets(op, p, target.map(|_| targets.as_slice()))
+}
+
+/// The judge chose `op` with `p` and ranked the element numbers `targets`.
+pub fn ranked(op: &str, p: Option<f64>, targets: &[(&str, f64)]) -> Answers {
+    with_targets(op, p, Some(targets))
+}
+
+fn with_targets(op: &str, p: Option<f64>, targets: Option<&[(&str, f64)]>) -> Answers {
     let operation = (
         QuestionId::operation(),
         options(&[(op, p.unwrap_or(f64::NAN))]),
     );
-    let target = target.map(|n| (QuestionId::target(), options(&[(n, 0.9)])));
+    let target = targets.map(|t| (QuestionId::target(), options(t)));
+    let flags = [QuestionId::error_shown(), QuestionId::goal_reached()]
+        .map(|id| (id, options(&[("true", 0.0)])));
     Answers {
         table: iter::once(operation)
             .chain(target)
+            .chain(flags)
             .collect::<BTreeMap<_, _>>(),
         usage: Usage::default(),
     }
@@ -89,24 +113,6 @@ pub fn answer(op: &str, p: Option<f64>, target: Option<&str>) -> Answers {
 /// The facts of the judge's reply.
 pub fn replies(answers: Result<Answers, JudgeError>) -> Facts {
     Facts::Outside(Heard::Answered(answers))
-}
-
-/// The questions asked under `rules` about `elements` visible elements.
-pub fn asked(rules: &Rules, elements: usize) -> Vec<Question> {
-    let names: Vec<String> = offered(rules)
-        .iter()
-        .map(|row| row.name.to_owned())
-        .collect();
-    step_questions(&names, elements)
-}
-
-/// The effect of asking about `screen` under `rules`.
-pub fn asking(rules: &Rules, screen: &Screen) -> Effect {
-    let seen = seen(screen);
-    Effect::Outside(Outside::Ask(Questions {
-        screen: screen_text(&seen.screen, VIEWPORT),
-        questions: asked(rules, visible(screen, VIEWPORT).len()),
-    }))
 }
 
 /// The effect of a browser operation.

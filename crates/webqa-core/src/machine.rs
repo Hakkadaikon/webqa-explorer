@@ -10,6 +10,7 @@ mod guards;
 mod material;
 mod note;
 mod observe;
+mod offer;
 mod ops;
 mod proposal;
 mod rules;
@@ -19,6 +20,7 @@ pub(crate) mod testing;
 #[cfg(test)]
 mod tests;
 mod waiting;
+mod whole;
 
 use std::time::Duration;
 
@@ -33,6 +35,7 @@ pub use material::Material;
 pub use note::{Anomaly, Note, Rejection};
 pub use rules::Rules;
 pub use state::{ExitReason, Phase, State, StuckKind};
+pub use whole::Whole;
 
 /// A redacted observation of the page, with the material of the guardrails.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,6 +46,8 @@ pub struct Seen {
     pub viewport: Viewport,
     /// What the guardrails judge by, collected before redaction.
     pub material: Material,
+    /// The whole page that `done_when` reads.
+    pub whole: Whole,
 }
 
 /// What the run loop found out by doing an effect.

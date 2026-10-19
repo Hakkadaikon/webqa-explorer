@@ -24,6 +24,8 @@ pub struct Transition<'a> {
     pub after_marks: &'a [Vec<bool>],
     /// The candidate page the state after last observed.
     pub last: Option<usize>,
+    /// The candidate page the run started on.
+    pub root: usize,
 }
 
 /// A property of a transition, by name.

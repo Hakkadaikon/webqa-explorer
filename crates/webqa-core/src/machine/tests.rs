@@ -3,11 +3,9 @@
 
 use serde_json::{Value, json};
 
-use crate::config::raw::Op;
 use crate::effect::Effect;
 use crate::explore::Memory;
 use crate::issue::{Issue, IssueKind};
-use crate::machine::ops::offered;
 use crate::machine::testing::{
     APP, answer, ask_top, asking, budget, counts, idle, next, nz, page, rules, secs, seen, showed,
     shows, started, told, top, window,
@@ -135,20 +133,6 @@ fn exit_reasons_serialize_with_reason_and_kind() {
         assert_eq!(reason.is_stuck(), stuck, "{reason:?} is stuck or not");
         assert_eq!(reason.stuck_kind(), kind, "{reason:?} has its kind");
     }
-}
-
-#[test]
-fn offered_follows_table_order() {
-    let rules = Rules {
-        ops: vec![Op::Stuck, Op::Click, Op::Back],
-        ..rules()
-    };
-    let names: Vec<&str> = offered(&rules).iter().map(|row| row.name).collect();
-    assert_eq!(
-        names,
-        ["click", "back", "stuck"],
-        "in the order of the table"
-    );
 }
 
 /// Started inside on `screen`, waiting for its first element to be looked up.

@@ -18,7 +18,8 @@ fn stub(world: &mut QaWorld, op: String, target: String) {
     let script = mem::take(&mut world.judge.script);
     world.judge.script = script
         .then(QuestionId::operation(), [(op, 1.0)])
-        .then(QuestionId::target(), [(number, 1.0)]);
+        .then(QuestionId::target(), [(number, 1.0)])
+        .then(QuestionId::error_shown(), [("true", 0.0)]);
 }
 
 /// The script answers once, so every later question is an anomaly until the

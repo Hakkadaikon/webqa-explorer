@@ -100,6 +100,14 @@ pub struct State {
     /// Held from the judge's answer until the operation is observed.
     pub(super) proposal: Option<Box<Proposal>>,
     pub(super) notes: Vec<Note>,
+    /// The current stage of the scenario, from 0. Stays 0 in explore mode.
+    pub(super) stage: usize,
+    /// The start screen in the memory: the first one taken in inside the
+    /// allowed origins.
+    pub(super) origin: Option<ScreenKey>,
+    /// The element of the last operation, when the screen did not change
+    /// after it. Cleared by every observation taken in.
+    pub(super) unmoved: Option<ElementId>,
 }
 
 impl State {
@@ -120,6 +128,9 @@ impl State {
             outside: false,
             proposal: None,
             notes: Vec::new(),
+            stage: 0,
+            origin: None,
+            unmoved: None,
         };
         take(blank, seen).0
     }
@@ -178,6 +189,26 @@ impl State {
         &self.rules
     }
 
+    /// The current stage of the scenario, from 0. Always 0 in explore mode.
+    #[must_use]
+    pub const fn stage(&self) -> usize {
+        self.stage
+    }
+
+    /// The start screen in the memory, once a page inside the allowed
+    /// origins has been taken in.
+    #[must_use]
+    pub const fn origin(&self) -> Option<ScreenKey> {
+        self.origin
+    }
+
+    /// The element of the last operation, when the screen did not change
+    /// after it.
+    #[must_use]
+    pub const fn unmoved(&self) -> Option<&ElementId> {
+        self.unmoved.as_ref()
+    }
+
     /// Why the run ended, if it has.
     #[must_use]
     pub const fn ended(&self) -> Option<ExitReason> {
@@ -218,6 +249,12 @@ impl State {
     /// With the window replaced.
     pub(crate) const fn with_window(mut self, window: RequestWindow) -> Self {
         self.window = window;
+        self
+    }
+
+    /// In the stage `stage`.
+    pub(crate) const fn with_stage(mut self, stage: usize) -> Self {
+        self.stage = stage;
         self
     }
 }

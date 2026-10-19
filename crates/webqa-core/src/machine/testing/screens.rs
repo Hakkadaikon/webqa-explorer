@@ -2,7 +2,7 @@
 
 use url::Url;
 
-use crate::machine::{Facts, Material, Seen};
+use crate::machine::{Facts, Material, Seen, Whole};
 use crate::redact::Redactor;
 use crate::screen::{Element, Rect, Screen, Viewport};
 
@@ -32,6 +32,19 @@ fn at(role: &str, name: &str, y: i64) -> Element {
 /// An element inside the viewport.
 pub fn inside(role: &str, name: &str) -> Element {
     at(role, name, 0)
+}
+
+/// The heading `name` far below the viewport, at (0, 1200), 100 by 20.
+pub fn heading(name: &str) -> Element {
+    Element {
+        rect: Some(Rect {
+            x: 0,
+            y: 1200,
+            width: 100,
+            height: 20,
+        }),
+        ..at("heading", name, 0)
+    }
 }
 
 /// An element below the viewport.
@@ -74,12 +87,32 @@ pub fn pricing() -> Screen {
     page(&format!("{APP}/pricing"), &[])
 }
 
-/// The observation of `screen`, with the material made from it.
+/// The observation of `screen`, with the material and the whole page made
+/// from it.
 pub fn seen(screen: &Screen) -> Seen {
+    let redacted = Redactor::default().screen(screen.clone());
     Seen {
-        screen: Redactor::default().screen(screen.clone()),
+        whole: Whole::plain(&redacted),
+        screen: redacted,
         viewport: VIEWPORT,
         material: Material::plain(screen, VIEWPORT),
+    }
+}
+
+/// The observation of `screen`, with the whole page of the elements
+/// `outline` and the text `text`.
+pub fn seen_whole(screen: &Screen, outline: &[Element], text: &str) -> Seen {
+    let redactor = Redactor::default();
+    let outline = Screen {
+        url: screen.url.clone(),
+        elements: outline.to_vec(),
+    };
+    Seen {
+        whole: Whole {
+            outline: redactor.screen(outline),
+            text: redactor.text(text),
+        },
+        ..seen(screen)
     }
 }
 
