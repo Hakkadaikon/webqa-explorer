@@ -15,6 +15,7 @@ use webqa_core::redact::Rule;
 use webqa_core::screen::ElementId;
 use webqa_judge::scripted::Scripted;
 
+mod acts;
 mod events;
 mod interrupt;
 mod issues;

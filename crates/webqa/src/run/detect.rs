@@ -49,7 +49,8 @@ async fn shoot(ports: &mut Ports<'_>, kind: IssueKind) -> Result<Option<String>,
         return Ok(None);
     };
     if ports.shots.insert(name.clone()) {
-        ports.store.write_screenshot(&name, &image).await?;
+        let written = ports.store.write_screenshot(&name, &image).await;
+        ports.kept(written)?;
     }
     Ok(Some(name))
 }

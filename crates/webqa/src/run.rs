@@ -68,6 +68,8 @@ pub struct Ports<'a> {
     record: Record,
     /// The names of the screenshots written.
     shots: BTreeSet<String>,
+    /// Whether a write failed: nothing is written after that.
+    failed: bool,
 }
 
 impl<'a> Ports<'a> {
@@ -91,6 +93,7 @@ impl<'a> Ports<'a> {
             detect: Detect::default(),
             record: Record::default(),
             shots: BTreeSet::new(),
+            failed: false,
         }
     }
 
@@ -123,6 +126,9 @@ impl<'a> Ports<'a> {
     ///
     /// [`RunError::Store`] when the line cannot be written.
     pub async fn log(&mut self, event: Event) -> Result<(), RunError> {
+        if self.failed {
+            return Err(StoreError.into());
+        }
         let line = Line {
             seq: self.seq,
             elapsed_ms: log::millis(self.clock.elapsed()),
@@ -134,7 +140,14 @@ impl<'a> Ports<'a> {
         let line = self
             .redactor
             .json(serde_json::to_value(&line).unwrap_or_default());
-        self.store.write_event(&line).await.map_err(RunError::Store)
+        let written = self.store.write_event(&line).await;
+        self.kept(written)
+    }
+
+    /// `written`, remembering a failure so that nothing is written after it.
+    pub(super) fn kept(&mut self, written: Result<(), StoreError>) -> Result<(), RunError> {
+        self.failed |= written.is_err();
+        written.map_err(RunError::Store)
     }
 }
 
