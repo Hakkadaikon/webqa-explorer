@@ -68,13 +68,13 @@ impl Reply {
     }
 
     /// An operation with probability `p` and no target.
-    pub fn op(op: &str, p: f64) -> Self {
-        Self::spoken(Some((op.to_owned(), Some(p))))
+    pub fn op(op: impl Into<String>, p: f64) -> Self {
+        Self::spoken(Some((op.into(), Some(p))))
     }
 
     /// An operation with no probability (NaN).
-    pub fn op_without_p(op: &str) -> Self {
-        Self::spoken(Some((op.to_owned(), None)))
+    pub fn op_without_p(op: impl Into<String>) -> Self {
+        Self::spoken(Some((op.into(), None)))
     }
 
     /// An answer with no operation.
@@ -99,20 +99,20 @@ impl Reply {
 
     /// Adds the element named `name` as the target, with probability 0.9.
     #[must_use]
-    pub fn on(self, name: &str) -> Self {
+    pub fn on(self, name: impl Into<String>) -> Self {
         self.on_ranked(name, 0.9)
     }
 
     /// Adds the element named `name` as a target with probability `p`.
     #[must_use]
-    pub fn on_ranked(self, name: &str, p: f64) -> Self {
-        self.aimed(Aim::Named(name.to_owned()), p)
+    pub fn on_ranked(self, name: impl Into<String>, p: f64) -> Self {
+        self.aimed(Aim::Named(name.into()), p)
     }
 
     /// Adds the `k`-th element named `name` as a target, with probability 0.9.
     #[must_use]
-    pub fn on_nth(self, name: &str, k: usize) -> Self {
-        self.aimed(Aim::NthNamed(name.to_owned(), k), 0.9)
+    pub fn on_nth(self, name: impl Into<String>, k: usize) -> Self {
+        self.aimed(Aim::NthNamed(name.into(), k), 0.9)
     }
 
     /// Adds the number `n` as a target, with probability 0.9.

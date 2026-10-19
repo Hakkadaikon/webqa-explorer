@@ -56,8 +56,7 @@ pub struct Scene {
     pub think: Duration,                         // 問い合わせ1回ごとに進む時間(既定0)
     pub fire_on: BTreeSet<usize>,                // 何回目の wait で中断するか
     pub user_interrupts: bool,                   // 中断は利用者によるもの(待ち続けたときの中断も含む)
-    pub stall_touch: bool,                       // 操作のあとページが応答しない(待ち続ける)
-    pub stall_sleep: bool,                       // 窓の待機を待ち続ける
+    pub stall: Stall,                            // 何が待ち続けるか(Nothing、Touch=操作のあとページが応答しない、Sleep=窓の待機)
     pub store_limit: Option<usize>,              // MemoryStore.limit
     pub store_hold: Hold,                        // 記憶の書き出しを保留する(None、Once、Forever)
     pub yaml: Option<String>,                    // 設定から始めるときの YAML
