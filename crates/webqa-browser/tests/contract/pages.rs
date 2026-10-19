@@ -29,9 +29,11 @@ async fn collects_console_errors() {
 /// A storage state in Playwright's format with the cookie `session=ok`.
 const STATE: &str = r#"{"cookies":[{"name":"session","value":"ok","domain":"app.example.test","path":"/","expires":-1,"httpOnly":false,"secure":true,"sameSite":"Lax"}],"origins":[]}"#;
 
-fn state_file() -> Res<PathBuf> {
+/// Writes [`STATE`] to a file of its own for the test `name`, so that tests
+/// running at once never read a file another one is writing.
+fn state_file(name: &str) -> Res<PathBuf> {
     let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR"));
-    let path = dir.join("webqa-browser-storage-state.json");
+    let path = dir.join(format!("webqa-browser-storage-state-{name}.json"));
     fs::write(&path, STATE)?;
     Ok(path)
 }
@@ -39,7 +41,7 @@ fn state_file() -> Res<PathBuf> {
 #[tokio::test]
 async fn storage_state_opens_logged_in_page() {
     let mut options = at("/account").unwrap();
-    options.storage_state = Some(state_file().unwrap());
+    options.storage_state = Some(state_file("logged-in").unwrap());
     let mut browser = launch(options, 0).await.unwrap();
     let o = seen(&mut browser).await.unwrap();
     assert_eq!(kinds(&o), [("button", "ログアウト")], "logged in");
@@ -51,7 +53,7 @@ async fn storage_state_opens_logged_in_page() {
 /// Launches on `/storage` with the stored login of [`state_file`].
 async fn launch_storage() -> Res<PlaywrightBrowser> {
     let mut options = at("/storage")?;
-    options.storage_state = Some(state_file()?);
+    options.storage_state = Some(state_file("fresh")?);
     launch(options, 0).await
 }
 
