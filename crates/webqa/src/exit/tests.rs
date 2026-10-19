@@ -10,9 +10,7 @@ use webqa_core::explore::Memory;
 use webqa_core::guard::forbidden::Forbidden;
 use webqa_core::guard::paywall::Paywall;
 use webqa_core::issue::{Issue, IssueKind};
-use webqa_core::machine::{
-    self, ExitReason, Material, Outcome, Rules, Seen, Step, StuckKind, Whole,
-};
+use webqa_core::machine::{self, ExitReason, Material, Outcome, Rules, Seen, StuckKind, Whole};
 use webqa_core::ports::{BrowserError, StoreError};
 use webqa_core::redact::Redactor;
 use webqa_core::screen::{Element, Screen, Viewport};
@@ -54,11 +52,11 @@ fn outcome(reason: ExitReason) -> Outcome {
         screen,
         viewport,
     };
-    let Step::Finished(done) = machine::start(seen, rules(), Memory::default(), Duration::ZERO)
-    else {
-        unreachable!("the only stage is done at the start")
-    };
-    Outcome { reason, ..done }
+    let start = machine::start(seen, rules(), Memory::default(), Duration::ZERO);
+    Outcome {
+        reason,
+        state: Box::new(start.state().clone()),
+    }
 }
 
 fn rules() -> Rules {
