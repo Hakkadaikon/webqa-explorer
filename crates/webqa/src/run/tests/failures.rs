@@ -2,10 +2,11 @@
 
 use std::sync::{Arc, Mutex};
 
-use super::{Fakes, script};
 use tracing::subscriber::set_default;
 use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::fmt::writer::MutexGuardWriter;
+
+use super::{Fakes, script};
 
 /// Collects what the logs write.
 #[derive(Clone, Default)]
@@ -45,7 +46,8 @@ async fn failed_touch_is_logged_with_its_operation_and_no_page_text() {
         text.contains("the browser failed to operate the page"),
         "{text}"
     );
-    assert!(text.contains("op=click"), "{text}");
+    assert!(text.contains("ERROR"), "{text}");
+    assert!(text.contains("step=1 op=click"), "{text}");
     assert!(text.contains("role=\"link\""), "{text}");
     assert!(!text.contains("に送る"), "{text}");
     assert!(!text.contains("taro@example.test"), "{text}");
