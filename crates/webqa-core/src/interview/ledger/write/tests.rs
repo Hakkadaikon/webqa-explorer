@@ -2,6 +2,7 @@
 //! their values and free text kept on one line.
 
 mod order;
+mod redaction;
 
 use crate::interview::issue::tests::sample::{
     mismatch_sample, sample, unreached_sample, visibility_sample,
@@ -202,9 +203,9 @@ fn fix_instruction_stays_one_line() {
     let named = written(&hesitant("押すと", "次\nへ"));
     let element = lines(&named)[11].contains("button \"次\\nへ\" について");
     assert!(element, "the element name");
-    let separated = vec![hard_to_see("文字が\u{2028}薄い")];
+    let separated = vec![hard_to_see("文字が\u{2028}薄\u{2029}い")];
     let separated = written(&ledger_of(Section::Body, separated));
-    let reason = lines(&separated)[11].ends_with("(理由: 文字が 薄い)");
+    let reason = lines(&separated)[11].ends_with("(理由: 文字が 薄 い)");
     assert!(reason, "the line separator");
     assert_eq!(lines(&separated).len(), lines(&plain).len(), "one line");
 }

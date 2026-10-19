@@ -1,13 +1,9 @@
-//! Tests of the order of the sections and of the issues in them, and of
-//! the redaction of the strings written.
+//! Tests of the order of the sections and of the issues in them.
 
-use super::hesitant;
-use crate::interview::issue::Target;
 use crate::interview::issue::tests::sample::{mismatch_sample, sample};
-use crate::interview::ledger::tests::{GOLDEN, golden, hard_to_see, ledger_of, lines, written};
-use crate::interview::ledger::{Entry, Head, read, write};
+use crate::interview::ledger::Entry;
+use crate::interview::ledger::tests::{GOLDEN, golden, ledger_of, lines, written};
 use crate::interview::natural::Section;
-use crate::redact::{Redactor, Rule};
 
 /// The numbers of the first lines of the issues in `text`, in order.
 fn numbers(text: &str) -> Vec<String> {
@@ -111,51 +107,4 @@ fn off_persona_section_is_last() {
     assert_eq!(tail, expected, "the empty last section");
     let body: Vec<String> = numbers(&GOLDEN[..GOLDEN.find("## 確かめ").unwrap()]);
     assert_eq!(body, ["I-D0D06221", "I-5334A6B3"], "not in the body");
-}
-
-const MAIL: &str = "test@example.test";
-
-/// The golden ledger with the mail address in the persona's name, the
-/// visibility reason and the hesitation element, written with the mail
-/// addresses masked.
-fn mailed() -> String {
-    let mut ledger = golden();
-    ledger.head = Head {
-        persona: MAIL.to_owned(),
-        ..golden().head
-    };
-    ledger.entries[1].issue.target = Some(Target {
-        name: format!("{MAIL} に送る"),
-        ..sample("I-5334A6B3", 2, 3).target.unwrap()
-    });
-    ledger.entries[2].issue = hard_to_see(&format!("{MAIL} の表示が小さい"));
-    let rule = Rule::pattern("メールアドレス", r"[a-z]+@example\.test");
-    write(&ledger, &Redactor::new(&[rule]).unwrap())
-}
-
-/// The ledger with a secret with a quote in an expectation, written with
-/// the secret masked.
-fn quoted() -> String {
-    let redactor = Redactor::new(&[Rule::literal("合言葉", "a\"b")]).unwrap();
-    write(&hesitant("x a\"b y", "次へ"), &redactor)
-}
-
-#[test]
-fn ledger_text_passes_redaction() {
-    let text = mailed();
-    assert_eq!(text.find(MAIL), None, "no mail address");
-    let reason = "  - 理由: \"[[メールアドレス]] の表示が小さい\"";
-    assert_eq!(lines(&text)[54], reason, "the reason");
-    let ends = lines(&text)[45].ends_with("(理由: [[メールアドレス]] の表示が小さい)");
-    assert!(ends, "the instruction");
-    let persona = "- ペルソナ: \"[[メールアドレス]]\"";
-    assert_eq!(lines(&text)[3], persona, "the persona");
-    let back = read(&text).map(|it| it.entries[2].issue.detail.clone());
-    let expected = hard_to_see("[[メールアドレス]] の表示が小さい").detail;
-    assert_eq!(back, Ok(expected), "read back");
-    let text = quoted();
-    let leaked = (text.contains("a\"b"), text.contains("a\\\"b"));
-    assert_eq!(leaked, (false, false), "no secret");
-    let masked = text.contains("  - 期待: \"x [[合言葉]] y\"");
-    assert!(masked, "masked before JSON");
 }

@@ -36,6 +36,13 @@ fn settings() -> Vec<(String, &'static str, bool, String, &'static [&'static str
         (set, "I-D0D06221", false, GOLDEN.to_owned(), &["I-5334A6B3"]),
         (
             GOLDEN.to_owned(),
+            "I-D0D06221",
+            false,
+            GOLDEN.to_owned(),
+            &["I-5334A6B3"],
+        ),
+        (
+            GOLDEN.to_owned(),
             "I-5334A6B3",
             true,
             GOLDEN.to_owned(),
@@ -76,4 +83,16 @@ fn set_selection_changes_only_checkbox() {
         let got = set_selection(&text, number("I-D0D06221"), true);
         assert_eq!(got, Err(LedgerError::Malformed { line }), "line {line}");
     }
+    same_number_twice();
+}
+
+/// Both issues with the same number are set.
+fn same_number_twice() {
+    let twice = GOLDEN.replace("I-39E24428", "I-D0D06221");
+    let got = set_selection(&twice, number("I-D0D06221"), true);
+    let expected = twice.replace("- [ ] I-D0D06221", "- [x] I-D0D06221");
+    assert_eq!(got.as_ref(), Ok(&expected), "same number twice");
+    let selected = read(&expected).map(|it| it.selected());
+    let numbers = ["I-D0D06221", "I-5334A6B3", "I-D0D06221"].map(number);
+    assert_eq!(selected, Ok(numbers.to_vec()), "both selected");
 }
