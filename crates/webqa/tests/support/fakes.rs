@@ -2,7 +2,7 @@
 //!
 //! The acceptance tests use them, and so do the unit tests of `run`.
 
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::future;
 use std::num::NonZeroU32;
 use std::time::Duration;
@@ -59,6 +59,7 @@ pub fn rules(ops: &[Op], limits: Limits, allowed: Vec<AllowedOrigin>) -> Rules {
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
         stages: Vec::new(),
+        input_names: BTreeSet::new(),
     }
 }
 
@@ -84,7 +85,7 @@ pub fn page(url: &Url, elements: &[(&str, &str)]) -> Observation {
         },
         console: Vec::new(),
         outline: elements.clone(),
-        text: plain_text(&elements),
+        text: plain_text(&elements).join("\n"),
         screen: Screen {
             url: url.clone(),
             elements,
@@ -93,11 +94,10 @@ pub fn page(url: &Url, elements: &[(&str, &str)]) -> Observation {
     }
 }
 
-/// The names of `elements` in page order, one per line, as the text of the
+/// The names of `elements` in page order, the lines of the text of the
 /// whole page.
-fn plain_text(elements: &[Element]) -> String {
-    let names: Vec<&str> = elements.iter().map(|e| e.name.as_str()).collect();
-    names.join("\n")
+fn plain_text(elements: &[Element]) -> Vec<&str> {
+    elements.iter().map(|e| e.name.as_str()).collect()
 }
 
 fn node((e, n): (&Element, usize)) -> Node {
@@ -177,12 +177,11 @@ impl Browser for FakeBrowser {
 
     fn touch<'a>(&'a mut self, touch: &'a Touch) -> Pending<'a, Result<(), BrowserError>> {
         self.touches.push(touch.clone());
-        let result = if self.broken {
+        ready(if self.broken {
             Err(BrowserError)
         } else {
             Ok(())
-        };
-        ready(result)
+        })
     }
 
     fn screenshot(&mut self) -> Pending<'_, Result<Image, BrowserError>> {
@@ -235,8 +234,7 @@ impl MemoryStore {
     fn wrote(&mut self) -> Pending<'static, Result<(), StoreError>> {
         let full = self.limit.is_some_and(|limit| self.writes >= limit);
         self.writes += 1;
-        let result = if full { Err(StoreError) } else { Ok(()) };
-        ready(result)
+        ready(if full { Err(StoreError) } else { Ok(()) })
     }
 }
 

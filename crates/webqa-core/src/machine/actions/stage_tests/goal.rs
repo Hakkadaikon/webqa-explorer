@@ -4,8 +4,8 @@
 use super::{asks_for, begun, login_with};
 use crate::judge::{Question, QuestionId};
 use crate::machine::testing::{
-    ALL_OPS, EXPLORE_OPS, answer, ask_with, asked, asked_for, done_url, explore, rules, seen,
-    showed, staged, told, top, touch,
+    ALL_OPS, EXPLORE_OPS_NO_INPUT, answer, ask_with, asked, asked_for, done_url, explore, rules,
+    seen, showed, staged, told, top, touch,
 };
 
 /// Whether `questions` ask whether the goal is reached.
@@ -19,7 +19,7 @@ fn asks_goal(questions: &[Question]) -> bool {
 fn goal_question_follows_stage() {
     let with_goal = asked_for(&ALL_OPS, 2, Some("ログインする"));
     let without = asked(&rules(), 2);
-    let exploring = asked_for(&EXPLORE_OPS, 2, None);
+    let exploring = asked_for(&EXPLORE_OPS_NO_INPUT, 2, None);
     let asks = [&with_goal, &without, &exploring].map(|q| asks_goal(q));
     assert_eq!(asks, [true, false, false], "only with a stage");
     let cases = [

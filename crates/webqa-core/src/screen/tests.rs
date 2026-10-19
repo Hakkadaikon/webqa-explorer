@@ -162,3 +162,23 @@ fn scroll_at_bottom_is_unchanged() {
     let moved = at("https://app.example.test/list?page=2", "a");
     assert!(changed(&base, &moved, VIEW), "only the URL differs");
 }
+
+#[test]
+fn input_fills_only_input_roles() {
+    let roles = [
+        "textbox",
+        "searchbox",
+        "combobox",
+        "spinbutton",
+        "button",
+        "link",
+        "checkbox",
+        "",
+    ];
+    let fills = roles.map(fillable);
+    assert_eq!(
+        fills,
+        [true, true, true, true, false, false, false, false],
+        "only the roles of input fields"
+    );
+}

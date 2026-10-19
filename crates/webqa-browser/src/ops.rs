@@ -8,7 +8,7 @@ use std::future;
 use playwright_rs::{Error, Locator};
 use webqa_core::effect::Touch;
 use webqa_core::ports::{BrowserError, Pending};
-use webqa_core::screen::ElementId;
+use webqa_core::screen::{ElementId, fillable};
 
 use crate::identity::{input_value, resolve};
 use crate::launch::PlaywrightBrowser;
@@ -140,14 +140,6 @@ fn click<'a>(b: &'a PlaywrightBrowser, target: Option<&'a ElementId>) -> Done<'a
 
 fn press(locator: Locator) -> Done<'static> {
     Box::pin(async move { locator.click(None).await })
-}
-
-/// The roles of input fields, the only elements `input` types into.
-pub const FILLABLE: [&str; 4] = ["textbox", "searchbox", "combobox", "spinbutton"];
-
-/// Whether an element of `role` is an input field.
-pub fn fillable(role: &str) -> bool {
-    FILLABLE.contains(&role)
 }
 
 /// Types the input whose key is the element's name into an input field.

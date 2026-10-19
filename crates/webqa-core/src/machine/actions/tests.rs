@@ -23,7 +23,8 @@ fn touches_save(op: &str) {
     let expected = touch(op, Some(save), 0.9);
     assert_eq!(touched.effect(), Some(&expected), "{op} touches it");
     assert_eq!(touched.state().phase(), Phase::Acting, "{op} acts");
-    after_touch(touched.state(), op, true);
+    // An input on a button types nothing, so it explores nothing.
+    after_touch(touched.state(), op, op == "click");
 }
 
 /// `op` is touched at once, and "保存" stays untouched.

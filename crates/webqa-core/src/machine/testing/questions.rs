@@ -20,6 +20,17 @@ pub const EXPLORE_OPS: [Op; 7] = [
     Op::Stuck,
 ];
 
+/// The operation kinds of explore mode when no element offered takes a
+/// value: every kind but `done` and `input`.
+pub const EXPLORE_OPS_NO_INPUT: [Op; 6] = [
+    Op::Click,
+    Op::ScrollDown,
+    Op::ScrollUp,
+    Op::Back,
+    Op::Wait,
+    Op::Stuck,
+];
+
 /// The moves offered when no element is a candidate.
 pub const MOVES: [Op; 3] = [Op::ScrollDown, Op::ScrollUp, Op::Back];
 

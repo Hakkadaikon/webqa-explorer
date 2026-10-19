@@ -1,20 +1,13 @@
 //! Tests of the argument reading.
 
 use std::path::Path;
-use std::sync::mpsc::channel;
-use std::thread;
-use std::time::Duration;
 
 use crate::clock::Wall;
-use crate::run::RunError;
-use crate::run::session::Ending;
 use jiff::Timestamp;
-use webqa_core::ports::StoreError;
 
 use clap::Parser;
 use clap::error::ErrorKind;
 use webqa_core::event::Mode;
-use webqa_core::machine::ExitReason;
 use webqa_judge::table::StartError;
 
 use super::*;
@@ -35,18 +28,24 @@ fn arguments_are_read() {
     let read_ok = |args: &[&str]| read(args).map(|cli| cli.command);
     assert_eq!(
         read_ok(&["webqa", "explore", "--config", "c.yaml"]),
-        Ok(Command::Explore(run_args("c.yaml", ".webqa")))
+        Ok(Sub::Exec(Command::Explore(run_args("c.yaml", ".webqa"))))
     );
     assert_eq!(
         read_ok(&["webqa", "run", "--config", "c.yaml", "--out", "o"]),
-        Ok(Command::Run(run_args("c.yaml", "o")))
+        Ok(Sub::Exec(Command::Run(run_args("c.yaml", "o"))))
     );
     assert_eq!(
         read_ok(&["webqa", "replay", "r.json", "--config", "c.yaml"]),
-        Ok(Command::Replay(ReplayArgs {
+        Ok(Sub::Exec(Command::Replay(ReplayArgs {
             report: "r.json".into(),
             config: "c.yaml".into(),
             out: ".webqa".into(),
+        })))
+    );
+    assert_eq!(
+        read_ok(&["webqa", "watch", ".webqa/runs/r1"]),
+        Ok(Sub::Watch(WatchArgs {
+            dir: ".webqa/runs/r1".into()
         }))
     );
 }
@@ -55,7 +54,11 @@ fn arguments_are_read() {
 fn bad_arguments_are_errors() {
     let limit = ["webqa", "run", "--config", "c", "--max-duration-secs", "60"];
     assert_eq!(read(&limit), Err(ErrorKind::UnknownArgument));
-    assert_eq!(read(&["webqa", "watch"]), Err(ErrorKind::InvalidSubcommand));
+    assert_eq!(
+        read(&["webqa", "watch"]),
+        Err(ErrorKind::MissingRequiredArgument)
+    );
+    assert_eq!(read(&["webqa", "tail"]), Err(ErrorKind::InvalidSubcommand));
     assert_eq!(
         read(&["webqa", "run"]),
         Err(ErrorKind::MissingRequiredArgument)
@@ -87,7 +90,10 @@ fn an_unknown_judge_kind_is_said_without_its_name() {
 
 #[test]
 fn subcommands_become_jobs() {
-    let job = |args: &[&str]| Cli::try_parse_from(args).map(|cli| start::job(cli.command));
+    let job = |args: &[&str]| {
+        let cli = Cli::try_parse_from(args);
+        cli.map(|cli| cli.command.split().map(start::job))
+    };
     let expected = |source, out: &str| start::Job {
         source,
         config: "c.yaml".into(),
@@ -95,15 +101,23 @@ fn subcommands_become_jobs() {
     };
     assert_eq!(
         job(&["webqa", "run", "--config", "c.yaml"]).ok(),
-        Some(expected(start::Source::Scenario, ".webqa"))
+        Some(Ok(expected(start::Source::Scenario, ".webqa")))
     );
     assert_eq!(
         job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]).ok(),
-        Some(expected(start::Source::Explore, "o"))
+        Some(Ok(expected(start::Source::Explore, "o")))
     );
     assert_eq!(
         job(&["webqa", "replay", "r.json", "--config", "c.yaml"]).ok(),
-        Some(expected(start::Source::Replay("r.json".into()), ".webqa"))
+        Some(Ok(expected(
+            start::Source::Replay("r.json".into()),
+            ".webqa"
+        )))
+    );
+    assert_eq!(
+        job(&["webqa", "watch", "d"]).ok(),
+        Some(Err(WatchArgs { dir: "d".into() })),
+        "watching starts no run"
     );
 }
 
@@ -185,44 +199,4 @@ async fn an_output_that_cannot_be_made_stops_as_a_runtime_error() {
     );
 }
 
-#[test]
-fn endings_are_described() {
-    let dir = Path::new("runs/x");
-    let failed = Ending::Failed(RunError::Store(StoreError));
-    assert_eq!(app::describe(&failed, dir), StoreError.to_string());
-    assert_eq!(
-        app::describe(&Ending::Abandoned, dir),
-        "記録を書き終える前に中断した"
-    );
-}
-
-#[test]
-fn an_abandoned_runtime_does_not_wait_for_blocked_work() {
-    let (release, blocked) = channel::<()>();
-    let runtime = Builder::new_current_thread().build().unwrap();
-    drop(runtime.spawn_blocking(move || blocked.recv()));
-    // Stopped on another thread, so a stop that waits fails here instead of hanging.
-    let (done, stopped) = channel();
-    thread::spawn(move || {
-        stop_runtime(runtime, true);
-        let _sent = done.send(());
-    });
-    assert_eq!(stopped.recv_timeout(Duration::from_secs(5)), Ok(()));
-    drop(release);
-    let runtime = Builder::new_current_thread().build().unwrap();
-    stop_runtime(runtime, false);
-}
-
-#[test]
-fn the_end_is_named_as_the_report_names_it() {
-    let dir = Path::new("runs/x");
-    let named = |reason| app::finished_line(reason, dir);
-    assert_eq!(
-        named(ExitReason::GoalAchieved),
-        "終了理由 goal_achieved、記録 runs/x"
-    );
-    assert_eq!(
-        named(ExitReason::TimeExceeded),
-        "終了理由 time_exceeded、記録 runs/x"
-    );
-}
+mod ending;

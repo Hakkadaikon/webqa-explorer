@@ -46,6 +46,7 @@ async fn input_on_every_input_field_is_not_skipped() {
         fakes.judge.script = script(&[("input", 0.9, "1")]);
         fakes.stay_on(&fakes::page(&url("/"), &[(role, "名前")]));
         fakes.rules = limited(&[Op::Click, Op::Input], 1, 10);
+        fakes.rules.input_names.insert("名前".to_owned());
         let _ = fakes.explore().await;
         let kinds = ["asked", "decided", "executed"];
         assert_eq!(fakes.kinds(), kinds, "typed into a {role}, nothing skipped");

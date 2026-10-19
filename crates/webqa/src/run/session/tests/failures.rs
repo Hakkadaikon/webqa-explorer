@@ -51,6 +51,14 @@ async fn fails_after(limit: usize) -> (Ending, MemoryStore) {
 }
 
 #[tokio::test]
+async fn a_log_that_fails_during_the_run_ends_failed() {
+    let (ending, short) = fails_after(2).await;
+    assert_eq!(format!("{ending:?}"), "Failed(Store(StoreError))");
+    assert_eq!(exit::code(&ending), 3);
+    assert_eq!((short.report, short.memories.len()), (None, 0));
+}
+
+#[tokio::test]
 async fn confirmed_issue_sets_ending() {
     let url = Url::parse("https://app.example.test/").unwrap();
     let page = base::page(&url, &[("button", "icon_save.png")]);

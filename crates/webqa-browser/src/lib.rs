@@ -10,7 +10,6 @@ pub mod probe;
 pub mod snapshot;
 
 pub use launch::{LaunchError, LaunchOptions, PlaywrightBrowser};
-pub use ops::FILLABLE;
 use webqa_core::effect::Touch;
 use webqa_core::judge::Image;
 use webqa_core::ports::{Browser, BrowserError, Observation, Pending};

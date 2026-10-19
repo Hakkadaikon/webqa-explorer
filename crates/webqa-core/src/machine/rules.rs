@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod tests;
 
+use std::collections::BTreeSet;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
@@ -12,6 +13,8 @@ use crate::event::Mode;
 use crate::guard::domain::{AllowedOrigin, InvalidOrigin, allowed_or_start};
 use crate::guard::forbidden::Forbidden;
 use crate::guard::paywall::Paywall;
+use crate::redact::Redacted;
+use crate::screen::{Element, ElementId, Screen, element_ids, fillable};
 
 /// What the state machine follows during a run.
 #[derive(Debug, Clone, PartialEq)]
@@ -42,6 +45,8 @@ pub struct Rules {
     pub leave_paywall: String,
     /// The stages of the scenario. Explore mode does not read them.
     pub stages: Vec<Stage>,
+    /// The names of the inputs that have a value to type, as written.
+    pub input_names: BTreeSet<String>,
 }
 
 impl Rules {
@@ -82,6 +87,36 @@ impl Rules {
                 .as_ref()
                 .map(|scenario| scenario.stages.clone())
                 .unwrap_or_default(),
+            input_names: config.inputs.keys().cloned().collect(),
         })
     }
+
+    /// Why `input` on `target`, an element of `screen`, does nothing, by
+    /// name; `None` when it types.
+    ///
+    /// The element is found the way the browser finds it, by its identity
+    /// among the elements of `screen`. The name compared to the keys is the
+    /// one in `screen`, which went through redaction; the browser compares
+    /// the raw name, so the two differ for a name that redaction changes.
+    #[must_use]
+    pub fn input_skip(
+        &self,
+        screen: &Redacted<Screen>,
+        target: Option<&ElementId>,
+    ) -> Option<&'static str> {
+        let field = named(screen, target).filter(|e| fillable(&e.role));
+        field.map_or(Some("not_an_input"), |e| {
+            (!self.input_names.contains(&e.name)).then_some("no_input_value")
+        })
+    }
+}
+
+/// The element of `screen` that `target` identifies.
+fn named<'a>(screen: &'a Redacted<Screen>, target: Option<&ElementId>) -> Option<&'a Element> {
+    let ids = element_ids(screen);
+    let found = ids.into_iter().zip(&screen.as_inner().elements);
+    found
+        .into_iter()
+        .find(|(id, _)| Some(id) == target)
+        .map(|(_, e)| e)
 }

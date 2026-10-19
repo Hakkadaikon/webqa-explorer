@@ -43,10 +43,10 @@ pub(super) fn recovered(touch: &Touch, cause: Cause) -> Event {
     }
 }
 
-/// The browser does nothing for `input` on an element that is not an input field.
-pub(super) fn not_an_input() -> Event {
+/// The browser does nothing for `input`, for the reason `cause`.
+pub(super) fn skipped(cause: &str) -> Event {
     Event::Skipped {
-        cause: "not_an_input".to_owned(),
+        cause: cause.to_owned(),
     }
 }
 

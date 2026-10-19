@@ -9,7 +9,7 @@ use super::counters::{Counters, Progress};
 use super::material::forbidden_indices;
 use super::note::left;
 use super::state::State;
-use crate::explore::ScreenKey;
+use crate::explore::{ElementOp, ScreenKey};
 use crate::guard::domain::is_allowed;
 use crate::screen::{ElementId, changed, element_ids, in_viewport};
 
@@ -135,8 +135,9 @@ pub(super) fn arrived(state: State, seen: Seen, _: Duration) -> Next {
 /// element operated is kept when the screen did not change, so that the
 /// next answer can move on to another one.
 pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
+    let kind = recorded(&state);
     let (mut state, taken) = landed(state, seen);
-    let explored = explored(&mut state, taken.from);
+    let explored = explored(&mut state, taken.from, kind);
     state.counters = state.counters.after_touch(Progress {
         changed: taken.changed,
         explored,
@@ -150,12 +151,28 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
     idle(state)
 }
 
+/// The kind of operation to record for the proposal, judged on the page it
+/// was made on: an `input` that did nothing is none.
+fn recorded(state: &State) -> Option<ElementOp> {
+    let kind = state.proposal.as_deref().and_then(|p| p.row);
+    kind.and_then(|row| row.element)
+        .filter(|&k| k != ElementOp::Input || types(state))
+}
+
+/// Whether the `input` proposed types something.
+fn types(state: &State) -> bool {
+    let element = state.proposal.as_deref().and_then(|p| p.element.as_ref());
+    state
+        .rules
+        .input_skip(&state.last.screen, element)
+        .is_none()
+}
+
 /// Records the operation on the element in the memory. True when the
 /// element was untouched. The page landed on outside counts as staying.
-fn explored(state: &mut State, from: Option<ScreenKey>) -> bool {
-    let proposal = state.proposal.as_deref();
-    let kind = proposal.and_then(|p| p.row).and_then(|row| row.element);
-    let element = proposal.and_then(|p| p.element.clone());
+/// An `input` that did nothing is not recorded.
+fn explored(state: &mut State, from: Option<ScreenKey>, kind: Option<ElementOp>) -> bool {
+    let element = state.proposal.as_deref().and_then(|p| p.element.clone());
     let to = state.at;
     from.zip(kind)
         .zip(element)
