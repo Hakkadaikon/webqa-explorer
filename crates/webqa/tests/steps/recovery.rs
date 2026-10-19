@@ -91,7 +91,7 @@ fn replies_each_time(world: &mut QaWorld, op: String, target: String) {
     let scene = &mut world.scene;
     let shown = after_at(scene, 0);
     shown.elements.push(PageSpec::link(&target));
-    let replies = (0..3).map(|_| Reply::op(&op, 0.9).on(&target));
+    let replies = (0..3).map(|_| Reply::op(op.as_str(), 0.9).on(&target));
     scene.replies.extend(replies);
     drop((op, target));
 }
@@ -182,6 +182,5 @@ async fn no_reload_after_change(world: &mut QaWorld, times: usize) {
     expr = "判断モデルが操作 {string} を返し、スクロールしても表示領域の中の操作可能要素と URL は変わらない"
 )]
 fn scroll_stays(world: &mut QaWorld, op: String) {
-    world.scene.replies.push_back(Reply::op(&op, 0.9));
-    drop(op);
+    world.scene.replies.push_back(Reply::op(op, 0.9));
 }

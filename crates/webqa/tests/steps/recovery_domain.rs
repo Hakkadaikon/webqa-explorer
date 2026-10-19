@@ -22,8 +22,8 @@ fn link_reply(world: &mut QaWorld, op: String, name: String) {
     let scene = &mut world.scene;
     scene.start.elements.push(PageSpec::link(&name));
     scene.start.elements.push(PageSpec::button("保存"));
-    scene.replies.push_back(Reply::op(&op, 0.9).on(&name));
-    drop((op, name));
+    scene.replies.push_back(Reply::op(op, 0.9).on(&name));
+    drop(name);
 }
 
 #[given(expr = "{string} は {string} へ遷移する")]
