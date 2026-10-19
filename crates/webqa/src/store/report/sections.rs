@@ -57,7 +57,7 @@ fn element(id: &ElementId) -> Value {
 
 /// The key of `inputs` an input went to, when its element is named after one.
 /// The value typed is never written.
-fn input_key<'a>(act: &'a Act, inputs: &[String]) -> Option<&'a str> {
+pub fn input_key<'a>(act: &'a Act, inputs: &[String]) -> Option<&'a str> {
     let name = act.target.as_ref().map(|target| target.name.as_str());
     name.filter(|name| act.op == "input" && inputs.iter().any(|key| key == name))
 }

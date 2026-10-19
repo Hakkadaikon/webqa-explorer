@@ -223,3 +223,5 @@ fn stuck_kind_in_report() {
         "the reason and the kind"
     );
 }
+
+mod edges;
