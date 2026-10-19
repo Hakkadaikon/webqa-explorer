@@ -9,6 +9,7 @@ mod after;
 mod course;
 mod open;
 mod record;
+mod shots;
 #[cfg(test)]
 mod tests;
 mod trial;

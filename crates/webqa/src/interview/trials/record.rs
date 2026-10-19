@@ -5,6 +5,7 @@ use webqa_core::interview::answer::Reply;
 use webqa_core::interview::clue::{Clue, Signals, Thresholds, clues};
 use webqa_core::interview::issue::Ran;
 use webqa_core::interview::outcome::{Cut, Ended, Finish, Outcome, Stuck};
+use webqa_core::judge::Image;
 use webqa_core::machine::{Cause, ExitReason, StuckKind};
 use webqa_core::redact::Redacted;
 use webqa_core::screen::ElementId;
@@ -37,6 +38,8 @@ pub(super) struct Step {
     pub(super) clues: Vec<Clue>,
     /// The operation that ran on the page after it.
     pub(super) ran: Option<Ran>,
+    /// The screenshot sent with the question.
+    pub(super) image: Option<Image>,
 }
 
 /// How each exit reason of the core reads as the end of a trial.
@@ -121,6 +124,7 @@ fn step(at: Taken, act: Option<&Act>, trail: &[ScreenId], thresholds: Thresholds
         screen: at.screen,
         viewport: at.viewport,
         reply: at.reply,
+        image: at.image,
     }
 }
 

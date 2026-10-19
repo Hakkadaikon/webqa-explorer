@@ -38,7 +38,7 @@ fn through_items() -> FakeBrowser {
 
 /// A world of one trial towards the written purpose, in which the judge
 /// answers `matched` to each question about the screen purposes.
-fn purposeful(matched: &[&str]) -> World {
+pub(super) fn purposeful(matched: &[&str]) -> World {
     let mut world = World::new(1);
     world.plan.interview.purpose = written();
     let script = hesitating(&["click", "done"], 0.0);

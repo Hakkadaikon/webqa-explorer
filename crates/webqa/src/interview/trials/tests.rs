@@ -29,6 +29,7 @@ mod opening;
 mod purposes;
 mod records;
 mod resets;
+mod shots;
 mod stubs;
 mod trials;
 mod waits;

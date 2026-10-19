@@ -148,6 +148,10 @@ impl Judge for RecordingJudge {
         self.texts.push(screen.as_inner().as_str().to_owned());
         self.script.ask(screen, questions)
     }
+
+    fn reads_images(&self) -> bool {
+        self.script.reads_images()
+    }
 }
 
 /// The bytes of every fake screenshot: the start of a PNG signature.

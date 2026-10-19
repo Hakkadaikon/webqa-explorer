@@ -13,6 +13,7 @@ use webqa_core::redact::Redactor;
 
 use super::after::{Asker, Findings, findings};
 use super::record::{self, Trial};
+use super::shots::write_shots;
 use super::{Plan, Stopped};
 use crate::run::{Kept, RunError};
 use crate::store::report::{self, Meta};
@@ -119,21 +120,29 @@ fn goal(aim: &Aim, run: &Run<'_>) -> Goal {
 
 /// Writes `ledger`, the last line and the report.
 async fn put(closing: Closing<'_>, ledger: &Ledger, stopped: Stopped) -> Result<Closed, RunError> {
+    write_shots(&mut *closing.store, closing.trials, ledger).await?;
+    let text = write(ledger, closing.redactor);
+    closing.store.write_ledger(&text).await?;
+    let last = closing.trials.last().map(|trial| trial.reason);
+    let confirmed = conclude(closing, reason(stopped, last)).await?;
+    Ok(Closed::Wrote { confirmed })
+}
+
+/// Writes the last line of the log and the report of a run that ended for
+/// `reason`. Whether a confirmed issue was found.
+async fn conclude(closing: Closing<'_>, reason: ExitReason) -> Result<bool, RunError> {
     let Closing {
         clock,
         store,
         redactor,
         kept,
-        trials,
         plan,
         ..
     } = closing;
-    store.write_ledger(&write(ledger, redactor)).await?;
-    let reason = reason(stopped, trials.last().map(|trial| trial.reason));
     let last = Event::finished(reason);
-    let elapsed = clock.elapsed();
-    kept.journal
-        .write(None, last, elapsed, store, redactor)
+    let journal = &mut kept.journal;
+    journal
+        .write(None, last, clock.elapsed(), store, redactor)
         .await?;
     let meta = Meta {
         mode: Mode::Scenario,
@@ -142,12 +151,9 @@ async fn put(closing: Closing<'_>, ledger: &Ledger, stopped: Stopped) -> Result<
         inputs: Vec::new(),
         price: None,
     };
-    store
-        .write_report(&report::build(&kept.record, reason, &meta, redactor))
-        .await?;
-    Ok(Closed::Wrote {
-        confirmed: kept.record.confirmed(),
-    })
+    let report = report::build(&kept.record, reason, &meta, redactor);
+    store.write_report(&report).await?;
+    Ok(kept.record.confirmed())
 }
 
 /// Why the report says the run ended: the time limit, the interruption, or
