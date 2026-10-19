@@ -38,6 +38,14 @@ mod common;
 mod config;
 #[path = "steps/ending.rs"]
 mod ending;
+#[path = "steps/ending_budget.rs"]
+mod ending_budget;
+#[path = "steps/ending_explore.rs"]
+mod ending_explore;
+#[path = "steps/ending_stuck.rs"]
+mod ending_stuck;
+#[path = "steps/ending_time.rs"]
+mod ending_time;
 #[path = "steps/exit.rs"]
 mod exit;
 #[path = "steps/guard.rs"]
@@ -75,6 +83,10 @@ fn ready() -> Vec<&'static str> {
         guard::READY,
         load::READY,
         ending::READY,
+        ending_stuck::READY,
+        ending_budget::READY,
+        ending_time::READY,
+        ending_explore::READY,
         stages::READY,
         recovery::READY,
         memory::READY,
