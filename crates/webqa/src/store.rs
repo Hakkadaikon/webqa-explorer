@@ -3,4 +3,5 @@
 pub mod file;
 pub mod memory;
 pub mod paths;
+pub mod report;
 pub mod screenshots;
