@@ -332,7 +332,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-111 InterviewMode.feature:875(再実行と照らし合わせ) [unwanted] 「前回の台帳が決まった書式で読めなければ、照らし合わせずに設定エラーにする」
       → 手法: 構文テスト(experience-scenario)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `broken_ledger_read_fails`、実行ファイル `webqa/tests/cli.rs` の `broken_previous_ledger_exits_two` / issue: #24、#31、#33
 - [x] T-112 InterviewMode.feature:882(再実行と照らし合わせ) [unwanted] 「前回の台帳のペルソナか目的が今回と違えば、照らし合わせずに設定エラーにする」(Examples の各行を1ケースとする)
-      → 手法: デシジョンテーブル(blackbox-partition)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `persona_or_purpose_mismatch_rejected` / issue: #25、#33
+      → 手法: デシジョンテーブル(blackbox-partition)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `persona_or_purpose_mismatch_rejected`、単体 `webqa-core::interview::compare` の `previous_head_checked_before_trials`、実行ファイル `webqa/tests/cli.rs` の `mismatched_previous_ledger_exits_two` / issue: #25、#31、#33
 - [x] T-113 InterviewMode.feature:894(再実行と照らし合わせ) [event] 「目的を推測させた実行どうしは、推測した文が違っても、開始の URL が同じなら照らし合わせる」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `inferred_runs_compare_by_start_url` / issue: #25、#33
 - [x] T-114 InterviewMode.feature:902(手引きと形式の検査) [event] 「形式の検査のサブコマンドは、正しい文書を通す」(Examples の各行を1ケースとする)
@@ -507,7 +507,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-109 | event | デシジョンテーブル(blackbox-partition) | `new_issue_unselected` | #25、#33 | [x] | [ ] | 要 |
 | T-110 | boundary | 境界値分析(blackbox-partition) | `no_previous_all_new` | #25、#33 | [x] | [ ] | 要 |
 | T-111 | unwanted | 構文テスト(experience-scenario)、ネガティブテスト(process-static) | `broken_ledger_read_fails`、`broken_previous_ledger_exits_two` | #24、#31、#33 | [x] | [ ] | 要 |
-| T-112 | unwanted | デシジョンテーブル(blackbox-partition)、ネガティブテスト(process-static) | `persona_or_purpose_mismatch_rejected` | #25、#33 | [x] | [ ] | 要 |
+| T-112 | unwanted | デシジョンテーブル(blackbox-partition)、ネガティブテスト(process-static) | `persona_or_purpose_mismatch_rejected`、`previous_head_checked_before_trials`、`mismatched_previous_ledger_exits_two` | #25、#31、#33 | [x] | [ ] | 要 |
 | T-113 | event | デシジョンテーブル(blackbox-partition) | `inferred_runs_compare_by_start_url` | #25、#33 | [x] | [ ] | 要 |
 | T-114 | event | 同値分割(blackbox-partition) | `check_accepts_valid_documents` | #31、#33 | [x] | [ ] | 要 |
 | T-115 | unwanted | 構文テスト(experience-scenario)、ネガティブテスト(process-static) | `done_when_without_declarations_rejected`、`check_reports_field_and_exits_two` | #18、#31、#33 | [x] | [ ] | 要 |
