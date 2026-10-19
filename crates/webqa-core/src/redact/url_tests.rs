@@ -93,6 +93,94 @@ fn plus_in_secret_is_kept() {
         query(&r, "https://app.example.test/s?m=taro+tag@example.test"),
         Some("m=[[メール]]".to_owned())
     );
+    let email = redactor(Rule::pattern("メールアドレス", EMAIL));
+    assert_eq!(
+        query(&email, "https://app.example.test/s?m=taro+tag@example.test"),
+        Some("m=[[メールアドレス]]".to_owned()),
+        "the reading with + kept comes first"
+    );
+}
+
+#[test]
+fn both_readings_of_query_are_masked() {
+    let r = Redactor::new(&[
+        Rule::literal("氏名", "taro yamada"),
+        Rule::literal("m", "x+y@e.test"),
+    ])
+    .unwrap();
+    assert_eq!(
+        query(
+            &r,
+            "https://app.example.test/s?name=taro+yamada&m=x+y@e.test"
+        ),
+        Some("name=[[氏名]]&m=[[m]]".to_owned())
+    );
+}
+
+/// Masks `taro@example.test` as `[[mail]]`.
+fn mail() -> Redactor {
+    redactor(Rule::literal("mail", "taro@example.test"))
+}
+
+/// The path and query of the masked screen, as encoded.
+fn encoded(redactor: &Redactor, url: &str) -> (String, Option<String>) {
+    let s = screen(redactor, url);
+    let url = &s.as_inner().url;
+    (url.path().to_owned(), url.query().map(str::to_owned))
+}
+
+/// The query of a URL, then what masking leaves of it.
+const TWICE_ENCODED: [(&str, &str); 3] = [
+    (
+        "next=https%3A%2F%2Fx.test%2F%3Fq%3Dtaro%2540example.test",
+        "next=https%3A%2F%2Fx.test%2F%3Fq%3D[[mail]]",
+    ),
+    ("m=taro%252540example.test", "m=[[mail]]"),
+    ("m=taro%25252540example.test", "m=taro%25252540example.test"),
+];
+
+#[test]
+fn secret_encoded_twice_is_masked() {
+    let r = mail();
+    for (query, want) in TWICE_ENCODED {
+        let url = format!("https://app.example.test/s?{query}");
+        assert_eq!(encoded(&r, &url).1, Some(want.to_owned()), "{query}");
+    }
+    assert_eq!(
+        encoded(&r, "https://app.example.test/a/taro%2540example.test").0,
+        "/a/[[mail]]",
+        "path"
+    );
+}
+
+/// A URL, then the path and query masking leaves.
+const KEPT: [(&str, &str, Option<&str>); 5] = [
+    (
+        "/s?q=a%26b&m=taro@example.test",
+        "/s",
+        Some("q=a%26b&m=[[mail]]"),
+    ),
+    (
+        "/s?q=a%2Bb&m=taro@example.test",
+        "/s",
+        Some("q=a%2Bb&m=[[mail]]"),
+    ),
+    ("/a%2Fb/taro@example.test", "/a%2Fb/[[mail]]", None),
+    (
+        "/s?q=%2561&m=taro%40example.test",
+        "/s",
+        Some("q=%2561&m=[[mail]]"),
+    ),
+    ("/%FF/taro@example.test/%ff", "/%FF/[[mail]]/%ff", None),
+];
+
+#[test]
+fn encoding_outside_secrets_is_kept() {
+    let r = mail();
+    for (url, path, query) in KEPT {
+        let got = encoded(&r, &format!("https://app.example.test{url}"));
+        assert_eq!(got, (path.to_owned(), query.map(str::to_owned)), "{url}");
+    }
 }
 
 #[test]
@@ -109,7 +197,7 @@ fn fragment_is_masked() {
 #[test]
 fn unmatched_url_is_unchanged() {
     let r = redactor(Rule::pattern("メールアドレス", EMAIL));
-    let url = "https://app.example.test/a%20b/%E3%81%82?x=1&y=a+b#top";
+    let url = "https://app.example.test/a%20b/%E3%81%82/%e3%81%82/c%2Fd?x=1&y=a+b#top";
     assert_eq!(screen(&r, url).as_inner().url.as_str(), url);
 }
 
@@ -126,5 +214,19 @@ fn url_string_is_redacted() {
         Redactor::default().url(&u).into_inner(),
         u.as_str(),
         "no rules"
+    );
+}
+
+#[test]
+fn url_string_drops_userinfo() {
+    let u = Url::parse("https://taro:secret@app.example.test/p?q=1#f").unwrap();
+    let want = "https://app.example.test/p?q=1#f";
+    assert_eq!(mail().url(&u).into_inner(), want, "with rules");
+    assert_eq!(Redactor::default().url(&u).into_inner(), want, "no rules");
+    let user = Url::parse("https://taro@app.example.test/p").unwrap();
+    assert_eq!(
+        mail().url(&user).into_inner(),
+        "https://app.example.test/p",
+        "user only"
     );
 }
