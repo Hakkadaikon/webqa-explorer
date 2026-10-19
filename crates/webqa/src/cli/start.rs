@@ -3,9 +3,7 @@
 use std::env;
 use std::fmt::Display;
 use std::fs;
-use std::num::NonZeroU64;
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use tokio::fs as async_fs;
 use webqa_browser::probe::ProbeArg;
@@ -74,8 +72,6 @@ pub struct Job {
     pub config: PathBuf,
     /// Where the records go.
     pub out: PathBuf,
-    /// Overrides `limits.max_duration_secs`.
-    pub max_duration: Option<NonZeroU64>,
 }
 
 /// The job of a subcommand.
@@ -88,7 +84,6 @@ pub fn job(command: Command) -> Job {
             source: Source::Replay(args.report),
             config: args.config,
             out: args.out,
-            max_duration: None,
         },
     }
 }
@@ -98,7 +93,6 @@ fn with(source: Source, args: RunArgs) -> Job {
         source,
         config: args.config,
         out: args.out,
-        max_duration: args.max_duration_secs,
     }
 }
 
@@ -132,20 +126,15 @@ async fn replayed(path: &Path) -> Result<(Mode, Option<Replay>), Stop> {
     Ok((mode, Some(replay)))
 }
 
-/// Stages 3 and 4: the checked configuration, with the time limit of the
-/// arguments when there is one.
+/// Stage 3: the checked configuration.
 ///
 /// # Errors
 ///
 /// [`Stop::Config`] with the sentence of the configuration error.
-pub fn setup(yaml: &str, mode: Mode, max_duration: Option<NonZeroU64>) -> Result<Setup, Stop> {
+pub fn setup(yaml: &str, mode: Mode) -> Result<Setup, Stop> {
     let env = |name: &str| env::var(name).ok();
-    let mut setup = setup::load(yaml, mode, &env, &|path: &Path| fs::read_to_string(path))
-        .map_err(Stop::config)?;
-    if let Some(secs) = max_duration {
-        setup.rules.max_duration = Some(Duration::from_secs(secs.get()));
-    }
-    Ok(setup)
+    let read = |path: &Path| fs::read_to_string(path);
+    setup::load(yaml, mode, &env, &read).map_err(Stop::config)
 }
 
 /// Stage 6: the judge, the replay or the one the configuration names.
@@ -171,7 +160,8 @@ pub async fn judge(
 #[must_use]
 pub fn judge_stop(error: StartError) -> Stop {
     match error {
-        StartError::UnknownKind(_) | StartError::NoCommand => Stop::config(error),
+        StartError::UnknownKind(_) => Stop::config("判断モデルの種類が表に無い"),
+        StartError::NoCommand => Stop::config(error),
         StartError::Spawn | StartError::Declaration | StartError::Version => Stop::runtime(error),
     }
 }

@@ -2,8 +2,9 @@
 
 use std::path::Path;
 
+use serde_json::Value;
 use webqa_browser::PlaywrightBrowser;
-use webqa_core::machine::Rules;
+use webqa_core::machine::{ExitReason, Rules};
 use webqa_core::ports::Judge;
 use webqa_core::redact::Redactor;
 
@@ -65,20 +66,21 @@ async fn prepare(job: &Job) -> Result<Parts, Stop> {
     launch(job, setup, replay).await
 }
 
-/// Stages 1 to 4: the configuration and the mode.
+/// Stages 1 to 3: the configuration and the mode.
 async fn configure(job: &Job) -> Result<(Setup, Option<Replay>), Stop> {
     let yaml = start::config_text(&job.config).await?;
     let (mode, replay) = start::script(&job.source).await?;
-    let setup = start::setup(&yaml, mode, job.max_duration)?;
+    let setup = start::setup(&yaml, mode)?;
     Ok((setup, replay))
 }
 
-/// Stages 5 to 9: the clocks, the judge, the browser and the store.
+/// Stages 4 to 8: the judge, the browser, the clocks and the store. The run's
+/// time starts once the browser is up; the judge's bridge keeps its own.
 async fn launch(job: &Job, setup: Setup, replay: Option<Replay>) -> Result<Parts, Stop> {
+    let judge = start::judge(replay, &setup, RealClock::start()).await?;
+    let browser = start::browser(setup.browser, setup.redactor.clone()).await?;
     let wall = Wall::now();
     let clock = RealClock::start();
-    let judge = start::judge(replay, &setup, clock).await?;
-    let browser = start::browser(setup.browser, setup.redactor.clone()).await?;
     let store = start::store(&job.out, &wall).await?;
     let price = Price {
         input_per_1k: setup.judge.pricing.input_per_1k,
@@ -131,10 +133,19 @@ async fn finish(mut parts: Parts) -> Done {
 /// The line that says how the run ended.
 pub(super) fn describe(ending: &Ending, dir: &Path) -> String {
     match ending {
-        Ending::Finished { outcome, .. } => {
-            format!("終了理由 {:?}、記録 {}", outcome.reason, dir.display())
-        }
+        Ending::Finished { outcome, .. } => finished_line(outcome.reason, dir),
         Ending::Abandoned => "記録を書き終える前に中断した".to_owned(),
         Ending::Failed(error) => error.to_string(),
     }
+}
+
+/// The line for a run that ended for `reason`, named as `report.json` names it.
+pub(super) fn finished_line(reason: ExitReason, dir: &Path) -> String {
+    let named = serde_json::to_value(reason).unwrap_or_default();
+    let name = named.get("reason").and_then(Value::as_str);
+    format!(
+        "終了理由 {}、記録 {}",
+        name.unwrap_or_default(),
+        dir.display()
+    )
 }

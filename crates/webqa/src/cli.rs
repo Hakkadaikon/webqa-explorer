@@ -8,7 +8,6 @@ mod tests;
 use std::env::current_dir;
 use std::ffi::OsString;
 use std::io::{self, Write};
-use std::num::NonZeroU64;
 use std::path::PathBuf;
 
 use clap::Parser;
@@ -51,9 +50,6 @@ pub struct RunArgs {
     /// Where the records go.
     #[arg(long, default_value = ".webqa")]
     pub out: PathBuf,
-    /// Overrides `limits.max_duration_secs`.
-    #[arg(long)]
-    pub max_duration_secs: Option<NonZeroU64>,
 }
 
 /// The arguments of `replay`.
@@ -94,6 +90,8 @@ where
 /// Stops Playwright from exiting on Ctrl-C by itself (with code 130, before
 /// the records are written). It reads the variable at launch. `dotenvy` sets
 /// it for us, as this crate forbids `unsafe`, and a value already set wins.
+/// This runs before the logs start and the runtime is made, while the
+/// process has one thread, so changing the environment is safe.
 fn keep_our_interrupt() {
     drop(dotenvy::from_read(&b"PLAYWRIGHT_NO_SIGNAL_HANDLER=1"[..]));
 }

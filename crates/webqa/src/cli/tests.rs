@@ -2,7 +2,6 @@
 
 use std::path::Path;
 use std::sync::mpsc::channel;
-use std::time::Duration;
 
 use crate::clock::Wall;
 use crate::run::RunError;
@@ -13,6 +12,7 @@ use webqa_core::ports::StoreError;
 use clap::Parser;
 use clap::error::ErrorKind;
 use webqa_core::event::Mode;
+use webqa_core::machine::ExitReason;
 use webqa_judge::table::StartError;
 
 use super::*;
@@ -21,11 +21,10 @@ fn read(args: &[&str]) -> Result<Cli, ErrorKind> {
     Cli::try_parse_from(args).map_err(|e| e.kind())
 }
 
-fn run_args(config: &str, out: &str, max: Option<u64>) -> RunArgs {
+fn run_args(config: &str, out: &str) -> RunArgs {
     RunArgs {
         config: config.into(),
         out: out.into(),
-        max_duration_secs: max.and_then(NonZeroU64::new),
     }
 }
 
@@ -34,20 +33,11 @@ fn arguments_are_read() {
     let read_ok = |args: &[&str]| read(args).map(|cli| cli.command);
     assert_eq!(
         read_ok(&["webqa", "explore", "--config", "c.yaml"]),
-        Ok(Command::Explore(run_args("c.yaml", ".webqa", None)))
+        Ok(Command::Explore(run_args("c.yaml", ".webqa")))
     );
     assert_eq!(
-        read_ok(&[
-            "webqa",
-            "run",
-            "--config",
-            "c.yaml",
-            "--out",
-            "o",
-            "--max-duration-secs",
-            "60"
-        ]),
-        Ok(Command::Run(run_args("c.yaml", "o", Some(60))))
+        read_ok(&["webqa", "run", "--config", "c.yaml", "--out", "o"]),
+        Ok(Command::Run(run_args("c.yaml", "o")))
     );
     assert_eq!(
         read_ok(&["webqa", "replay", "r.json", "--config", "c.yaml"]),
@@ -61,8 +51,8 @@ fn arguments_are_read() {
 
 #[test]
 fn bad_arguments_are_errors() {
-    let zero = ["webqa", "run", "--config", "c", "--max-duration-secs", "0"];
-    assert_eq!(read(&zero), Err(ErrorKind::ValueValidation));
+    let limit = ["webqa", "run", "--config", "c", "--max-duration-secs", "60"];
+    assert_eq!(read(&limit), Err(ErrorKind::UnknownArgument));
     assert_eq!(read(&["webqa", "watch"]), Err(ErrorKind::InvalidSubcommand));
     assert_eq!(
         read(&["webqa", "run"]),
@@ -85,38 +75,33 @@ fn start_errors_map_to_codes() {
 }
 
 #[test]
+fn an_unknown_judge_kind_is_said_without_its_name() {
+    let stop = start::judge_stop(StartError::UnknownKind("sk-secret".into()));
+    assert_eq!(
+        stop.into_parts(),
+        (2, "判断モデルの種類が表に無い".to_owned())
+    );
+}
+
+#[test]
 fn subcommands_become_jobs() {
     let job = |args: &[&str]| Cli::try_parse_from(args).map(|cli| start::job(cli.command));
-    let expected = |source, out: &str, max| start::Job {
+    let expected = |source, out: &str| start::Job {
         source,
         config: "c.yaml".into(),
         out: out.into(),
-        max_duration: max,
     };
-    let sixty = NonZeroU64::new(60);
     assert_eq!(
-        job(&[
-            "webqa",
-            "run",
-            "--config",
-            "c.yaml",
-            "--max-duration-secs",
-            "60"
-        ])
-        .ok(),
-        Some(expected(start::Source::Scenario, ".webqa", sixty))
+        job(&["webqa", "run", "--config", "c.yaml"]).ok(),
+        Some(expected(start::Source::Scenario, ".webqa"))
     );
     assert_eq!(
         job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]).ok(),
-        Some(expected(start::Source::Explore, "o", None))
+        Some(expected(start::Source::Explore, "o"))
     );
     assert_eq!(
         job(&["webqa", "replay", "r.json", "--config", "c.yaml"]).ok(),
-        Some(expected(
-            start::Source::Replay("r.json".into()),
-            ".webqa",
-            None
-        ))
+        Some(expected(start::Source::Replay("r.json".into()), ".webqa"))
     );
 }
 
@@ -146,7 +131,7 @@ async fn modes_come_from_the_subcommand() {
 
 #[test]
 fn a_bad_configuration_stops_with_code_two() {
-    let stop = start::setup("target: {}", Mode::Explore, None).err();
+    let stop = start::setup("target: {}", Mode::Explore).err();
     assert_eq!(stop.map(|s| s.into_parts().0), Some(2));
 }
 
@@ -173,21 +158,9 @@ guard:
 const THIS_FILE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/Cargo.toml");
 
 #[test]
-fn time_limit_of_the_arguments_wins() {
-    let limit = |max| {
-        start::setup(CONFIG, Mode::Explore, max)
-            .ok()
-            .map(|setup| setup.rules.max_duration)
-    };
-    assert_eq!(limit(None), Some(None));
-    let seven = NonZeroU64::new(7);
-    assert_eq!(limit(seven), Some(Some(Duration::from_secs(7))));
-}
-
-#[test]
 fn a_file_that_is_no_storage_state_is_a_configuration_error() {
     let yaml = format!("{CONFIG}auth: {{ storage_state: {THIS_FILE} }}\n");
-    let stop = start::setup(&yaml, Mode::Explore, None).err();
+    let stop = start::setup(&yaml, Mode::Explore).err();
     assert_eq!(stop.map(|s| s.into_parts().0), Some(2));
 }
 
@@ -230,4 +203,18 @@ fn an_abandoned_runtime_does_not_wait_for_blocked_work() {
     drop(release);
     let runtime = Builder::new_current_thread().build().unwrap();
     stop_runtime(runtime, false);
+}
+
+#[test]
+fn the_end_is_named_as_the_report_names_it() {
+    let dir = Path::new("runs/x");
+    let named = |reason| app::finished_line(reason, dir);
+    assert_eq!(
+        named(ExitReason::GoalAchieved),
+        "終了理由 goal_achieved、記録 runs/x"
+    );
+    assert_eq!(
+        named(ExitReason::TimeExceeded),
+        "終了理由 time_exceeded、記録 runs/x"
+    );
 }
