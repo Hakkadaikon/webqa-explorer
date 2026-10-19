@@ -1,6 +1,14 @@
 //! Tests of the argument reading.
 
 use std::path::Path;
+use std::sync::mpsc::channel;
+use std::time::Duration;
+
+use crate::clock::Wall;
+use crate::run::RunError;
+use crate::run::session::Ending;
+use jiff::Timestamp;
+use webqa_core::ports::StoreError;
 
 use clap::Parser;
 use clap::error::ErrorKind;
@@ -140,4 +148,86 @@ async fn modes_come_from_the_subcommand() {
 fn a_bad_configuration_stops_with_code_two() {
     let stop = start::setup("target: {}", Mode::Explore, None).err();
     assert_eq!(stop.map(|s| s.into_parts().0), Some(2));
+}
+
+const CONFIG: &str = "
+target: { url: 'http://localhost:1/', allowed_origins: [] }
+judge:
+  kind: command
+  command: ['x']
+  timeout_secs: 1
+  pricing: { input_per_1k: 0.0, output_per_1k: 0.0 }
+limits:
+  freeze_threshold: 1
+  stuck_threshold: 1
+  max_decisions: 1
+  requests_per_hour: 1
+  page_timeout_secs: 1
+  back_confidence: 0.7
+  error_confidence: 0.8
+guard:
+  forbidden: { keywords: [], selectors: [] }
+  allowed: { selectors: [] }
+";
+
+const THIS_FILE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/Cargo.toml");
+
+#[test]
+fn time_limit_of_the_arguments_wins() {
+    let limit = |max| {
+        start::setup(CONFIG, Mode::Explore, max)
+            .ok()
+            .map(|setup| setup.rules.max_duration)
+    };
+    assert_eq!(limit(None), Some(None));
+    let seven = NonZeroU64::new(7);
+    assert_eq!(limit(seven), Some(Some(Duration::from_secs(7))));
+}
+
+#[test]
+fn a_file_that_is_no_storage_state_is_a_configuration_error() {
+    let yaml = format!("{CONFIG}auth: {{ storage_state: {THIS_FILE} }}\n");
+    let stop = start::setup(&yaml, Mode::Explore, None).err();
+    assert_eq!(stop.map(|s| s.into_parts().0), Some(2));
+}
+
+#[tokio::test]
+async fn a_file_that_is_no_report_stops_as_a_configuration_error() {
+    let replay = start::script(&start::Source::Replay(THIS_FILE.into())).await;
+    assert_eq!(
+        replay.err().map(start::Stop::into_parts),
+        Some((2, "実行結果を再実行の台本として読めない".to_owned()))
+    );
+}
+
+#[tokio::test]
+async fn an_output_that_cannot_be_made_stops_as_a_runtime_error() {
+    let wall = Wall::at(Timestamp::UNIX_EPOCH);
+    let out = Path::new(THIS_FILE).join("out");
+    assert_eq!(
+        start::store(&out, &wall).await.err(),
+        Some(start::Stop::Runtime("記録の出力先を作れない".into()))
+    );
+}
+
+#[test]
+fn endings_are_described() {
+    let dir = Path::new("runs/x");
+    let failed = Ending::Failed(RunError::Store(StoreError));
+    assert_eq!(app::describe(&failed, dir), StoreError.to_string());
+    assert_eq!(
+        app::describe(&Ending::Abandoned, dir),
+        "記録を書き終える前に中断した"
+    );
+}
+
+#[test]
+fn an_abandoned_runtime_does_not_wait_for_blocked_work() {
+    let (release, blocked) = channel::<()>();
+    let runtime = Builder::new_current_thread().build().unwrap();
+    drop(runtime.spawn_blocking(move || blocked.recv()));
+    stop_runtime(runtime, true);
+    drop(release);
+    let runtime = Builder::new_current_thread().build().unwrap();
+    stop_runtime(runtime, false);
 }
