@@ -186,7 +186,14 @@ fn drive(runtime: Runtime, sub: Sub) -> app::Done {
 /// Watches the run of `args` on the standard output until Ctrl-C.
 async fn follow(args: &WatchArgs) -> u8 {
     let mut clock = RealClock::start();
-    watch::watch(&args.dir, &mut clock, &mut CtrlC, io::stdout()).await
+    watch::watch(
+        &args.dir,
+        &mut clock,
+        &mut CtrlC,
+        io::stdout(),
+        io::stderr(),
+    )
+    .await
 }
 
 /// Stops the runtime. When the records were abandoned, work still running

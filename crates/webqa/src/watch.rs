@@ -15,6 +15,9 @@ use webqa_tui::follow::{Follow, draw};
 use crate::exit::CONFIG_ERROR;
 use crate::interrupt::{Interrupt, guard};
 
+/// What is said when the directory of the run is missing.
+const MISSING: &str = "実行のディレクトリが無い";
+
 /// How often the log is read.
 const INTERVAL: Duration = Duration::from_millis(200);
 
@@ -36,14 +39,17 @@ pub fn appended(path: &Path, offset: u64) -> io::Result<(Vec<u8>, u64)> {
     Ok((bytes, file.stream_position()?))
 }
 
-/// Follows the run in `dir` until interrupted; the exit code.
+/// Follows the run in `dir` until interrupted; the exit code. A missing
+/// directory is said to `err`.
 pub async fn watch(
     dir: &Path,
     clock: &mut dyn Clock,
     interrupt: &mut dyn Interrupt,
     mut out: impl Write,
+    mut err: impl Write,
 ) -> u8 {
     if !dir.is_dir() {
+        drop(writeln!(err, "{MISSING}"));
         return CONFIG_ERROR;
     }
     let log = dir.join("events.jsonl");

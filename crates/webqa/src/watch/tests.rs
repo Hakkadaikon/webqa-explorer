@@ -2,6 +2,7 @@
 
 use std::env::temp_dir;
 use std::fs::{self, OpenOptions};
+use std::future::{pending, ready};
 use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::id;
@@ -52,7 +53,16 @@ impl Clock for FakeClock {
         if self.sleeps.len() == self.finish_on {
             append(&self.log, &format!("{FINISHED}\n"));
         }
-        Box::pin(async {})
+        // The fourth wait never ends, so a loop that does not stop ends
+        // with the wrong waits instead of spinning.
+        let waits: [Pending<'_, ()>; 4] = [
+            Box::pin(ready(())),
+            Box::pin(ready(())),
+            Box::pin(ready(())),
+            Box::pin(pending()),
+        ];
+        let turn = self.sleeps.len().min(4) - 1;
+        waits.into_iter().nth(turn).expect("one of four waits")
     }
 }
 
@@ -106,7 +116,8 @@ async fn watch_draws_and_waits_after_finish() {
         sleeps: vec![],
     };
     let mut out = Vec::new();
-    let code = watch(&dir, &mut clock, &mut AtOnce, &mut out).await;
+    let mut err = Vec::new();
+    let code = watch(&dir, &mut clock, &mut AtOnce, &mut out, &mut err).await;
     assert_eq!(code, 0);
     assert_eq!(
         clock.sleeps,
@@ -126,7 +137,11 @@ async fn missing_dir_exits_two() {
         finish_on: 0,
         sleeps: vec![],
     };
-    let mut out = Vec::new();
-    assert_eq!(watch(&dir, &mut clock, &mut AtOnce, &mut out).await, 2);
+    let (mut out, mut err) = (Vec::new(), Vec::new());
+    assert_eq!(
+        watch(&dir, &mut clock, &mut AtOnce, &mut out, &mut err).await,
+        2
+    );
     assert_eq!((out, clock.sleeps), (vec![], vec![]));
+    assert_eq!(err, "実行のディレクトリが無い\n".as_bytes());
 }
