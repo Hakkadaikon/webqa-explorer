@@ -61,3 +61,23 @@ fn ops_table_names() {
         "only exact names of the table"
     );
 }
+
+#[test]
+fn input_fills_only_input_roles() {
+    let roles = [
+        "textbox",
+        "searchbox",
+        "combobox",
+        "spinbutton",
+        "button",
+        "link",
+        "checkbox",
+        "",
+    ];
+    let fills = roles.map(fillable);
+    assert_eq!(
+        fills,
+        [true, true, true, true, false, false, false, false],
+        "only the roles of input fields"
+    );
+}

@@ -142,10 +142,20 @@ fn press(locator: Locator) -> Done<'static> {
     Box::pin(async move { locator.click(None).await })
 }
 
-/// Types the input whose key is the element's name; without one, types nothing.
+/// The roles of input fields, the only elements `input` types into.
+const FILLABLE: [&str; 4] = ["textbox", "searchbox", "combobox", "spinbutton"];
+
+/// Whether an element of `role` is an input field.
+pub fn fillable(role: &str) -> bool {
+    FILLABLE.contains(&role)
+}
+
+/// Types the input whose key is the element's name into an input field.
+/// Another kind of element, or one without an input, gets nothing typed.
 fn input<'a>(b: &'a PlaywrightBrowser, target: Option<&'a ElementId>) -> Done<'a> {
     let action = b
         .entry(target)
+        .filter(|e| fillable(&e.element.role))
         .and_then(|e| input_value(e, &b.inputs).map(|value| fill(b.locator(e), value)));
     Box::pin(maybe(action))
 }
