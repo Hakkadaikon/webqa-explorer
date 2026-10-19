@@ -10,9 +10,10 @@ fn joined(lines: &[&str]) -> String {
 }
 
 /// Lines of `GOLDEN` replaced by a text: the line (from 1) and the text.
-const REPLACED: [(usize, &str); 10] = [
+const REPLACED: [(usize, &str); 11] = [
     (3, "- 書式: 2"),
     (7, "- 終えた試行: 03"),
+    (7, "- 終えた試行: 0"),
     (13, "  - 類: 目的のずれ"),
     (15, "  - 画面の識別: S-B9520D77"),
     (18, "  - スクリーンショット: {\"試行\":1,"),
@@ -47,8 +48,42 @@ pub(in crate::interview::ledger) fn broken() -> Vec<(String, &'static str, usize
         (joined(&without), golden[37], 38),
         (joined(&golden[..30]), golden[29], 31),
         (format!("{GOLDEN}おまけ\n"), "おまけ", 82),
+        (
+            GOLDEN.replacen("I-5334A6B3 ", "I-5334A6B3x ", 1),
+            "I-5334A6B3x",
+            28,
+        ),
     ];
-    REPLACED.map(replaced).into_iter().chain(edits).collect()
+    let replaced = REPLACED.map(replaced);
+    replaced
+        .into_iter()
+        .chain(edits)
+        .chain(sections())
+        .collect()
+}
+
+/// `GOLDEN` with `none` (`なし` and a blank) after `heading` and its blank.
+fn none_after(heading: &str) -> String {
+    let at = format!("{heading}\n\n");
+    GOLDEN.replacen(&at, &format!("{at}なし\n\n"), 1)
+}
+
+/// Sections that are not `なし` nor hold an item: `なし` followed by an
+/// issue, in the body and in the last section, and a section without
+/// anything, in the middle and at the end.
+fn sections() -> [(String, &'static str, usize); 4] {
+    let golden = lines(GOLDEN);
+    let middle = [&golden[..45], &golden[63..]].concat();
+    [
+        (none_after("## 課題"), golden[11], 14),
+        (
+            none_after("## ペルソナから外れると判断した課題"),
+            golden[65],
+            68,
+        ),
+        (joined(&middle), golden[63], 46),
+        (joined(&golden[..65]), golden[63], 66),
+    ]
 }
 
 #[test]

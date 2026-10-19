@@ -58,6 +58,9 @@ pub enum Goal {
 }
 
 /// An issue in the ledger.
+///
+/// A mismatch issue is placed at a URL pattern, and every other kind at a
+/// screen; the ledger cannot be read back otherwise.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Entry {
     /// Whether the user selected it to fix.

@@ -54,6 +54,12 @@ impl<'a> Lines<'a> {
         let (line, n) = self.next()?;
         line.strip_prefix(prefix).map(|rest| (rest, n)).at(n)
     }
+
+    /// Checks that no line is left: a line left is malformed.
+    pub(super) fn end(&mut self) -> Result<(), LedgerError> {
+        let left = self.lines.peek().map(|&(i, _)| i + 1);
+        left.map_or(Ok(()), |line| Err(malformed(line)))
+    }
 }
 
 /// Turns a missing value into the error of a line.

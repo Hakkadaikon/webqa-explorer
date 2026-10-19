@@ -41,7 +41,9 @@ pub fn read(text: &str) -> Result<Ledger, LedgerError> {
         entries: vec![],
         unchecked_purposes: vec![],
     };
-    sections(&mut lines, &mut ledger).map(|()| ledger)
+    sections(&mut lines, &mut ledger)
+        .and_then(|()| lines.end())
+        .map(|()| ledger)
 }
 
 /// The head, with the blank after it.
@@ -123,11 +125,14 @@ fn sections(lines: &mut Lines<'_>, ledger: &mut Ledger) -> Result<(), LedgerErro
     Ok(())
 }
 
-/// What a section holds after its heading: [`EMPTY`] or its items.
+/// What a section holds after its heading: [`EMPTY`], or one item or
+/// more.
 fn body(lines: &mut Lines<'_>, section: Section, ledger: &mut Ledger) -> Result<(), LedgerError> {
-    let empty = lines.peek() == Some(EMPTY);
-    let read = if empty { nothing(lines) } else { Ok(()) };
-    read.and_then(|()| items(lines, section, ledger))
+    if lines.peek() == Some(EMPTY) {
+        return nothing(lines);
+    }
+    item(lines, section, ledger)?;
+    items(lines, section, ledger)
 }
 
 /// The line of an empty section and its blank.
@@ -135,15 +140,9 @@ fn nothing(lines: &mut Lines<'_>) -> Result<(), LedgerError> {
     lines.next().and_then(|_| lines.exact(""))
 }
 
-/// The items of `section`: up to the next heading, or for the last
-/// section, every line left.
+/// The items of `section` after the first, up to the next heading.
 fn items(lines: &mut Lines<'_>, section: Section, ledger: &mut Ledger) -> Result<(), LedgerError> {
-    let more = if section == Section::OffPersona {
-        any
-    } else {
-        is_item
-    };
-    while lines.peek().is_some_and(more) {
+    while lines.peek().is_some_and(is_item) {
         item(lines, section, ledger)?;
     }
     Ok(())
@@ -152,11 +151,6 @@ fn items(lines: &mut Lines<'_>, section: Section, ledger: &mut Ledger) -> Result
 /// Whether `line` starts an item rather than the next section.
 fn is_item(line: &str) -> bool {
     !line.starts_with(HEADING)
-}
-
-/// Every line left after the last section is read as an item.
-const fn any(_: &str) -> bool {
-    true
 }
 
 /// An issue, or an unchecked purpose in the unchecked section, and the
