@@ -82,6 +82,12 @@ pub enum Compared {
     New,
     /// Also in the previous ledger.
     Remaining,
+    /// In the previous ledger only, and its screen was reached at least
+    /// as often as then.
+    Resolved,
+    /// In the previous ledger only, and its screen was reached less often
+    /// than then, or not at all.
+    Unverified,
 }
 
 /// A ledger text that cannot be read. Carries no text of the ledger.
