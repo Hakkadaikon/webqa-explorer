@@ -96,6 +96,8 @@ pub struct Scene {
     pub probes: bool,
     /// The redaction rules.
     pub redact: Vec<Rule>,
+    /// The names of the inputs that have a value to type.
+    pub inputs: Vec<String>,
     /// The page the run starts on.
     pub start: PageSpec,
     /// The page after each operation, in order. When they run out, the
@@ -145,6 +147,7 @@ impl Default for Scene {
             leave_paywall: "back".to_owned(),
             probes: false,
             redact: Vec::new(),
+            inputs: Vec::new(),
             start: PageSpec::at("/"),
             after: VecDeque::new(),
             looks: VecDeque::new(),
@@ -184,6 +187,7 @@ impl Scene {
             forbidden: Forbidden::new(&self.keywords),
             leave_paywall: self.leave_paywall.clone(),
             stages: self.stages.clone(),
+            input_names: self.inputs.iter().cloned().collect(),
             ..fakes::rules(&self.ops, limits, allowed)
         }
     }

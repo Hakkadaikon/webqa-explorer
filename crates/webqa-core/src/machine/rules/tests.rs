@@ -1,5 +1,6 @@
 //! Rules made from the checked configuration.
 
+use std::collections::BTreeSet;
 use std::path::Path;
 use std::time::Duration;
 
@@ -7,7 +8,9 @@ use super::*;
 use crate::config::raw::parse;
 use crate::config::raw::tests::{changed, example};
 use crate::config::validate::validate;
+use crate::machine::testing;
 use crate::machine::testing::{ALL_OPS, nz};
+use crate::screen::ElementId;
 
 const ORIGINS: &str =
     "  allowed_origins: [\"https://app.example.test\", \"https://*.app.example.test\"]\n";
@@ -45,6 +48,7 @@ fn rules_from_config() {
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
         stages: config(&yaml).scenario.unwrap().stages,
+        input_names: BTreeSet::from(["メールアドレス".to_owned()]),
     };
     assert_eq!(rules, expected, "the values of the configuration");
     stages_follow_the_scenario();
@@ -102,4 +106,28 @@ fn invalid_origin_is_rejected() {
     config.target.allowed_origins.push(path);
     let rules = Rules::from_config(&config, Mode::Scenario);
     assert_eq!(rules, Err(InvalidOrigin), "an origin with a path");
+}
+
+#[test]
+fn input_does_nothing_without_a_field_or_a_value() {
+    let rules = Rules {
+        input_names: BTreeSet::from(["メール#".to_owned()]),
+        ..testing::rules()
+    };
+    let id = |role: &str, name: &str| ElementId {
+        role: role.to_owned(),
+        name: name.to_owned(),
+        nth: 0,
+    };
+    let cases = [
+        (Some(id("textbox", "メール#")), None),
+        (Some(id("link", "メール#")), Some("not_an_input")),
+        (Some(id("textbox", "検索")), Some("no_input_value")),
+        (Some(id("link", "検索")), Some("not_an_input")),
+        (None, Some("not_an_input")),
+    ];
+    let skips = cases
+        .clone()
+        .map(|(target, _)| rules.input_skip(target.as_ref()));
+    assert_eq!(skips, cases.map(|(_, skip)| skip), "why input does nothing");
 }

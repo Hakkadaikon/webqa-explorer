@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod tests;
 
+use std::collections::BTreeSet;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
@@ -12,6 +13,7 @@ use crate::event::Mode;
 use crate::guard::domain::{AllowedOrigin, InvalidOrigin, allowed_or_start};
 use crate::guard::forbidden::Forbidden;
 use crate::guard::paywall::Paywall;
+use crate::screen::{ElementId, fillable, normalize_name};
 
 /// What the state machine follows during a run.
 #[derive(Debug, Clone, PartialEq)]
@@ -42,6 +44,8 @@ pub struct Rules {
     pub leave_paywall: String,
     /// The stages of the scenario. Explore mode does not read them.
     pub stages: Vec<Stage>,
+    /// The normalized names of the inputs that have a value to type.
+    pub input_names: BTreeSet<String>,
 }
 
 impl Rules {
@@ -82,6 +86,26 @@ impl Rules {
                 .as_ref()
                 .map(|scenario| scenario.stages.clone())
                 .unwrap_or_default(),
+            input_names: config
+                .inputs
+                .keys()
+                .map(String::as_str)
+                .map(normalize_name)
+                .collect(),
         })
+    }
+
+    /// Why `input` on `target` does nothing, by name; `None` when it types.
+    ///
+    /// The names are compared normalized, as the core knows them, so a name
+    /// that differs from a key only in digits or spaces counts as the key.
+    #[must_use]
+    pub fn input_skip(&self, target: Option<&ElementId>) -> Option<&'static str> {
+        match target {
+            Some(id) if fillable(&id.role) => {
+                (!self.input_names.contains(&id.name)).then_some("no_input_value")
+            }
+            _ => Some("not_an_input"),
+        }
     }
 }

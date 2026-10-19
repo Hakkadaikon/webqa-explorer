@@ -8,8 +8,9 @@ use super::actions::{Next, idle};
 use super::counters::{Counters, Progress};
 use super::material::forbidden_indices;
 use super::note::left;
+use super::rules::Rules;
 use super::state::State;
-use crate::explore::ScreenKey;
+use crate::explore::{ElementOp, ScreenKey};
 use crate::guard::domain::is_allowed;
 use crate::screen::{ElementId, changed, element_ids, in_viewport};
 
@@ -150,12 +151,19 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
     idle(state)
 }
 
+/// The kind of operation to record: an `input` that did nothing is none.
+fn typed(rules: &Rules, kind: Option<ElementOp>, element: Option<&ElementId>) -> Option<ElementOp> {
+    kind.filter(|&k| k != ElementOp::Input || rules.input_skip(element).is_none())
+}
+
 /// Records the operation on the element in the memory. True when the
 /// element was untouched. The page landed on outside counts as staying.
+/// An `input` that did nothing is not recorded.
 fn explored(state: &mut State, from: Option<ScreenKey>) -> bool {
     let proposal = state.proposal.as_deref();
     let kind = proposal.and_then(|p| p.row).and_then(|row| row.element);
     let element = proposal.and_then(|p| p.element.clone());
+    let kind = typed(&state.rules, kind, element.as_ref());
     let to = state.at;
     from.zip(kind)
         .zip(element)

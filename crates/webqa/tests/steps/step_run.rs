@@ -12,10 +12,14 @@ use crate::world::QaWorld;
 fn present(world: &mut QaWorld, name: String) {
     let said = format!("{:?}", world.scene.replies.back());
     let roles = ["button", "textbox"];
-    let role = roles.get(usize::from(said.contains("\"input\""))).copied();
+    let types = said.contains("\"input\"");
+    let role = roles.get(usize::from(types)).copied();
     let element = ElementSpec::new(role.unwrap_or("button"), &name);
     world.scene.start.elements.push(element);
-    drop(name);
+    // An input field is typed into only when a value is set for its name.
+    if types {
+        world.scene.inputs.push(name);
+    }
 }
 
 #[then(expr = "ブラウザで操作 {string} を実行している")]

@@ -27,7 +27,8 @@ mod screens;
 mod stages;
 
 pub use questions::{
-    EXPLORE_OPS, MOVES, ask_with, asked, asked_for, asked_only, asking, options_of,
+    EXPLORE_OPS, EXPLORE_OPS_NO_INPUT, MOVES, ask_with, asked, asked_for, asked_only, asking,
+    options_of,
 };
 pub use screens::{
     APP, VIEWPORT, away, below, heading, inside, page, pricing, seen, seen_whole, shows, top, with,
@@ -74,6 +75,7 @@ pub fn rules() -> Rules {
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
         stages: Vec::new(),
+        input_names: BTreeSet::new(),
     }
 }
 

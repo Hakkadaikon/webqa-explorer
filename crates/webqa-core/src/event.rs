@@ -128,7 +128,8 @@ pub enum Event {
     /// The browser was asked for an operation it does nothing for.
     Skipped {
         /// Why it does nothing, by name: `not_an_input` for typing into an
-        /// element that is not an input field.
+        /// element that is not an input field, `no_input_value` for an input
+        /// field with no value to type.
         cause: String,
     },
     /// The scenario moved on to the stage `stage` (from 0) named `name`.

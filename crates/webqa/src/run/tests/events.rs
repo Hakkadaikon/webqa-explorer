@@ -6,7 +6,7 @@ use webqa_core::config::raw::{DoneWhen, Op, Stage};
 use webqa_core::machine::{Cause, ExitReason, Rejection, StuckKind};
 
 use super::super::*;
-use super::{Fakes, limited, page, script};
+use super::{Fakes, limited, page, script, url};
 
 const ONE_STEP: [&str; 3] = ["asked", "decided", "executed"];
 
@@ -114,24 +114,34 @@ async fn anomaly_and_rejection_are_logged() {
     assert_eq!(fakes.picked(&["rejected", "anomaly"]), expected, "in order");
 }
 
-#[tokio::test]
-async fn input_on_non_input_is_recorded_and_run_continues() {
+/// Explore mode over two fields, "名前" with a value and "備考" without,
+/// and a button; `number` is the element the judge types into.
+async fn typed_into(number: &str) -> Fakes {
     let mut fakes = Fakes::new();
-    fakes.judge.script = script(&[("input", 0.9, "1"), ("click", 0.9, "1")]);
-    fakes.stay_on(&page("/"));
+    fakes.judge.script = script(&[("input", 0.9, number), ("click", 0.9, "1")]);
+    let fields = [("textbox", "名前"), ("textbox", "備考"), ("button", "保存")];
+    fakes.stay_on(&fakes::page(&url("/"), &fields));
     fakes.rules = limited(&[Op::Click, Op::Input], 2, 10);
+    fakes.rules.input_names.insert("名前".to_owned());
     let ended = Ok(ExitReason::BudgetExceeded);
     assert_eq!(fakes.reason().await, ended, "two questions");
+    fakes
+}
+
+#[tokio::test]
+async fn input_that_does_nothing_is_recorded_and_run_continues() {
     let skipped = ["asked", "decided", "skipped", "executed"];
     let kinds = [&skipped[..], &ONE_STEP[..]].concat();
-    assert_eq!(
-        fakes.kinds(),
-        kinds,
-        "the input does nothing, the run goes on"
-    );
-    let skipped = Event::Skipped {
-        cause: "not_an_input".to_owned(),
-    };
-    let picked = fakes.picked(&["skipped"]);
-    assert_eq!(picked, [(Some(1), skipped)], "on the button");
+    for (number, cause) in [("3", "not_an_input"), ("2", "no_input_value")] {
+        let fakes = typed_into(number).await;
+        assert_eq!(
+            fakes.kinds(),
+            kinds,
+            "the input does nothing, the run goes on"
+        );
+        let skipped = Event::Skipped {
+            cause: cause.to_owned(),
+        };
+        assert_eq!(fakes.picked(&["skipped"]), [(Some(1), skipped)], "{cause}");
+    }
 }
