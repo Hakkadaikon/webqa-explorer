@@ -1,64 +1,92 @@
-//! The breadth-first search from the start, checking every transition.
+//! The breadth-first search from the start pages, checking every transition.
 
 use std::collections::VecDeque;
-use std::sync::OnceLock;
 use std::time::Duration;
 
 use webqa_core::effect::Effect;
-use webqa_core::explore::Memory;
-use webqa_core::machine::{Outcome, Seen, State, Step, start, step};
+use webqa_core::machine::{Outcome, Rules, State, Step, step};
 
 use super::absorb::{aborts_alike, stays};
-use super::candidates::{Candidates, Choice, fitting, later, rules};
+use super::candidates::{Candidates, Choice, KINDS, fitting, later};
 use super::exits::tied;
+use super::key::key;
 use super::report::{Found, GROUPS, Path, Report};
+use super::rows::Row;
 use super::view::{Transition, marks};
+use super::walks::started;
 
 /// More states than this means the candidates blew up.
 pub const MAX: usize = 200_000;
 
-/// A state to pass facts to, found at `at`.
+/// What a search runs under, starts from, and must reach.
+pub struct Walk {
+    pub rules: Rules,
+    /// The candidate pages to start on.
+    pub starts: Vec<usize>,
+    pub rows: Vec<Row>,
+}
+
+/// A state to pass facts to, found at `at` in the run started on `root`.
 struct Item {
     id: usize,
     state: State,
     at: Duration,
     marks: Vec<Vec<bool>>,
+    root: usize,
 }
 
-/// The search, run once for all the tests.
-pub fn report() -> &'static Report {
-    static REPORT: OnceLock<Report> = OnceLock::new();
-    REPORT.get_or_init(search)
+/// A state reached, before it is known to be new.
+struct Reached<'a> {
+    state: State,
+    marks: Vec<Vec<bool>>,
+    effect: Option<&'a Effect>,
+    path: Option<Path>,
+    at: Duration,
+    root: usize,
 }
 
-/// The first step: started on `top` at 0 seconds.
-pub fn started(top: &Seen) -> Step {
-    start(top.clone(), rules(), Memory::default(), Duration::ZERO)
+/// The first step on each start page of `walk`, with the page.
+fn first_steps(rules: &Rules, starts: &[usize], candidates: &Candidates) -> Vec<(usize, Step)> {
+    starts
+        .iter()
+        .filter_map(|&root| candidates.pages.get(root).map(|seen| (root, seen)))
+        .map(|(root, seen)| (root, started(rules, seen)))
+        .collect()
 }
 
-fn search() -> Report {
-    let candidates = Candidates::new();
+/// Searches from the start pages of `walk`, checking every transition.
+pub fn search(walk: Walk) -> Report {
+    let candidates = Candidates::new(walk.rows);
     let mut found = Found::new(candidates.rows.len());
-    let first = candidates.pages.first().map(started);
-    let root = first.and_then(|first| {
-        let state = first.state().clone();
-        let marks = marks(&state, &candidates.marked);
-        let found = &mut found;
-        enqueue(
-            &candidates,
-            found,
-            state,
-            marks,
-            first.effect(),
-            None,
-            Duration::ZERO,
-        )
-    });
-    let mut queue = VecDeque::from_iter(root);
+    let starts = first_steps(&walk.rules, &walk.starts, &candidates);
+    let mut queue = VecDeque::new();
+    for (root, first) in &starts {
+        queue.extend(rooted(&candidates, &mut found, *root, first));
+    }
     while let Some(item) = queue.pop_front().filter(|_| found.parents.len() <= MAX) {
         queue.extend(expand(&candidates, &mut found, &item));
     }
-    Report { candidates, found }
+    Report {
+        candidates,
+        found,
+        rules: walk.rules,
+        starts,
+    }
+}
+
+/// The state of the first step on `root`.
+fn rooted(candidates: &Candidates, found: &mut Found, root: usize, first: &Step) -> Option<Item> {
+    let state = first.state().clone();
+    let marks = marks(&state, &candidates.marked);
+    let reached = Reached {
+        state,
+        marks,
+        effect: first.effect(),
+        path: None,
+        at: Duration::ZERO,
+        root,
+    };
+    enqueue(candidates, found, reached)
 }
 
 /// Passes every fitting fact at every later time to the state of `item`.
@@ -85,7 +113,7 @@ fn pass(
     at: Duration,
 ) -> Option<Item> {
     let step = step(item.state.clone(), choice.facts.clone(), at);
-    let after = marks(step.state(), &candidates.marked);
+    let after = marks_after(candidates, item, step.state());
     let t = Transition {
         before: &item.state,
         before_marks: &item.marks,
@@ -94,22 +122,38 @@ fn pass(
         step: &step,
         after_marks: &after,
         last: candidates.page_of(step.state().last()),
+        root: item.root,
     };
     check(candidates, found, &t, path);
     match step {
-        Step::Continue(state, effect) => enqueue(
-            candidates,
-            found,
-            *state,
-            after,
-            Some(&effect),
-            Some(path),
-            at,
-        ),
+        Step::Continue(state, effect) => {
+            let reached = Reached {
+                state: *state,
+                marks: after,
+                effect: Some(&effect),
+                path: Some(path),
+                at,
+                root: item.root,
+            };
+            enqueue(candidates, found, reached)
+        }
         Step::Finished(outcome) => {
             ended(candidates, found, &outcome, &after, path, at);
             None
         }
+    }
+}
+
+/// The operated marks of `after`, the state reached from `item`. Only
+/// recording an operation marks an element, and it always adds an edge
+/// when the element was not operated, so with no edge added the marks of
+/// `item` stand.
+fn marks_after(candidates: &Candidates, item: &Item, after: &State) -> Vec<Vec<bool>> {
+    let edges = |s: &State| s.memory().edge_count();
+    if edges(after) == edges(&item.state) {
+        item.marks.clone()
+    } else {
+        marks(after, &candidates.marked)
     }
 }
 
@@ -128,24 +172,21 @@ fn check(candidates: &Candidates, found: &mut Found, t: &Transition, path: Path)
     }
 }
 
-/// Adds the state found at `at` by `path`, if it is new.
-fn enqueue(
-    candidates: &Candidates,
-    found: &mut Found,
-    state: State,
-    marks: Vec<Vec<bool>>,
-    effect: Option<&Effect>,
-    path: Option<Path>,
-    at: Duration,
-) -> Option<Item> {
-    let new = found
-        .keys
-        .insert(key(candidates, &state, &marks, effect, at));
-    new.then(|| Item {
-        id: found.add(path),
-        state,
-        at,
-        marks,
+/// Adds the state reached, if it is new.
+fn enqueue(candidates: &Candidates, found: &mut Found, reached: Reached) -> Option<Item> {
+    let key = key(
+        candidates,
+        &reached.state,
+        &reached.marks,
+        reached.effect,
+        reached.at,
+    );
+    found.keys.insert(key).then(|| Item {
+        id: found.add(reached.path),
+        state: reached.state,
+        at: reached.at,
+        marks: reached.marks,
+        root: reached.root,
     })
 }
 
@@ -166,54 +207,23 @@ fn ended(
     }
 }
 
-/// Passes every fact at every later time to the ended `outcome` again.
+/// Passes a fact of each kind at every later time to the ended `outcome`
+/// again.
 fn absorb(candidates: &Candidates, found: &mut Found, outcome: &Outcome, path: Path, at: Duration) {
     found.absorbed += 1;
     let failures = &mut found.ended;
     let kept = aborts_alike(outcome);
     failures.extend((!kept).then_some(("interrupting an ended run keeps its reason", path)));
+    let kinds = KINDS
+        .iter()
+        .filter_map(|&p| candidates.choices.get(p).map(|c| (p, c)));
+    let kinds: Vec<(usize, &Choice)> = kinds.collect();
     for (time, at) in later(at) {
-        for (position, choice) in candidates.choices.iter().enumerate() {
+        for &(position, choice) in &kinds {
             let again = step((*outcome.state).clone(), choice.facts.clone(), at);
             let failed = !stays(outcome, &again, at);
             let path = path.then((position, time));
             failures.extend(failed.then_some(("an ended run stays ended", path)));
         }
     }
-}
-
-/// Whether replaying a trace that ends at `at` with `step` reaches a state the search found.
-pub fn knows(report: &Report, step: &Step, at: Duration) -> bool {
-    let state = step.state();
-    let candidates = &report.candidates;
-    let marks = marks(state, &candidates.marked);
-    report
-        .found
-        .keys
-        .contains(&key(candidates, state, &marks, step.effect(), at))
-}
-
-/// What tells states apart: the counts, where the run is, the memory,
-/// the time and the last effect. Not the notes, which only grow.
-fn key(
-    candidates: &Candidates,
-    state: &State,
-    marks: &[Vec<bool>],
-    effect: Option<&Effect>,
-    at: Duration,
-) -> String {
-    let window = state.window();
-    let memory = state.memory();
-    format!(
-        "{:?} {:?} {} {} {} {} {:?} {} {} {marks:?} {at:?} {effect:?}",
-        state.phase(),
-        state.counters(),
-        state.budget().used(),
-        window.index(),
-        window.used(at),
-        state.outside(),
-        candidates.page_of(state.last()),
-        memory.screen_count(),
-        memory.edge_count(),
-    )
 }

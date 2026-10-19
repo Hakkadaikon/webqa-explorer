@@ -3,7 +3,13 @@
 #[cfg(test)]
 mod answer_tests;
 #[cfg(test)]
+mod explore_tests;
+#[cfg(test)]
 mod page_tests;
+#[cfg(test)]
+mod repeat_tests;
+#[cfg(test)]
+mod stage_tests;
 #[cfg(test)]
 mod stop_tests;
 #[cfg(test)]
@@ -14,14 +20,12 @@ use std::time::Duration;
 use super::guards::{answered, rejection, seen};
 use super::note::{Note, Rejection};
 use super::observe::{arrived, executed, settled};
-use super::ops::names;
 use super::proposal::{Proposal, hear};
 use super::state::{ExitReason, Phase, State};
 use super::{Facts, Outcome, Seen, Step, abort};
-use crate::effect::{Effect, PageEffect, Questions, Target, Touch};
+use crate::effect::{Effect, PageEffect, Target, Touch};
 use crate::guard::identity::{Recheck, recheck};
-use crate::judge::{Answers, JudgeError, step_questions};
-use crate::screen::{screen_text, visible};
+use crate::judge::{Answers, JudgeError};
 
 /// The facts of the last effect and the time since the run started.
 pub(super) struct Now {
@@ -99,16 +103,6 @@ fn on_page(state: State, now: &Now, fire: fn(State, Seen, Duration) -> Next) -> 
     }
 }
 
-/// The questions about the latest page.
-pub(super) fn questions(state: &State) -> Questions {
-    let last = &state.last;
-    let elements = visible(last.screen.as_inner(), last.viewport).len();
-    Questions {
-        screen: screen_text(&last.screen, last.viewport),
-        questions: step_questions(&names(&state.rules), elements),
-    }
-}
-
 /// Back to waiting, with no proposal.
 pub(super) fn idle(mut state: State) -> Next {
     state.proposal = None;
@@ -139,7 +133,7 @@ pub(super) fn touched(mut state: State, phase: Phase, touch: Touch, now: Duratio
 
 /// Takes the judge's reply: a proposal to stop, finish with, or pass on.
 fn decide(state: State, reply: &Result<Answers, JudgeError>, now: Duration) -> Next {
-    match hear(reply, &state.rules, &state.last) {
+    match hear(reply, &state) {
         Ok(proposal) => judged(state, proposal, now),
         Err(anomaly) => idle(state.noted(Note::Anomaly(anomaly))),
     }

@@ -53,6 +53,7 @@ pub fn rules(ops: &[Op], limits: Limits, allowed: Vec<AllowedOrigin>) -> Rules {
         forbidden: Forbidden::default(),
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
+        stages: Vec::new(),
     }
 }
 

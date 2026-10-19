@@ -4,14 +4,15 @@ use std::collections::BTreeSet;
 use std::iter;
 use std::time::Duration;
 
-use webqa_core::machine::Facts;
+use webqa_core::machine::{Facts, Rules, Step};
 
 use super::candidates::{Candidates, Choice, TIMES};
 use super::view::Property;
-use super::{exits, guards, limits, memory};
+use super::{exits, explore, guards, limits, memory, priority};
 
-/// The groups of properties checked on every transition, one per test.
-pub static GROUPS: [&[Property]; 7] = [
+/// The groups of properties checked on every transition. A test reads the
+/// groups that hold for the rules of its search.
+pub static GROUPS: [&[Property]; 10] = [
     &guards::ACTING,
     &guards::ASKING,
     &limits::LIMITS,
@@ -19,6 +20,9 @@ pub static GROUPS: [&[Property]; 7] = [
     &exits::GOING_ON,
     &exits::TIE,
     &memory::MEMORY,
+    &exits::NO_GOAL,
+    &priority::PRIORITY,
+    &explore::EXPLORE,
 ];
 
 /// The positions of the groups in [`GROUPS`].
@@ -30,6 +34,9 @@ pub mod group {
     pub const GOING_ON: usize = 4;
     pub const TIE: usize = 5;
     pub const MEMORY: usize = 6;
+    pub const NO_GOAL: usize = 7;
+    pub const PRIORITY: usize = 8;
+    pub const EXPLORE: usize = 9;
 }
 
 /// How many failures to show the facts of.
@@ -113,6 +120,10 @@ impl Found {
 pub struct Report {
     pub candidates: Candidates,
     pub found: Found,
+    /// The rules searched under.
+    pub rules: Rules,
+    /// The first step on each start page, with the page.
+    pub starts: Vec<(usize, Step)>,
 }
 
 impl Report {

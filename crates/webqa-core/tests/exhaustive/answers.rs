@@ -17,12 +17,16 @@ const CONFIDENCES: [f64; 2] = [0.9, 0.5];
 /// The element numbers answered. `99` is on no page.
 const TARGETS: [&str; 3] = ["1", "3", "99"];
 
-/// The answers choosing `op` with `p` and the element `target`.
+/// The answers choosing `op` with `p` and the element `target`, seeing
+/// neither an error nor the goal reached.
 fn answers(op: &str, p: f64, target: &str) -> Answers {
+    let no = || vec![("true".to_owned(), 0.0)];
     Answers {
         table: BTreeMap::from([
             (QuestionId::operation(), vec![(op.to_owned(), p)]),
             (QuestionId::target(), vec![(target.to_owned(), 1.0)]),
+            (QuestionId::error_shown(), no()),
+            (QuestionId::goal_reached(), no()),
         ]),
         usage: Usage::default(),
     }

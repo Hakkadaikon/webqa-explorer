@@ -44,8 +44,29 @@ fn rules_from_config() {
         forbidden: Forbidden::new(&["公開する".to_owned()]),
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
+        stages: config(&yaml).scenario.unwrap().stages,
     };
     assert_eq!(rules, expected, "the values of the configuration");
+    stages_follow_the_scenario();
+}
+
+/// Two stages written are copied in either mode; no scenario, no stages.
+fn stages_follow_the_scenario() {
+    let posting =
+        "    - name: 投稿\n      goal: 投稿する\n      done_when:\n        text: 投稿しました\n";
+    let two = config(&format!("{}{posting}", example()));
+    let written = two.scenario.as_ref().unwrap().stages.clone();
+    assert_eq!(written.len(), 2, "two stages written");
+    for mode in [Mode::Scenario, Mode::Explore] {
+        let rules = Rules::from_config(&two, mode).unwrap();
+        assert_eq!(rules.stages, written, "the stages in {mode:?}");
+    }
+    let end = example().find("scenario:\n").unwrap();
+    let none = config(&example()[..end]);
+    let unwritten = none.scenario.as_ref().map(|s| s.stages.len());
+    assert_eq!(unwritten, None, "no scenario written");
+    let rules = Rules::from_config(&none, Mode::Scenario).unwrap();
+    assert_eq!(rules.stages, Vec::new(), "no stages");
 }
 
 #[test]

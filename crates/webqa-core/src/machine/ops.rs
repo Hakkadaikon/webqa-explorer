@@ -1,5 +1,8 @@
 //! The operation kinds and what each one does.
 
+#[cfg(test)]
+mod tests;
+
 use super::rules::Rules;
 use super::state::{ExitReason, StuckKind};
 use crate::config::raw::Op;
@@ -73,13 +76,5 @@ pub(super) static OPS: [OpRow; 8] = [
 pub(super) fn offered(rules: &Rules) -> Vec<&'static OpRow> {
     OPS.iter()
         .filter(|row| rules.ops.contains(&row.op))
-        .collect()
-}
-
-/// The names of the offered operation kinds.
-pub(super) fn names(rules: &Rules) -> Vec<String> {
-    offered(rules)
-        .iter()
-        .map(|row| row.name.to_owned())
         .collect()
 }

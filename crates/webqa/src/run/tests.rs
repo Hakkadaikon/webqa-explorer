@@ -34,7 +34,8 @@ impl Fakes {
         let rule = Rule::literal("メールアドレス", "taro@example.test");
         let script = Scripted::default()
             .then(QuestionId::operation(), [("click", 0.9), ("back", 0.1)])
-            .then(QuestionId::target(), [("1", 0.8), ("2", 0.2)]);
+            .then(QuestionId::target(), [("1", 0.8), ("2", 0.2)])
+            .then(QuestionId::error_shown(), [("true", 0.0)]);
         Self {
             browser: FakeBrowser {
                 pages: VecDeque::from([page("/"), page("/"), page("/done")]),

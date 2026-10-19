@@ -2,7 +2,7 @@
 
 use webqa_core::machine::Phase;
 
-use super::view::{Property, Transition, all, implies};
+use super::view::{Property, Transition, all, any, implies};
 
 /// What was learned is kept, and the counters move only by steps.
 pub static MEMORY: [Property; 4] = [
@@ -19,8 +19,15 @@ pub static MEMORY: [Property; 4] = [
         holds: |t| implies(t.touches("reload"), t.after().counters().freeze() == 0),
     },
     Property {
-        name: "the counters move only by observing an operation, landing outside, or reloading",
-        holds: |t| t.before.phase() == Phase::Acting || counts(t) == expected(t),
+        name: "the counters move only by observing an operation, landing outside, reloading, or going to a stage",
+        holds: |t| {
+            let advanced = t.after().stage() > t.before.stage();
+            any(&[
+                t.before.phase() == Phase::Acting,
+                advanced,
+                counts(t) == expected(t),
+            ])
+        },
     },
 ];
 

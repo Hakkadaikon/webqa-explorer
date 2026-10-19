@@ -1,14 +1,14 @@
 //! Answers that cannot become a proposal, and pages without elements.
 
+use std::iter;
+
 use crate::config::raw::Op;
-use crate::effect::{Effect, Outside, Questions};
-use crate::judge::{Answers, JudgeError, Question, QuestionId};
+use crate::judge::{Answers, JudgeError, QuestionId, Unusable};
 use crate::machine::testing::{
-    APP, VIEWPORT, answer, ask_top, asking, counts, heard, page, rules, secs, seen, started, told,
+    APP, answer, ask_top, ask_with, asked, asking, counts, heard, page, rules, secs, started, told,
     top, touch,
 };
 use crate::machine::{Anomaly, Note, Rules, State};
-use crate::screen::screen_text;
 
 /// Passes `answers` and checks the anomaly and that the judge is asked again.
 fn anomaly(state: &State, answers: Result<Answers, JudgeError>, expected: &Anomaly) -> State {
@@ -41,81 +41,68 @@ fn anomaly(state: &State, answers: Result<Answers, JudgeError>, expected: &Anoma
     after.clone()
 }
 
+/// The answers that cannot be read, because `id` was `problem`.
+fn unusable(problem: fn(QuestionId) -> Unusable, id: QuestionId) -> Anomaly {
+    Anomaly::Unusable(problem(id))
+}
+
+/// Answers with an operation kind or an element that was not offered.
+fn not_offered() -> Vec<(Answers, Anomaly)> {
+    let operation = unusable(Unusable::NotAnOption, QuestionId::operation());
+    let target = unusable(Unusable::NotAnOption, QuestionId::target());
+    let numbers = ["99", "0", "x", "01"];
+    let clicks = numbers.map(|n| (answer("click", Some(0.9), Some(n)), target.clone()));
+    let drag = (answer("drag", Some(0.9), None), operation);
+    iter::once(drag).chain(clicks).collect()
+}
+
+/// Answers without an answer to the operation kind, the element, or
+/// whether the page shows an error.
+fn missing() -> Vec<(Answers, Anomaly)> {
+    let mut no_error = answer("scroll_down", Some(0.9), None);
+    no_error.table.remove(&QuestionId::error_shown());
+    let cases = [
+        (Answers::default(), QuestionId::operation()),
+        (answer("click", Some(0.9), None), QuestionId::target()),
+        (no_error, QuestionId::error_shown()),
+    ];
+    let missing = |(answers, id)| (answers, unusable(Unusable::Missing, id));
+    cases.into_iter().map(missing).collect()
+}
+
 #[test]
 fn unusable_answers_are_anomalies() {
     let failed = Err(JudgeError::Exhausted);
-    let mut state = anomaly(
-        &ask_top(rules()),
-        failed,
-        &Anomaly::Judge(JudgeError::Exhausted),
-    );
-    state = anomaly(
-        &state,
-        Ok(answer("drag", Some(0.9), None)),
-        &Anomaly::Operation,
-    );
-    state = anomaly(&state, Ok(Answers::default()), &Anomaly::Operation);
-    for number in ["99", "0", "x", "01"] {
-        let click = Ok(answer("click", Some(0.9), Some(number)));
-        state = anomaly(&state, click, &Anomaly::Target);
+    let judge = Anomaly::Judge(JudgeError::Exhausted);
+    let mut state = anomaly(&ask_top(rules()), failed, &judge);
+    for (answers, expected) in not_offered().into_iter().chain(missing()) {
+        state = anomaly(&state, Ok(answers), &expected);
     }
-    anomaly(
-        &state,
-        Ok(answer("click", Some(0.9), None)),
-        &Anomaly::Target,
-    );
     let without_wait = Rules {
         ops: vec![Op::Click, Op::Back],
         ..rules()
     };
-    anomaly(
-        &ask_top(without_wait),
-        Ok(answer("wait", Some(0.9), None)),
-        &Anomaly::Operation,
-    );
-}
-
-/// The questions about a page without elements: every operation kind, and
-/// no element to choose.
-fn empty_questions() -> Vec<Question> {
-    let ops = [
-        "click",
-        "input",
-        "scroll_down",
-        "scroll_up",
-        "back",
-        "wait",
-        "done",
-        "stuck",
-    ];
-    vec![
-        Question::Choice {
-            id: QuestionId::operation(),
-            prompt: "次に行う操作の種別を選ぶ".to_owned(),
-            options: ops.map(str::to_owned).to_vec(),
-        },
-        Question::Choice {
-            id: QuestionId::target(),
-            prompt: "操作する要素の番号を選ぶ".to_owned(),
-            options: Vec::new(),
-        },
-    ]
+    let wait = Ok(answer("wait", Some(0.9), None));
+    let operation = unusable(Unusable::NotAnOption, QuestionId::operation());
+    anomaly(&ask_top(without_wait), wait, &operation);
 }
 
 #[test]
 fn empty_screen_allows_untargeted_ops() {
     let empty = page(&format!("{APP}/"), &[]);
-    let asked = started(rules(), &empty);
-    let questions = Effect::Outside(Outside::Ask(Questions {
-        screen: screen_text(&seen(&empty).screen, VIEWPORT),
-        questions: empty_questions(),
-    }));
-    assert_eq!(asked.effect(), Some(&questions), "no number to choose");
-    let scrolled = told(asked.state(), answer("scroll_down", Some(0.9), None));
+    let asked_empty = started(rules(), &empty);
+    let questions = ask_with(&empty, asked(&rules(), 0));
+    assert_eq!(
+        asked_empty.effect(),
+        Some(&questions),
+        "no number to choose"
+    );
+    let scrolled = told(asked_empty.state(), answer("scroll_down", Some(0.9), None));
     let scroll = touch("scroll_down", None, 0.9);
     assert_eq!(scrolled.effect(), Some(&scroll), "scrolls");
-    let clicked = told(asked.state(), answer("click", Some(0.9), Some("1")));
-    let note = Note::Anomaly(Anomaly::Target);
+    let clicked = told(asked_empty.state(), answer("click", Some(0.9), Some("1")));
+    let target = unusable(Unusable::NotAnOption, QuestionId::target());
+    let note = Note::Anomaly(target);
     assert_eq!(
         clicked.state().notes().last(),
         Some(&note),

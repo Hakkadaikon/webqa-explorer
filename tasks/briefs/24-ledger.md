@@ -1,5 +1,7 @@
 # brief: issue #24 台帳の書き出しと読み戻し
 
+**#22 の実物を先に読む。** #22 は brief から少し変わって入った(`tasks/briefs/22-interview-issues.md` の末尾「実装で変わったこと」。`Ruling::Mismatch` は `Box<Issue>`)。型とシグネチャは実物に合わせ、この brief の記述と食い違って判断が要るときは NEEDS_CONTEXT で返す。
+
 共通の決まりは同じディレクトリの `common.md`(mutation は回さない。親が統合の前に回す)。
 
 **#23 が main に入るまで、実装を始めない。**

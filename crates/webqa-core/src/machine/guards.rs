@@ -10,9 +10,10 @@ use crate::config::raw::Op;
 use crate::guard::confidence::is_low;
 use crate::judge::{Answers, JudgeError};
 
-/// The first tier of waiting does not hold: still exploring.
+/// Waiting, so the waiting row runs.
 ///
-/// Only the phase for now; the goal of the stage comes with a later issue.
+/// Only the phase: the waiting row itself takes the first tier first, the
+/// goal of the stage or of explore mode.
 pub(super) fn exploring(state: &State) -> bool {
     state.phase == Phase::Idle
 }

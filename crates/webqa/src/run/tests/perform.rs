@@ -1,7 +1,7 @@
 //! Tests of single effects and of the record helpers.
 
 use webqa_core::effect::{Target, Wake};
-use webqa_core::screen::ElementId;
+use webqa_core::screen::{ElementId, Screen};
 
 use super::super::fakes::VIEWPORT;
 use super::super::*;
@@ -32,11 +32,20 @@ async fn looking_observes_the_page_again() {
     };
     let look = Effect::Page(PageEffect::Look(target));
     let facts = perform(look, &seen, &mut fakes.ports()).await;
-    let again = page("/").screen;
+    let observed = page("/");
+    let again = observed.screen.clone();
+    let outline = Screen {
+        url: again.url.clone(),
+        elements: observed.outline,
+    };
     let expected = Seen {
         screen: fakes.redactor.screen(again.clone()),
         viewport: VIEWPORT,
         material: Material::plain(&again, VIEWPORT),
+        whole: Whole {
+            outline: fakes.redactor.screen(outline),
+            text: fakes.redactor.text(&observed.text),
+        },
     };
     assert_eq!(
         facts,
