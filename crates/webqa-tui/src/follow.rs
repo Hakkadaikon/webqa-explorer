@@ -69,7 +69,8 @@ pub fn draw<W: Write>(out: &mut W, state: &State) -> io::Result<()> {
     out.write_all(&frame).and_then(|()| out.flush())
 }
 
-/// Writes the screen into memory, where a write cannot fail.
+/// Writes the screen into memory, where a write cannot fail. Errors are
+/// dropped: a fixed viewport asks the terminal for nothing.
 fn paint(frame: &mut Vec<u8>, state: &State) {
     drop(queue!(frame, Clear(ClearType::All), MoveTo(0, 0)));
     let viewport = Viewport::Fixed(area(size().ok()));

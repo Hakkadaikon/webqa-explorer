@@ -55,6 +55,7 @@ pub async fn watch(
     let log = dir.join("events.jsonl");
     let work = follow(&log, clock, &mut out);
     // Once the run finished, the last screen stays until the next Ctrl-C.
+    // shortcut: a Ctrl-C that comes as the last read ends is dropped, so the next one is needed
     if guard(work, interrupt, 0).await.is_some() {
         interrupt.wait().await;
     }

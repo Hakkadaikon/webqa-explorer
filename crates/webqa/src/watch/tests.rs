@@ -83,11 +83,15 @@ impl Clock for FakeClock {
     }
 }
 
-/// Interrupts as soon as the work waits.
-struct AtOnce;
+/// Interrupts as soon as the work waits, and counts the calls of `wait`.
+#[derive(Default)]
+struct AtOnce {
+    waits: usize,
+}
 
 impl Interrupt for AtOnce {
     fn wait(&mut self) -> Pending<'_, ()> {
+        self.waits += 1;
         Box::pin(async {})
     }
 }
@@ -144,8 +148,13 @@ async fn watch_draws_and_waits_after_finish() {
     };
     let mut out = Vec::new();
     let mut err = Vec::new();
-    let code = watch(&dir, &mut clock, &mut AtOnce, &mut out, &mut err).await;
+    let mut interrupt = AtOnce::default();
+    let code = watch(&dir, &mut clock, &mut interrupt, &mut out, &mut err).await;
     assert_eq!(code, 0);
+    assert_eq!(
+        interrupt.waits, 2,
+        "it waited for Ctrl-C twice: while following and after the end"
+    );
     assert_eq!(
         clock.sleeps,
         [Duration::from_millis(200), Duration::from_millis(400)],
@@ -167,8 +176,10 @@ async fn interrupt_while_following_exits_zero() {
         sleeps: vec![],
     };
     let (mut out, mut err) = (Vec::new(), Vec::new());
-    let code = watch(&dir, &mut clock, &mut AtOnce, &mut out, &mut err).await;
+    let mut interrupt = AtOnce::default();
+    let code = watch(&dir, &mut clock, &mut interrupt, &mut out, &mut err).await;
     assert_eq!((code, err), (0, vec![]));
+    assert_eq!(interrupt.waits, 1, "the Ctrl-C came while following");
     assert_eq!(
         clock.sleeps.len(),
         4,
@@ -186,10 +197,12 @@ async fn missing_dir_exits_two() {
         sleeps: vec![],
     };
     let (mut out, mut err) = (Vec::new(), Vec::new());
+    let mut interrupt = AtOnce::default();
     assert_eq!(
-        watch(&dir, &mut clock, &mut AtOnce, &mut out, &mut err).await,
+        watch(&dir, &mut clock, &mut interrupt, &mut out, &mut err).await,
         2
     );
     assert_eq!((out, clock.sleeps), (vec![], vec![]));
+    assert_eq!(interrupt.waits, 0);
     assert_eq!(err, "実行のディレクトリが無い\n".as_bytes());
 }
