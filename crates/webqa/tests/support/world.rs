@@ -1,16 +1,18 @@
 //! The state of a scenario: the fake ports and what the scenario set up.
 
 use std::collections::BTreeMap;
+use std::future;
 use std::iter;
 use std::num::NonZeroU32;
 
 use url::Url;
+use webqa::interrupt::Interrupt;
 use webqa::run::{Ports, RunError, explore};
 use webqa_core::config::raw::Op;
 use webqa_core::explore::Memory;
 use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::machine::{Outcome, Rules};
-use webqa_core::ports::Observation;
+use webqa_core::ports::{Observation, Pending};
 use webqa_core::redact::Redactor;
 
 use crate::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
@@ -30,6 +32,15 @@ const OPS: [Op; 8] = [
 /// How many times each page is observed: at the start, when the element is
 /// looked up again, and after the operation.
 const OBSERVED: usize = 3;
+
+/// The user who never interrupts.
+struct Never;
+
+impl Interrupt for Never {
+    fn wait(&mut self) -> Pending<'_, ()> {
+        Box::pin(future::pending())
+    }
+}
 
 /// One scenario's fakes and settings.
 #[derive(Debug, Default, cucumber::World)]
@@ -66,7 +77,7 @@ impl QaWorld {
             &mut self.store,
             &self.redactor,
         );
-        explore(&mut ports, rules, Memory::default()).await
+        explore(&mut ports, &mut Never, rules, Memory::default()).await
     }
 
     /// The rules of the background. An origin that cannot be read fails the

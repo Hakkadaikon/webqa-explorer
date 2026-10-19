@@ -59,8 +59,9 @@ pub struct Found {
     pub step: u64,
     /// The issue.
     pub issue: Issue,
-    /// The file name of the screenshot, under `screenshots/`.
-    pub shot: String,
+    /// The file name of the screenshot, under `screenshots/`; none when it
+    /// could not be taken.
+    pub shot: Option<String>,
 }
 
 impl Record {

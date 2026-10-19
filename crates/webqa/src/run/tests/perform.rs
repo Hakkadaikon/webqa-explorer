@@ -1,11 +1,24 @@
 //! Tests of single effects and of the record helpers.
 
-use webqa_core::effect::{Target, Wake};
-use webqa_core::screen::{ElementId, Screen};
+use std::time::Duration;
+
+use serde_json::json;
+use webqa_core::effect::{Effect, Outside, PageEffect, Target, Wake};
+use webqa_core::machine::{Facts, Heard, Material, Seen, Whole};
+use webqa_core::screen::Screen;
 
 use super::super::fakes::VIEWPORT;
+use super::super::log::millis;
+use super::super::perform::{observe, perform};
 use super::super::*;
-use super::{Fakes, page};
+use super::{Fakes, page, rules, save};
+
+/// The state the run is in after observing the first page.
+async fn started(fakes: &mut Fakes) -> State {
+    let seen = observe(&mut fakes.ports()).await.unwrap();
+    let start = machine::start(seen, rules(), Memory::default(), Duration::ZERO);
+    start.state().clone()
+}
 
 #[tokio::test]
 async fn sleeping_waits_on_the_clock() {
@@ -13,8 +26,8 @@ async fn sleeping_waits_on_the_clock() {
     let wake = Effect::Outside(Outside::Sleep(Wake {
         at: Duration::from_secs(5),
     }));
-    let seen = observe(&mut fakes.ports()).await.unwrap();
-    let facts = perform(wake, &seen, &mut fakes.ports()).await;
+    let state = started(&mut fakes).await;
+    let facts = perform(wake, &state, &mut fakes.ports()).await;
     assert_eq!(facts, Ok(Facts::Outside(Heard::Woke)), "woke up");
     assert_eq!(fakes.clock.now, Duration::from_secs(5), "slept until then");
 }
@@ -22,16 +35,9 @@ async fn sleeping_waits_on_the_clock() {
 #[tokio::test]
 async fn looking_observes_the_page_again() {
     let mut fakes = Fakes::new();
-    let seen = observe(&mut fakes.ports()).await.unwrap();
-    let target = Target {
-        element: ElementId {
-            role: "button".to_owned(),
-            name: "保存".to_owned(),
-            nth: 0,
-        },
-    };
-    let look = Effect::Page(PageEffect::Look(target));
-    let facts = perform(look, &seen, &mut fakes.ports()).await;
+    let state = started(&mut fakes).await;
+    let look = Effect::Page(PageEffect::Look(Target { element: save() }));
+    let facts = perform(look, &state, &mut fakes.ports()).await;
     let observed = page("/");
     let again = observed.screen.clone();
     let outline = Screen {
@@ -39,9 +45,13 @@ async fn looking_observes_the_page_again() {
         elements: observed.outline,
     };
     let expected = Seen {
-        screen: fakes.redactor.screen(again.clone()),
+        screen: fakes.redactor.screen(again),
         viewport: VIEWPORT,
-        material: Material::plain(&again, VIEWPORT),
+        material: Material {
+            paywall: observed.paywall,
+            candidates: observed.candidates,
+            nodes: observed.nodes,
+        },
         whole: Whole {
             outline: fakes.redactor.screen(outline),
             text: fakes.redactor.text(&observed.text),
@@ -50,7 +60,7 @@ async fn looking_observes_the_page_again() {
     assert_eq!(
         facts,
         Ok(Facts::Page(Box::new(expected))),
-        "the next page, redacted"
+        "the next page, redacted, with the material of the observation"
     );
 }
 
@@ -78,4 +88,15 @@ fn elapsed_time_is_logged_in_milliseconds() {
         "whole milliseconds"
     );
     assert_eq!(millis(Duration::MAX), u64::MAX, "too long saturates");
+}
+
+#[tokio::test]
+async fn ports_lend_the_store_and_the_redactor() {
+    let mut fakes = Fakes::new();
+    let mut ports = fakes.ports();
+    let masked = ports.redactor().json(json!("taro@example.test"));
+    let written = ports.store().write_event(&masked).await;
+    assert_eq!(written, Ok(()), "written through the run's store");
+    let lines = fakes.store.lines;
+    assert_eq!(lines, [json!("[[メールアドレス]]")], "masked");
 }
