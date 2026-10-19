@@ -78,3 +78,34 @@ fn cost_of_more_tokens_than_u32_is_not_capped() {
         assert!((got - expected).abs() < 1e-6, "{got} for {expected}");
     }
 }
+
+#[test]
+fn issue_without_screenshot_leaves_the_field_out() {
+    let mut record = record();
+    let mut unshot = record.found[0].clone();
+    unshot.step = 2;
+    unshot.shot = None;
+    record.found.push(unshot);
+    let report = build(
+        &record,
+        ExitReason::BudgetExceeded,
+        &meta(),
+        &Redactor::default(),
+    )
+    .into_inner();
+    let fields = |i: usize| {
+        report["issues"][i]
+            .as_object()
+            .unwrap()
+            .contains_key("screenshot")
+    };
+    assert_eq!(
+        (fields(0), fields(1), &report["issues"][0]["screenshot"]),
+        (
+            true,
+            false,
+            &json!("screenshots/ISSUE_error_display_step1.png")
+        ),
+        "only the issue with a screenshot names it"
+    );
+}
