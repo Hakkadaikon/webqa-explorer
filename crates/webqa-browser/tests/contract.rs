@@ -4,6 +4,7 @@
 mod contract {
     pub mod children;
     pub mod faults;
+    pub mod fills;
     pub mod identity;
     pub mod ops;
     pub mod pages;
