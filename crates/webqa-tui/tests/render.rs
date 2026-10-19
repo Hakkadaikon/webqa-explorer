@@ -5,6 +5,8 @@ use ratatui::{
     backend::{Backend, TestBackend},
 };
 use webqa_core::event::parse_line;
+use webqa_core::interview::issue::Kind;
+use webqa_tui::ledger::{self, Input, Screen};
 use webqa_tui::view::{Decision, State, render};
 
 /// The event log example of `docs/architecture.md`.
@@ -21,7 +23,7 @@ fn terminal() -> Result<Terminal<TestBackend>, <TestBackend as Backend>::Error> 
 }
 
 #[test]
-fn render_matches_snapshot() {
+fn watch_view_snapshot() {
     let lines = EXAMPLE.map(|text| parse_line(text).unwrap());
     let state = lines.iter().fold(State::default(), State::fold);
     let mut terminal = terminal().unwrap();
@@ -51,4 +53,24 @@ fn decision_without_target_matches_snapshot() {
     let mut terminal = terminal().unwrap();
     terminal.draw(|frame| render(&state, frame)).unwrap();
     insta::assert_snapshot!(terminal.backend());
+}
+
+mod sample;
+
+fn draw_ledger(screen: &Screen) -> Result<Terminal<TestBackend>, <TestBackend as Backend>::Error> {
+    let mut terminal = Terminal::new(TestBackend::new(80, 12))?;
+    terminal.draw(|frame| ledger::render::render(screen, frame))?;
+    Ok(terminal)
+}
+
+#[test]
+fn ledger_list_filtered_snapshot() {
+    let screen = Screen::new(sample::sample().unwrap()).fold(Input::Filter(Some(Kind::Visibility)));
+    insta::assert_snapshot!(draw_ledger(&screen).unwrap().backend());
+}
+
+#[test]
+fn ledger_issue_detail_snapshot() {
+    let screen = Screen::new(sample::sample().unwrap()).fold(Input::Open);
+    insta::assert_snapshot!(draw_ledger(&screen).unwrap().backend());
 }
