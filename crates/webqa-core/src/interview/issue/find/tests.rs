@@ -176,3 +176,5 @@ fn clues_make_hesitant_issue_on_chosen_element() {
     let expected = hesitant_at_confirm(&[Clue::Hesitant], "A", count(2, 2, 2), first, vec![]);
     assert_eq!(hesitating_twice(), vec![expected], "the first one");
 }
+
+mod crossing;

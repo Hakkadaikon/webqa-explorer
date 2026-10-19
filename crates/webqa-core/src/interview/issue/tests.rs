@@ -1,5 +1,6 @@
 //! Tests of gathering, ranking, naming and showing the issues.
 
+mod counting;
 pub mod fixture;
 pub mod sample;
 

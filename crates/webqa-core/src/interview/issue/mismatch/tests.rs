@@ -11,7 +11,7 @@ use crate::interview::issue::{Act, Count, Seen, step_issues};
 use crate::interview::outcome::Outcome;
 
 /// The ruling `answer` on the question of `/products/*` over `records`.
-fn ruled_on(records: &[Record<'_>], answer: Option<Match>) -> Ruling {
+pub(super) fn ruled_on(records: &[Record<'_>], answer: Option<Match>) -> Ruling {
     let screens = [products()];
     ruling(&questions(&screens, records)[0], answer, &run(records))
 }
@@ -176,3 +176,5 @@ fn mismatch_screenshot_from_first_matching_observation() {
         "the first trial cut"
     );
 }
+
+mod shots;
