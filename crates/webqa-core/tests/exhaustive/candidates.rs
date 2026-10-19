@@ -1,5 +1,6 @@
 //! What the search picks from: the rules, the times, the pages and the answers.
 
+use std::collections::BTreeSet;
 use std::iter;
 use std::num::NonZeroU32;
 use std::ops::Range;
@@ -104,6 +105,7 @@ pub fn rules() -> Rules {
         paywall: Paywall::default(),
         leave_paywall: "back".to_owned(),
         stages: Vec::new(),
+        input_names: BTreeSet::new(),
     }
 }
 

@@ -1,13 +1,16 @@
 //! Explore mode: no `done` to choose, and the candidates narrow the options.
 
 mod goal;
+mod input;
 mod moves;
 
+use self::input::{fielded, valued};
 use crate::effect::Effect;
 use crate::judge::{Answers, QuestionId, Unusable};
 use crate::machine::testing::{
-    APP, EXPLORE_OPS, answer, ask_with, asked_for, asked_only, below, budget, explore, id, idle,
-    inside, look, memory_of, next, options_of, page, ranked, secs, seen, started, told, top, with,
+    APP, EXPLORE_OPS, EXPLORE_OPS_NO_INPUT, answer, ask_with, asked_for, asked_only, below, budget,
+    explore, id, idle, inside, look, memory_of, next, options_of, page, ranked, secs, seen,
+    started, told, top, with,
 };
 use crate::machine::{Anomaly, Note, Rules, State, Step};
 use crate::screen::{ElementId, Screen};
@@ -52,8 +55,9 @@ fn options(effect: Option<&Effect>) -> [Vec<String>; 2] {
 
 #[test]
 fn explore_questions_omit_done() {
-    let asked = started(explore(), &top());
-    let expected = ask_with(&top(), asked_for(&EXPLORE_OPS, 2, None));
+    let screen = fielded();
+    let asked = started(valued(&["メール"]), &screen);
+    let expected = ask_with(&screen, asked_for(&EXPLORE_OPS, 2, None));
     assert_eq!(asked.effect(), Some(&expected), "no done, no goal");
     let kinds = [
         "click",
@@ -104,7 +108,7 @@ fn refused(state: &State, answers: Vec<Answers>, note: &Note) {
 /// The first tier: only the untouched "ヘルプ".
 fn untouched_tier() {
     let asked = waiting_with(explore(), &[(0, save(), 1)]);
-    let expected = ask_with(&top_tall(), asked_only(&EXPLORE_OPS, 2, &[2]));
+    let expected = ask_with(&top_tall(), asked_only(&EXPLORE_OPS_NO_INPUT, 2, &[2]));
     assert_eq!(asked.effect(), Some(&expected), "only ヘルプ");
     let state = asked.state();
     let help_clicked = told(state, answer("click", Some(0.9), Some("2")));
@@ -121,7 +125,7 @@ fn explore_targets_follow_candidates() {
     untouched_tier();
     let unfinished = &all_clicked()[..2];
     let asked = waiting_with(explore(), unfinished);
-    let expected = ask_with(&top_tall(), asked_only(&EXPLORE_OPS, 2, &[1]));
+    let expected = ask_with(&top_tall(), asked_only(&EXPLORE_OPS_NO_INPUT, 2, &[1]));
     assert_eq!(asked.effect(), Some(&expected), "only 保存");
     let clicked = told(asked.state(), answer("click", Some(0.9), Some("1")));
     assert_eq!(clicked.effect(), Some(&look(save())), "保存");

@@ -90,6 +90,15 @@ pub struct ElementId {
     pub nth: usize,
 }
 
+/// The roles of input fields, the only elements `input` types into.
+pub const FILLABLE: [&str; 4] = ["textbox", "searchbox", "combobox", "spinbutton"];
+
+/// Whether an element of `role` is an input field.
+#[must_use]
+pub fn fillable(role: &str) -> bool {
+    FILLABLE.contains(&role)
+}
+
 /// Whether the element's box overlaps the viewport by at least 1px.
 ///
 /// No box, or a box with no width or height, is outside.

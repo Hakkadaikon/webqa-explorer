@@ -1,5 +1,6 @@
 //! Tests of the exit code.
 
+use std::collections::BTreeSet;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
@@ -83,6 +84,7 @@ fn rules() -> Rules {
                 text: None,
             },
         }],
+        input_names: BTreeSet::new(),
     }
 }
 

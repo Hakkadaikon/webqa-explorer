@@ -5,8 +5,8 @@ use super::{all_clicked, not_an_option, settings};
 use crate::explore::Memory;
 use crate::judge::{Answers, JudgeError, QuestionId};
 use crate::machine::testing::{
-    APP, EXPLORE_OPS, MOVES, answer, ask_with, asked_only, away, budget, explore, heard, id, idle,
-    memory_of, next, operated, page, picked, secs, seen, showed, started, top, touch,
+    APP, EXPLORE_OPS_NO_INPUT, MOVES, answer, ask_with, asked_only, away, budget, explore, heard,
+    id, idle, memory_of, next, operated, page, picked, secs, seen, showed, started, top, touch,
 };
 use crate::machine::{Anomaly, ExitReason, Note, State, Step};
 use crate::plan::Pick;
@@ -84,7 +84,7 @@ fn explore_goal_when_reachable_explored() {
 fn not_yet(notice_page: &Screen) {
     let all = all_clicked();
     let open = reachable(notice_page, &all[..2], 1);
-    let asked = ask_with(&top(), asked_only(&EXPLORE_OPS, 2, &[1]));
+    let asked = ask_with(&top(), asked_only(&EXPLORE_OPS_NO_INPUT, 2, &[1]));
     assert_eq!(open.effect(), Some(&asked), "通知 is left");
     assert_eq!(open.state().budget().used(), 2, "asks");
     let first = reachable(notice_page, &all, 0);

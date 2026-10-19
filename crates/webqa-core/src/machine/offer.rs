@@ -11,7 +11,8 @@ use crate::explore::{Candidate, Candidates, candidates};
 use crate::judge::{
     self, Answers, Ask, MAX_OPTIONS, Question, QuestionId, Unusable, Verdict, read_answers,
 };
-use crate::screen::{screen_text, visible};
+use crate::redact::Redacted;
+use crate::screen::{Screen, screen_text, visible};
 
 /// The operation kinds offered when no element is a candidate, in the
 /// order of the table of operation kinds.
@@ -74,6 +75,8 @@ fn explored(state: &State, elements: usize) -> Offer {
         tiered(
             candidates(&state.memory, at, &last.screen, last.viewport),
             ops,
+            &state.rules,
+            &last.screen,
         )
     });
     Offer {
@@ -85,20 +88,39 @@ fn explored(state: &State, elements: usize) -> Offer {
 }
 
 /// The elements of the tier, or the moves when no element is a candidate.
-fn tiered(tier: Candidates, ops: Vec<Op>) -> (Vec<Op>, Option<Vec<usize>>) {
+/// `input` stays only when an element offered can take a value.
+fn tiered(
+    tier: Candidates,
+    ops: Vec<Op>,
+    rules: &Rules,
+    screen: &Redacted<Screen>,
+) -> (Vec<Op>, Option<Vec<usize>>) {
     match tier {
-        Candidates::Untouched(c) | Candidates::Unfinished(c) => (ops, Some(numbers(&c))),
+        Candidates::Untouched(c) | Candidates::Unfinished(c) => {
+            let offered = offerable(c);
+            let types = offered
+                .iter()
+                .any(|c| rules.input_skip(screen, Some(&c.id)).is_none());
+            let numbers = offered.iter().map(|c| c.number).collect();
+            (without_input(ops, types), Some(numbers))
+        }
         Candidates::Moves => moves(ops),
     }
 }
 
-/// The numbers of the candidates that can be offered.
-fn numbers(candidates: &[Candidate]) -> Vec<usize> {
+/// The candidates that can be offered.
+fn offerable(candidates: Vec<Candidate>) -> Vec<Candidate> {
     candidates
-        .iter()
-        .map(|c| c.number)
-        .filter(|&n| n <= MAX_OPTIONS)
+        .into_iter()
+        .filter(|c| c.number <= MAX_OPTIONS)
         .collect()
+}
+
+/// Without `input` when nothing offered takes a value. When the rules have
+/// nothing else, `input` stays, rather than a question with nothing to do.
+fn without_input(ops: Vec<Op>, types: bool) -> Vec<Op> {
+    let rest: Vec<Op> = ops.iter().copied().filter(|&op| op != Op::Input).collect();
+    if types || rest.is_empty() { ops } else { rest }
 }
 
 /// Going back and scrolling, with no element. When the rules have none of

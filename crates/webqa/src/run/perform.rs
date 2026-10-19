@@ -3,7 +3,6 @@
 
 use std::time::Duration;
 
-use webqa_browser::FILLABLE;
 use webqa_core::effect::{Effect, Outside, PageEffect, Questions, Touch};
 use webqa_core::event::Event;
 use webqa_core::issue::{answered_issues, probe_questions};
@@ -84,7 +83,7 @@ async fn touched(touch: &Touch, state: &State, ports: &mut Ports<'_>) -> Result<
     // A state that asks for a touch always knows who asked; the default
     // only keeps the type total.
     let cause = state.cause().unwrap_or(Cause::Judge);
-    announce(touch, cause, ports).await?;
+    announce(touch, cause, state, ports).await?;
     let (after, timings) = act(touch, ports).await?;
     let changed = screen::changed(&state.last().screen, &after.screen, after.viewport);
     ports
@@ -107,11 +106,19 @@ async fn touched(touch: &Touch, state: &State, ports: &mut Ports<'_>) -> Result<
 
 /// Logs the judge's decision, or a new step for the core's own operation,
 /// and whether the browser will do nothing for it.
-async fn announce(touch: &Touch, cause: Cause, ports: &mut Ports<'_>) -> Result<(), RunError> {
+async fn announce(
+    touch: &Touch,
+    cause: Cause,
+    state: &State,
+    ports: &mut Ports<'_>,
+) -> Result<(), RunError> {
     let event = asker(touch, cause, &mut ports.step);
     ports.log(event).await?;
-    if touch.op == INPUT && !types_into_field(touch) {
-        ports.log(log::not_an_input()).await?;
+    let skip = state
+        .rules()
+        .input_skip(&state.last().screen, touch.target.as_ref());
+    if let Some(why) = skip.filter(|_| touch.op == INPUT) {
+        ports.log(log::skipped(why)).await?;
     }
     Ok(())
 }
@@ -125,12 +132,6 @@ fn asker(touch: &Touch, cause: Cause, step: &mut u64) -> Event {
         *step += 1;
         log::recovered(touch, cause)
     }
-}
-
-/// Whether the target of `touch` is an input field.
-fn types_into_field(touch: &Touch) -> bool {
-    let role = touch.target.as_ref().map(|id| id.role.as_str());
-    role.is_some_and(|role| FILLABLE.contains(&role))
 }
 
 /// The judge's probability for its own operations, 1 for the core's.

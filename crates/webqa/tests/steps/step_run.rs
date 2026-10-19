@@ -27,7 +27,8 @@ fn present(world: &mut QaWorld, name: String) {
     let role = ROLES.iter().find(|(op, _)| Some(*op) == said);
     let element = ElementSpec::new(role.map_or("button", |(_, role)| role), &name);
     world.scene.start.elements.push(element);
-    drop(name);
+    // An input field is typed into only when a value is set for its name.
+    world.scene.inputs.extend(role.map(|_| name));
 }
 
 #[then(expr = "ブラウザで操作 {string} を実行している")]

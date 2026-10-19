@@ -140,6 +140,7 @@ fn rules() -> Rules {
                 text: None,
             },
         }],
+        input_names: BTreeSet::new(),
     }
 }
 
