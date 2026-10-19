@@ -6,6 +6,7 @@
 //! finishes; the time limit or an interruption cuts it and the run.
 
 mod course;
+mod open;
 mod record;
 #[cfg(test)]
 mod tests;

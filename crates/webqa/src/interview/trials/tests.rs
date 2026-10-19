@@ -1,13 +1,18 @@
 //! Tests of the loop outside the trials, with fake ports.
 
 use std::collections::VecDeque;
+use std::env::{temp_dir, var_os};
+use std::ffi::OsString;
+use std::fs;
 use std::future;
 use std::iter;
-use std::num::NonZeroU32;
+use std::num::{NonZeroU32, NonZeroU64};
+use std::path::PathBuf;
+use std::process;
 use std::time::Duration;
 
 use url::Url;
-use webqa_core::config::interview::Interview;
+use webqa_core::config::interview::{Interview, Reset};
 use webqa_core::config::persona::Persona;
 use webqa_core::config::purpose::Purpose;
 use webqa_core::config::raw::Op;
@@ -19,6 +24,8 @@ use webqa_core::redact::Redactor;
 use webqa_judge::scripted::Scripted;
 
 mod ends;
+mod opening;
+mod resets;
 mod trials;
 mod waits;
 
@@ -72,6 +79,22 @@ impl Clock for Stalled {
         self.sleeps.push(at);
         Box::pin(future::pending())
     }
+}
+
+const FIXTURES: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/reset/");
+
+/// A fresh directory for the test `name`.
+fn scratch(name: &str) -> PathBuf {
+    let dir = temp_dir().join(format!("webqa-trials-{}", process::id()));
+    let dir = dir.join(name);
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).unwrap();
+    dir
+}
+
+/// A variable of the reset command's environment.
+fn var(name: &str, value: impl Into<OsString>) -> (OsString, OsString) {
+    (OsString::from(name), value.into())
 }
 
 /// The page every trial starts on.
@@ -195,6 +218,30 @@ impl World {
     fn ledger(&self) -> Option<Ledger> {
         let text = self.store.ledger.as_deref()?;
         Some(read(text).unwrap())
+    }
+
+    /// A world of `trials` trials that run the fixture `script` before each
+    /// one, with a timeout of `timeout` seconds and `extra` as its
+    /// environment besides its output file. The output file is in a fresh
+    /// directory for `name`.
+    fn resetting(trials: u32, name: &str, script: &str, extra: &[(OsString, OsString)]) -> Self {
+        let mut world = Self::new(trials);
+        let out = scratch(name).join("out");
+        world.plan.interview.reset = Some(Reset {
+            program: format!("{FIXTURES}{script}"),
+            args: Vec::new(),
+            timeout_secs: NonZeroU64::new(5).unwrap(),
+        });
+        let path = var_os("PATH").unwrap_or_default();
+        let base = [var("RESET_OUT", &out), var("PATH", path)];
+        world.plan.env = base.into_iter().chain(extra.iter().cloned()).collect();
+        world
+    }
+
+    /// The file the reset command writes to.
+    fn out(&self) -> PathBuf {
+        let (_, out) = &self.plan.env[0];
+        PathBuf::from(out)
     }
 
     /// A world of `trials` trials whose window holds two accesses: the first

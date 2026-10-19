@@ -53,9 +53,11 @@ async fn one_report_for_the_whole_run() {
 #[tokio::test]
 async fn abort_mid_trial_skips_rest() {
     let mut world = World::new(3);
+    // Each trial waits on the interruption to open the browser, then once
+    // per step: the second trial's step is the fourth wait.
     let mut interrupt = Fires {
         calls: 0,
-        fire_on: vec![2],
+        fire_on: vec![4],
     };
     let ending = world.run_with(&mut interrupt).await;
     let interrupted = Ending::Wrote {

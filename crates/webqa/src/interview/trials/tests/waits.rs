@@ -27,9 +27,11 @@ async fn abort_while_waiting_writes_ledger() {
         now: Duration::ZERO,
         sleeps: Vec::new(),
     };
+    // The first trial waits on the interruption to open the browser and
+    // for its step: the wait for the window is the third.
     let mut interrupt = Fires {
         calls: 0,
-        fire_on: vec![2],
+        fire_on: vec![3],
     };
     let ending = interview(
         &mut world.launch,

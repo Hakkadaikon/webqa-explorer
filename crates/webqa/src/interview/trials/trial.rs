@@ -14,19 +14,30 @@ use webqa_core::machine::{Outcome, Rules};
 use webqa_core::ports::Browser;
 use webqa_core::window::RequestWindow;
 
-use super::course::Course;
+use super::course::{Course, Halt};
 use super::record::{Trial, ends};
 use crate::run::{self, Ports, RunError};
 
 impl Course<'_> {
     /// Runs a trial in a fresh browser, with `cap` accesses for the core.
-    pub(super) async fn trial(&mut self, cap: NonZeroU32) -> Result<(), RunError> {
-        let mut browser = self.parts.launch.launch().await?;
+    pub(super) async fn trial(&mut self, cap: NonZeroU32) -> Result<(), Halt> {
+        match self.opening().await? {
+            Some(mut browser) => Ok(self.run_trial(&mut *browser, cap).await?),
+            None => Ok(()),
+        }
+    }
+
+    /// Runs a trial in `browser`.
+    async fn run_trial(
+        &mut self,
+        browser: &mut dyn Browser,
+        cap: NonZeroU32,
+    ) -> Result<(), RunError> {
         let number = self.trials.len() + 1;
         self.log(Event::TrialStarted { trial: number }).await?;
         let now = self.parts.clock.elapsed();
         self.window = count_first_page(self.window, now);
-        let explored = self.explore(&mut *browser, core_window(cap, now)).await?;
+        let explored = self.explore(browser, core_window(cap, now)).await?;
         self.ended(number, &explored).await
     }
 

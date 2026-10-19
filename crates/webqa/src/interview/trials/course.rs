@@ -13,6 +13,7 @@ use super::record::Trial;
 use super::write::{Closed, Closing, records};
 use super::{Ending, Launch, Plan, Stopped};
 use crate::interrupt::{Interrupt, guard};
+use crate::interview::reset::ResetError;
 use crate::run::{Kept, RunError};
 
 /// The ports of the loop, besides the interrupt.
@@ -22,6 +23,20 @@ pub(super) struct Parts<'a> {
     pub(super) clock: &'a mut dyn Clock,
     pub(super) store: &'a mut dyn Store,
     pub(super) redactor: &'a Redactor,
+}
+
+/// Why the loop stops with nothing more to start.
+pub(super) enum Halt {
+    /// The reset command failed.
+    Reset(ResetError),
+    /// A browser or a record failed.
+    Run(RunError),
+}
+
+impl From<RunError> for Halt {
+    fn from(error: RunError) -> Self {
+        Self::Run(error)
+    }
 }
 
 /// Where the run is.
@@ -55,14 +70,15 @@ pub(super) async fn conduct<'a>(
         kept: Kept::default(),
     };
     match course.go().await {
-        Ok(stopped) => course.finish(stopped).await,
-        Err(error) => Ending::Failed(error),
+        Ok(stopped) => course.finish(stopped, None).await,
+        Err(Halt::Reset(error)) => course.finish(Stopped::Completed, Some(error)).await,
+        Err(Halt::Run(error)) => Ending::Failed(error),
     }
 }
 
 impl Course<'_> {
     /// Starts the log, then runs the trials.
-    async fn go(&mut self) -> Result<Stopped, RunError> {
+    async fn go(&mut self) -> Result<Stopped, Halt> {
         let started = Event::RunStarted {
             schema: 1,
             mode: Mode::Scenario,
@@ -73,7 +89,7 @@ impl Course<'_> {
     }
 
     /// Starts and waits until no more trials start.
-    async fn start_trials(&mut self) -> Result<Stopped, RunError> {
+    async fn start_trials(&mut self) -> Result<Stopped, Halt> {
         let mut stopped = self.step().await?;
         while stopped.is_none() {
             stopped = self.step().await?;
@@ -83,7 +99,7 @@ impl Course<'_> {
     }
 
     /// Starts a trial, waits, or says why no more trials start.
-    async fn step(&mut self) -> Result<Option<Stopped>, RunError> {
+    async fn step(&mut self) -> Result<Option<Stopped>, Halt> {
         match self.next() {
             Next::Stop(stop) => Ok(Some(stop.into())),
             Next::Wait(at) => {
@@ -132,8 +148,9 @@ impl Course<'_> {
         self.interrupted |= interrupted;
     }
 
-    /// Writes the records, unless the user interrupts again.
-    async fn finish(&mut self, stopped: Stopped) -> Ending {
+    /// Writes the records, unless the user interrupts again. `failed` is the
+    /// reset command's failure that stopped the loop, if one did.
+    async fn finish(&mut self, stopped: Stopped, failed: Option<ResetError>) -> Ending {
         let allowance = u8::from(stopped != Stopped::Interrupted);
         let closing = Closing {
             judge: &mut *self.parts.judge,
@@ -149,7 +166,9 @@ impl Course<'_> {
             None => Ending::Abandoned,
             Some(Err(error)) => Ending::Failed(error),
             Some(Ok(Closed::Mismatch(mismatch))) => Ending::Mismatch(mismatch),
-            Some(Ok(Closed::Wrote { confirmed })) => Ending::Wrote { stopped, confirmed },
+            Some(Ok(Closed::Wrote { confirmed })) => {
+                failed.map_or(Ending::Wrote { stopped, confirmed }, Ending::ResetFailed)
+            }
         }
     }
 }
