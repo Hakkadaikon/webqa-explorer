@@ -58,8 +58,9 @@ fn non_empty_stages(scenario: Option<&Scenario>) -> Result<(), ConfigError> {
 }
 
 /// The browser operations that need no target: `webqa-browser`'s table
-/// without `click` and `input`. Copied, since the core does not depend on it.
-const LEAVE_OPS: [&str; 6] = [
+/// without `click` and `input`. Copied, since the core does not depend on it;
+/// a test of `webqa-browser` checks the copy against its table.
+pub const LEAVE_OPS: [&str; 6] = [
     "back",
     "scroll_down",
     "scroll_up",

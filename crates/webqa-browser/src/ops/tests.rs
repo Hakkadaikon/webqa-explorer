@@ -1,6 +1,9 @@
 //! Tests of the operation table and of settling what Playwright returned.
 
+use std::collections::BTreeSet;
+
 use playwright_rs::Error;
+use webqa_core::config::validate::LEAVE_OPS;
 use webqa_core::ports::BrowserError;
 
 use super::*;
@@ -59,5 +62,19 @@ fn ops_table_names() {
         found,
         [None, None, None, None, Some("back")],
         "only exact names of the table"
+    );
+}
+
+#[test]
+fn leave_ops_are_untargeted_rows() {
+    let untargeted: BTreeSet<&str> = OPS
+        .iter()
+        .map(|row| row.name)
+        .filter(|name| !["click", "input"].contains(name))
+        .collect();
+    assert_eq!(
+        LEAVE_OPS.into_iter().collect::<BTreeSet<&str>>(),
+        untargeted,
+        "the core's ways out of a paywall are the rows without a target"
     );
 }
