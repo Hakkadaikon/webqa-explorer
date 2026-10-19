@@ -35,6 +35,13 @@ class BudgetTest(unittest.TestCase):
         self.assertEqual(waits, [])
         self.assertEqual(len(http.requests), 1)
 
+    def test_no_retry_when_the_wait_equals_what_is_left(self):
+        http = FakeHttp(busy(429, "5"))
+        answer, waits = ask(request([NOUL]), http, now=Clock(0, 0, 25))
+        self.assertEqual(answer, error("http 429"))
+        self.assertEqual(waits, [])
+        self.assertEqual(len(http.requests), 1)
+
     def test_text_questions_share_the_budget(self):
         http = FakeHttp(JEV_REPLY, CHAT_REPLY)
         opts = options(text_model="some/llm")
@@ -49,7 +56,8 @@ class BudgetTest(unittest.TestCase):
 
     def test_timeout_must_be_more_than_zero(self):
         self.assertEqual(options(timeout="0.5").timeout, 0.5)
-        for bad in ("0", "-1", "nan", "soon"):
+        self.assertEqual(options(timeout="3600").timeout, 3600)
+        for bad in ("0", "-1", "nan", "inf", "1e300", "3600.5", "soon"):
             with (
                 self.subTest(bad=bad),
                 contextlib.redirect_stderr(io.StringIO()),

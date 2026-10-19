@@ -36,21 +36,21 @@
 |---|---|---|
 | `--model` | `typesafe-ai/jev-1.14.0` | JEV のモデル。再現のため版を固定した名前を既定にする(`tasks/jev-api.md` の対応しないところ11) |
 | `--text-model` | なし | 自由な文の問いを送る言語モデル。無ければ自由な文の問いを含む要求は `api` の失敗 |
-| `--timeout` | `30` | 要求の1行あたりの時間の予算(秒)。0以下と数でない値は引数の誤りとして拒む |
+| `--timeout` | `30` | 要求の1行あたりの時間の予算(秒)。0以下、3600秒を超える値(無限大を含む)、数でない値は引数の誤りとして拒む。上限はソケットの待ち時間があふれないため |
 
 - 版の行は `{"version":2,"images":<真偽>}`。`images` は `--model` が `typesafe-ai/jev-1.13.0` か `typesafe-ai/jev-1.14.0` のときだけ `true`。
 - API キーは環境変数 `WEBQA_JUDGE_API_KEY`。あれば `Authorization: Bearer <キー>` を付け、無ければ付けない(Network secrets の中継が足す)。
 - 標準エラーには何も書かない。標準出力は1行ごとに flush する。
 - 標準入力の終わりで終了コード0で終わる。
 
-#### 時間の予算(親の決定)
+### 時間の予算(親の決定)
 
 - 要求の行を読んだ時刻に、`--timeout` の秒数だけ先を期限にする。時計は `handle` の引数 `now` で差し替えられる(既定は `time.monotonic`)。
 - HTTP の呼び出しのたびに、`urlopen` には期限までの残りの時間を渡す。残りが0以下なら呼ばずに `timeout` の失敗にする。
 - 自由な文の問いの呼び出しも、同じ期限の内に入れる。
 - 429 と 529 の再試行は、待つ秒数が残りの時間より短いときだけ行う。足りなければ再試行せず、そこまでの失敗(`http 429` など)を返す。
 
-## 要求の写し方
+### 要求の写し方
 
 入口は `https://ai-gateway.vercel.sh/typesafe/v1/systemone`。本体は `{"model", "state", "questions"}`(画像があれば `assets`)。
 
@@ -96,7 +96,7 @@
 
 ## 失敗させるテスト(1〜7 は `bridge/jev_test.py`、8〜13 は `bridge/jev_flow_test.py`、14〜18 は `bridge/jev_budget_test.py`)
 
-HTTP は `jev.urlopen` を偽物に差し替え、ネットワークに出ない。待つことは `jev.sleep` を差し替える。期待値は `assertEqual` で値ごと比べる。
+HTTP は `gateway.urlopen` を偽物に差し替え、ネットワークに出ない。待つことは `gateway.sleep` を差し替える。期待値は `assertEqual` で値ごと比べる。
 
 1. `test_declaration_by_model`: 既定のモデルと `typesafe-ai/jev-1.13.0` は `{"version":2,"images":true}`、`typesafe-ai/jev` は `{"version":2,"images":false}`。
 2. `test_questions_map_to_jev`: noul、choice、score の3問で、送る本体の `questions` が上の表のとおり。`model` は引数の名前、`state` は画面の文字列、`assets` のキーが無い。
@@ -116,7 +116,7 @@ HTTP は `jev.urlopen` を偽物に差し替え、ネットワークに出ない
 15. `test_no_retry_when_the_wait_does_not_fit`: 残りが4秒のときの 429(`retry-after: 5`)は待たずに `http 429`。要求は1回。
 16. `test_text_questions_share_the_budget`: 真偽と自由な文の2問で、時計が 0、5、12 なら待ち時間は `[25, 18]`。
 17. `test_no_time_left_is_a_timeout`: 残りが0なら HTTP を呼ばずに `timeout`。
-18. `test_timeout_must_be_more_than_zero`: `0.5` は受け、`0`、`-1`、`nan`、`soon` は終了コード2で拒む。
+18. `test_timeout_must_be_more_than_zero`: `0.5` と `3600` は受け、`0`、`-1`、`nan`、`inf`、`1e300`、`3600.5`、`soon` は終了コード2で拒む。待つ秒数と残りが等しいとき(残り5秒で `retry-after: 5`)も再試行しない。
 
 ほかに、レビューで足したもの: 失敗の表に `URLError(TimeoutError())`(timeout)、`ConnectionResetError`、`RemoteDisconnected`、`IncompleteRead`(network)。`test_main_loop` は答えの行を丸ごと比べる。`test_text_request_has_no_image_header`: 画像のある要求でも、自由な文の問いの要求に `TypeSafe-Danger-Zone-Images` を付けない。
 

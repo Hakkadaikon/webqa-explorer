@@ -22,6 +22,8 @@ IMAGE_MODELS = ("typesafe-ai/jev-1.13.0", "typesafe-ai/jev-1.14.0")
 VERSION = 2
 FORMATS = {"image/png": "png", "image/jpeg": "jpeg"}
 JEV_KINDS = ("noul", "choice", "score")
+# The socket timeout overflows past about 1e9 seconds on some platforms.
+MAX_TIMEOUT = 3600
 
 
 def parse_args(argv):
@@ -34,7 +36,7 @@ def parse_args(argv):
 
 def seconds(text):
     value = float(text)
-    if not value > 0:
+    if not 0 < value <= MAX_TIMEOUT:
         raise argparse.ArgumentTypeError("must be more than 0")
     return value
 

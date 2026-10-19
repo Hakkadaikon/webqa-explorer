@@ -78,6 +78,7 @@ def send(url, body, budget, images=False):
     retry it."""
     req = Request(url, dump(body).encode(), headers(images), method="POST")
     try:
+        # shortcut: urlopen の timeout は1回の待ちの上限で全体の上限ではない、細切れの応答で期限を超えたら読み込みを期限つきに作り直す
         with urlopen(req, timeout=budget.left()) as response:
             return response.read()
     except urllib.error.HTTPError:
