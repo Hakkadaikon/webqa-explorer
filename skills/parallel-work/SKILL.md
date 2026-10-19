@@ -60,11 +60,15 @@ description: >
 | `CARGO_PROFILE_DEV_DEBUG` | `line-tables-only` | ビルドのメモリとディスクが減る |
 | `RUSTFLAGS` | `-C link-arg=-fuse-ld=lld` | リンクが速くなる |
 | `RUST_TEST_THREADS` | `4` | 契約テストの Chromium が負荷で時間切れにならない |
+| `RUSTC_WRAPPER` | `sccache` | 新しい置き場でも、依存のコンパイル結果を使い回す |
 
 - デバッグ情報を減らしても、カバレッジの結果は変わらない。
 - `RUSTFLAGS` は、lld が PATH にあるときだけ付ける。
   macOS では `ld64.lld`、Linux では `ld.lld` である。
 
+- 置き場を分けるときは、`CARGO_TARGET_DIR` でなく `--target-dir` の引数で渡す。
+  sccache は `CARGO_` で始まる環境変数をキャッシュのキーに入れる。
+  置き場を環境変数で変えると、キャッシュに当たらない。
 - 全員が同じ値を使う。値が違うと、共有の `target/` で依存のビルドがやり直しになる。
 - 値は手元の環境変数で渡し、リポジトリの設定には書かない。
   CI の環境には lld が無い。
