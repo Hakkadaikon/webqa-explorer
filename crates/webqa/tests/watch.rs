@@ -137,13 +137,9 @@ fn watch_follows_a_live_log() -> io::Result<()> {
 fn watching_a_missing_directory_exits_two() -> io::Result<()> {
     let missing = Path::new(env!("CARGO_TARGET_TMPDIR")).join("watch_missing");
     drop(fs::remove_dir_all(&missing));
-    let status = Command::new(env!("CARGO_BIN_EXE_webqa"))
-        .arg("watch")
-        .arg(&missing)
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()?;
-    assert_eq!(status.code(), Some(2));
+    // Waited for with a limit, so a watch that keeps following fails here.
+    let watching = watching(&missing)?;
+    let ended = watching.ended.recv_timeout(LIMIT);
+    assert_eq!(ended.map_err(|_| ErrorKind::TimedOut)??.code(), Some(2));
     Ok(())
 }
