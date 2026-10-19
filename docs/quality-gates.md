@@ -73,7 +73,7 @@ clippyは警告1件で失敗する。
 ## 複雑度
 
 `rust-code-analysis`で測り、`scripts/metrics.py`が判定する。
-対象は`crates/`のRustと`scripts/`のPythonである。
+対象は`crates/`のRustと、`scripts/`と`bridge/`のPythonである。
 
 | 単位 | 指標 | 上限 |
 |---|---|---|
@@ -123,6 +123,7 @@ Rustはcargo-llvm-covで測る。
 `crates/`に関数がまだ無い間は、テストだけを回す。
 
 Pythonはcoverageで測る。
+`scripts/`と`bridge/`のテストを合わせて測る。
 行と分岐のどちらかが100%未満なら失敗する。
 
 落ちたら、通っていない行や分岐を確かめるテストを足す。
