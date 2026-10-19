@@ -1,14 +1,13 @@
 //! Tests of the loop outside the trials, with fake ports.
 
 use std::collections::VecDeque;
-use std::env::{temp_dir, var_os};
+use std::env::var_os;
 use std::ffi::OsString;
 use std::fs;
 use std::future;
 use std::iter;
 use std::num::{NonZeroU32, NonZeroU64};
 use std::path::PathBuf;
-use std::process;
 use std::time::Duration;
 
 use url::Url;
@@ -17,6 +16,7 @@ use webqa_core::config::persona::Persona;
 use webqa_core::config::purpose::Purpose;
 use webqa_core::config::raw::Op;
 use webqa_core::guard::domain::AllowedOrigin;
+use webqa_core::interview::ask::{EXPECTATION, HESITATION, PURPOSE_GUESS};
 use webqa_core::interview::ledger::{Goal, Head, Ledger, read};
 use webqa_core::judge::QuestionId;
 use webqa_core::ports::{Observation, Pending};
@@ -35,27 +35,14 @@ mod windows;
 mod launch;
 
 use self::launch::FakeLaunch;
-use self::stubs::{Fires, Never, Stalled};
+use self::stubs::{FIXTURES, Fires, Never, Stalled, scratch, var};
 use super::*;
 use crate::run::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 
 const ORIGIN: &str = "https://app.example.test";
 
-const FIXTURES: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/reset/");
-
-/// A fresh directory for the test `name`.
-fn scratch(name: &str) -> PathBuf {
-    let dir = temp_dir().join(format!("webqa-trials-{}", process::id()));
-    let dir = dir.join(name);
-    let _ = fs::remove_dir_all(&dir);
-    fs::create_dir_all(&dir).unwrap();
-    dir
-}
-
-/// A variable of the reset command's environment.
-fn var(name: &str, value: impl Into<OsString>) -> (OsString, OsString) {
-    (OsString::from(name), value.into())
-}
+/// What the judge guesses the purpose of the start page is.
+const GUESS: &str = "経費を申請する";
 
 /// The page every trial starts on.
 fn top() -> Observation {
@@ -116,6 +103,9 @@ fn script(ops: &[&str]) -> Scripted {
             .then(QuestionId::target(), [("1", 0.8)])
             .then(QuestionId::error_shown(), [("true", 0.0)])
             .then(QuestionId::goal_reached(), [("true", 0.0)])
+            .then(QuestionId::new(HESITATION), [("true", 0.0)])
+            .then_text(QuestionId::new(EXPECTATION), "保存される")
+            .then_text(QuestionId::new(PURPOSE_GUESS), GUESS)
     })
 }
 
@@ -236,11 +226,16 @@ impl World {
 }
 
 /// The head of a ledger of this persona and an inferred purpose after
-/// `finished` finished trials.
+/// `finished` finished trials: the guess of each is the same.
 fn head(finished: usize) -> Head {
+    let guesses = if finished == 0 {
+        Vec::new()
+    } else {
+        vec![GUESS.to_owned()]
+    };
     Head {
         persona: "田中".to_owned(),
-        goal: Goal::Inferred(Vec::new()),
+        goal: Goal::Inferred(guesses),
         start: "https://app.example.test/".to_owned(),
         finished,
         images: false,

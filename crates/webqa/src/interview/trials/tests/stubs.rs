@@ -1,6 +1,11 @@
 //! The interrupts and the clock of the tests of the loop.
 
+use std::env::temp_dir;
+use std::ffi::OsString;
+use std::fs;
 use std::future;
+use std::path::PathBuf;
+use std::process;
 use std::time::Duration;
 
 use webqa_core::ports::{Clock, Pending};
@@ -48,4 +53,20 @@ impl Clock for Stalled {
         self.sleeps.push(at);
         Box::pin(future::pending())
     }
+}
+
+pub(super) const FIXTURES: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/reset/");
+
+/// A fresh directory for the test `name`.
+pub(super) fn scratch(name: &str) -> PathBuf {
+    let dir = temp_dir().join(format!("webqa-trials-{}", process::id()));
+    let dir = dir.join(name);
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).unwrap();
+    dir
+}
+
+/// A variable of the reset command's environment.
+pub(super) fn var(name: &str, value: impl Into<OsString>) -> (OsString, OsString) {
+    (OsString::from(name), value.into())
 }

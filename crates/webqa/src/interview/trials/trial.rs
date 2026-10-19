@@ -8,6 +8,7 @@ use std::time::Duration;
 use webqa_core::event::{Event, Mode, TrialEnding};
 use webqa_core::explore::Memory;
 use webqa_core::interview::ask::with_done;
+use webqa_core::interview::clue::Thresholds;
 use webqa_core::interview::outcome::outcome;
 use webqa_core::interview::schedule::{core_window, count_first_page};
 use webqa_core::machine::{Outcome, Rules};
@@ -15,8 +16,18 @@ use webqa_core::ports::Browser;
 use webqa_core::window::RequestWindow;
 
 use super::course::{Course, Halt};
-use super::record::{Trial, ends};
-use crate::run::{self, Ports, RunError};
+use super::record::{Trial, ends, steps};
+use crate::run::{self, Interviewing, Ports, RunError, Taken};
+
+/// What the core and the interview left of a trial.
+struct Explored {
+    /// How the core ended.
+    outcome: Outcome,
+    /// The steps that asked the judge.
+    taken: Vec<Taken>,
+    /// How many operations the run had done before the trial.
+    acts_from: usize,
+}
 
 impl Course<'_> {
     /// Runs a trial in a fresh browser, with `cap` accesses for the core.
@@ -38,7 +49,7 @@ impl Course<'_> {
         let now = self.parts.clock.elapsed();
         self.window = count_first_page(self.window, now);
         let explored = self.explore(browser, core_window(cap, now)).await?;
-        self.ended(number, &explored).await
+        self.ended(number, explored).await
     }
 
     /// Runs the core on `browser` with an empty memory.
@@ -46,9 +57,11 @@ impl Course<'_> {
         &mut self,
         browser: &mut dyn Browser,
         window: RequestWindow,
-    ) -> Result<Outcome, RunError> {
+    ) -> Result<Explored, RunError> {
         let kept = mem::take(&mut self.kept);
+        let acts_from = kept.record.acts.len();
         let rules = self.rules();
+        let interviewing = self.interviewing(&rules);
         let mut ports = Ports::new(
             browser,
             &mut *self.parts.judge,
@@ -56,12 +69,40 @@ impl Course<'_> {
             &mut *self.parts.store,
             self.parts.redactor,
         )
-        .resumed(kept);
+        .resumed(kept)
+        .interviewing(interviewing);
         let interrupt = &mut *self.interrupt;
         let explored = run::explore_in(&mut ports, interrupt, rules, Memory::default(), window);
         let explored = explored.await;
+        let taken = ports.take_steps();
         self.kept = ports.into_kept();
-        explored
+        Ok(Explored {
+            outcome: explored?,
+            taken,
+            acts_from,
+        })
+    }
+
+    /// The interview's questions, offering the operations of `rules`.
+    fn interviewing(&self, rules: &Rules) -> Interviewing {
+        let interview = &self.plan.interview;
+        let goal = interview.purpose.stage().goal;
+        let reads_images = self.parts.judge.reads_images();
+        Interviewing::new(
+            interview.persona.clone(),
+            goal,
+            rules.ops.clone(),
+            reads_images,
+        )
+    }
+
+    /// What counts as a sign of hesitation.
+    const fn thresholds(&self) -> Thresholds {
+        let interview = &self.plan.interview;
+        Thresholds {
+            hesitation: interview.hesitation_threshold,
+            confidence: interview.confidence_threshold,
+        }
     }
 
     /// The rules of a trial: scenario mode with the purpose as its one stage.
@@ -77,15 +118,19 @@ impl Course<'_> {
     }
 
     /// Keeps the trial that ended as `explored` says, and counts its accesses.
-    async fn ended(&mut self, number: usize, explored: &Outcome) -> Result<(), RunError> {
-        let (ended, ending) = ends(explored.reason);
+    async fn ended(&mut self, number: usize, explored: Explored) -> Result<(), RunError> {
+        let Outcome { reason, state } = explored.outcome;
+        let (ended, ending) = ends(reason);
         let now = self.parts.clock.elapsed();
-        self.window = counted(self.window, explored.state.window(), now);
+        self.window = counted(self.window, state.window(), now);
         self.interrupted |= ending == TrialEnding::Interrupted;
+        let acts = self.kept.record.acts.get(explored.acts_from..);
+        let steps = steps(explored.taken, acts.unwrap_or_default(), self.thresholds());
         let aim = &self.plan.interview.purpose.aim;
         self.trials.push(Trial {
             outcome: outcome(aim, ended),
-            reason: explored.reason,
+            reason,
+            steps,
         });
         self.log(Event::TrialFinished {
             trial: number,

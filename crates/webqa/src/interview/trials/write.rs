@@ -4,14 +4,14 @@
 use webqa_core::config::purpose::Aim;
 use webqa_core::event::{Event, Mode};
 use webqa_core::interview::compare::{Mismatch, compare};
-use webqa_core::interview::issue::{Record, Run};
+use webqa_core::interview::issue::{Record, Run, Seen};
 use webqa_core::interview::ledger::{Goal, Head, Ledger, inferred_goal, write};
 use webqa_core::interview::outcome::{Outcome, tally};
 use webqa_core::machine::ExitReason;
 use webqa_core::ports::{Clock, Judge, Store};
 use webqa_core::redact::Redactor;
 
-use super::record::Trial;
+use super::record::{self, Trial};
 use super::{Plan, Stopped};
 use crate::run::{Kept, RunError};
 use crate::store::report::{self, Meta};
@@ -42,7 +42,8 @@ pub(super) enum Closed {
 /// Writes the ledger, the last line of the log and the report of a run
 /// that stopped for `stopped`.
 pub(super) async fn records(closing: Closing<'_>, stopped: Stopped) -> Result<Closed, RunError> {
-    let records: Vec<Record<'_>> = closing.trials.iter().map(record).collect();
+    let views: Vec<Vec<Seen<'_>>> = closing.trials.iter().map(views).collect();
+    let records: Vec<Record<'_>> = closing.trials.iter().zip(&views).map(record).collect();
     let run = Run {
         trials: &records,
         images: closing.judge.reads_images(),
@@ -58,11 +59,27 @@ pub(super) async fn records(closing: Closing<'_>, stopped: Stopped) -> Result<Cl
     }
 }
 
-/// `trial` as the issues read it, without its steps.
-const fn record(trial: &Trial) -> Record<'_> {
+/// The steps of `trial` as the issues read them.
+fn views(trial: &Trial) -> Vec<Seen<'_>> {
+    trial.steps.iter().map(seen).collect()
+}
+
+/// `step` as the issues read it.
+fn seen(step: &record::Step) -> Seen<'_> {
+    Seen {
+        screen: &step.screen,
+        viewport: step.viewport,
+        reply: step.reply.as_ref(),
+        clues: &step.clues,
+        ran: step.ran,
+    }
+}
+
+/// `trial` with its steps `views`, as the issues read it.
+fn record<'a>((trial, views): (&Trial, &'a Vec<Seen<'a>>)) -> Record<'a> {
     Record {
         outcome: trial.outcome,
-        steps: &[],
+        steps: views,
     }
 }
 
