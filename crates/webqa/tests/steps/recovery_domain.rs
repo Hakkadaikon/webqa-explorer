@@ -8,17 +8,9 @@ use crate::judge::Reply;
 use crate::page::PageSpec;
 use crate::recovery::{field, lines_of};
 use crate::scene::found;
+use crate::shared::foreign_page;
 use crate::stages_given::after_at;
 use crate::world::QaWorld;
-
-/// The page of an article at `url`, a whole URL.
-fn landing(url: &str) -> PageSpec {
-    let page = PageSpec {
-        origin: Some(url.to_owned()),
-        ..PageSpec::at("")
-    };
-    page.with(PageSpec::button("記事"))
-}
 
 #[given(expr = "判断モデルが操作 {string} とリンク {string} を返す")]
 fn link_reply(world: &mut QaWorld, op: String, name: String) {
@@ -35,7 +27,7 @@ fn leads_to(world: &mut QaWorld, name: String, to: String) {
     for element in scene.start.elements.iter_mut().filter(|e| e.name == name) {
         element.href = Some(to.clone());
     }
-    *after_at(scene, 0) = landing(&to);
+    *after_at(scene, 0) = foreign_page(&to);
     drop((name, to));
 }
 
@@ -123,7 +115,7 @@ async fn leads_to_result(world: &mut QaWorld, to: String) {
         .push(PageSpec::link("次へ").href("/go"));
     scene.replies.push_back(Reply::op("click", 0.9).on("次へ"));
     let fresh = scene.after.is_empty();
-    for page in once(landing(&to)).filter(|_| fresh) {
+    for page in once(foreign_page(&to)).filter(|_| fresh) {
         *after_at(scene, 0) = page;
     }
     world.run().await;
@@ -138,6 +130,6 @@ async fn not_outside(world: &mut QaWorld) {
 
 #[given(expr = "許可ドメインの中の {string} は {string} へリダイレクトする")]
 fn redirects(world: &mut QaWorld, from: String, to: String) {
-    *after_at(&mut world.scene, 0) = landing(&to);
+    *after_at(&mut world.scene, 0) = foreign_page(&to);
     drop((from, to));
 }

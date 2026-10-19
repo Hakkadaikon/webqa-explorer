@@ -23,6 +23,8 @@ mod remembered;
 mod scene;
 #[path = "support/setting.rs"]
 mod setting;
+#[path = "support/shared.rs"]
+mod shared;
 #[path = "support/store.rs"]
 mod store;
 #[path = "support/world.rs"]

@@ -7,6 +7,7 @@ use serde_json::Value;
 
 use crate::page::{ElementSpec, PageSpec};
 use crate::scene::found;
+use crate::shared::{button, text_at};
 use crate::world::QaWorld;
 
 /// The scenarios that have their steps.
@@ -38,11 +39,6 @@ fn path_of(name: impl Into<String>) -> &'static str {
     found(path.map(|(_, path)| *path), "the feature names the screen")
 }
 
-/// A button named `name`.
-fn button(name: impl Into<String>) -> ElementSpec {
-    PageSpec::button(&name.into())
-}
-
 /// A link named `name`.
 fn link(name: impl Into<String>) -> ElementSpec {
     PageSpec::link(&name.into())
@@ -51,12 +47,6 @@ fn link(name: impl Into<String>) -> ElementSpec {
 /// The names of `list` without `name`: `name` is not in it.
 fn lacks(list: &[String], name: impl Into<String>) -> bool {
     !list.contains(&name.into())
-}
-
-/// The text at `keys` of `value`, one key after the other. Nothing there is "".
-fn text_at(value: &Value, keys: &[&str]) -> String {
-    let at = keys.iter().try_fold(value, |value, key| value.get(*key));
-    at.and_then(Value::as_str).unwrap_or_default().to_owned()
 }
 
 /// The memory the run saved for the first allowed origin.

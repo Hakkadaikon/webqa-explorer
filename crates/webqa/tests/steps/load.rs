@@ -8,6 +8,7 @@ use webqa_core::ports::Clock;
 use crate::judge::Reply;
 use crate::page::PageSpec;
 use crate::scene::found;
+use crate::shared::first_wait;
 use crate::world::QaWorld;
 
 /// The scenarios that have their steps.
@@ -42,7 +43,7 @@ async fn try_before_the_window_ends(world: &mut QaWorld) {
 /// `waited`, which the core spent waiting for the window.
 fn before_waiting(world: &QaWorld) -> Vec<String> {
     let kinds = world.kinds();
-    let wait = found(kinds.iter().position(|kind| kind == "waited"), "a wait");
+    let wait = first_wait(&kinds);
     let before = found(kinds.get(..wait), "the lines before the wait");
     let last = found(
         before.iter().rposition(|kind| kind == "executed"),

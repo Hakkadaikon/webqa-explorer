@@ -6,8 +6,9 @@ use webqa::store::screenshots;
 use webqa_core::issue::IssueKind;
 
 use crate::judge::Reply;
-use crate::page::{ElementSpec, PageSpec};
+use crate::page::PageSpec;
 use crate::scene::found;
+use crate::shared::button;
 use crate::world::QaWorld;
 
 #[path = "issues_report.rs"]
@@ -23,11 +24,6 @@ pub const READY: &[&str] = &[
     "意味の判断が要る検出は、判断モデルだけの判定なら参考情報として記録する",
     "実行結果は再実行できる形で出力する",
 ];
-
-/// A button named `name`.
-fn button(name: impl Into<String>) -> ElementSpec {
-    PageSpec::button(&name.into())
-}
 
 /// The `issue` lines of the event log of the kind `kind`.
 fn found_of(world: &QaWorld, kind: &str) -> Vec<Value> {

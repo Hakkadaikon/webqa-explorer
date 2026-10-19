@@ -3,11 +3,11 @@
 use cucumber::gherkin::Step;
 use cucumber::{given, then};
 use serde_json::{Value, json, to_value};
-use webqa_core::config::raw::{DoneWhen, Stage};
 use webqa_core::event::Mode;
 
 use crate::page::PageSpec;
 use crate::scene::found;
+use crate::shared::{login_only, url_done};
 use crate::world::QaWorld;
 
 /// The scenarios that have their steps.
@@ -83,17 +83,8 @@ async fn listed_without(world: &mut QaWorld, name: String) {
 
 #[given(expr = "決め打ちシナリオを実行している")]
 fn scripted(world: &mut QaWorld) {
-    let done_when = DoneWhen {
-        url: Some("/home".to_owned()),
-        element: None,
-        text: None,
-    };
     world.scene.mode = Mode::Scenario;
-    world.scene.stages = vec![Stage {
-        name: "ログイン".to_owned(),
-        goal: "ログインする".to_owned(),
-        done_when,
-    }];
+    world.scene.stages = login_only(url_done("/home"));
 }
 
 /// The name an item of the table has as a question, and the kind of the

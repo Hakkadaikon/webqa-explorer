@@ -4,7 +4,6 @@
 use std::time::Duration;
 
 use cucumber::{given, when};
-use webqa_core::config::raw::{DoneWhen, Stage};
 use webqa_core::machine::ExitReason;
 use webqa_core::machine::StuckKind;
 
@@ -12,6 +11,7 @@ use crate::judge::Reply;
 use crate::page::PageSpec;
 use crate::reason::Named;
 use crate::scene::{Scene, found};
+use crate::shared::{OTHER, foreign_page, login_only, text_done};
 use crate::world::QaWorld;
 
 /// The scenarios that have their steps.
@@ -24,9 +24,6 @@ pub const READY: &[&str] = &[
 /// What a scene of an ending or an issue does to the scene.
 type Make = fn(&mut Scene);
 
-/// The origin outside the allowed ones.
-const OTHER: &str = "https://other.example.net";
-
 /// The first answer of the judge, changed by `change`.
 fn amend(scene: &mut Scene, change: impl FnOnce(Reply) -> Reply) {
     let first = found(scene.replies.pop_front(), "the scene has a first answer");
@@ -35,17 +32,7 @@ fn amend(scene: &mut Scene, change: impl FnOnce(Reply) -> Reply) {
 
 /// The one stage that needs the text "ようこそ".
 fn welcome_stage(scene: &mut Scene) {
-    let done_when = DoneWhen {
-        url: None,
-        element: None,
-        text: Some("ようこそ".to_owned()),
-    };
-    let goal = "ログインする".to_owned();
-    scene.stages = vec![Stage {
-        name: "ログイン".to_owned(),
-        goal,
-        done_when,
-    }];
+    scene.stages = login_only(text_done("ようこそ"));
 }
 
 fn goal_achieved(scene: &mut Scene) {
@@ -104,14 +91,7 @@ fn leaves_origin(scene: &mut Scene) {
     scene
         .replies
         .push_front(Reply::op("click", 0.9).on("外部の記事"));
-    let outside = PageSpec {
-        origin: Some(OTHER.to_owned()),
-        path: String::new(),
-        ..PageSpec::default()
-    };
-    scene
-        .after
-        .push_front(outside.with(PageSpec::button("記事")));
+    scene.after.push_front(foreign_page(OTHER));
 }
 
 fn hint(scene: &mut Scene) {

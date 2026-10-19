@@ -6,6 +6,7 @@ use serde_json::json;
 use crate::judge::Reply;
 use crate::page::PageSpec;
 use crate::scene::found;
+use crate::shared::{OTHER, first_wait, foreign_page};
 use crate::world::QaWorld;
 
 /// The link the judge follows out of the allowed origin.
@@ -26,18 +27,10 @@ fn go_outside(world: &mut QaWorld) {
     scene.start.elements.push(PageSpec::link(OUTSIDE));
 }
 
-/// A page of the other origin.
-fn outside_page() -> PageSpec {
-    PageSpec {
-        origin: Some("https://other.example.net".to_owned()),
-        ..PageSpec::at("/")
-    }
-}
-
 #[when(expr = "許可ドメインの外から許可ドメインのページへ戻る")]
 async fn return_inside(world: &mut QaWorld) {
     go_outside(world);
-    world.scene.after.push_back(outside_page());
+    world.scene.after.push_back(foreign_page(OTHER));
     world.run().await;
 }
 
@@ -52,7 +45,7 @@ async fn leave_the_paywall(world: &mut QaWorld) {
 async fn window_count(world: &mut QaWorld, used: usize) {
     world.run().await;
     let kinds = world.kinds();
-    let wait = found(kinds.iter().position(|kind| kind == "waited"), "a wait");
+    let wait = first_wait(&kinds);
     let before = kinds.iter().take(wait);
     assert_eq!(
         before.filter(|kind| *kind == "executed").count(),
@@ -65,7 +58,7 @@ async fn window_count(world: &mut QaWorld, used: usize) {
 async fn no_question_before_the_window_ends(world: &mut QaWorld) {
     world.run().await;
     let kinds = world.kinds();
-    let wait = found(kinds.iter().position(|kind| kind == "waited"), "a wait");
+    let wait = first_wait(&kinds);
     let before = kinds.iter().take(wait);
     let asked = before.filter(|kind| *kind == "asked").count();
     assert_eq!(asked, world.scene.replies.len(), "only the given questions");
@@ -80,7 +73,7 @@ fn frozen(world: &mut QaWorld) {
 fn outside(world: &mut QaWorld) {
     go_outside(world);
     let home = PageSpec::at("/").with(PageSpec::link(OUTSIDE));
-    let pages = [home, outside_page()];
+    let pages = [home, foreign_page(OTHER)];
     world.scene.after.extend(pages);
 }
 
@@ -98,7 +91,7 @@ fn paywall_shown(world: &mut QaWorld) {
 fn recovered_after_waiting(world: &QaWorld, op: &str, cause: &str) {
     let lines = world.lines();
     let kinds = world.kinds();
-    let wait = found(kinds.iter().position(|kind| kind == "waited"), "a wait");
+    let wait = first_wait(&kinds);
     let later = lines
         .iter()
         .skip(wait)

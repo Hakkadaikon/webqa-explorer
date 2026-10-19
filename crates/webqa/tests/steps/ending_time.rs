@@ -4,12 +4,12 @@
 use std::time::Duration;
 
 use cucumber::{given, then};
-use webqa_core::config::raw::{DoneWhen, Stage};
 use webqa_core::machine::ExitReason;
 use webqa_core::ports::Clock;
 
 use crate::ending::{explore, settle_time};
 use crate::page::PageSpec;
+use crate::shared::{login_only, url_done};
 use crate::world::QaWorld;
 
 /// The scenarios that have their steps.
@@ -38,16 +38,7 @@ const fn started_ago(world: &mut QaWorld, secs: u64) {
 
 #[given(expr = "決め打ちシナリオを実行時間の上限 {int} 秒で実行している")]
 fn scenario_for(world: &mut QaWorld, secs: u64) {
-    let done_when = DoneWhen {
-        url: Some("/home".to_owned()),
-        element: None,
-        text: None,
-    };
-    world.scene.stages = vec![Stage {
-        name: "ログイン".to_owned(),
-        goal: "ログインする".to_owned(),
-        done_when,
-    }];
+    world.scene.stages = login_only(url_done("/home"));
     world.scene.max_duration = Some(Duration::from_secs(secs));
     world.scene.start.elements = vec![PageSpec::button("保存")];
 }

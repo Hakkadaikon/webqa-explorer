@@ -12,6 +12,7 @@ use webqa_core::screen::screen_text;
 
 use crate::judge::Reply;
 use crate::scene::found;
+use crate::shared::text_at;
 use crate::world::QaWorld;
 
 #[given(expr = "実行が問題を1件記録して終了した")]
@@ -38,12 +39,6 @@ fn one_issue_and_done(world: &mut QaWorld) {
 #[when(expr = "実行結果を出力する")]
 async fn write_report(world: &mut QaWorld) {
     world.run().await;
-}
-
-/// The text at `keys` of `value`, one key after the other. Nothing there is "".
-fn text_at(value: &Value, keys: &[&str]) -> String {
-    let at = keys.iter().try_fold(value, |value, key| value.get(*key));
-    at.and_then(Value::as_str).unwrap_or_default().to_owned()
 }
 
 /// The report of the run.

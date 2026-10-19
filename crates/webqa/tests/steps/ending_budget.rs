@@ -4,7 +4,6 @@
 use std::time::Duration;
 
 use cucumber::{given, then, when};
-use webqa_core::config::raw::{DoneWhen, Stage};
 use webqa_core::machine::{ExitReason, StuckKind};
 
 use crate::ending::{apply_goal, held, no_progress, settle_time, stuck_screen};
@@ -12,6 +11,7 @@ use crate::judge::Reply;
 use crate::page::PageSpec;
 use crate::reason::Named;
 use crate::scene::Scene;
+use crate::shared::{login_only, text_done};
 use crate::world::QaWorld;
 
 /// The scenarios that have their steps.
@@ -76,16 +76,7 @@ fn nothing_ends_the_run(world: &mut QaWorld) {
 
 #[given(expr = "done_when 条件が満たされている")]
 fn done_when_is_met(world: &mut QaWorld) {
-    let done_when = DoneWhen {
-        url: None,
-        element: None,
-        text: Some("ようこそ".to_owned()),
-    };
-    world.scene.stages = vec![Stage {
-        name: "ログイン".to_owned(),
-        goal: "ログインする".to_owned(),
-        done_when,
-    }];
+    world.scene.stages = login_only(text_done("ようこそ"));
     world.scene.marks.insert("goal", 1);
     apply_goal(world);
 }

@@ -2,12 +2,12 @@
 //! scenarios whose steps are all here are named in `READY`.
 
 use cucumber::{given, then, when};
-use webqa_core::config::raw::{DoneWhen, Stage};
 use webqa_core::machine::ExitReason;
 
 use crate::ending::{no_progress, revealed, stuck_screen, written_reasons};
 use crate::judge::Reply;
 use crate::page::PageSpec;
+use crate::shared::{login_only, url_done};
 use crate::world::QaWorld;
 
 /// The scenarios that have their steps.
@@ -22,31 +22,15 @@ pub const READY: &[&str] = &[
     "探索済みの要素が増えず、未操作の要素も新しく見えない操作が閾値の1回手前までなら終了しない",
 ];
 
-fn staged(world: &mut QaWorld, done_when: DoneWhen) {
-    world.scene.stages = vec![Stage {
-        name: "ログイン".to_owned(),
-        goal: "ログインする".to_owned(),
-        done_when,
-    }];
-}
-
-fn only_url(path: &str) -> DoneWhen {
-    DoneWhen {
-        url: Some(path.to_owned()),
-        element: None,
-        text: None,
-    }
-}
-
 #[given(expr = "現在の段階の done_when 条件が満たされている")]
 fn done_when_met(world: &mut QaWorld) {
-    staged(world, only_url("/"));
+    world.scene.stages = login_only(url_done("/"));
     world.scene.start = PageSpec::at("/");
 }
 
 #[given(expr = "現在の段階の done_when 条件は満たされていない")]
 fn done_when_unmet(world: &mut QaWorld) {
-    staged(world, only_url("/home"));
+    world.scene.stages = login_only(url_done("/home"));
     world.scene.start = PageSpec::at("/").with(PageSpec::button("保存"));
 }
 

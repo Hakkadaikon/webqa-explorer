@@ -2,13 +2,13 @@
 //! these again, or cucumber finds them ambiguous.
 
 use cucumber::{given, then, when};
-use webqa_core::config::raw::{DoneWhen, Stage};
 use webqa_core::event::Mode;
 use webqa_core::machine::{ExitReason, Step};
 
 use crate::judge::Reply;
 use crate::page::PageSpec;
 use crate::reason::Named;
+use crate::shared::{login_only, url_done};
 use crate::world::QaWorld;
 
 /// No scenario of the feature belongs to these steps alone.
@@ -81,16 +81,7 @@ async fn not_asked_again(world: &mut QaWorld) {
 
 #[given(expr = "実行がゴール達成として終了している")]
 fn goal_reached(world: &mut QaWorld) {
-    let done_when = DoneWhen {
-        url: Some("/".to_owned()),
-        element: None,
-        text: None,
-    };
-    world.scene.stages = vec![Stage {
-        name: "ログイン".to_owned(),
-        goal: "ログインする".to_owned(),
-        done_when,
-    }];
+    world.scene.stages = login_only(url_done("/"));
     world.scene.start = PageSpec::at("/");
 }
 
