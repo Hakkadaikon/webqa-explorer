@@ -12,7 +12,7 @@ use crate::world::QaWorld;
 /// The scenarios that have their steps.
 pub const READY: &[&str] = &[
     "探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める",
-    "何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない",
+    "input は、何も打ち込めなければ skipped として記録して探索済みの要素に数えず、打ち込めれば数える",
 ];
 
 /// The element named in quotes after `kind`, and whether it has a value.
@@ -60,11 +60,26 @@ async fn skipped_recorded(world: &mut QaWorld, cause: String) {
         .filter(|line| skipped(line))
         .filter_map(|line| line.get("cause").and_then(Value::as_str))
         .collect();
-    assert_eq!(causes, [cause.as_str()], "the skipped lines");
+    let expected = if cause == "なし" {
+        Vec::new()
+    } else {
+        vec![cause.as_str()]
+    };
+    assert_eq!(causes, expected, "the skipped lines");
+}
+
+/// Whether the element `name` is among the explored, once the run is over.
+async fn counted(world: &mut QaWorld, name: &str) -> bool {
+    world.run().await;
+    world.explored().contains(name)
+}
+
+#[then(expr = "{string} は探索済みの要素に数えられている")]
+async fn is_counted(world: &mut QaWorld, name: String) {
+    assert!(counted(world, &name).await, "{name} is explored");
 }
 
 #[then(expr = "{string} は探索済みの要素に数えられていない")]
-async fn not_counted(world: &mut QaWorld, name: String) {
-    world.run().await;
-    assert!(!world.explored().contains(&name), "{name} is not explored");
+async fn is_not_counted(world: &mut QaWorld, name: String) {
+    assert!(!counted(world, &name).await, "{name} is not explored");
 }
