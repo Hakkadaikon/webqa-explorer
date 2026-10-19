@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use cucumber::{given, then, when};
 use serde_json::Value;
+use webqa::run::session::Ending;
 use webqa_core::machine::ExitReason;
 use webqa_core::ports::Clock;
 
@@ -204,6 +205,10 @@ async fn interrupt_again(world: &mut QaWorld) {
 async fn ended_unwritten(world: &mut QaWorld) {
     world.run().await;
     let ran = world.ran();
-    let seen = (format!("{:?}", ran.ending), world.report().is_none());
-    assert_eq!(seen, ("Some(Abandoned)".to_owned(), true), "abandoned");
+    let abandoned = matches!(ran.ending, Some(Ending::Abandoned));
+    assert_eq!(
+        (abandoned, world.report().is_none()),
+        (true, true),
+        "abandoned"
+    );
 }

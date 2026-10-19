@@ -93,12 +93,19 @@ fn one_stage(world: &mut QaWorld, only: String) {
     drop(only);
 }
 
+/// The stages whose texts a page shows when it is in the stage: the ones
+/// before it too.
+const DONE: [(&str, &[&str]); 2] = [("ログイン", &["ログイン"]), ("投稿", &["ログイン", "投稿"])];
+
 #[given(expr = "段階 {string} にいて、その done_when 条件が満たされている")]
 fn in_stage_done(world: &mut QaWorld, name: String) {
     let page = &mut world.scene.start;
-    add_text(page, sentence("ログイン"));
-    if name == "投稿" {
-        add_text(page, sentence("投稿"));
+    let done = found(
+        DONE.iter().find(|(stage, _)| *stage == name),
+        "a known stage",
+    );
+    for done in done.1 {
+        add_text(page, sentence(done));
     }
     drop(name);
 }
@@ -141,7 +148,8 @@ fn unchanged_in_stage(world: &mut QaWorld, name: String, times: usize) {
 #[given(expr = "段階 {string} の done_when 条件が満たされている")]
 fn done_after_last(world: &mut QaWorld, name: String) {
     let scene = &mut world.scene;
-    if let Some(called) = scene.marks.get("called").copied() {
+    let called: Vec<u64> = scene.marks.get("called").copied().into_iter().collect();
+    for called in called {
         let queued = scene.replies.len();
         let keep = usize::try_from(called).unwrap_or(queued);
         drop(scene.replies.drain(..queued.saturating_sub(keep)));

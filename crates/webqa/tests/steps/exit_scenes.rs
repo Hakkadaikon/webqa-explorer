@@ -140,8 +140,7 @@ fn base(scene: &mut Scene) {
 fn ended_with(world: &mut QaWorld, named: Named, issue: &str) {
     let scene = &mut world.scene;
     base(scene);
-    let made = ISSUES.iter().find(|(name, _)| *name == issue);
-    if let Some((_, make)) = made {
+    for (_, make) in ISSUES.iter().filter(|(name, _)| *name == issue) {
         make(scene);
     }
     let at = ENDINGS.iter().position(|(reason, _)| *reason == named.0);

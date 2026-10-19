@@ -1,10 +1,13 @@
 //! The steps of the Rule that are about leaving the allowed origins.
 
+use std::iter::once;
+
 use cucumber::{given, then, when};
 
 use crate::judge::Reply;
 use crate::page::PageSpec;
 use crate::recovery::{field, lines_of};
+use crate::scene::found;
 use crate::stages_given::after_at;
 use crate::world::QaWorld;
 
@@ -94,24 +97,34 @@ async fn explored_kept(world: &mut QaWorld) {
     );
 }
 
+/// The origins each setting of the subdomains adds to the allowed ones.
+const SUBDOMAINS: [(&str, Option<&str>); 2] = [
+    ("なし", None),
+    (
+        "*.app.example.test を許可",
+        Some("https://*.app.example.test"),
+    ),
+];
+
 #[given(expr = "許可ドメインのサブドメインの扱いは {string} に設定されている")]
 fn subdomains(world: &mut QaWorld, setting: String) {
-    if setting != "なし" {
-        world
-            .scene
-            .origins
-            .push("https://*.app.example.test".to_owned());
-    }
+    let added = SUBDOMAINS.iter().find(|(name, _)| *name == setting);
+    let added = found(added, "a known setting of the subdomains").1;
+    world.scene.origins.extend(added.map(str::to_owned));
     drop(setting);
 }
 
 #[when(expr = "操作の結果 {string} へ遷移する")]
 async fn leads_to_result(world: &mut QaWorld, to: String) {
     let scene = &mut world.scene;
-    scene.start.elements.push(PageSpec::link("次へ"));
+    scene
+        .start
+        .elements
+        .push(PageSpec::link("次へ").href("/go"));
     scene.replies.push_back(Reply::op("click", 0.9).on("次へ"));
-    if scene.after.is_empty() {
-        *after_at(scene, 0) = landing(&to);
+    let fresh = scene.after.is_empty();
+    for page in once(landing(&to)).filter(|_| fresh) {
+        *after_at(scene, 0) = page;
     }
     world.run().await;
 }

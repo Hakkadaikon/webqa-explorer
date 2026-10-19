@@ -3,6 +3,8 @@
 
 use cucumber::{given, then, when};
 
+use webqa::run::session::Ending;
+
 use crate::judge::Reply;
 
 use crate::world::QaWorld;
@@ -27,13 +29,13 @@ async fn nothing_opened(world: &mut QaWorld) {
 }
 
 #[given(expr = "実行の記録の出力先が 空きの無いディスク である")]
-fn disk_full(world: &mut QaWorld) {
-    world.scene.store_limit = world.scene.store_limit.or(Some(1));
+const fn disk_full(world: &mut QaWorld) {
+    world.scene.store_limit = Some(1);
 }
 
 #[given(expr = "実行の記録の出力先が 書き込み権限の無いディレクトリ である")]
-fn directory_locked(world: &mut QaWorld) {
-    world.scene.store_limit = world.scene.store_limit.or(Some(1));
+const fn directory_locked(world: &mut QaWorld) {
+    world.scene.store_limit = Some(1);
 }
 
 #[when(expr = "1ステップを実行し、その記録を書こうとする")]
@@ -46,7 +48,7 @@ async fn step_and_write(world: &mut QaWorld) {
 async fn stopped(world: &mut QaWorld) {
     world.run().await;
     let ran = world.ran();
-    let failed = format!("{:?}", ran.ending).starts_with("Some(Failed(");
+    let failed = matches!(ran.ending, Some(Ending::Failed(_)));
     let seen = (
         failed,
         world.asked() <= 1,

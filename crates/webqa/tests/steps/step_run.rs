@@ -4,16 +4,28 @@ use std::collections::BTreeSet;
 
 use cucumber::{given, then};
 
-use crate::judge::Reply;
+use crate::judge::{Reply, Spoken};
 use crate::page::{ElementSpec, PageSpec};
 use crate::world::QaWorld;
 
+/// The role of the target of an operation, when it is not a button.
+const ROLES: [(&str, &str); 1] = [("input", "textbox")];
+
+/// The operation a reply names, if it answers one.
+const fn operation_of(reply: &Reply) -> Option<&str> {
+    match reply {
+        Reply::Answer(Spoken {
+            op: Some((op, _)), ..
+        }) => Some(op.as_str()),
+        Reply::Answer(_) | Reply::Fail(_) => None,
+    }
+}
+
 #[given(expr = "{string} は禁止要素に分類されておらず、実行の直前にも存在する")]
 fn present(world: &mut QaWorld, name: String) {
-    let said = format!("{:?}", world.scene.replies.back());
-    let roles = ["button", "textbox"];
-    let role = roles.get(usize::from(said.contains("\"input\""))).copied();
-    let element = ElementSpec::new(role.unwrap_or("button"), &name);
+    let said = world.scene.replies.back().and_then(operation_of);
+    let role = ROLES.iter().find(|(op, _)| Some(*op) == said);
+    let element = ElementSpec::new(role.map_or("button", |(_, role)| role), &name);
     world.scene.start.elements.push(element);
     drop(name);
 }
