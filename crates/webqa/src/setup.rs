@@ -11,6 +11,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use url::Url;
+use webqa_core::config::interview::Interview;
 use webqa_core::config::validate::{Env, Read, validate};
 use webqa_core::config::{self, Config, ConfigError, Secret, check_mode, raw};
 use webqa_core::event::Mode;
@@ -115,6 +116,25 @@ pub fn dotenv(dir: &Path) -> Result<(), DotEnvError> {
 /// the mode, the allowed origins, the redaction rules.
 pub fn load(yaml: &str, mode: Mode, env: Env<'_>, read: Read<'_>) -> Result<Setup, SetupError> {
     assemble(checked(yaml, mode, env, read)?, mode)
+}
+
+/// Reads `yaml` for an interview run: the setup of an exploration (the
+/// trials take their stage from the purpose, so no `scenario` is needed),
+/// and the interview settings with the documents they point to.
+///
+/// # Errors
+///
+/// [`SetupError`] for the first problem, in the order: YAML, validation,
+/// the operations, the interview settings and documents, the allowed
+/// origins, the redaction rules.
+pub fn load_interview(
+    yaml: &str,
+    env: Env<'_>,
+    read: Read<'_>,
+) -> Result<(Setup, Interview), SetupError> {
+    let config = checked(yaml, Mode::Explore, env, read)?;
+    let interview = config::interview::load(&config, read)?;
+    Ok((assemble(config, Mode::Explore)?, interview))
 }
 
 /// The configuration, validated for `mode`.

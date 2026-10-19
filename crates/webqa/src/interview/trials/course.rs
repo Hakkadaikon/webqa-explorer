@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use webqa_core::event::{Event, Mode};
+use webqa_core::event::Event;
 use webqa_core::interview::schedule::{Next, RunState, Schedule, next_trial};
 use webqa_core::ports::{Clock, Judge, Store};
 use webqa_core::redact::Redactor;
@@ -81,8 +81,8 @@ impl Course<'_> {
     async fn go(&mut self) -> Result<Stopped, Halt> {
         let started = Event::RunStarted {
             schema: 1,
-            mode: Mode::Scenario,
-            started_at: None,
+            mode: self.plan.mode,
+            started_at: self.plan.started_at.clone(),
         };
         self.log(started).await?;
         self.start_trials().await

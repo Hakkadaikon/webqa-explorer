@@ -70,6 +70,7 @@ impl Course<'_> {
             self.parts.redactor,
         )
         .resumed(kept)
+        .detecting(self.plan.detect.clone())
         .interviewing(interviewing);
         let interrupt = &mut *self.interrupt;
         let explored = run::explore_in(&mut ports, interrupt, rules, Memory::default(), window);

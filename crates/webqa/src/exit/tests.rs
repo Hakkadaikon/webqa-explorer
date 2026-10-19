@@ -9,6 +9,7 @@ use webqa_core::event::Mode;
 use webqa_core::explore::Memory;
 use webqa_core::guard::forbidden::Forbidden;
 use webqa_core::guard::paywall::Paywall;
+use webqa_core::interview::compare::Mismatch;
 use webqa_core::issue::{Issue, IssueKind};
 use webqa_core::machine::{self, ExitReason, Material, Outcome, Rules, Seen, StuckKind, Whole};
 use webqa_core::ports::{BrowserError, StoreError};
@@ -16,6 +17,8 @@ use webqa_core::redact::Redactor;
 use webqa_core::screen::{Element, Screen, Viewport};
 
 use super::*;
+use crate::interview::reset::ResetError;
+use crate::interview::trials::{Ending as Interview, Stopped};
 use crate::record::{Found, Record};
 use crate::run::RunError;
 
@@ -157,4 +160,24 @@ fn runtime_error_exits_three() {
     ];
     assert_eq!(failures.map(|ending| code(&ending)), [3; 3]);
     assert_eq!((CONFIG_ERROR, RUNTIME_ERROR), (2, 3));
+}
+
+#[test]
+fn interview_issues_exit_zero() {
+    let wrote = |confirmed| Interview::Wrote {
+        stopped: Stopped::Completed,
+        confirmed,
+    };
+    let endings = [
+        wrote(false),
+        wrote(true),
+        Interview::Mismatch(Mismatch::Persona),
+        Interview::ResetFailed(ResetError::Launch),
+        Interview::Failed(RunError::Browser(BrowserError)),
+        Interview::Abandoned,
+    ];
+    assert_eq!(
+        endings.map(|ending| interview_code(&ending)),
+        [0, 1, 2, 3, 3, 3]
+    );
 }

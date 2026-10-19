@@ -9,10 +9,12 @@ use std::time::Duration;
 
 use proptest::test_runner::TestCaseError;
 use webqa::interview::trials::Plan;
+use webqa::run::Detect;
 use webqa_core::config::interview::{Interview, Reset};
 use webqa_core::config::persona::Persona;
 use webqa_core::config::purpose::Purpose;
 use webqa_core::config::raw::Op;
+use webqa_core::event::Mode;
 use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::interview::ask::{EXPECTATION, HESITATION, PURPOSE_GUESS};
 use webqa_core::judge::QuestionId;
@@ -51,6 +53,9 @@ pub fn plan(case: &Case, out: &Path) -> Fallible<Plan> {
         max_duration: deadline(case),
         env: vec![var("RESET_OUT", out), var("PATH", path)],
         withheld: Vec::new(),
+        mode: Mode::Scenario,
+        started_at: None,
+        detect: Detect::default(),
     })
 }
 
