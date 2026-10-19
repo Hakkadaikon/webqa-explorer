@@ -1078,6 +1078,8 @@ crates/
           find.rs  gather.rs  label.rs  mismatch.rs  number.rs  rank.rs  record.rs
         outcome.rs       試行の結末と、目的に届かない試行の数え方
         natural.rs       自然さの問いと区分、問いの回数の上限
+        natural/
+          answer.rs  question.rs  quota.rs
         ledger.rs        台帳の書き出しと読み戻し、選択の書き換え
         compare.rs       前回の台帳との照らし合わせ
         schedule.rs      次の試行を始めるかの判定と、中核に渡す窓の上限

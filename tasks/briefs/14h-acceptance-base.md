@@ -21,7 +21,7 @@
 
 - `crates/webqa/tests/acceptance.rs`
 - `crates/webqa/tests/support/world.rs`(作り直す)
-- `crates/webqa/tests/support/` の下の新規: `scene.rs`、`page.rs`、`judge.rs`、`browser.rs`、`clock.rs`、`interrupt.rs`、`store.rs`、`config.rs`、`reason.rs`
+- `crates/webqa/tests/support/` の下の新規: `scene.rs`、`page.rs`、`judge.rs`、`browser.rs`、`clock.rs`、`interruption.rs`、`store.rs`、`setting.rs`、`reason.rs`、`remembered.rs`(`acceptance.rs` は `#[path]` で各ファイルをモジュールにするので、`steps/` の下と同じ名前を避ける)
 - `crates/webqa/tests/steps/common.rs`(新規)、`steps/background.rs`、`steps/boundaries.rs`(T-050 の手順を新しい世界に合わせる)
 - `crates/webqa/tests/steps/` の下の新規の空のファイル(`READY` の定数だけ): `step.rs`、`guard.rs`、`load.rs`、`ending.rs`、`stages.rs`、`recovery.rs`、`memory.rs`、`issues.rs`、`config.rs`、`interrupt.rs`、`exit.rs`
 
@@ -62,6 +62,7 @@ pub struct Scene {
     pub store_hold: Hold,                        // 記憶の書き出しを保留する(None、Once、Forever)
     pub yaml: Option<String>,                    // 設定から始めるときの YAML
     pub env: BTreeMap<String, String>,           // 設定の検証に渡す環境変数
+    pub marks: BTreeMap<&'static str, u64>,      // Rule の手順が、後の手順へ渡す値(名前は Rule の担当が決める)
 }
 ```
 
@@ -220,7 +221,7 @@ pub struct SceneBrowser {
 - `touch`: `touches` に積む。`stall_touch` なら `gate.notify_one()` して `future::pending()`。`op` が `"reload"` か `"return"` なら `page = start.clone()`。そうでなく `after` があれば先頭を取り出して `page` にする。`Ok(())`。
 - `screenshot`: `shots` を1増やし、`fakes::PNG` の画像。
 
-### 時計、中断、保存先(`support/clock.rs`、`interrupt.rs`、`store.rs`)
+### 時計、中断、保存先(`support/clock.rs`、`interruption.rs`、`store.rs`)
 
 - `SceneClock { now: Arc<AtomicU64>(ミリ秒), stall_sleep: bool, sleeps: Vec<Duration>, gate }`: `elapsed` は `now`。`sleep_until(at)` は `sleeps` に積み、`stall_sleep` なら `gate.notify_one()` して `pending`、そうでなければ `now` を `at` にする。判断モデルと同じ `now` を共有する。
 - `SceneInterrupt { fire_on: BTreeSet<usize>, calls: usize, fired: usize, gate }`: `wait` は `calls` を1増やし、番号が `fire_on` にあれば `fired` を1増やしてすぐ終わる。無ければ `gate` の `notified_owned()` を待ち、終わったら `fired` を1増やす。
@@ -311,6 +312,21 @@ impl QaWorld {
 
 `poke(later)`: `machine::step(state.clone(), Facts::Outside(Heard::Woke), 終わった時刻 + later)` を `poked` に入れる。判断モデル、ブラウザ、保存先は呼ばない。
 
+### 前の実行の記憶(`support/remembered.rs`)
+
+```rust
+/// Puts a memory file for the first allowed origin in `scene.memories`, as
+/// a previous run would have left it: `screens` as (path, (role, name)
+/// elements), and `edges` as (from screen, element name, to screen)
+/// clicks, which mark the element operated.
+pub fn remember(scene: &mut Scene, screens: &[(&str, &[(&str, &str)])], edges: &[(usize, &str, usize)]);
+```
+
+- 画面は `PageSpec` で組み、`Redactor::default().screen(..)` に通して `Memory::visit` に渡す(禁止の印は付けない。読み込んだあとの最初の観測で中核が付け直す)。辺は `Memory::record(from, 要素, ElementOp::Click, to)`。名前の要素が無ければ assert で失敗する。
+- 記憶の画面の識別は、パスと要素の (role, 名前) の集合なので、記憶に書く画面の要素は、実行で見せる画面の要素と同じ集合にする(位置と表示領域は問わない)。
+- `Memory::to_json(origin)` を文字列にして入れる。
+- 土台の確かめ: `remember(scene, &[("/", &[("button", "保存"), ("link", "ヘルプ")]), ("/settings", &[("button", "通知")])], &[(0, "保存", 1)])` の JSON を `Memory::from_json` で読み戻すと、画面2つ、辺1つ、"保存" は操作済み。
+
 ### 終了理由のパラメータ(`support/reason.rs`)
 
 ```rust
@@ -323,7 +339,7 @@ pub struct Named(pub ExitReason);   // FromStr で写す。行き詰まりは種
 - `FromStr`: ゴール達成 → `GoalAchieved`、未検証の終了 → `ReportedDone`、行き詰まり → `Stuck(NoProgress)`(比べるときは `is_stuck` で種類を問わない)、判断予算切れ → `BudgetExceeded`、時間切れ → `TimeExceeded`、利用者による中断 → `UserAborted`。表で引き、`match` にしない。
 - `matches(&self, reason: Option<ExitReason>) -> bool`: 行き詰まりは `reason.is_some_and(ExitReason::is_stuck)`、ほかは等しいか。
 
-### 設定(`support/config.rs`)
+### 設定(`support/setting.rs`)
 
 - `BASE: &str`: `docs/architecture.md` の例の YAML を写し、`target.url` を `https://app.example.test`、`allowed_origins: []`、`limits` を Background の値(固まり3、行き詰まり3、呼び出し20、窓10、`page_timeout_secs: 10`、`back_confidence: 0.7`、`error_confidence: 0.8`、`max_duration_secs` は書かない)にしたもの。`scenario` は1段階("ログイン"、done_when の `url: /home`)、`inputs` は `メールアドレス: { env: TEST_EMAIL }`、`redact` は例のとおり。
 - `base_env() -> BTreeMap`: `JEV_API_KEY` は `value-of-JEV_API_KEY`、`TEST_EMAIL` は `taro@example.test`。

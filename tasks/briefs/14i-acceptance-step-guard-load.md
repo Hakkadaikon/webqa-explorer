@@ -41,8 +41,8 @@ feature の3つの Rule のシナリオ23本を、受け入れのテストとし
 | `判断モデルに次の4項目を問い合わせている` | Then | `judge.questions[0]` の名前の列が `["operation", "target", "error_shown", "goal_reached"]`(表の4行を名前に写して比べる)。`operation` の `Choice` の選択肢は `["click", "input", "scroll_down", "scroll_up", "back", "wait", "done", "stuck"]`、`target` は `Choice`(番号)、`error_shown` と `goal_reached` は `Noul`(真偽) |
 | `{string} は禁止要素に分類されておらず、実行の直前にも存在する` | Given | 名前の要素を足す。直前に積んだ答えの操作が `input` なら `textbox(name)`、ほかは `button(name)` |
 | `ブラウザで操作 {string} を実行している` | Then | `touched()` の when_step の操作が `op` |
-| `探索済みの要素は {string} だけである` | Then | `explored()` が `{name}`(Examples の `"保存" だけ` の行。`"..."` を含むので `{string} だけ` で受ける) |
-| `探索済みの要素は空である` | Then | `explored()` が空 |
+| `探索済みの要素は {string} だけ である` | Then | `explored()` が `{name}`(Examples の `"保存" だけ` を `<探索済み>` に入れた文。`だけ` と `である` の間に半角空白が入る) |
+| `探索済みの要素は 空 である` | Then | `explored()` が空(`空` の前後に半角空白が入る) |
 | `直前のステップで {string} をクリックしたが画面が変化しなかった` | Given | `button(name)` と `link("ヘルプ")` を足し、`Reply::op("click", 0.9).on(name)` を積む(画面は変わらない) |
 | `判断モデルが対象要素の候補として {string} を {float}、{string} を {float} の確信度で返す` | Given | `Reply::op("click", 0.9).on_ranked(a, pa).on_ranked(b, pb)` を積む |
 | `{string} はクリックしていない` | Then | when_step の操作の対象が `name` でない |
@@ -144,7 +144,7 @@ T-012 の6行の場面(どれも `after` に、課金画面でない `/` の画�
 | `許可ドメインの外にいる` | Given | 2つ目の答えを `click` "外部の記事" に置き換え、`after` に `/` の画面、外の画面をこの順に積む |
 | `課金画面が表示されている` | Given | `after` に `/` の画面、`/pricing` の画面をこの順に積み、その次に `/` の画面を積む |
 | `対象サーバへアクセスしていない` | Then | 最後の `executed` の行と最初の `waited` の行の間に `recovered` が無い |
-| `時間窓が明けたあとのステップで {string} をしている` | Then | 最初の `waited` の行より後の最初の `recovered` の行の `op` と `cause` が、`"ページの開き直し"` は (`reload`, `frozen`)、`"許可ドメインへの戻り"` は (`return`, `outside`)、`"既定の離脱操作"` は (`back`, `paywall`)。Examples の値は `<アクセス>` の列で、`{string}` でなく列の文がそのまま来るので、3つの文言ごとの手順にしてよい |
+| `時間窓が明けたあとのステップで ページの開き直し をしている` ほか2本(`許可ドメインへの戻り`、`既定の離脱操作`。Examples の値は引用符なしで前後に半角空白が入る) | Then | 最初の `waited` の行より後の最初の `recovered` の行の `op` と `cause` が、開き直しは (`reload`, `frozen`)、戻りは (`return`, `outside`)、離脱は (`back`, `paywall`) |
 | `判断モデルが操作 {string} と禁止要素 {string} を返す` | Given | `button(name)` と `button("保存")`、`Reply::op(op, 0.9).on(name)` |
 
 T-053 の「固まりから復旧する」で行き詰まりの閾値(3)は1回の操作では届かない。T-071 の「固まりを検出している」では、2回の操作で固まり(閾値2)と行き詰まりの回数2(閾値3)になり、窓の待機が先に採られる(待機の4段目の最初の行)。窓が明けたあと、開き直しが採られる。
