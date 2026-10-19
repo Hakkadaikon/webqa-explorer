@@ -531,6 +531,18 @@ APIのエラーとタイムアウトも、アダプタが`JudgeError`にして�
   JEVは真偽、選択、点数の問いだけに答える。
   そこで、自由な文の問いは、橋渡しがAI Gatewayの言語モデルへ送る。
 
+JEVへの橋渡しは`bridge/jev.py`に置く。
+Pythonの標準ライブラリだけで書き、AI GatewayのTypeSafe互換の入口へ送る。
+引数は、JEVのモデル(`--model`、既定は`typesafe-ai/jev-1.14.0`)、
+自由な文の問いを送る言語モデル(`--text-model`)、
+要求の1行あたりの時間の予算(`--timeout`、既定は30秒)の3つである。
+予算は行を読んだ時刻から数え、自由な文の問いと再試行の待ちも、その内に収める。
+1回の待ちの上限は残りの時間である。
+応答の本体を細切れに送られると、期限を超えることがある(中核の`judge.timeout_secs`が打ち切る)。
+橋渡しの`--timeout`は、中核の`judge.timeout_secs`より短くする。
+`--text-model`を書かなければ、自由な文の問いはAPIの失敗として返す。
+写し方は`tasks/briefs/59-jev-bridge.md`にある。
+
 外部コマンドの中で、ツールの利用者は任意の判断モデルへつなげる。
 APIキーは、設定が参照する環境変数から読み、子プロセスの環境変数として渡す。
 設定でAPIキーを省いたときは渡さない。
@@ -859,7 +871,7 @@ target:
   allowed_origins: ["https://app.example.test", "https://*.app.example.test"]
 judge:
   kind: command
-  command: ["./bridge/jev.py"]
+  command: ["./bridge/jev.py", "--text-model", "<言語モデルの名前>"]
   api_key: { env: JEV_API_KEY }
   timeout_secs: 30
   pricing: { input_per_1k: 0.0, output_per_1k: 0.0 }
@@ -1172,6 +1184,11 @@ crates/
       guide.rs           配布する手引きの形
 share/
   skills/                配布する手引き(ペルソナと目的を書かせる)
+bridge/
+  jev.py                 JEVへの橋渡しのコマンド
+  gateway.py             AI GatewayへのHTTP、時間の予算、再試行
+  jev_test.py  jev_flow_test.py  jev_budget_test.py
+  fake.py                テストの偽のHTTPと時計
 ```
 
 `webqa`は、libとbinの2つのターゲットを持つcrateにする。
