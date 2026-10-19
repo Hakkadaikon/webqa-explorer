@@ -79,6 +79,20 @@ impl ExitReason {
     }
 }
 
+/// Who asked for the browser operation a state waits on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Cause {
+    /// The judge's proposal, passed by the guardrails.
+    Judge,
+    /// Leaving a paywall.
+    Paywall,
+    /// Returning to an allowed origin.
+    Outside,
+    /// Reloading a frozen page.
+    Frozen,
+}
+
 /// What the core keeps between effects.
 ///
 /// `Debug` shows no page strings: the screen, the material, the memory and
@@ -216,6 +230,32 @@ impl State {
             Some(reason)
         } else {
             None
+        }
+    }
+
+    /// Who asked for the operation this state waits on. `None` unless it
+    /// waits for the page after a browser operation.
+    #[must_use]
+    pub fn cause(&self) -> Option<Cause> {
+        match self.phase {
+            Phase::Acting => Some(self.acting()),
+            Phase::Returning => Some(Cause::Outside),
+            Phase::Recovering => Some(Cause::Frozen),
+            Phase::Idle
+            | Phase::Awaiting
+            | Phase::Confirming
+            | Phase::Sleeping
+            | Phase::Ended(_) => None,
+        }
+    }
+
+    /// The judge's proposal when the held one has an operation kind, else
+    /// leaving a paywall.
+    fn acting(&self) -> Cause {
+        if self.proposal.as_ref().is_some_and(|p| p.row.is_some()) {
+            Cause::Judge
+        } else {
+            Cause::Paywall
         }
     }
 

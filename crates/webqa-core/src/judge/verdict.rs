@@ -2,6 +2,8 @@
 
 use std::cmp::Ordering;
 
+use serde::Serialize;
+
 use super::{Answers, Ask, MAX_OPTIONS, QuestionId, Usage, op_name};
 use crate::config::raw::Op;
 
@@ -25,7 +27,8 @@ pub struct Verdict {
 
 /// Answers that arrived but cannot be used. Carries only the name of the
 /// question, never what the judge returned.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, thiserror::Error)]
+#[serde(tag = "cause", content = "question", rename_all = "snake_case")]
 pub enum Unusable {
     /// The question has no answer, or no option.
     #[error("判断モデルの答えに {} が無い", .0.as_str())]

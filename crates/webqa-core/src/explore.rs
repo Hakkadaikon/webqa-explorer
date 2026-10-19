@@ -3,5 +3,5 @@
 pub mod graph;
 pub mod select;
 
-pub use graph::{ElementOp, Memory, ScreenKey};
+pub use graph::{ElementOp, Memory, MemoryFileError, ScreenKey};
 pub use select::{Candidate, Candidates, candidates};
