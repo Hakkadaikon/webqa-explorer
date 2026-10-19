@@ -150,7 +150,9 @@ impl QaWorld {
         let end = beats.iter().rposition(|beat| *beat == Beat::End);
         let stalled = self.ran().judge.stalled;
         let at = end.unwrap_or(beats.len());
-        drop(beats.splice(at..at, stalled.then_some(Beat::Ask)));
+        if stalled {
+            beats.insert(at, Beat::Ask);
+        }
         beats
     }
 
