@@ -6,6 +6,7 @@ mod tests;
 use std::future::Future;
 use std::pin::pin;
 
+use tokio::signal::ctrl_c;
 use webqa_core::ports::Pending;
 
 /// Where interruptions come from.
@@ -28,5 +29,17 @@ where
             out = &mut work => return Some(out),
             () = interrupt.wait() => left = left.checked_sub(1)?,
         }
+    }
+}
+
+/// The user's Ctrl-C.
+#[derive(Debug, Default)]
+pub struct CtrlC;
+
+impl Interrupt for CtrlC {
+    fn wait(&mut self) -> Pending<'_, ()> {
+        // A failed registration also counts as an interruption: waiting on
+        // would leave the user no way to stop the run.
+        Box::pin(async { drop(ctrl_c().await) })
     }
 }

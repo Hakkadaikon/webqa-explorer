@@ -3,9 +3,11 @@
 use std::collections::BTreeSet;
 use std::future;
 use std::num::NonZeroU32;
+use std::process::{Command, id};
 use std::task::Poll;
 use std::time::Duration;
 
+use tokio::task::yield_now;
 use url::Url;
 use webqa_core::config::raw::{DoneWhen, Op, Stage};
 use webqa_core::event::Mode;
@@ -137,4 +139,17 @@ fn rules() -> Rules {
             },
         }],
     }
+}
+
+#[tokio::test]
+async fn ctrl_c_resolves_the_wait() {
+    let waiting = tokio::spawn(async { CtrlC.wait().await });
+    // The signal handler is registered when the wait is first polled.
+    yield_now().await;
+    let sent = Command::new("kill")
+        .args(["-INT", &id().to_string()])
+        .status()
+        .map(|s| s.success());
+    assert_eq!(sent.ok(), Some(true));
+    assert_eq!(waiting.await.ok(), Some(()));
 }

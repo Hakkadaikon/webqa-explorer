@@ -1,1 +1,152 @@
 //! The command line: subcommands, start-up and the exit code.
+
+pub mod app;
+pub mod start;
+#[cfg(test)]
+mod tests;
+
+use std::env::current_dir;
+use std::ffi::OsString;
+use std::io::{self, Write};
+use std::path::PathBuf;
+
+use clap::Parser;
+use tokio::runtime::{Builder, Runtime};
+
+use crate::exit::CONFIG_ERROR;
+use crate::{logging, setup};
+use start::Stop;
+
+/// The command line of `webqa`.
+#[derive(Debug, PartialEq, Eq, clap::Parser)]
+#[command(
+    name = "webqa",
+    version,
+    about = "Exploratory testing agent for web services"
+)]
+pub struct Cli {
+    /// What to do.
+    #[command(subcommand)]
+    pub command: Command,
+}
+
+/// The subcommands.
+#[derive(Debug, PartialEq, Eq, clap::Subcommand)]
+pub enum Command {
+    /// Runs the scenario of the configuration.
+    Run(RunArgs),
+    /// Explores the target freely.
+    Explore(RunArgs),
+    /// Runs again the operations of a report.
+    Replay(ReplayArgs),
+}
+
+/// The arguments of `run` and `explore`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct RunArgs {
+    /// The configuration file.
+    #[arg(long)]
+    pub config: PathBuf,
+    /// Where the records go.
+    #[arg(long, default_value = ".webqa")]
+    pub out: PathBuf,
+}
+
+/// The arguments of `replay`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct ReplayArgs {
+    /// The report to run again.
+    pub report: PathBuf,
+    /// The configuration file.
+    #[arg(long)]
+    pub config: PathBuf,
+    /// Where the records go.
+    #[arg(long, default_value = ".webqa")]
+    pub out: PathBuf,
+}
+
+/// Writes `text` and a newline to the standard error. A failed write is
+/// dropped: there is nowhere else to say it.
+fn say(text: &str) {
+    drop(writeln!(io::stderr(), "{text}"));
+}
+
+/// Runs the command line and returns the exit code.
+pub fn entry<I, T>(args: I) -> u8
+where
+    I: IntoIterator<Item = T>,
+    T: Into<OsString> + Clone,
+{
+    match env_file() {
+        Ok(()) => {
+            keep_our_interrupt();
+            logging::init(io::stderr);
+            read_and_run(args)
+        }
+        Err(stop) => app::stopped(stop).code,
+    }
+}
+
+/// Stops Playwright from exiting on Ctrl-C by itself (with code 130, before
+/// the records are written). It reads the variable at launch. `dotenvy` sets
+/// it for us, as this crate forbids `unsafe`, and a value already set wins.
+/// This runs before the logs start and the runtime is made, while the
+/// process has one thread, so changing the environment is safe.
+fn keep_our_interrupt() {
+    drop(dotenvy::from_read(&b"PLAYWRIGHT_NO_SIGNAL_HANDLER=1"[..]));
+}
+
+/// Reads `.env` of the working directory. A working directory that cannot
+/// be read has no `.env` to read.
+fn env_file() -> Result<(), Stop> {
+    let dir = current_dir();
+    dir.map_or(Ok(()), |dir| setup::dotenv(&dir))
+        .map_err(Stop::config)
+}
+
+fn read_and_run<I, T>(args: I) -> u8
+where
+    I: IntoIterator<Item = T>,
+    T: Into<OsString> + Clone,
+{
+    match Cli::try_parse_from(args) {
+        Ok(cli) => in_runtime(cli.command),
+        Err(error) => explain(&error),
+    }
+}
+
+/// Writes what clap says; `--help` and `--version` are not errors.
+fn explain(error: &clap::Error) -> u8 {
+    let text = error.render();
+    if error.use_stderr() {
+        say(&text.to_string());
+        CONFIG_ERROR
+    } else {
+        drop(writeln!(io::stdout(), "{text}"));
+        0
+    }
+}
+
+fn in_runtime(command: Command) -> u8 {
+    let runtime = Builder::new_current_thread().enable_all().build();
+    let done = runtime
+        .map_err(Stop::runtime)
+        .map(|runtime| drive(runtime, command));
+    done.unwrap_or_else(app::stopped).code
+}
+
+fn drive(runtime: Runtime, command: Command) -> app::Done {
+    let done = runtime.block_on(app::app(command));
+    stop_runtime(runtime, done.abandoned);
+    done
+}
+
+/// Stops the runtime. When the records were abandoned, work still running
+/// is not waited for.
+fn stop_runtime(runtime: Runtime, abandoned: bool) {
+    if abandoned {
+        runtime.shutdown_background();
+    } else {
+        drop(runtime);
+    }
+}
