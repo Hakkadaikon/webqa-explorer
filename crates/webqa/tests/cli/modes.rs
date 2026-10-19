@@ -1,5 +1,6 @@
 //! The runs of the mode tests.
 
+use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -57,21 +58,68 @@ pub fn explore_clicking(case: &Case) -> io::Result<(PathBuf, Script)> {
     Ok((original, first))
 }
 
-/// What the report of a replay of `original` scripts. The judge of the
-/// configuration is never started.
+/// What the report of a replay of `original` scripts, run into the same
+/// output directory and the same site as the original. The judge of the
+/// configuration is never started. The replay makes the same decisions as the
+/// original and leaves the stored memory as it was.
 pub fn replayed(original: &Path) -> io::Result<Script> {
-    // A fresh output directory: the memory of the first run would steer the
-    // replay away from `保存`, which that run already tried. Replaying with
-    // the same directory is a separate issue.
-    let other = Case::new("replay_again")?;
-    let mut config = other.config("silent");
+    let case = case_of(original)?;
+    let out = case.out();
+    let out = out.as_path();
+    let mut config = case.config("silent");
     config.max_decisions = 2;
     config.max_duration = 60;
+    let before = memory_files(out);
+    let asked = fs::read_to_string(&case.log).ok();
     let report = arg(&original.join("report.json"));
-    let output = other.run(&["replay", &report], &config, &[])?;
+    let output = case.run(&["replay", &report], &config, &[])?;
     assert_eq!(exec::code(&output), Some(0), "exit code");
-    assert!(!other.log.exists(), "the bridge was not started");
-    Ok(script(&other.report()?))
+    assert_eq!(
+        fs::read_to_string(&case.log).ok(),
+        asked,
+        "the bridge was not asked"
+    );
+    assert_eq!(memory_files(out), before, "the stored memory is left alone");
+    let again = exec::latest_run(out)?;
+    assert_eq!(decided(&again)?, decided(original)?, "the same decisions");
+    Ok(script(&case.report()?))
+}
+
+/// The case that made the run `original`: its directory and its site.
+fn case_of(original: &Path) -> io::Result<Case> {
+    let dir = original
+        .ancestors()
+        .nth(3)
+        .unwrap_or(original)
+        .to_path_buf();
+    let report = exec::report(original)?;
+    let url = field(&report, "target").unwrap_or_default().to_owned();
+    Ok(Case {
+        log: dir.join("bridge.log"),
+        dir,
+        url,
+    })
+}
+
+/// The memory files under `out`, by name, as bytes.
+fn memory_files(out: &Path) -> Vec<(String, Vec<u8>)> {
+    let dir = out.join("memory");
+    let named = exec::names(&dir).into_iter();
+    named
+        .map(|name| (fs::read(dir.join(&name)).unwrap_or_default(), name))
+        .map(|(bytes, name)| (name, bytes))
+        .collect()
+}
+
+/// The operation and target of each decision in the events of `run`.
+fn decided(run: &Path) -> io::Result<Vec<(Value, Value)>> {
+    let events = exec::events(run)?;
+    let decisions = events
+        .iter()
+        .filter(|e| field(e, "kind") == Some("decided"));
+    Ok(decisions
+        .map(|e| (e["op"].clone(), e["target"].clone()))
+        .collect())
 }
 
 /// A configuration with `extra` in `judge` is refused, and the key it may
