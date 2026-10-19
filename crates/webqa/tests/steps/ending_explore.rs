@@ -116,7 +116,7 @@ fn answered_malformed(world: &mut QaWorld) {
 }
 
 /// The options of the question about the operation, in the first call.
-fn operation_options(world: &QaWorld) -> Vec<String> {
+pub fn operation_options(world: &QaWorld) -> Vec<String> {
     let first = world
         .ran()
         .judge
@@ -135,20 +135,12 @@ fn operation_options(world: &QaWorld) -> Vec<String> {
 }
 
 #[then(
-    expr = "判断モデルに問い合わせた操作種別の選択肢は click, input, scroll_down, scroll_up, back, wait, stuck の7種である"
+    expr = "判断モデルに問い合わせた操作種別の選択肢は click, scroll_down, scroll_up, back, wait, stuck の6種である"
 )]
-async fn seven_options(world: &mut QaWorld) {
+async fn six_options(world: &mut QaWorld) {
     world.run().await;
-    let seven = [
-        "click",
-        "input",
-        "scroll_down",
-        "scroll_up",
-        "back",
-        "wait",
-        "stuck",
-    ];
-    assert_eq!(operation_options(world), seven, "the options");
+    let six = ["click", "scroll_down", "scroll_up", "back", "wait", "stuck"];
+    assert_eq!(operation_options(world), six, "the options");
 }
 
 #[then(expr = "その選択肢に done は含まれない")]

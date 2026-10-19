@@ -52,6 +52,8 @@ mod ending_time;
 mod exit;
 #[path = "steps/exit_scenes.rs"]
 mod exit_scenes;
+#[path = "steps/explore_input.rs"]
+mod explore_input;
 #[path = "steps/guard.rs"]
 mod guard;
 #[path = "steps/guard_pages.rs"]
@@ -105,6 +107,7 @@ fn ready() -> Vec<&'static str> {
         ending_budget::READY,
         ending_time::READY,
         ending_explore::READY,
+        explore_input::READY,
         stages::READY,
         recovery::READY,
         memory::READY,
