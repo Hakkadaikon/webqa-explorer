@@ -88,7 +88,7 @@ async fn report_replays(world: &mut QaWorld) {
     world.run().await;
     let text = report(world).to_string();
     let parsed = Replay::from_report(&text);
-    let (mode, mut replay) = found(parsed.ok(), "the report is a report");
+    let (mode, mut replay, _) = found(parsed.ok(), "the report is a report");
     assert_eq!(mode, Mode::Scenario, "the mode of the run");
     let judge = &world.ran().judge;
     let page = world.scene.start.build(&world.scene.origin());
@@ -104,13 +104,18 @@ async fn report_replays(world: &mut QaWorld) {
         found(judge.texts.first(), "the judge was sent a text"),
         "保存",
     );
+    assert_first_answers(&answers, first);
+}
+
+/// The replay answers click on the first element, as the run did.
+fn assert_first_answers(answers: &Answers, first: String) {
     assert_eq!(
-        row(&answers, &QuestionId::operation()),
+        row(answers, &QuestionId::operation()),
         [("click".to_owned(), 0.9)],
         "the operation"
     );
     assert_eq!(
-        row(&answers, &QuestionId::target()),
+        row(answers, &QuestionId::target()),
         [(first, 0.9)],
         "the target"
     );

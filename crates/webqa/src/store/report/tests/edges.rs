@@ -90,6 +90,7 @@ fn issue_without_screenshot_leaves_the_field_out() {
         &record,
         ExitReason::BudgetExceeded,
         &meta(),
+        &start_memory(),
         &Redactor::default(),
     )
     .into_inner();

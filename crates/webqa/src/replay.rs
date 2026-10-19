@@ -11,6 +11,7 @@ use std::collections::{BTreeMap, VecDeque};
 use std::future;
 
 use serde::Deserialize;
+use serde_json::Value;
 use webqa_core::event::Mode;
 use webqa_core::judge::{Answers, JudgeError, Question, QuestionId, Usage};
 use webqa_core::ports::{Judge, Pending};
@@ -36,6 +37,9 @@ struct ReportFile {
     schema: u32,
     mode: Mode,
     calls: Vec<CallEntry>,
+    /// The memory the run started from; reports before it was kept have none.
+    #[serde(default)]
+    start_memory: Option<Value>,
 }
 
 /// The answers of a call, by question; a missing probability is `NaN`.
@@ -57,17 +61,19 @@ struct UsageEntry {
 }
 
 impl Replay {
-    /// The mode of the run and its replies, read from the text of `report.json`.
+    /// The mode of the run, its replies and the memory it started from (a
+    /// memory file; `None` for a report that kept none), read from the text of
+    /// `report.json`.
     ///
     /// # Errors
     ///
     /// [`ReplayError`] when the text is not a report of version 1.
-    pub fn from_report(text: &str) -> Result<(Mode, Self), ReplayError> {
+    pub fn from_report(text: &str) -> Result<(Mode, Self, Option<Value>), ReplayError> {
         let report: ReportFile = serde_json::from_str(text).or(Err(ReplayError))?;
         let current = Some(report).filter(|report| report.schema == SCHEMA);
         let report = current.ok_or(ReplayError)?;
         let replies = report.calls.into_iter().map(CallEntry::reply).collect();
-        Ok((report.mode, Self { replies }))
+        Ok((report.mode, Self { replies }, report.start_memory))
     }
 }
 

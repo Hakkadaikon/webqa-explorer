@@ -7,7 +7,7 @@ use std::sync::atomic::AtomicU64;
 
 use tokio::sync::Notify;
 use webqa::exit;
-use webqa::run::session::{Ending, Plan, conduct};
+use webqa::run::session::{Ending, Plan, Start, conduct};
 use webqa::run::{Detect, Ports};
 use webqa::setup;
 use webqa::store::report::{Meta, Price};
@@ -120,6 +120,7 @@ impl Fakes {
                     output_per_1k: 0.002,
                 }),
             },
+            start: Start::Stored,
         };
         conduct(&mut ports, &mut self.interrupt, setting.rules, &plan).await
     }

@@ -1,6 +1,6 @@
 //! Tests of the judge that replays a report.
 
-use serde_json::json;
+use serde_json::{Value, json};
 use url::Url;
 use webqa_core::judge::QuestionId;
 use webqa_core::machine::ExitReason;
@@ -9,7 +9,7 @@ use webqa_core::screen::{Screen, ScreenText, Viewport, screen_text};
 
 use super::*;
 use crate::store::report::build;
-use crate::store::report::tests::{first_answers, meta, record, report};
+use crate::store::report::tests::{first_answers, meta, record, report, start_memory};
 
 fn screen() -> Redacted<ScreenText> {
     let screen = Screen {
@@ -25,7 +25,7 @@ fn screen() -> Redacted<ScreenText> {
 
 #[tokio::test]
 async fn replay_gives_back_recorded_replies() {
-    let (mode, mut replay) = Replay::from_report(&report().to_string()).unwrap();
+    let (mode, mut replay, _) = Replay::from_report(&report().to_string()).unwrap();
     assert_eq!(mode, Mode::Explore, "the mode of the run");
     let text = screen();
     let replies = [
@@ -54,10 +54,11 @@ async fn nan_comes_back_as_nan() {
         &record,
         ExitReason::BudgetExceeded,
         &meta(),
+        &start_memory(),
         &Redactor::default(),
     );
     let text = report.into_inner().to_string();
-    let (_, mut replay) = Replay::from_report(&text).unwrap();
+    let (_, mut replay, _) = Replay::from_report(&text).unwrap();
     let back = replay.ask(&screen(), &[]).await.unwrap();
     let p = back.table[&operation][0].1;
     assert!(p.is_nan(), "a missing probability is NaN again: {p}");
@@ -76,12 +77,27 @@ fn unreadable_report_is_error() {
         calls_text.to_string(),
     ];
     for text in texts {
-        let read = Replay::from_report(&text).map(|(mode, _)| mode);
+        let read = Replay::from_report(&text).map(|(mode, ..)| mode);
         assert_eq!(read, Err(ReplayError), "not a report: {text}");
     }
     assert_eq!(
         ReplayError.to_string(),
         "実行結果を再実行の台本として読めない",
         "a fixed message"
+    );
+}
+
+#[test]
+fn from_report_reads_start_memory() {
+    let start = |report: Value| {
+        let (_, _, memory) = Replay::from_report(&report.to_string()).unwrap();
+        memory
+    };
+    let mut old = report();
+    old.as_object_mut().unwrap().remove("start_memory");
+    assert_eq!(
+        (start(report()), start(old)),
+        (Some(start_memory()), None),
+        "an old report has none"
     );
 }

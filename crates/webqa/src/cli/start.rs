@@ -5,10 +5,12 @@ use std::fmt::Display;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use serde_json::Value;
 use tokio::fs as async_fs;
 use webqa_browser::probe::ProbeArg;
 use webqa_browser::{LaunchOptions, PlaywrightBrowser};
 use webqa_core::event::Mode;
+use webqa_core::explore::{Memory, MemoryFileError};
 use webqa_core::ports::Judge;
 use webqa_core::redact::Redactor;
 use webqa_core::screen::Viewport;
@@ -17,7 +19,8 @@ use webqa_judge::table::{self, StartError};
 use super::{Command, RunArgs};
 use crate::clock::{RealClock, Wall};
 use crate::exit::{CONFIG_ERROR, RUNTIME_ERROR};
-use crate::replay::Replay;
+use crate::replay::{Replay, ReplayError};
+use crate::run::session::Start;
 use crate::setup::{self, BrowserPlan, Setup};
 use crate::store::file::FileStore;
 
@@ -111,7 +114,7 @@ pub async fn config_text(path: &Path) -> Result<String, Stop> {
 /// # Errors
 ///
 /// [`Stop::Config`] when the report cannot be read or replayed.
-pub async fn script(source: &Source) -> Result<(Mode, Option<Replay>), Stop> {
+pub async fn script(source: &Source) -> Result<(Mode, Option<Script>), Stop> {
     match source {
         Source::Scenario => Ok((Mode::Scenario, None)),
         Source::Explore => Ok((Mode::Explore, None)),
@@ -119,11 +122,35 @@ pub async fn script(source: &Source) -> Result<(Mode, Option<Replay>), Stop> {
     }
 }
 
-async fn replayed(path: &Path) -> Result<(Mode, Option<Replay>), Stop> {
+async fn replayed(path: &Path) -> Result<(Mode, Option<Script>), Stop> {
     let text = async_fs::read_to_string(path).await;
     let text = text.map_err(|_| Stop::config("実行結果を読めない"))?;
-    let (mode, replay) = Replay::from_report(&text).map_err(Stop::config)?;
-    Ok((mode, Some(replay)))
+    let (mode, replay, memory) = Replay::from_report(&text).map_err(Stop::config)?;
+    Ok((mode, Some((replay, memory))))
+}
+
+/// A replay and the memory its report started from, if it kept one.
+pub type Script = (Replay, Option<Value>);
+
+/// Where the memory of a replay starts.
+///
+/// It is the memory the report kept. A report that kept none, or kept the
+/// memory of another origin (the replay runs against another site), starts
+/// empty. The stored memory is not used.
+///
+/// # Errors
+///
+/// [`Stop::Config`] when the kept memory cannot be read. The sentence holds
+/// nothing of it.
+pub fn given(origin: &str, kept: Option<Value>) -> Result<Start, Stop> {
+    let Some(value) = kept else {
+        return Ok(Start::Given(Memory::default()));
+    };
+    match Memory::from_json(&value.to_string(), origin) {
+        Ok(memory) => Ok(Start::Given(memory)),
+        Err(MemoryFileError::Origin) => Ok(Start::Given(Memory::default())),
+        Err(_) => Err(Stop::config(ReplayError)),
+    }
 }
 
 /// The checked configuration.
@@ -201,3 +228,6 @@ pub async fn store(out: &Path, wall: &Wall) -> Result<FileStore, Stop> {
     let made = FileStore::create(out, &wall.run_id).await;
     made.map_err(|_| Stop::runtime("記録の出力先を作れない"))
 }
+
+#[cfg(test)]
+mod tests;

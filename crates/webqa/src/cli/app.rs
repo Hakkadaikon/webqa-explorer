@@ -14,7 +14,7 @@ use crate::clock::{RealClock, Wall};
 use crate::exit;
 use crate::interrupt::CtrlC;
 use crate::replay::Replay;
-use crate::run::session::{Ending, Plan, conduct};
+use crate::run::session::{Ending, Plan, Start, conduct};
 use crate::run::{Detect, Ports};
 use crate::setup::Setup;
 use crate::store::file::FileStore;
@@ -62,21 +62,31 @@ pub(super) fn stopped(stop: Stop) -> Done {
 
 /// The stages of starting, in order; the first failure stops it.
 async fn prepare(job: &Job) -> Result<Parts, Stop> {
-    let (setup, replay) = configure(job).await?;
-    launch(job, setup, replay).await
+    let (setup, replay, from) = configure(job).await?;
+    launch(job, setup, replay, from).await
 }
 
-/// The configuration and the mode.
-async fn configure(job: &Job) -> Result<(Setup, Option<Replay>), Stop> {
+/// The configuration and the mode, and where the memory starts: a replay
+/// starts from the one its report kept.
+async fn configure(job: &Job) -> Result<(Setup, Option<Replay>, Start), Stop> {
     let yaml = start::config_text(&job.config).await?;
-    let (mode, replay) = start::script(&job.source).await?;
+    let (mode, script) = start::script(&job.source).await?;
     let setup = start::setup(&yaml, mode)?;
-    Ok((setup, replay))
+    let Some((replay, kept)) = script else {
+        return Ok((setup, None, Start::Stored));
+    };
+    let from = start::given(&setup.origin, kept)?;
+    Ok((setup, Some(replay), from))
 }
 
 /// The judge, the browser, the clocks and the store. The run's
 /// time starts once the browser is up; the judge's bridge keeps its own.
-async fn launch(job: &Job, setup: Setup, replay: Option<Replay>) -> Result<Parts, Stop> {
+async fn launch(
+    job: &Job,
+    setup: Setup,
+    replay: Option<Replay>,
+    from: Start,
+) -> Result<Parts, Stop> {
     let judge = start::judge(replay, &setup, RealClock::start()).await?;
     let browser = start::browser(setup.browser, setup.redactor.clone()).await?;
     let wall = Wall::now();
@@ -107,6 +117,7 @@ async fn launch(job: &Job, setup: Setup, replay: Option<Replay>) -> Result<Parts
         plan: Plan {
             origin: setup.origin,
             meta,
+            start: from,
         },
     })
 }

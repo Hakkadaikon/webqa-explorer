@@ -22,6 +22,7 @@ use webqa_judge::scripted::Scripted;
 mod failures;
 mod fakes;
 mod records;
+mod start;
 
 use self::fakes::{Counting, Gate, Hangs, Windowed};
 use super::super::fakes::{self as base, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
@@ -55,6 +56,7 @@ fn plan() -> Plan {
             inputs: Vec::new(),
             price: None,
         },
+        start: Start::Stored,
     }
 }
 
