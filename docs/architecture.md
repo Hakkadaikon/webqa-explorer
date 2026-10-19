@@ -1074,6 +1074,8 @@ crates/
         answer.rs        足した問いと、ずれの問いの答えの検証
         clue.rs          迷いの手がかり
         issue.rs         課題の型、番号、検出、試行をまたいだ集計
+        issue/
+          find.rs  gather.rs  label.rs  mismatch.rs  number.rs  rank.rs  record.rs
         outcome.rs       試行の結末と、目的に届かない試行の数え方
         natural.rs       自然さの問いと区分、問いの回数の上限
         ledger.rs        台帳の書き出しと読み戻し、選択の書き換え
