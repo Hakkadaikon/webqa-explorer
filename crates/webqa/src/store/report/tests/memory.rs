@@ -1,15 +1,28 @@
 //! Tests of the memory a report keeps.
 
+use std::collections::BTreeSet;
+
+use url::Url;
+use webqa_core::explore::Memory;
+use webqa_core::screen::{Element, Screen};
+
 use super::*;
 
-/// A memory file with one element named `name`.
+/// A memory file with `保存` renamed `name`.
 fn memory_named(name: &str) -> Value {
-    json!({
-        "schema": 1,
-        "origin": "https://app.example.test",
-        "screens": [{"elements": [{"role": "button", "name": name, "nth": 0}]}],
-        "edges": [],
-    })
+    let mut memory = Memory::default();
+    let element = Element {
+        role: "button".to_owned(),
+        name: name.to_owned(),
+        value: None,
+        rect: None,
+    };
+    let screen = Redactor::default().screen(Screen {
+        url: Url::parse("https://app.example.test/").unwrap(),
+        elements: vec![element],
+    });
+    memory.visit(&screen, &BTreeSet::new());
+    memory.to_json("https://app.example.test")
 }
 
 /// The memory the run of [`report`] started from.

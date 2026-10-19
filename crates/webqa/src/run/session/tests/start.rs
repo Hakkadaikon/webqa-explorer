@@ -96,3 +96,22 @@ async fn stored_start_is_written_back() {
     );
     assert!(saved_operated(&store));
 }
+
+#[tokio::test]
+async fn replay_leaves_broken_stored_memory_alone() {
+    let mut store = MemoryStore::default();
+    store.memories.insert(ORIGIN.to_owned(), "{".to_owned());
+    first_targets(Start::Given(Memory::default()), &mut store).await;
+    let resets = kinds(&store)
+        .into_iter()
+        .filter(|line| line["kind"] == "memory_reset");
+    assert_eq!(
+        (
+            store.aside.len(),
+            resets.count(),
+            store.memories[ORIGIN].as_str()
+        ),
+        (0, 0, "{"),
+        "nothing moved aside, noted or written"
+    );
+}

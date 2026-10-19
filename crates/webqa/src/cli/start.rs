@@ -10,7 +10,7 @@ use tokio::fs as async_fs;
 use webqa_browser::probe::ProbeArg;
 use webqa_browser::{LaunchOptions, PlaywrightBrowser};
 use webqa_core::event::Mode;
-use webqa_core::explore::Memory;
+use webqa_core::explore::{Memory, MemoryFileError};
 use webqa_core::ports::Judge;
 use webqa_core::redact::Redactor;
 use webqa_core::screen::Viewport;
@@ -132,18 +132,25 @@ async fn replayed(path: &Path) -> Result<(Mode, Option<Script>), Stop> {
 /// A replay and the memory its report started from, if it kept one.
 pub type Script = (Replay, Option<Value>);
 
-/// Where the memory of a replay starts: the one the report kept, or an empty
-/// one for a report that kept none. The stored memory is not used.
+/// Where the memory of a replay starts.
+///
+/// It is the memory the report kept. A report that kept none, or kept the
+/// memory of another origin (the replay runs against another site), starts
+/// empty. The stored memory is not used.
 ///
 /// # Errors
 ///
-/// [`Stop::Config`] when the kept memory cannot be read for `origin`. The
-/// sentence holds nothing of it.
+/// [`Stop::Config`] when the kept memory cannot be read. The sentence holds
+/// nothing of it.
 pub fn given(origin: &str, kept: Option<Value>) -> Result<Start, Stop> {
-    let read = |value: Value| Memory::from_json(&value.to_string(), origin);
-    let memory = kept.map(read).transpose();
-    let memory = memory.map_err(|_| Stop::config(ReplayError))?;
-    Ok(Start::Given(memory.unwrap_or_default()))
+    let Some(value) = kept else {
+        return Ok(Start::Given(Memory::default()));
+    };
+    match Memory::from_json(&value.to_string(), origin) {
+        Ok(memory) => Ok(Start::Given(memory)),
+        Err(MemoryFileError::Origin) => Ok(Start::Given(Memory::default())),
+        Err(_) => Err(Stop::config(ReplayError)),
+    }
 }
 
 /// Stage 3: the checked configuration.

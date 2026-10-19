@@ -63,17 +63,20 @@ expression: "serde_json::to_string_pretty(&report).unwrap()"
     "edges": [],
     "origin": "https://app.example.test",
     "schema": 1,
-    "screens": [
-      {
+    "screens": {
+      "s1": {
         "elements": [
           {
+            "forbidden": false,
             "name": "保存",
             "nth": 0,
+            "operated": false,
             "role": "button"
           }
-        ]
+        ],
+        "path": "/"
       }
-    ]
+    }
   },
   "started_at": "2026-10-18T02:00:00Z",
   "steps": [

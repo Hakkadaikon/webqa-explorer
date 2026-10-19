@@ -77,7 +77,7 @@ pub fn replayed(original: &Path) -> io::Result<Script> {
     assert_eq!(
         fs::read_to_string(&case.log).ok(),
         asked,
-        "the bridge was not asked"
+        "the bridge was not started"
     );
     assert_eq!(memory_files(out), before, "the stored memory is left alone");
     let again = exec::latest_run(out)?;
@@ -87,13 +87,11 @@ pub fn replayed(original: &Path) -> io::Result<Script> {
 
 /// The case that made the run `original`: its directory and its site.
 fn case_of(original: &Path) -> io::Result<Case> {
-    let dir = original
-        .ancestors()
-        .nth(3)
-        .unwrap_or(original)
-        .to_path_buf();
+    let missing = || io::Error::from(io::ErrorKind::NotFound);
+    let dir = original.ancestors().nth(3).ok_or_else(missing)?;
+    let dir = dir.to_path_buf();
     let report = exec::report(original)?;
-    let url = field(&report, "target").unwrap_or_default().to_owned();
+    let url = field(&report, "target").ok_or_else(missing)?.to_owned();
     Ok(Case {
         log: dir.join("bridge.log"),
         dir,
