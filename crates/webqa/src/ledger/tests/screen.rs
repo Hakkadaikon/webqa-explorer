@@ -87,23 +87,12 @@ fn the_terminal_is_put_back_when_the_keys_panic() {
 fn the_screen_is_drawn_in_the_size_the_terminal_has() {
     let path = file_with("size", FIXTURE);
     let keys = &mut script(vec![Key::Enter, Key::Char('q')]);
-    let (mut narrow, mut wide) = (Vec::new(), Vec::new());
-    show(
-        &path,
-        || Ok(()),
-        keys,
-        &mut narrow,
-        Vec::new(),
-        || Some((30, 24)),
-    );
-    let keys = &mut script(vec![Key::Enter, Key::Char('q')]);
-    show(
-        &path,
-        || Ok(()),
-        keys,
-        &mut wide,
-        Vec::new(),
-        || Some((120, 24)),
-    );
-    assert_ne!(narrow, wide);
+    let mut drawn = Vec::new();
+    let size = || Some((30, 24));
+    let code = show(&path, || Ok(()), keys, &mut drawn, Vec::new(), size);
+    let list = Screen::new(ledger::read(FIXTURE).unwrap());
+    let mut expected = Vec::new();
+    draw(&mut expected, &list, size()).unwrap();
+    draw(&mut expected, &list.fold(Input::Open), size()).unwrap();
+    assert_eq!((code, drawn), (0, expected));
 }
