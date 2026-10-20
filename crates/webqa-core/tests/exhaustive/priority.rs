@@ -15,7 +15,9 @@ use super::view::{Property, Transition, all, asks, implies};
 pub fn goal_of(state: &State, used: u32) -> Goal {
     let rules = state.rules();
     match rules.mode {
-        Mode::Scenario => stage::goal(&rules.stages, state.stage(), state.last().whole.page()),
+        Mode::Scenario | Mode::Interview => {
+            stage::goal(&rules.stages, state.stage(), state.last().whole.page())
+        }
         Mode::Explore => explore_goal(used, reachable(state)),
     }
 }

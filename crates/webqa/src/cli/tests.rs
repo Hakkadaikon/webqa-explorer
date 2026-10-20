@@ -1,6 +1,9 @@
 //! Tests of the argument reading.
 
+use std::env::temp_dir;
+use std::fs::write;
 use std::path::Path;
+use std::process::id;
 
 use crate::clock::Wall;
 use jiff::Timestamp;
@@ -198,6 +201,18 @@ async fn a_file_that_is_no_report_stops_as_a_configuration_error() {
     assert_eq!(
         replay.err().map(start::Stop::into_parts),
         Some((2, "実行結果を再実行の台本として読めない".to_owned()))
+    );
+}
+
+#[tokio::test]
+async fn a_report_of_an_interview_cannot_be_replayed() {
+    let path = temp_dir().join(format!("webqa-interview-{}.json", id()));
+    let report = r#"{"schema":1,"mode":"interview","calls":[]}"#;
+    write(&path, report).unwrap();
+    let replay = start::script(&start::Source::Replay(path)).await;
+    assert_eq!(
+        replay.err().map(start::Stop::into_parts),
+        Some((2, "インタビューの実行結果は再実行できない".to_owned()))
     );
 }
 

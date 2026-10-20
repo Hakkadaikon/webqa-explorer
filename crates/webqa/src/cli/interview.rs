@@ -96,7 +96,7 @@ fn plan(setup: Setup, interview: Interview, previous: Option<Ledger>, started_at
         previous,
         env: vars_os().collect(),
         withheld: withheld.collect(),
-        mode: Mode::Scenario,
+        mode: Mode::Interview,
         started_at: Some(started_at),
         detect: Detect {
             error_confidence: setup.error_confidence,

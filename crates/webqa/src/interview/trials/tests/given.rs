@@ -38,6 +38,22 @@ async fn the_mode_and_start_time_go_to_the_log_and_the_report() {
 }
 
 #[tokio::test]
+async fn an_interview_is_recorded_as_an_interview() {
+    let mut world = World::new(1);
+    world.run().await;
+    let first = world.store.lines.first().map(|line| line["mode"].clone());
+    let report = world
+        .store
+        .report
+        .as_ref()
+        .map(|report| report["mode"].clone());
+    assert_eq!(
+        (first, report),
+        (Some("interview".into()), Some("interview".into()))
+    );
+}
+
+#[tokio::test]
 async fn the_error_confidence_of_the_plan_decides_what_is_confirmed() {
     let outcome = |confidence: f64| async move {
         let mut world = World::new(1);

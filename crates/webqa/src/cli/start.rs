@@ -137,6 +137,9 @@ async fn replayed(path: &Path) -> Result<(Mode, Option<Script>), Stop> {
     let text = async_fs::read_to_string(path).await;
     let text = text.map_err(|_| Stop::config("実行結果を読めない"))?;
     let (mode, replay, memory) = Replay::from_report(&text).map_err(Stop::config)?;
+    if mode == Mode::Interview {
+        return Err(Stop::config("インタビューの実行結果は再実行できない"));
+    }
     Ok((mode, Some((replay, memory))))
 }
 
