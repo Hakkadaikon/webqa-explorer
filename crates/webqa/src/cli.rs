@@ -14,7 +14,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use tokio::runtime::{Builder, Runtime};
-use webqa_tui::keys::{RawMode, Terminal};
+use webqa_tui::keys::{RawMode, terminal};
 
 use crate::clock::RealClock;
 use crate::exit::CONFIG_ERROR;
@@ -260,7 +260,7 @@ fn screen(args: &LedgerArgs) -> u8 {
     ledger::show(
         &args.path,
         RawMode::enter,
-        &mut Terminal,
+        &mut terminal(),
         io::stdout(),
         io::stderr(),
     )

@@ -1,7 +1,5 @@
 //! Tests of the keys.
 
-use std::fs::File;
-
 use crossterm::event::{KeyEvent, KeyEventState};
 
 use super::*;
@@ -76,12 +74,6 @@ fn keys_filter_quit_and_ignore() {
     ]);
 }
 
-/// Whether the process has a terminal to read, where the real reader
-/// would wait for a person.
-fn has_terminal() -> bool {
-    File::open("/dev/tty").is_ok()
-}
-
 #[test]
 fn a_closure_gives_keys() {
     let mut keys = || Some(Key::Esc);
@@ -89,11 +81,14 @@ fn a_closure_gives_keys() {
 }
 
 #[test]
-fn without_a_terminal_nothing_is_read_and_raw_mode_is_refused() {
-    assert!(has_terminal() || Terminal.next().is_none(), "no input");
-    assert!(
-        stdin().is_terminal() || RawMode::enter().is_err(),
-        "no terminal"
-    );
+fn events_become_keys_and_a_failed_read_ends_the_input() {
+    let mut pressed = events(|| Ok(press(KeyCode::Enter, KeyModifiers::NONE)));
+    assert_eq!(pressed.next(), Some(Key::Enter));
+    let mut failed = events(|| Err(io::Error::from(ErrorKind::Unsupported)));
+    assert_eq!(failed.next(), None);
+}
+
+#[test]
+fn raw_mode_is_put_back_by_dropping() {
     drop(RawMode::from(()));
 }

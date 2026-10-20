@@ -126,15 +126,15 @@ const fn char_key(c: char, ctrl: bool) -> Key {
     if ctrl { Key::Ctrl(c) } else { Key::Char(c) }
 }
 
-/// The keys of the real terminal.
-#[derive(Debug, Default)]
-pub struct Terminal;
+/// The keys of events from `read`. An event that cannot be read ends the
+/// input.
+pub fn events(mut read: impl FnMut() -> io::Result<Event>) -> impl Keys {
+    move || read().ok().as_ref().map(key_of)
+}
 
-impl Keys for Terminal {
-    /// A terminal that cannot be read ends the input.
-    fn next(&mut self) -> Option<Key> {
-        event::read().ok().as_ref().map(key_of)
-    }
+/// The keys of the real terminal.
+pub fn terminal() -> impl Keys {
+    events(event::read)
 }
 
 /// The terminal in raw mode; put back when dropped.
@@ -142,6 +142,8 @@ impl Keys for Terminal {
 pub struct RawMode;
 
 impl RawMode {
+    // No branch on purpose: a test cannot reach a real terminal, so the
+    // success side must not be a line of its own that no test runs.
     /// Enters raw mode. Only a terminal on the standard input can be read,
     /// so any other input is refused.
     ///

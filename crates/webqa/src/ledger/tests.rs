@@ -10,8 +10,11 @@ use webqa_core::interview::issue::{Kind, Number};
 use webqa_core::interview::ledger::{self, Ledger};
 use webqa_tui::keys::Key;
 use webqa_tui::ledger::Notice;
+use webqa_tui::ledger_file::FileError;
 
 use super::*;
+
+mod screen;
 
 const FIXTURE: &str = include_str!("../../tests/fixtures/ledger.txt");
 
@@ -148,20 +151,18 @@ fn toggling_with_nothing_shown_writes_nothing() {
 fn a_ledger_that_cannot_be_opened_exits_two_even_without_a_terminal() {
     let missing = temp_dir().join(format!("webqa-ledger-missing-{}", id()));
     let broken = file_with("broken", "台帳ではない");
-    for path in [missing, broken] {
+    let not_a_ledger = ledger::read("台帳ではない").unwrap_err();
+    let cases = [
+        (missing, FileError::Io(ErrorKind::NotFound)),
+        (broken, FileError::Ledger(not_a_ledger)),
+    ];
+    for (path, error) in cases {
         let mut err = Vec::new();
         let no_terminal = || Err::<(), _>(io::Error::from(ErrorKind::Unsupported));
-        let code = show(
-            &path,
-            no_terminal,
-            &mut script(vec![]),
-            Vec::new(),
-            &mut err,
-        );
-        let said = String::from_utf8(err).unwrap();
-        assert_eq!(code, 2, "{said}");
-        assert!(said.contains("台帳"), "{said}");
-        assert!(!said.contains(NO_TERMINAL), "{said}");
+        let keys = &mut script(vec![]);
+        let code = show(&path, no_terminal, keys, Vec::new(), &mut err);
+        assert_eq!(code, 2);
+        assert_eq!(String::from_utf8(err).unwrap(), format!("{error}\n"));
     }
 }
 
