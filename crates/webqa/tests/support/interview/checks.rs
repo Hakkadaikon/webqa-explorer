@@ -53,9 +53,8 @@ async fn check_run() {
     assert_eq!(ran.judge.asked.len(), 1, "the judge was asked once");
     assert_eq!(ran.config_error, None, "the configuration read");
     assert!(ran.touches.is_empty(), "the browser did nothing");
-    assert_eq!(
-        ran.clock.sleeps,
-        Vec::<Duration>::new(),
+    assert!(
+        ran.clock.sleeps.is_empty(),
         "the run did not wait for a window"
     );
     let finished = world.ledger().map(|ledger| ledger.head.finished);

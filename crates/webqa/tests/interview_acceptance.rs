@@ -100,13 +100,15 @@ fn scenarios_named(name: &str) -> usize {
 }
 
 /// Every name is one scenario of the feature, and no two files claim the
-/// same one.
+/// same one. The scenarios left to another test are named too, and are not
+/// run here.
 fn check_ready(names: &[&str]) {
-    for name in names {
+    let all = [names, modes::DELEGATED].concat();
+    for name in &all {
         assert_eq!(scenarios_named(name), 1, "one scenario is called {name}");
     }
-    let distinct: BTreeSet<&&str> = names.iter().collect();
-    assert_eq!(distinct.len(), names.len(), "no two files claim a scenario");
+    let distinct: BTreeSet<&&str> = all.iter().collect();
+    assert_eq!(distinct.len(), all.len(), "no two files claim a scenario");
 }
 
 #[tokio::main(flavor = "current_thread")]

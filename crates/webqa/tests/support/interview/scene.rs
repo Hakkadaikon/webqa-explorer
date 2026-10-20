@@ -15,6 +15,7 @@ use webqa_core::config::purpose::Purpose;
 use webqa_core::judge::{Answers, JudgeError};
 use webqa_core::redact::Rule;
 
+use crate::clock::millis;
 use crate::ledger::Aliases;
 
 #[path = "scene_yaml.rs"]
@@ -116,6 +117,9 @@ pub struct Scene {
     pub thinks: VecDeque<Duration>,
     /// Whether a sleep of the run never ends.
     pub stall_sleep: bool,
+    /// The first run of the reset command, from 1, that does not finish.
+    /// The clock then lets its deadline pass at once.
+    pub reset_hangs_from: Option<usize>,
     /// The trial whose browser never finishes opening, from 1.
     pub hang_launch: Option<usize>,
     /// The memory files by origin before the run.
@@ -168,6 +172,7 @@ impl Default for Scene {
             thinks: VecDeque::new(),
             stall_sleep: false,
             hang_launch: None,
+            reset_hangs_from: None,
             memories: BTreeMap::new(),
             trial: 1,
             aliases: Aliases::default(),
@@ -185,6 +190,25 @@ impl Scene {
     /// Hides e-mail addresses.
     pub fn hide_emails(&mut self) {
         self.redact.push(Rule::pattern(EMAIL_RULE, EMAIL));
+    }
+
+    /// Resets with the script that acts by its run: run n moves the clock
+    /// to the n-th of `ends`, and the runs from `hangs_from` on do not
+    /// finish within `timeout_secs`. A script that does not finish needs
+    /// `hangs_from`, or the clock waits for it.
+    pub fn reset_by_run(
+        &mut self,
+        ends: &[Duration],
+        hangs_from: Option<usize>,
+        timeout_secs: u64,
+    ) {
+        self.reset_with("runs.sh", timeout_secs);
+        let ends: Vec<String> = ends.iter().map(|end| millis(*end).to_string()).collect();
+        self.env
+            .push(("RESET_ENDS_MS".into(), ends.join(" ").into()));
+        let from = hangs_from.map(|from| ("RESET_HANG_FROM".into(), from.to_string().into()));
+        self.env.extend(from);
+        self.reset_hangs_from = hangs_from;
     }
 
     /// Resets the service with the script `name` of the fixtures, which

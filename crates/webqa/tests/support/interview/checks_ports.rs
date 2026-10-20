@@ -4,13 +4,13 @@
 use std::ffi::OsString;
 use std::fs;
 use std::path::PathBuf;
-use std::time::Duration;
 
-use webqa::interview::trials::{Ending, Stopped};
-use webqa_core::interview::ask::{EXPECTATION, HESITATION, PURPOSE_GUESS};
-use webqa_core::ports::Clock;
+use webqa_core::interview::ask::{EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS};
 
 use super::ORIGIN;
+
+#[path = "checks_times.rs"]
+mod times;
 use crate::bridge::RunDir;
 use crate::judge::Said;
 use crate::launch::Opened;
@@ -29,8 +29,13 @@ fn on_button(name: &str) -> Scene {
 
 /// The answers of a step that clicks the first element.
 fn click() -> Said {
+    step("click")
+}
+
+/// The answers of a step whose operation is `op`, on the first element.
+fn step(op: &str) -> Said {
     Said::default()
-        .choose("operation", "click", 0.9)
+        .choose("operation", op, 0.9)
         .choose("target", "1", 0.9)
         .choose("error_shown", "true", 0.0)
         .choose("goal_reached", "true", 0.0)
@@ -67,14 +72,15 @@ async fn check_auth() {
     let mut scene = on_button("保存");
     scene.auth = true;
     let auth = Opened::Auth(PathBuf::from("auth.json"));
-    let opened = [(1, auth), (1, Opened::FirstPage)];
+    let opened = [(1, Opened::Launched(0)), (1, auth), (1, Opened::FirstPage)];
     assert_eq!(
         ran(scene).await.openings,
         opened,
         "the state, then the page"
     );
     let plain = ran(on_button("保存")).await.openings;
-    assert_eq!(plain, [(1, Opened::FirstPage)], "no state");
+    let opened = [(1, Opened::Launched(0)), (1, Opened::FirstPage)];
+    assert_eq!(plain, opened, "no state");
 }
 
 /// The bridge reads the request lines and declares whether it reads
@@ -83,10 +89,12 @@ async fn check_bridge() {
     for images in [false, true] {
         let mut scene = on_button("保存");
         scene.bridge = Some(images);
-        scene.replies.push_back(Ok(click().build()));
+        let said = click().write(HARD_TO_SEE, "");
+        scene.replies.push_back(Ok(said.build()));
         let ran = ran(scene).await;
         let first = found(ran.bridge.first(), "a request");
         assert_eq!(first.get("image").is_some(), images, "the image");
+        assert_eq!(ran.touches.len(), 1, "the answer reached the run");
         assert!(
             ran.judge.asked.is_empty(),
             "the scene's judge was not asked"
@@ -127,21 +135,8 @@ async fn check_api_key() {
     assert!(missing.is_some(), "no variable");
 }
 
-/// A reset script moves the clock; the judge's calls take their times.
-async fn check_times() {
-    let mut scene = on_button("保存");
-    scene.reset_with("clock.sh", 5);
-    scene.env = vec![("RESET_ENDS_MS".into(), "120000".into())];
-    scene.thinks.push_back(Duration::from_secs(60));
-    let ran = ran(scene).await;
-    assert_eq!(
-        ran.clock.elapsed(),
-        Duration::from_secs(180),
-        "reset, then a call"
-    );
-}
-
-/// The memory files stay as they were, and a second run keeps the first.
+/// The memory files stay as they were, and a second run of a changed
+/// scene keeps the first.
 async fn check_memory_and_again() {
     let mut scene = on_button("保存");
     scene.memories.insert(ORIGIN.to_owned(), "{}".to_owned());
@@ -151,6 +146,7 @@ async fn check_memory_and_again() {
     };
     world.run().await;
     world.again();
+    world.scene.start = PageSpec::at("/").with(PageSpec::button("次へ"));
     world.run().await;
     let kept = &world.before().store.memories;
     assert_eq!(
@@ -158,41 +154,14 @@ async fn check_memory_and_again() {
         Some("{}"),
         "the memory"
     );
-    assert_eq!(world.ran().launched, 1, "the second run opened its own");
-}
-
-/// A browser that never opens is cut short by the time limit.
-async fn check_hang() {
-    let mut hanging = on_button("保存");
-    hanging.hang_launch = Some(1);
-    hanging.max_duration = Some(Duration::from_secs(60));
-    let ran = ran(hanging).await;
-    let ending = Some(Ending::Wrote {
-        stopped: Stopped::TimeUp,
-        confirmed: false,
-    });
-    assert_eq!((ran.ending, ran.launched), (ending, 1), "time is up");
-}
-
-/// A window of two accesses: the first page and a click fill it, so the
-/// next step waits for the window.
-fn filling(stall_sleep: bool) -> Scene {
-    let mut scene = on_button("保存");
-    scene.requests_per_hour = 2;
-    scene.stall_sleep = stall_sleep;
-    scene.replies.push_back(Ok(click().build()));
-    scene
-}
-
-/// A sleep moves the clock, or never ends and wakes the interrupt.
-async fn check_sleeps() {
-    let hour = Duration::from_secs(3600);
-    let waited = ran(filling(false)).await;
-    assert_eq!(waited.clock.sleeps, [hour], "it waited for the window");
-    assert_eq!(waited.clock.elapsed(), hour, "and the clock moved");
-    let stalled = ran(filling(true)).await;
-    assert_eq!(stalled.clock.sleeps, [hour], "it began to wait");
-    assert_eq!(stalled.clock.elapsed(), Duration::ZERO, "the clock stayed");
+    let shown = |ran: &Ran, name: &str| {
+        ran.judge
+            .asked
+            .first()
+            .is_some_and(|a| a.screen.contains(name))
+    };
+    assert!(shown(world.before(), "保存"), "the first run");
+    assert!(shown(world.ran(), "次へ"), "the second run");
 }
 
 /// Checks the fields of the scene.
@@ -201,8 +170,6 @@ pub async fn check() {
     check_auth().await;
     check_bridge().await;
     check_api_key().await;
-    check_times().await;
     check_memory_and_again().await;
-    check_hang().await;
-    check_sleeps().await;
+    times::check().await;
 }

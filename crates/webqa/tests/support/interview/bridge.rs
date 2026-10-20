@@ -5,7 +5,6 @@
 use std::collections::VecDeque;
 use std::env;
 use std::fs;
-use std::future;
 use std::path::{Path, PathBuf};
 use std::process;
 use std::sync::Arc;
@@ -19,7 +18,7 @@ use webqa_core::judge::{Answers, JudgeError};
 use webqa_core::ports::{Clock, Judge, Pending};
 use webqa_judge::table;
 
-use crate::run_clock::real_wait;
+use crate::fakes::stuck::stuck;
 use crate::scene::found;
 
 /// The script of the bridge.
@@ -27,10 +26,6 @@ const SCRIPT: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/tests/fixtures/bridge/answers.sh"
 );
-
-/// How long the judge waits in real time for an answer before it wakes the
-/// interrupt: the script answers well within it, or never.
-const WAIT: Duration = Duration::from_secs(1);
 
 /// How many run directories were made by this process.
 static RUNS: AtomicUsize = AtomicUsize::new(0);
@@ -108,7 +103,8 @@ fn table_of(answers: &Answers) -> Map<String, Value> {
 }
 
 /// The kind of error a bridge names for `error`. The others are not words
-/// of the format, so the judge reads them as malformed.
+/// of the format, so the judge reads them as malformed: `Exhausted` and
+/// `Bridge` come back as `Malformed` through the bridge.
 const fn kind(error: &JudgeError) -> &'static str {
     match error {
         JudgeError::Api => "api",
@@ -124,17 +120,26 @@ pub fn asked(dir: &Path) -> Vec<Value> {
     text.lines().map(read).collect()
 }
 
-/// Starts the judge of the configuration, as the CLI does. Its waits wake
-/// `gate` instead of ending.
-pub async fn start(judge: &config::Judge, gate: Arc<Notify>) -> Box<dyn Judge> {
-    let started = table::start(judge, Box::new(BridgeClock { gate })).await;
+/// Starts the judge of the configuration, as the CLI does, with a bridge
+/// that has `answers` answers. Once they are used, the wait for the next
+/// one wakes `gate`.
+pub async fn start(judge: &config::Judge, answers: usize, gate: Arc<Notify>) -> Box<dyn Judge> {
+    let clock = BridgeClock {
+        gate,
+        answers,
+        waits: 0,
+    };
+    let started = table::start(judge, Box::new(clock)).await;
     found(started.ok(), "the bridge starts")
 }
 
-/// The clock of the bridge: a wait that has had no answer within [`WAIT`]
-/// wakes the gate and never ends.
+/// The clock of the bridge. The judge waits once for the version line and
+/// once for each answer. Those waits never end, so the line comes first;
+/// the wait for an answer the bridge does not have wakes the gate.
 struct BridgeClock {
     gate: Arc<Notify>,
+    answers: usize,
+    waits: usize,
 }
 
 impl Clock for BridgeClock {
@@ -143,12 +148,10 @@ impl Clock for BridgeClock {
     }
 
     fn sleep_until(&mut self, _at: Duration) -> Pending<'_, ()> {
-        let gate = Arc::clone(&self.gate);
-        let waited = real_wait(WAIT);
-        Box::pin(async move {
-            waited.await;
-            gate.notify_one();
-            future::pending::<()>().await;
-        })
+        self.waits += 1;
+        if self.waits > self.answers + 1 {
+            self.gate.notify_one();
+        }
+        stuck()
     }
 }
