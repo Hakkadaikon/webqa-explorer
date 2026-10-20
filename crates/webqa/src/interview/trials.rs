@@ -19,6 +19,7 @@ use std::ffi::OsString;
 use std::time::Duration;
 
 use webqa_core::config::interview::Interview;
+use webqa_core::event::Mode;
 use webqa_core::interview::compare::Mismatch;
 use webqa_core::interview::ledger::Ledger;
 use webqa_core::interview::schedule::Stop;
@@ -29,7 +30,7 @@ use webqa_core::screen::Viewport;
 
 use super::reset::ResetError;
 use crate::interrupt::Interrupt;
-use crate::run::RunError;
+use crate::run::{Detect, RunError};
 
 /// What the loop needs besides its ports.
 pub struct Plan {
@@ -52,6 +53,13 @@ pub struct Plan {
     /// The strings that must not reach the reset command: the judge's API
     /// key.
     pub withheld: Vec<String>,
+    /// The kind of run the log and the report say. The trials themselves
+    /// always run the core in scenario mode.
+    pub mode: Mode,
+    /// The wall-clock start, as `run_started` and the report say it.
+    pub started_at: Option<String>,
+    /// What each trial looks for besides the core's own notes.
+    pub detect: Detect,
 }
 
 /// Opens a fresh browser for a trial: a new context with the storage state.

@@ -91,8 +91,8 @@ fn an_unknown_judge_kind_is_said_without_its_name() {
 #[test]
 fn subcommands_become_jobs() {
     let job = |args: &[&str]| {
-        let cli = Cli::try_parse_from(args);
-        cli.map(|cli| cli.command.split().map(start::job))
+        let cli = Cli::try_parse_from(args).ok();
+        cli.map(|cli| cli.command.split().map(|c| start::job(c).ok()))
     };
     let expected = |source, out: &str| start::Job {
         source,
@@ -100,25 +100,37 @@ fn subcommands_become_jobs() {
         out: out.into(),
     };
     assert_eq!(
-        job(&["webqa", "run", "--config", "c.yaml"]).ok(),
-        Some(Ok(expected(start::Source::Scenario, ".webqa")))
+        job(&["webqa", "run", "--config", "c.yaml"]),
+        Some(Ok(Some(expected(start::Source::Scenario, ".webqa"))))
     );
     assert_eq!(
-        job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]).ok(),
-        Some(Ok(expected(start::Source::Explore, "o")))
+        job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]),
+        Some(Ok(Some(expected(start::Source::Explore, "o"))))
     );
     assert_eq!(
-        job(&["webqa", "replay", "r.json", "--config", "c.yaml"]).ok(),
-        Some(Ok(expected(
+        job(&["webqa", "replay", "r.json", "--config", "c.yaml"]),
+        Some(Ok(Some(expected(
             start::Source::Replay("r.json".into()),
             ".webqa"
-        )))
+        ))))
     );
     assert_eq!(
-        job(&["webqa", "watch", "d"]).ok(),
+        job(&["webqa", "watch", "d"]),
         Some(Err(WatchArgs { dir: "d".into() })),
         "watching starts no run"
     );
+}
+
+#[test]
+fn other_subcommands_become_no_jobs() {
+    let job = |args: &[&str]| {
+        let cli = Cli::try_parse_from(args).ok();
+        cli.map(|cli| cli.command.split().map(|c| start::job(c).ok()))
+    };
+    let docs = ["webqa", "check-docs", "persona", "a"];
+    assert_eq!(job(&docs), Some(Ok(None)));
+    let interview = ["webqa", "interview", "--config", "a"];
+    assert_eq!(job(&interview), Some(Ok(None)));
 }
 
 #[tokio::test]

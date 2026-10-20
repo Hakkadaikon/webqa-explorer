@@ -230,3 +230,33 @@ fn setup_debug_hides_values() {
         "origin in {shown}"
     );
 }
+
+const PERSONA: &str = "name: 佐藤さん
+profile: 60代
+it_literacy: 基本操作だけ
+wants: 注文する
+avoids: [URL を手で打たない]
+";
+
+/// Every file is a persona document or a storage state, by its name.
+const FILES: Read<'static> = &|path| {
+    Ok(if path.ends_with("persona.yaml") {
+        PERSONA.to_owned()
+    } else {
+        STATE.to_owned()
+    })
+};
+
+#[test]
+fn interview_settings_are_read_with_the_setup() {
+    let yaml = format!("{EXAMPLE}interview:\n  persona: persona.yaml\n  trials: 2\n");
+    let (setup, interview) = load_interview(&yaml, ALL_ENV, FILES).unwrap();
+    assert_eq!(setup.origin, "https://app.example.test");
+    assert_eq!(interview.persona.name, "佐藤さん");
+    assert_eq!(interview.trials.get(), 2);
+    let missing = load_interview(EXAMPLE, ALL_ENV, FILES).err();
+    assert_eq!(
+        missing.map(|error| error.to_string()),
+        Some("インタビューのモードでは設定に interview を書く".to_owned())
+    );
+}

@@ -25,6 +25,7 @@ use webqa_judge::scripted::Scripted;
 
 mod ends;
 mod findings;
+mod given;
 mod groups;
 mod opening;
 mod purposes;
@@ -98,6 +99,9 @@ fn plan(trials: u32) -> Plan {
         max_duration: None,
         env: Vec::new(),
         withheld: Vec::new(),
+        mode: Mode::Scenario,
+        started_at: None,
+        detect: Detect::default(),
     }
 }
 

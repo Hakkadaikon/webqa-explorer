@@ -4,7 +4,7 @@
 use serde_json::Value;
 
 use webqa_core::config::purpose::Aim;
-use webqa_core::event::{Event, Mode};
+use webqa_core::event::Event;
 use webqa_core::interview::compare::{Mismatch, compare};
 use webqa_core::interview::issue::{Record, Run, Seen};
 use webqa_core::interview::ledger::{Goal, Head, Ledger, inferred_goal, write};
@@ -149,8 +149,8 @@ async fn conclude(closing: Closing<'_>, reason: ExitReason) -> Result<bool, RunE
         .write(None, last, clock.elapsed(), store, redactor)
         .await?;
     let meta = Meta {
-        mode: Mode::Scenario,
-        started_at: None,
+        mode: plan.mode,
+        started_at: plan.started_at.clone(),
         target: plan.start.clone(),
         inputs: Vec::new(),
         price: None,

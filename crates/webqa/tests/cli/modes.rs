@@ -92,11 +92,7 @@ fn case_of(original: &Path) -> io::Result<Case> {
     let dir = dir.to_path_buf();
     let report = exec::report(original)?;
     let url = field(&report, "target").ok_or_else(missing)?.to_owned();
-    Ok(Case {
-        log: dir.join("bridge.log"),
-        dir,
-        url,
-    })
+    Ok(Case::of(dir, url))
 }
 
 /// The memory files under `out`, by name, as bytes.
