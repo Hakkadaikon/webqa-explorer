@@ -176,6 +176,12 @@ fn key_written(world: &mut QaWorld) {
     world.configure("api_key: { env: JEV_API_KEY }", "api_key: sk-live-123");
 }
 
+#[given(expr = "設定ファイルの判断モデルの API キーの参照に secret が書かれている")]
+fn key_marked_secret(world: &mut QaWorld) {
+    let marked = "api_key: { env: JEV_API_KEY, secret: false }";
+    world.configure("api_key: { env: JEV_API_KEY }", marked);
+}
+
 #[then(expr = "起動は設定エラーで失敗する")]
 async fn config_fails(world: &mut QaWorld) {
     world.run().await;
