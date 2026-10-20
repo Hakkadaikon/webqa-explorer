@@ -279,7 +279,8 @@ Gatewayのキーは、`WEBQA_JUDGE_API_KEY`にも、設定の`api_key`が指す�
 `WEBQA_JUDGE_API_KEY`は`claude`に渡らない。
 元の変数も、上の接頭辞で始まらなければ渡らない。
 `claude`はツールを持たないので、渡った変数をモデルが読む手段は無い。
-AWSやGoogle Cloudの認証の変数は渡さないので、BedrockやVertex AIを通す`claude`には使えない。
+AWSやGoogle Cloudの変数(地域や認証)は渡さない。
+そのため、BedrockやVertex AIを通す`claude`には使えない。
 `claude`は、利用者がClaude Codeでログインした認証か、`ANTHROPIC_API_KEY`で呼ぶ。
 `--bare`は使わない。
 キーチェーンを読まなくなり、ログインの認証が使えなくなるためである。

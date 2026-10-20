@@ -65,8 +65,8 @@ def passed(name):
 
 
 def child_env():
-    """Only the variables claude needs; the gateway's key, whatever its
-    name, stays behind."""
+    """Only the variables claude needs. The gateway's key stays behind unless
+    the variable it was read from starts like one of them."""
     return {name: value for name, value in os.environ.items() if passed(name)}
 
 
