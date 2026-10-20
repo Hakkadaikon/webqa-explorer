@@ -30,8 +30,8 @@ git worktreeで作業するときは、worktreeの中で`just worktree-tools`を
 
 PRを出すと、GitHub Actionsが検査を回す。
 コードかテストが読むファイルを変えたPRでは、`just check`を回す。
+カバレッジ100%のテストは、`just check`で確かめる。
 同じ条件で、依存の監査も回す。
-カバレッジ100%のテストはここで確かめる。
 `.rs`を変えたPRでは、変更した箇所にmutationテストを当てる。
 PR内のコミットメッセージの検査は、どのPRでも回す。
 回す条件は[`docs/quality-gates.md`](docs/quality-gates.md#どこで回るか)にある。

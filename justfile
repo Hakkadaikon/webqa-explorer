@@ -43,11 +43,15 @@ fmt:
 # 整形の確認(差分があれば失敗)
 fmt-check:
     cargo fmt --all -- --check
-    taplo fmt --check --config .config/taplo.toml
     ruff format --check scripts bridge
     shfmt -d scripts
-    yamlfmt -conf .config/yamlfmt.yaml -lint .
+    just fmt-check-config
     just --fmt --check --unstable
+
+# YAML と TOML の整形の検査(文書だけの PR でも CI で回る)
+fmt-check-config:
+    yamlfmt -conf .config/yamlfmt.yaml -lint .
+    taplo fmt --check --config .config/taplo.toml
 
 # 静的解析(警告1件で失敗)
 clippy:

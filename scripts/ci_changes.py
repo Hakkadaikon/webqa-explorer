@@ -9,8 +9,8 @@ Reads one changed path per line on stdin and prints GitHub outputs:
 import fnmatch
 import sys
 
-# Files that the tests or the check job read, also outside crates/. A change
-# to the workflows runs everything too, so that a CI change tests itself.
+# Files that the tests and the lint and format settings read, also outside
+# crates/. The workflows count too, so that a CI change runs the check.
 CODE = [
     "crates/*",
     "skills/*",
@@ -32,7 +32,8 @@ CODE = [
 
 
 def decide(paths):
-    # No paths means the diff could not be read, so run the check to be safe.
+    # An empty diff runs the check to be safe. A diff that cannot be read
+    # fails the job before this, through pipefail.
     return {
         "code": not paths
         or any(fnmatch.fnmatchcase(p, g) for p in paths for g in CODE),

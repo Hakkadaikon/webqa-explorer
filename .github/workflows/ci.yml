@@ -81,9 +81,7 @@ jobs:
       - name: Documents, spelling and config
         run: just docs-check config-check
       - name: YAML and TOML format
-        run: |
-          yamlfmt -conf .config/yamlfmt.yaml -lint .
-          taplo fmt --check --config .config/taplo.toml
+        run: just fmt-check-config
   commit-msg:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
