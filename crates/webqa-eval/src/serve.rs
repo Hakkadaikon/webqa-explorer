@@ -23,8 +23,13 @@ const MAX_HEAD: usize = 8192;
 ///
 /// # Errors
 ///
-/// The error of binding the listener.
+/// An error naming `root` when it is not a directory, or the error of
+/// binding the listener.
 pub fn serve(root: PathBuf) -> io::Result<(String, JoinHandle<()>)> {
+    if !root.is_dir() {
+        let message = format!("{}: ディレクトリが無い", root.display());
+        return Err(io::Error::new(io::ErrorKind::NotFound, message));
+    }
     let bound = TcpListener::bind("127.0.0.1:0").and_then(|l| l.local_addr().map(|a| (l, a)));
     bound.map(|(listener, address)| (format!("http://{address}/"), accept(listener, root)))
 }

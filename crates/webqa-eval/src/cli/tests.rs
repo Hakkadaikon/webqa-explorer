@@ -106,3 +106,13 @@ fn waiting_ends_with_the_thread() {
     let done = thread::spawn(|| {});
     wait(done);
 }
+
+#[test]
+fn serve_names_the_directory_that_is_missing() {
+    let missing = "no-such-dir";
+    let (code, out, err) = run_args(&["serve", missing]);
+    assert_eq!(
+        (code, out, err),
+        (2, String::new(), format!("{missing}: ディレクトリが無い\n"))
+    );
+}
