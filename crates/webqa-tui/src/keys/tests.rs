@@ -24,6 +24,8 @@ fn events_become_keys() {
         (press(KeyCode::Down, none), Key::Down),
         (press(KeyCode::Enter, none), Key::Enter),
         (press(KeyCode::Esc, none), Key::Esc),
+        (press(KeyCode::Left, none), Key::Left),
+        (press(KeyCode::Right, none), Key::Right),
         (press(KeyCode::Char('j'), none), Key::Char('j')),
         (
             press(KeyCode::Char('c'), KeyModifiers::CONTROL),
@@ -55,6 +57,17 @@ fn keys_move_open_and_toggle() {
         (Key::Enter, fold(Input::Open)),
         (Key::Esc, fold(Input::Close)),
         (Key::Char(' '), Command::Toggle),
+    ]);
+}
+
+#[test]
+fn right_and_left_open_and_close_like_vi() {
+    let fold = Command::Fold;
+    asks(&[
+        (Key::Right, fold(Input::Open)),
+        (Key::Char('l'), fold(Input::Open)),
+        (Key::Left, fold(Input::Close)),
+        (Key::Char('h'), fold(Input::Close)),
     ]);
 }
 
