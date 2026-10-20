@@ -1,9 +1,17 @@
 //! Draws the ledger screen.
 
+use std::io::{self, Write};
+
+use crossterm::cursor::MoveTo;
+use crossterm::queue;
+use crossterm::terminal::{Clear, ClearType, size};
+use ratatui::backend::CrosstermBackend;
 use ratatui::{
-    Frame,
+    Frame, Terminal, TerminalOptions, Viewport,
     widgets::{Block, Paragraph},
 };
+
+use crate::follow::area;
 
 use super::detail::{lines, row};
 use super::{Screen, notice_text};
@@ -16,6 +24,23 @@ pub fn render(screen: &Screen, frame: &mut Frame) {
     );
     let view = Paragraph::new(text.join("\n")).block(Block::bordered().title(title));
     frame.render_widget(view, frame.area());
+}
+
+/// Clears the screen and draws `screen` on it, as large as the terminal.
+///
+/// # Errors
+///
+/// When `out` cannot be written.
+pub fn draw<W: Write>(out: &mut W, screen: &Screen) -> io::Result<()> {
+    let mut frame = Vec::new();
+    drop(queue!(frame, Clear(ClearType::All), MoveTo(0, 0)));
+    let viewport = Viewport::Fixed(area(size().ok()));
+    let backend = CrosstermBackend::new(&mut frame);
+    let options = TerminalOptions { viewport };
+    let drawn = Terminal::with_options(backend, options)
+        .and_then(|mut terminal| terminal.draw(|frame| render(screen, frame)).map(drop));
+    drop(drawn);
+    out.write_all(&frame).and_then(|()| out.flush())
 }
 
 fn list_title(screen: &Screen) -> String {
@@ -50,6 +75,14 @@ mod tests {
         let mut terminal = Terminal::new(TestBackend::new(80, 6)).unwrap();
         terminal.draw(|frame| render(screen, frame)).unwrap();
         terminal.backend().to_string()
+    }
+
+    #[test]
+    fn draw_writes_the_list_to_the_stream() {
+        let mut out = Vec::new();
+        draw(&mut out, &Screen::new(sample().unwrap())).unwrap();
+        let text = String::from_utf8_lossy(&out);
+        assert!(text.contains("I-00000001"), "{text}");
     }
 
     #[test]

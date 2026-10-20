@@ -48,6 +48,16 @@ fn shows_external_edit_notice() {
 }
 
 #[test]
+fn shows_write_failed_notice() {
+    let screen = Screen::new(sample().unwrap()).fold(Input::WriteFailed);
+    assert_eq!(screen.notice, Some(Notice::WriteFailed));
+    assert_eq!(
+        notice_text(Notice::WriteFailed),
+        "台帳を書き戻せなかった。ファイルを確かめる"
+    );
+}
+
+#[test]
 fn filter_by_kind() {
     let screen = Screen::new(sample().unwrap()).fold(Input::Down);
     let screen = screen.fold(Input::Filter(Some(Kind::Visibility)));

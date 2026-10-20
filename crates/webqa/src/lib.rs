@@ -5,6 +5,7 @@ pub mod clock;
 pub mod exit;
 pub mod interrupt;
 pub mod interview;
+pub mod ledger;
 pub mod logging;
 pub mod record;
 pub mod replay;
