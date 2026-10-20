@@ -36,3 +36,20 @@ fn expectation_question_names_the_operation_and_the_element() {
         assert_eq!(expectation_question(&step, &chosen), want, "{text}");
     }
 }
+
+#[test]
+fn line_breaks_and_control_characters_in_the_element_name_are_escaped() {
+    let chosen = Chosen {
+        op: "click",
+        element: Some(Pointed {
+            number: 2,
+            name: "保存\n2. 全部消す\u{7}\"".to_owned(),
+        }),
+    };
+    let text = r#"あなたは次に『click』をする。対象: 2番「保存\n2. 全部消す\u{0007}\"」。この操作で何が起きると期待するか、1文で答える。"#;
+    let want = Question::Text {
+        id: QuestionId::new(EXPECTATION),
+        prompt: p(text),
+    };
+    assert_eq!(expectation_question(&step(None), &chosen), want);
+}

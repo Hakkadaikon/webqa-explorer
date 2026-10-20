@@ -14,7 +14,7 @@ use crate::judge::{self, Answers, Ask, Image, JudgeError, Question, QuestionId};
 use crate::machine::Chosen;
 use crate::ports::{Judge, Pending};
 use crate::redact::Redacted;
-use crate::screen::{Screen, ScreenText, Viewport, visible};
+use crate::screen::{Screen, ScreenText, Viewport, escaped, visible};
 
 /// How hesitant the persona was: the probability of yes is the degree.
 pub const HESITATION: &str = "hesitation";
@@ -93,7 +93,7 @@ pub fn with_done(ops: &[Op]) -> Vec<Op> {
 pub fn expectation_question(step: &Step<'_>, chosen: &Chosen) -> Question {
     let target = chosen.element.as_ref().map_or_else(
         || "なし".to_owned(),
-        |element| format!("{}番「{}」", element.number, element.name),
+        |element| format!("{}番「{}」", element.number, escaped(&element.name)),
     );
     let prompt = format!(
         "あなたは次に『{}』をする。対象: {target}。{EXPECTATION_PROMPT}",
