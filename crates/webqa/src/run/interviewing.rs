@@ -7,9 +7,11 @@ use webqa_core::config::persona::Persona;
 use webqa_core::config::raw::Op;
 use webqa_core::effect::Questions;
 use webqa_core::interview::answer::{Reply, read_step};
-use webqa_core::interview::ask::{Step, elements, questions, send};
+use webqa_core::interview::ask::{
+    EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS, Step, elements, questions, send,
+};
 use webqa_core::issue::probe_questions;
-use webqa_core::judge::{Answers, Image, JudgeError, Question};
+use webqa_core::judge::{Answers, Image, JudgeError, Question, Unusable};
 use webqa_core::machine::State;
 use webqa_core::ports::{Browser, Judge};
 use webqa_core::redact::Redacted;
@@ -79,7 +81,10 @@ impl Interviewing {
 
     /// Asks `judge` the interview's questions, then `extra`, about the
     /// latest page of `state`, at step number `step`. The answers are read
-    /// and kept; the caller passes them on as they are.
+    /// and kept. The caller gets them as they are, so a failure of the
+    /// core's own questions reads as it does in the other modes; an answer
+    /// to an added question that cannot be used comes back as
+    /// [`JudgeError::Malformed`], so the core does nothing with it.
     pub(super) async fn ask(
         &mut self,
         (browser, judge): (&mut dyn Browser, &mut dyn Judge),
@@ -100,12 +105,13 @@ impl Interviewing {
         let mut asking = questions(&asked);
         asking.extend(extra);
         let reply = send(judge, screen, image.as_ref(), &asking).await;
-        let read = reply.as_ref().ok().and_then(|a| read_step(a, &asked).ok());
+        let read = reply.as_ref().ok().map(|a| read_step(a, &asked));
+        let reply = unless_added_failed(reply, read.as_ref());
         self.steps.push(Taken {
             step,
             screen: last.screen.clone(),
             viewport: last.viewport,
-            reply: read,
+            reply: read.and_then(Result::ok),
             image,
         });
         reply
@@ -119,6 +125,29 @@ impl Interviewing {
             None
         }
     }
+}
+
+/// The ids of the questions the interview adds to the core's.
+const ADDED: [&str; 4] = [HESITATION, EXPECTATION, HARD_TO_SEE, PURPOSE_GUESS];
+
+/// `reply`, or [`JudgeError::Malformed`] when `read` failed on an answer to
+/// an added question.
+fn unless_added_failed(
+    reply: Result<Answers, JudgeError>,
+    read: Option<&Result<Reply, Unusable>>,
+) -> Result<Answers, JudgeError> {
+    let failed = read.and_then(|read| read.as_ref().err());
+    if failed.is_some_and(is_added) {
+        Err(JudgeError::Malformed)
+    } else {
+        reply
+    }
+}
+
+/// Whether the problem is with an answer to an added question.
+fn is_added(unusable: &Unusable) -> bool {
+    let (Unusable::Missing(id) | Unusable::NotAnOption(id) | Unusable::OutOfRange(id)) = unusable;
+    ADDED.contains(&id.as_str())
 }
 
 /// Asks the judge: the interview's questions when the ports interview,
