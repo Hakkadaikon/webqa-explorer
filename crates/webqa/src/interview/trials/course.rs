@@ -3,6 +3,8 @@
 
 use std::time::Duration;
 
+use tokio::task::yield_now;
+
 use webqa_core::event::Event;
 use webqa_core::interview::schedule::{Next, RunState, Schedule, next_trial};
 use webqa_core::ports::{Clock, Judge, Store};
@@ -92,6 +94,9 @@ impl Course<'_> {
     async fn start_trials(&mut self) -> Result<Stopped, Halt> {
         let mut stopped = self.step().await?;
         while stopped.is_none() {
+            // Lets a caller that races the run against a deadline see a loop
+            // that never stops; no port waits when every step does nothing.
+            yield_now().await;
             stopped = self.step().await?;
         }
         // The loop only ends with a reason; the default keeps the type total.

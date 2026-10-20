@@ -111,3 +111,12 @@ impl Judge for Thinking {
         self.inner.ask(screen, questions)
     }
 }
+
+/// `run`, or a failure of the test when it does not end: a loop that stops
+/// waiting on anything yields, so the limit of `stuck` can pass.
+pub(super) async fn watched<T: Send>(run: impl Future<Output = T>) -> T {
+    tokio::select! {
+        done = run => done,
+        never = stuck::<T>() => never,
+    }
+}

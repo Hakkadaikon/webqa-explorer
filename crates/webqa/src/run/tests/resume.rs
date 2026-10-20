@@ -67,3 +67,18 @@ async fn failed_write_is_kept_for_the_next_ports() {
         "the second ports write nothing"
     );
 }
+
+#[tokio::test]
+async fn resumed_ports_keep_the_names_of_the_screenshots_written() {
+    let mut parts = Parts::default();
+    let mut first = parts.ports();
+    first.shots.insert("ISSUE_a.png".to_owned());
+    let kept = first.into_kept();
+    let second = parts.ports().resumed(kept);
+    let names: Vec<_> = second.shots.iter().map(String::as_str).collect();
+    assert_eq!(
+        names,
+        ["ISSUE_a.png"],
+        "the names of the first browser's shots"
+    );
+}

@@ -50,8 +50,9 @@ async fn confirmed_problem_is_found_in_the_trials() {
 #[tokio::test]
 async fn records_that_cannot_be_written_fail_the_run() {
     // The first four writes are the lines of the run and its one trial;
-    // then come the ledger, the last line and the report.
-    for limit in [4, 5, 6] {
+    // then come the ledger, the last line and the report. A failure of any
+    // of them, even the first, fails the run.
+    for limit in 0..=6 {
         let mut world = World::new(1);
         world.store.limit = Some(limit);
         assert_eq!(

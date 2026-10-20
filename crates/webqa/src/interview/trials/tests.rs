@@ -29,6 +29,7 @@ mod given;
 mod groups;
 mod opening;
 mod purposes;
+mod record;
 mod records;
 mod reset_ends;
 mod resets;
@@ -42,7 +43,7 @@ mod windows;
 mod launch;
 
 use self::launch::FakeLaunch;
-use self::stubs::{FIXTURES, Fires, Never, Stalled, scratch, stuck, var};
+use self::stubs::{FIXTURES, Fires, Never, Stalled, scratch, stuck, var, watched};
 use super::*;
 use crate::run::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 
@@ -176,8 +177,9 @@ impl World {
         self.run_with(&mut Never).await
     }
 
+    /// Runs the trials, and fails the test when they never end.
     async fn run_with(&mut self, interrupt: &mut dyn Interrupt) -> Ending {
-        interview(
+        let running = interview(
             &mut self.launch,
             &mut self.judge,
             &mut self.clock,
@@ -185,8 +187,8 @@ impl World {
             &self.redactor,
             interrupt,
             &self.plan,
-        )
-        .await
+        );
+        watched(running).await
     }
 
     /// The ledger written, read back.
