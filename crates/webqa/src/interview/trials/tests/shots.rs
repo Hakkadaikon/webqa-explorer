@@ -102,13 +102,14 @@ async fn screenshot_that_cannot_be_written_fails_the_run() {
     let mut world = World::new(1);
     world.judge.script = hesitating(&["done"], 0.9);
     world.run().await;
-    let lines = world.store.lines.len();
+    // The last line of the log comes after the screenshot and the ledger.
+    let before = world.store.lines.len() - 1;
     let mut failing = World::new(1);
     failing.judge.script = hesitating(&["done"], 0.9);
-    failing.store.limit = Some(lines);
+    failing.store.limit = Some(before);
     assert_eq!(
-        (failing.run().await, failing.store.report),
+        (failing.run().await, failing.store.ledger),
         (Ending::Failed(RunError::Store(StoreError)), None),
-        "the first write after the log is the screenshot, and no report follows it"
+        "the first write after the log is the screenshot, and the ledger waits for it"
     );
 }
