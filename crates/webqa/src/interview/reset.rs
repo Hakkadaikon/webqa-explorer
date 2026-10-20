@@ -119,6 +119,7 @@ struct Group(Option<u32>);
 impl Drop for Group {
     fn drop(&mut self) {
         if let Some(leader) = self.0 {
+            // Synchronous: a drop cannot await, and the kill must be done when it returns.
             let _ = Blocking::new("kill")
                 .args(["-KILL", "--", &format!("-{leader}")])
                 .stdin(Stdio::null())

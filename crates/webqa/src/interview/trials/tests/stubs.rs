@@ -18,7 +18,7 @@ use webqa_core::screen::ScreenText;
 use crate::interrupt::Interrupt;
 
 use crate::run::fakes::RecordingJudge;
-pub(super) use crate::run::fakes::stuck::stuck;
+pub(super) use crate::run::fakes::stuck::{Limit, stuck};
 
 /// The user who never interrupts.
 pub(super) struct Never;
