@@ -3,8 +3,9 @@
 //! asks for no element.
 
 use super::input::{fielded, valued};
-use super::{APP, notice, options, save, settings};
+use super::{APP, not_an_option, notice, options, save, settings};
 use crate::config::raw::Op;
+use crate::judge::QuestionId;
 use crate::machine::testing::{
     answer, below, budget, id, idle, inside, memory_of, next, operated, page, rules, secs, seen,
     showed, started, told, touch, with,
@@ -137,5 +138,21 @@ fn enter_is_dropped_even_when_it_is_the_only_kind() {
         options(asked.effect())[0],
         Vec::<String>::new(),
         "the forbidden element wins"
+    );
+}
+
+#[test]
+fn enter_answered_on_a_page_with_a_forbidden_element_is_not_an_option() {
+    let risky = with(fielded(), inside("button", "購入する"));
+    let asked = started(rules(), &risky);
+    let pressed = told(asked.state(), answer("enter", Some(0.9), None));
+    let last = pressed.state().notes().last();
+    assert_eq!(
+        (last, pressed.effect()),
+        (
+            Some(&not_an_option(QuestionId::operation())),
+            asked.effect()
+        ),
+        "the answer is an anomaly, and the judge is asked again with no touch"
     );
 }
