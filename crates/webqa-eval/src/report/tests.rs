@@ -93,6 +93,15 @@ fn the_spread_is_the_sample_deviation() {
 }
 
 #[test]
+fn the_spread_of_three_runs_divides_by_two() {
+    let text = report(&[vec![visibility()], vec![], vec![]], &plants(), &[]);
+    assert_eq!(
+        text.lines().find(|line| line.starts_with("| 全体")),
+        Some("| 全体 | 0.17 ± 0.29 | 1.00 | 1.00 |")
+    );
+}
+
+#[test]
 fn nothing_missed_and_nothing_unlabeled_say_so() {
     let found = [vec![
         visibility(),

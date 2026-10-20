@@ -1,6 +1,7 @@
 use std::io::{self, Read, Write};
 use std::net::{Shutdown, TcpStream};
 use std::path::PathBuf;
+use std::time::Duration;
 
 use super::*;
 
@@ -8,9 +9,19 @@ fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/site")
 }
 
-fn get(url: &str, request_path: &str) -> String {
+/// Connects to the server. A read gives up after a while, so that a broken
+/// server cannot leave a test waiting forever.
+fn connect(url: &str) -> TcpStream {
     let address = url.trim_start_matches("http://").trim_end_matches('/');
-    let mut stream = TcpStream::connect(address).unwrap();
+    let stream = TcpStream::connect(address).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
+    stream
+}
+
+fn get(url: &str, request_path: &str) -> String {
+    let mut stream = connect(url);
     let request = format!("GET {request_path} HTTP/1.1\r\nHost: x\r\n\r\n");
     stream.write_all(request.as_bytes()).unwrap();
     let mut response = String::new();
@@ -91,27 +102,50 @@ fn a_request_head_that_arrives_in_pieces_is_read_whole() {
 #[test]
 fn a_client_that_sends_nothing_gets_the_index() {
     let (url, _handle) = serve(root()).unwrap();
-    let mut stream =
-        TcpStream::connect(url.trim_start_matches("http://").trim_end_matches('/')).unwrap();
+    let mut stream = connect(&url);
     stream.shutdown(Shutdown::Write).unwrap();
     let mut response = String::new();
     stream.read_to_string(&mut response).unwrap();
     assert_eq!(response, ok("text/html; charset=utf-8", "<h1>index</h1>\n"));
 }
 
-/// A reader that never ends: it fills every read with no blank line.
-struct Endless;
+/// A reader of `left` bytes with no blank line, then the end. It fills each
+/// read and keeps the size of the last one.
+struct Flood {
+    left: usize,
+    last: usize,
+}
 
-impl Read for Endless {
+impl Read for Flood {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        buf.fill(b'a');
-        Ok(buf.len())
+        let size = buf.len().min(self.left);
+        buf.iter_mut().take(size).for_each(|byte| *byte = b'a');
+        self.left -= size;
+        self.last = size;
+        Ok(size)
     }
 }
 
 #[test]
-fn a_head_without_a_blank_line_stops_after_the_limit() {
-    // The last read may pass the limit by up to one chunk.
-    let len = read_head(&mut Endless).len();
-    assert!((MAX_HEAD..2 * MAX_HEAD).contains(&len), "read {len} bytes");
+fn a_head_without_a_blank_line_stops_at_the_first_read_past_the_limit() {
+    let mut flood = Flood {
+        left: 4 * MAX_HEAD,
+        last: 0,
+    };
+    let len = read_head(&mut flood).len();
+    // The read before the last one was still under the limit.
+    assert_eq!(
+        (MAX_HEAD <= len, len - flood.last < MAX_HEAD),
+        (true, true),
+        "read {len}"
+    );
+}
+
+#[test]
+fn a_head_that_ends_early_is_read_to_the_end() {
+    let mut flood = Flood {
+        left: 3000,
+        last: 0,
+    };
+    assert_eq!(read_head(&mut flood).len(), 3000);
 }

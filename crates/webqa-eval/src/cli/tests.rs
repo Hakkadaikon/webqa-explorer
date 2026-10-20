@@ -1,5 +1,8 @@
 use std::cell::Cell;
+use std::hint::black_box;
 use std::iter::once;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 
 use super::*;
@@ -21,8 +24,10 @@ fn run_with(argv: &[&str], hold: &dyn Fn(JoinHandle<()>)) -> (u8, String, String
     )
 }
 
+/// Runs the command line without waiting for a server it starts, so that a
+/// broken check cannot leave a test waiting forever.
 fn run_args(argv: &[&str]) -> (u8, String, String) {
-    run_with(argv, &wait)
+    run_with(argv, &|handle: JoinHandle<()>| drop(handle))
 }
 
 #[test]
@@ -102,9 +107,16 @@ fn help_goes_to_the_output_and_a_wrong_command_line_to_the_error_output() {
 }
 
 #[test]
-fn waiting_ends_with_the_thread() {
-    let done = thread::spawn(|| {});
-    wait(done);
+fn waiting_returns_after_the_thread_ends() {
+    let done = Arc::new(AtomicBool::new(false));
+    let flag = Arc::clone(&done);
+    let handle = thread::spawn(move || {
+        // Some work, so that the thread is still running when waiting starts.
+        let sum: u64 = (0..2_000_000_u64).map(black_box).sum();
+        flag.store(sum > 0, Ordering::SeqCst);
+    });
+    wait(handle);
+    assert!(done.load(Ordering::SeqCst));
 }
 
 #[test]
