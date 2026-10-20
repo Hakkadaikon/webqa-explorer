@@ -24,7 +24,7 @@ pub struct HardToSee {
 }
 
 /// Reads the answer to `hard_to_see` among `elements` numbered elements.
-/// A line that does not start with a number is dropped, and so is one
+/// A line that cannot be read as `number: reason` is dropped, and so is one
 /// without a reason; a number listed again counts once; at most
 /// [`MAX_HARD_TO_SEE`] are kept.
 ///

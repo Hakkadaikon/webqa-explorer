@@ -3,7 +3,7 @@
 use super::*;
 
 /// Answers to `hard_to_see` with the elements read from them.
-const SIGHTS: [(&str, &[(usize, &str)]); 18] = [
+const SIGHTS: [(&str, &[(usize, &str)]); 21] = [
     ("", &[]),
     ("\n  \n", &[]),
     ("1: 小さい\n2: 薄い", &[(1, "小さい"), (2, "薄い")]),
@@ -28,6 +28,9 @@ const SIGHTS: [(&str, &[(usize, &str)]); 18] = [
         &[(2, "薄い"), (1, "小さい")],
     ),
     ("**1**: 小さい", &[]),
+    ("番号3: x", &[]),
+    ("3番: x", &[]),
+    ("[3]: x", &[]),
 ];
 
 fn sights(listed: &[(usize, &str)]) -> Vec<HardToSee> {

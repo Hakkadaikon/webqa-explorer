@@ -1,4 +1,5 @@
-//! Tests of the edges of the report: the input key, the usage and the cost.
+//! Tests of the edges of the report: the input key, the usage and the cost,
+//! and how a failed call writes its cause and question.
 
 use serde_json::{Value, json};
 use webqa_core::judge::JudgeError;

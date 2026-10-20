@@ -1,8 +1,8 @@
 //! Tests of the judge that replays a report.
 
-use serde_json::{Value, json};
 use std::time::Duration;
 
+use serde_json::{Value, json};
 use url::Url;
 use webqa_core::judge::QuestionId;
 use webqa_core::machine::ExitReason;
@@ -128,4 +128,17 @@ async fn replay_of_an_unreadable_answer_stays_unreadable() {
     let (_, mut replay, _) = Replay::from_report(&text).unwrap();
     let screen = screen();
     assert_eq!(replay.ask(&screen, &[]).await, Err(unreadable));
+}
+
+#[tokio::test]
+async fn replay_of_an_old_malformed_call_stays_malformed() {
+    let mut old = report();
+    let call = old["calls"][1].as_object_mut().unwrap();
+    call.insert("error".to_owned(), json!("malformed"));
+    call.remove("question");
+    let (_, mut replay, _) = Replay::from_report(&old.to_string()).unwrap();
+    let screen = screen();
+    replay.ask(&screen, &[]).await.unwrap();
+    let second = replay.ask(&screen, &[]).await;
+    assert_eq!(second, Err(JudgeError::Malformed));
 }
