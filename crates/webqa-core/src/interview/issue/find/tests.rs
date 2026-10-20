@@ -92,7 +92,7 @@ fn stalled(outcome: Outcome, answered: bool) -> Vec<Issue> {
 const HALTED: [(Outcome, Option<Halt>); 6] = [
     (GAVE_UP, Some(Halt::GaveUp)),
     (NO_PROGRESS, Some(Halt::NoProgress)),
-    (BUDGET_SPENT, Some(Halt::BudgetSpent)),
+    (BUDGET_SPENT, None),
     (GOAL, None),
     (INFERRED, None),
     (UNVERIFIED, None),
@@ -177,4 +177,5 @@ fn clues_make_hesitant_issue_on_chosen_element() {
     assert_eq!(hesitating_twice(), vec![expected], "the first one");
 }
 
+mod budget;
 mod crossing;

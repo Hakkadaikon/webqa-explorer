@@ -3,8 +3,8 @@
 対象: インタビューのモード(ペルソナと目的の入力、試行と試行の外のループ、判断モデルへの問い、試行の終わり方、課題の見つけ方、ペルソナから外れないこと、台帳の書式、課題の選択とTUI、再実行と照らし合わせ、手引きと形式の検査、既存のモードとの関係)
 走査アンカー: 受け入れ条件(`tasks/loopeng/InterviewMode.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
-転記元の版: コミット 7e4329b の `tasks/loopeng/InterviewMode.feature` に、見えにくい要素の問いを最大3つに絞り、答えの書き方の揺れを読むことに直した決定(T-132、T-133 を足し、題名は変えず、行番号を合わせた)と、issue #33 の決定(操作種別を9種と書き、画像が要る2本のシナリオに画像を扱えるという申告の前提を足し、課題を直さないシナリオに正常に終わる場面の前提を足し、1冊の台帳にまとめるシナリオに目的を達成する前提を足し、窓待ちの制限時間を50分にし、台帳の書式の2本に課題が2件出る場面の前提を足した)を反映した版。出典欄の行番号はこの版の行を指す。
-転記元の sha256: 1ae06b5206c10a33ca45fced4577c0e7d64e373013e2728f2b4697e03fa9e92f
+転記元の版: コミット 7e4329b の `tasks/loopeng/InterviewMode.feature` に、見えにくい要素の問いを最大3つに絞り、答えの書き方の揺れを読むことに直した決定(T-132、T-133 を足し、題名は変えず、行番号を合わせた)と、issue #33 の決定(操作種別を9種と書き、画像が要る2本のシナリオに画像を扱えるという申告の前提を足し、課題を直さないシナリオに正常に終わる場面の前提を足し、1冊の台帳にまとめるシナリオに目的を達成する前提を足し、窓待ちの制限時間を50分にし、台帳の書式の2本に課題が2件出る場面の前提を足した)と、issue #78 の決定(判断予算切れを目的に届かない試行から外し、T-060 の Examples を1行にし、T-134 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
+転記元の sha256: a68cd4572993a4af7d9bf6f399b41ad5d05afb04770527e140a891722727eeb8
 feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py InterviewMode` は、この値と実物の feature の sha256 が違えば失敗する。
 抽出台帳は `tasks/loopeng/InterviewMode.extract.md`、設計は `docs/superpowers/specs/2026-10-18-interview-mode-design.md` にある。
 
@@ -84,7 +84,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 | 試行 | 1つのペルソナと1つの目的の組を1回試すこと。中核の1回の実行で、中核の初期状態から始める | 試行どうしで判断予算・記憶・ブラウザの状態を持ち越さない |
 | 試行の結末 | 終えた試行か打ち切りか。打ち切りは、利用者による中断か実行全体の期限で終わった試行で、1回の実行で多くても1回 | 打ち切りを試行の回数Nにも目的に届かない試行にも数えない。Nが0になりうる |
 | 終えた試行の数 N | 打ち切りでない試行の数。課題の出現の割合の分母 | N = 0 で割合を出さない |
-| 目的に届かない試行 | 終えた試行のうち、ゴール達成と申告による終了(未検証の終了)のほかで終わったもの。行き詰まりと判断予算切れ | 打ち切り、ゴール達成、申告による終了は数えない |
+| 目的に届かない試行 | 終えた試行のうち、行き詰まりで終わったもの。判断予算切れはツールの設定で止まっただけなので数えない(#78) | 打ち切り、ゴール達成、申告による終了、判断予算切れは数えない |
 | 目的を書いた / 推測させた | 設定に目的の done_when を書いたかどうか。書いた目的は段階1つの決め打ちシナリオとして中核に渡す。推測させたときは done_when が成り立たない段階1つとして渡す | 宣言が0個の done_when を作らない。目的の設定の done_when に宣言が無ければ設定エラー |
 | 画面ごとの目的 | URL の型と目的の文の組。URL がその型に合う画面でだけ、推測した目的とのずれを比べる | 型の書式の誤り、型に合わない画面、推測が合っている画面 |
 | 目的のずれ | 画面ごとの目的の1項目(URL の型1つ)について、その型に合う画面で出た推測が書いた目的と同じことを指さないと、判断モデルがずれの問いで答えたこと。文字列の一致では決めない | 文字列は違うが同じと答える、書いていない画面 |
@@ -227,133 +227,133 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `written_purpose_done_is_unverified_not_goal` / issue: #21、#33
 - [x] T-059 InterviewMode.feature:525(試行の終わり方) [event] 「判断モデルが stuck を返したら、ペルソナが諦めたものとして行き詰まりで試行を終える」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `stuck_answer_records_gave_up` / issue: #21、#33
-- [x] T-060 InterviewMode.feature:530(試行の終わり方) [event] 「打ち切りでない試行のうち、ゴール達成と申告による終了のほかで終わった試行は、目的に届かない試行に数える」(Examples の各行を1ケースとする)
-      → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `stuck_and_budget_count_as_unreached` / issue: #21、#33
-- [x] T-061 InterviewMode.feature:540(試行の終わり方) [unwanted] 「ゴール達成や申告による終了で終わった試行は、目的に届かない試行に数えない」(Examples の各行を1ケースとする)
+- [x] T-060 InterviewMode.feature:530(試行の終わり方) [event] 「打ち切りでない試行のうち、ゴール達成と申告による終了のほかで終わった試行は、目的に届かない試行に数える」(判断予算切れは #78 で外した。Examples の各行を1ケースとする)
+      → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `stuck_counts_as_unreached` / issue: #21、#33、#78
+- [x] T-061 InterviewMode.feature:539(試行の終わり方) [unwanted] 「ゴール達成や申告による終了で終わった試行は、目的に届かない試行に数えない」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `goal_and_claim_not_unreached` / issue: #21、#33
-- [x] T-062 InterviewMode.feature:552(課題の見つけ方) [boundary] 「迷いの度合いが閾値以上なら、判断に迷う課題の手がかりにする」(Examples の各行を1ケースとする)
+- [x] T-062 InterviewMode.feature:556(課題の見つけ方) [boundary] 「迷いの度合いが閾値以上なら、判断に迷う課題の手がかりにする」(Examples の各行を1ケースとする)
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::clue` の `hesitation_threshold_boundary` / issue: #21、#33
-- [x] T-063 InterviewMode.feature:563(課題の見つけ方) [boundary] 「確信度が閾値に届かない操作を選んだら、判断に迷う課題の手がかりにする」(Examples の各行を1ケースとする)
+- [x] T-063 InterviewMode.feature:567(課題の見つけ方) [boundary] 「確信度が閾値に届かない操作を選んだら、判断に迷う課題の手がかりにする」(Examples の各行を1ケースとする)
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::clue` の `low_confidence_threshold_boundary` / issue: #21、#33
-- [x] T-064 InterviewMode.feature:573(課題の見つけ方) [event] 「引き返したら、判断に迷う課題の手がかりにする」
+- [x] T-064 InterviewMode.feature:577(課題の見つけ方) [event] 「引き返したら、判断に迷う課題の手がかりにする」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::clue` の `executed_back_is_clue` / issue: #21、#33
-- [x] T-065 InterviewMode.feature:578(課題の見つけ方) [event] 「同じ画面を行き来したら、行き詰まりとは別に迷いの手がかりとして記録する」
+- [x] T-065 InterviewMode.feature:582(課題の見つけ方) [event] 「同じ画面を行き来したら、行き詰まりとは別に迷いの手がかりとして記録する」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::clue` の `ping_pong_between_two_screens_is_clue` / issue: #21、#33
-- [x] T-066 InterviewMode.feature:584(課題の見つけ方) [unwanted] 「同じ画面を行き来しても、試行は行き詰まりで終わらずに続く」
+- [x] T-066 InterviewMode.feature:588(課題の見つけ方) [unwanted] 「同じ画面を行き来しても、試行は行き詰まりで終わらずに続く」
       → 手法: 禁止仕様からの導出(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::clue` の `ping_pong_leaves_stuck_counter` / issue: #21、#33
-- [x] T-067 InterviewMode.feature:590(課題の見つけ方) [event] 「判断モデルが見えにくい要素を挙げたら、視認性が悪い課題として記録する」
+- [x] T-067 InterviewMode.feature:594(課題の見つけ方) [event] 「判断モデルが見えにくい要素を挙げたら、視認性が悪い課題として記録する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `listed_hard_to_see_element_is_visibility_issue` / issue: #22、#33
-- [x] T-068 InterviewMode.feature:613(課題の見つけ方) [unwanted] 「判断モデルが見えにくい要素を挙げなければ、視認性が悪い課題は出さない」
+- [x] T-068 InterviewMode.feature:617(課題の見つけ方) [unwanted] 「判断モデルが見えにくい要素を挙げなければ、視認性が悪い課題は出さない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `no_listed_element_no_visibility_issue` / issue: #22、#33
-- [x] T-069 InterviewMode.feature:618(課題の見つけ方) [event] 「目的に届かなかった試行は、止まった画面と理由を目的に届かない課題として記録する」
+- [x] T-069 InterviewMode.feature:622(課題の見つけ方) [event] 「目的に届かなかった試行は、止まった画面と理由を目的に届かない課題として記録する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `unreached_trial_records_last_screen_and_reason` / issue: #22、#33
-- [x] T-070 InterviewMode.feature:625(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えないと申告したら、視認性が悪い課題を出さず、そのことを台帳に書く」
+- [x] T-070 InterviewMode.feature:629(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えないと申告したら、視認性が悪い課題を出さず、そのことを台帳に書く」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `no_visibility_issue_without_image_support`、単体 `webqa-core::interview::ledger` の `visibility_skipped_note_when_no_image_support` / issue: #22、#24、#33
-- [x] T-071 InterviewMode.feature:631(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えないと申告したら、問い合わせにスクリーンショットを含めない」
+- [x] T-071 InterviewMode.feature:635(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えないと申告したら、問い合わせにスクリーンショットを含めない」
       → 手法: デシジョンテーブル(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask` の `no_screenshot_when_judge_cannot_read_images`、契約 `webqa-judge/tests/command.rs` の `no_image_sent_to_text_only_bridge` / issue: #19、#20、#33
-- [x] T-072 InterviewMode.feature:638(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えないと申告したら、見えにくい要素の答えが無くても応答の異常にしない」
+- [x] T-072 InterviewMode.feature:642(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えないと申告したら、見えにくい要素の答えが無くても応答の異常にしない」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::answer` の `hard_to_see_optional_without_image_support` / issue: #20、#33
-- [x] T-073 InterviewMode.feature:645(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えると申告したのに見えにくい要素の答えが無ければ、応答の異常として扱う」
+- [x] T-073 InterviewMode.feature:649(課題の見つけ方) [unwanted] 「橋渡しが画像を扱えると申告したのに見えにくい要素の答えが無ければ、応答の異常として扱う」
       → 手法: デシジョンテーブル(blackbox-partition)、非決定的出力システムのテスト(ai-nondeterministic) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::answer` の `hard_to_see_required_with_image_support` / issue: #20、#33
-- [x] T-074 InterviewMode.feature:654(ペルソナから外れないこと) [event] 「試行をまとめたあと、課題の番号ごとに1回だけ、そのペルソナとして自然かを別の問いで確かめる」
+- [x] T-074 InterviewMode.feature:658(ペルソナから外れないこと) [event] 「試行をまとめたあと、課題の番号ごとに1回だけ、そのペルソナとして自然かを別の問いで確かめる」
       → 手法: テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::natural` の `asks_once_per_issue_outside_budget` / issue: #23、#33
-- [x] T-075 InterviewMode.feature:661(ペルソナから外れないこと) [boundary] 「自然さの問いの回数の上限を超えた課題は、確かめられなかった区分に入れる」
+- [x] T-075 InterviewMode.feature:665(ペルソナから外れないこと) [boundary] 「自然さの問いの回数の上限を超えた課題は、確かめられなかった区分に入れる」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::natural` の `cap_asks_in_ledger_order_rest_unchecked`、単体 `webqa-core::interview::ledger` の `unchecked_section_between_body_and_off_persona` / issue: #23、#24、#33
-- [x] T-076 InterviewMode.feature:669(ペルソナから外れないこと) [event] 「自然だと判断した課題は、台帳の本体に入れる」
+- [x] T-076 InterviewMode.feature:673(ペルソナから外れないこと) [event] 「自然だと判断した課題は、台帳の本体に入れる」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::natural` の `natural_answer_goes_to_body` / issue: #23、#33
-- [x] T-077 InterviewMode.feature:674(ペルソナから外れないこと) [unwanted] 「自然でないと判断した課題は、本体に入れず、最後の別の節にまとめる」
+- [x] T-077 InterviewMode.feature:678(ペルソナから外れないこと) [unwanted] 「自然でないと判断した課題は、本体に入れず、最後の別の節にまとめる」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::natural` の `unnatural_answer_goes_to_off_persona`、単体 `webqa-core::interview::ledger` の `off_persona_section_is_last` / issue: #23、#24、#33
-- [x] T-078 InterviewMode.feature:680(ペルソナから外れないこと) [unwanted] 「自然さの問いの応答が使えないときは、本体に入れず確かめられなかった区分に入れる」
+- [x] T-078 InterviewMode.feature:684(ペルソナから外れないこと) [unwanted] 「自然さの問いの応答が使えないときは、本体に入れず確かめられなかった区分に入れる」
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::natural` の `unusable_answer_goes_to_unchecked` / issue: #23、#33
-- [x] T-079 InterviewMode.feature:686(ペルソナから外れないこと) [ubiquitous] 「台帳の各課題に、ペルソナのどの性質からそう判断したかを書く」
+- [x] T-079 InterviewMode.feature:690(ペルソナから外れないこと) [ubiquitous] 「台帳の各課題に、ペルソナのどの性質からそう判断したかを書く」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `issue_cites_persona_trait` / issue: #24、#33
-- [x] T-080 InterviewMode.feature:693(台帳の書式) [ubiquitous] 「台帳は Markdown の1ファイルで、各課題は直す指示の文を1行目に持つ」
+- [x] T-080 InterviewMode.feature:697(台帳の書式) [ubiquitous] 「台帳は Markdown の1ファイルで、各課題は直す指示の文を1行目に持つ」
       → 手法: ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `first_line_is_fix_instruction`、ゴールデン `webqa-core/tests/interview_golden.rs` の `ledger_snapshot` / issue: #24、#33
-- [x] T-081 InterviewMode.feature:699(台帳の書式) [ubiquitous] 「各課題は、決まった項目をすべて持つ」
+- [x] T-081 InterviewMode.feature:703(台帳の書式) [ubiquitous] 「各課題は、決まった項目をすべて持つ」
       → 手法: ゴールデンテスト(oracle-past-output)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `issue_has_all_fields`、単体 `webqa-core::interview::ledger` の `mismatch_issue_fields_without_element`、ゴールデン `webqa-core/tests/interview_golden.rs` の `ledger_snapshot` / issue: #24、#33
-- [x] T-082 InterviewMode.feature:720(台帳の書式) [ubiquitous] 「課題をソースコードの場所に結び付けず、画面の要素の手がかりまでを書く」
+- [x] T-082 InterviewMode.feature:724(台帳の書式) [ubiquitous] 「課題をソースコードの場所に結び付けず、画面の要素の手がかりまでを書く」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `no_source_location_fields` / issue: #24、#33
-- [x] T-083 InterviewMode.feature:726(台帳の書式) [boundary] 「3回のうち1回だけ起きた課題も、その回数を添えて台帳に出す」
+- [x] T-083 InterviewMode.feature:730(台帳の書式) [boundary] 「3回のうち1回だけ起きた課題も、その回数を添えて台帳に出す」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `single_occurrence_kept_with_count` / issue: #22、#33
-- [x] T-084 InterviewMode.feature:731(台帳の書式) [ubiquitous] 「課題は起きた割合の高い順に並べる」
+- [x] T-084 InterviewMode.feature:735(台帳の書式) [ubiquitous] 「課題は起きた割合の高い順に並べる」
       → 手法: プロパティベーステスト(generative-property)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `body_order_is_rate_desc_then_number`、単体 `webqa-core::interview::ledger` の `mismatch_issue_sorted_by_pattern_reach_rate` / issue: #24、#33
-- [x] T-085 InterviewMode.feature:736(台帳の書式) [boundary] 「起きた割合が同じ課題は、課題の番号の順に並べる」
+- [x] T-085 InterviewMode.feature:740(台帳の書式) [boundary] 「起きた割合が同じ課題は、課題の番号の順に並べる」
       → 手法: 境界値分析(blackbox-partition)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `ties_ordered_by_number` / issue: #24、#33
-- [x] T-086 InterviewMode.feature:741(台帳の書式) [ubiquitous] 「同じ画面の同じ要素の同じ種類の課題は、実行をまたいで同じ番号になる」
+- [x] T-086 InterviewMode.feature:745(台帳の書式) [ubiquitous] 「同じ画面の同じ要素の同じ種類の課題は、実行をまたいで同じ番号になる」
       → 手法: プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `same_screen_element_kind_same_number` / issue: #22、#33
-- [x] T-087 InterviewMode.feature:746(台帳の書式) [unwanted] 「画面、要素、種類のどれかが違えば、別の番号になる」(Examples の各行を1ケースとする)
+- [x] T-087 InterviewMode.feature:750(台帳の書式) [unwanted] 「画面、要素、種類のどれかが違えば、別の番号になる」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `different_key_different_number` / issue: #22、#33
-- [x] T-088 InterviewMode.feature:757(台帳の書式) [ubiquitous] 「要素を持たない課題は、画面と種類で番号を決める」
+- [x] T-088 InterviewMode.feature:761(台帳の書式) [ubiquitous] 「要素を持たない課題は、画面と種類で番号を決める」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `elementless_number_from_screen_and_kind`、単体 `webqa-core::interview::issue` の `mismatch_number_from_url_pattern_and_kind` / issue: #22、#33
-- [x] T-089 InterviewMode.feature:763(台帳の書式) [unwanted] 「スクリーンショットの名前は、課題の番号・試行の番号・ステップの番号から作り、パスの区切りを含めない」
+- [x] T-089 InterviewMode.feature:767(台帳の書式) [unwanted] 「スクリーンショットの名前は、課題の番号・試行の番号・ステップの番号から作り、パスの区切りを含めない」
       → 手法: セキュリティテスト(nonfunctional-attributes)、エラー推測(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::screenshots` の `issue_screenshot_name_from_numbers_only`、単体 `webqa::interview::trials` の `mismatch_screenshot_named_from_first_match` / issue: #30、#33
-- [x] T-090 InterviewMode.feature:770(台帳の書式) [ubiquitous] 「台帳を読み戻すと、書いた課題の項目と選択がそのまま戻る」
+- [x] T-090 InterviewMode.feature:774(台帳の書式) [ubiquitous] 「台帳を読み戻すと、書いた課題の項目と選択がそのまま戻る」
       → 手法: プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `write_then_read_round_trips` / issue: #24、#33
-- [x] T-091 InterviewMode.feature:776(台帳の書式) [unwanted] 「判断モデルの自由な文に台帳の書式が入っていても、台帳の構造を崩さない」(Examples の各行を1ケースとする)
+- [x] T-091 InterviewMode.feature:780(台帳の書式) [unwanted] 「判断モデルの自由な文に台帳の書式が入っていても、台帳の構造を崩さない」(Examples の各行を1ケースとする)
       → 手法: プロパティベーステスト(generative-property)、エラー推測(experience-checklist)、セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `free_text_cannot_forge_structure`、単体 `webqa-core::interview::ledger` の `write_then_read_round_trips` / issue: #24、#33
-- [x] T-092 InterviewMode.feature:788(台帳の書式) [unwanted] 「判断モデルの自由な文に改行が入っていても、直す指示の文は1行のままにする」
+- [x] T-092 InterviewMode.feature:792(台帳の書式) [unwanted] 「判断モデルの自由な文に改行が入っていても、直す指示の文は1行のままにする」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `fix_instruction_stays_one_line` / issue: #24、#33
-- [x] T-093 InterviewMode.feature:793(台帳の書式) [unwanted] 「台帳に書く文にも、設定で指定した機密情報の伏せ字を通す」
+- [x] T-093 InterviewMode.feature:797(台帳の書式) [unwanted] 「台帳に書く文にも、設定で指定した機密情報の伏せ字を通す」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `ledger_text_passes_redaction` / issue: #24、#33
-- [x] T-094 InterviewMode.feature:799(台帳の書式) [ubiquitous] 「台帳に、ペルソナの名前、目的、開始の URL、終えた試行の回数を書く」
+- [x] T-094 InterviewMode.feature:803(台帳の書式) [ubiquitous] 「台帳に、ペルソナの名前、目的、開始の URL、終えた試行の回数を書く」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `header_has_persona_purpose_url_count` / issue: #24、#33
-- [x] T-095 InterviewMode.feature:806(台帳の書式) [event] 「インタビューの課題だけを見つけて終わったら、終了コードは0になる」
+- [x] T-095 InterviewMode.feature:810(台帳の書式) [event] 「インタビューの課題だけを見つけて終わったら、終了コードは0になる」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::exit` の `interview_issues_exit_zero` / issue: #31、#33
-- [x] T-096 InterviewMode.feature:813(課題を選ぶことと TUI) [event] 「Markdown のチェックボックスを直接書き換えて選んだ課題は、選んだ課題として読み戻せる」
+- [x] T-096 InterviewMode.feature:817(課題を選ぶことと TUI) [event] 「Markdown のチェックボックスを直接書き換えて選んだ課題は、選んだ課題として読み戻せる」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `edited_checkbox_reads_as_selected` / issue: #24、#33
-- [x] T-097 InterviewMode.feature:818(課題を選ぶことと TUI) [event] 「TUI で課題の選択を付け外しすると、同じ Markdown に書き戻す」
+- [x] T-097 InterviewMode.feature:822(課題を選ぶことと TUI) [event] 「TUI で課題の選択を付け外しすると、同じ Markdown に書き戻す」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-tui::ledger` の `toggle_selects_issue`、保存 `webqa-tui/tests/ledger_file.rs` の `toggle_writes_back_to_same_file` / issue: #27、#33
-- [x] T-098 InterviewMode.feature:823(課題を選ぶことと TUI) [unwanted] 「TUI で書き戻しても、選択のほかの中身は変えない」
+- [x] T-098 InterviewMode.feature:827(課題を選ぶことと TUI) [unwanted] 「TUI で書き戻しても、選択のほかの中身は変えない」
       → 手法: 冪等性テスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `set_selection_changes_only_checkbox`、保存 `webqa-tui/tests/ledger_file.rs` の `toggle_twice_restores_bytes` / issue: #24、#27、#33
-- [x] T-099 InterviewMode.feature:828(課題を選ぶことと TUI) [unwanted] 「TUI で開いたあとに台帳が外で書き換えられていたら、上書きせずに知らせる」
+- [x] T-099 InterviewMode.feature:832(課題を選ぶことと TUI) [unwanted] 「TUI で開いたあとに台帳が外で書き換えられていたら、上書きせずに知らせる」
       → 手法: 並行・競合の封じ込め(flakiness-concurrency)、禁止仕様からの導出(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-tui::ledger` の `shows_external_edit_notice`、保存 `webqa-tui/tests/ledger_file.rs` の `external_edit_blocks_overwrite` / issue: #27、#33
-- [x] T-100 InterviewMode.feature:835(課題を選ぶことと TUI) [state] 「TUI で課題を種類で絞り込める」
+- [x] T-100 InterviewMode.feature:839(課題を選ぶことと TUI) [state] 「TUI で課題を種類で絞り込める」
       → 手法: 同値分割(blackbox-partition)、ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-tui::ledger` の `filter_by_kind`、ゴールデン `webqa-tui/tests/render.rs` の `ledger_list_filtered_snapshot` / issue: #27、#33
-- [x] T-101 InterviewMode.feature:840(課題を選ぶことと TUI) [event] 「TUI で課題を選ぶと、その中身を読める」
+- [x] T-101 InterviewMode.feature:844(課題を選ぶことと TUI) [event] 「TUI で課題を選ぶと、その中身を読める」
       → 手法: ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、ゴールデン `webqa-tui/tests/render.rs` の `ledger_issue_detail_snapshot` / issue: #27、#33
-- [x] T-102 InterviewMode.feature:845(課題を選ぶことと TUI) [ubiquitous] 「実行中のイベントログを追う画面は、今のまま使える」
+- [x] T-102 InterviewMode.feature:849(課題を選ぶことと TUI) [ubiquitous] 「実行中のイベントログを追う画面は、今のまま使える」
       → 手法: 回帰テスト(levels-operational)、ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、ゴールデン `webqa-tui/tests/render.rs` の `watch_view_snapshot` / issue: #27、#33
-- [x] T-103 InterviewMode.feature:852(再実行と照らし合わせ) [event] 「前回も今回も出た課題は、残っているとして示す」
+- [x] T-103 InterviewMode.feature:856(再実行と照らし合わせ) [event] 「前回も今回も出た課題は、残っているとして示す」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `seen_again_is_remaining` / issue: #25、#33
-- [x] T-104 InterviewMode.feature:857(再実行と照らし合わせ) [event] 「今回だけ出た課題は、新しく出たとして示す」
+- [x] T-104 InterviewMode.feature:861(再実行と照らし合わせ) [event] 「今回だけ出た課題は、新しく出たとして示す」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `only_now_is_new` / issue: #25、#33
-- [x] T-105 InterviewMode.feature:862(再実行と照らし合わせ) [boundary] 「その画面に届いた試行の数が前回以上で、1回も起きなければ、解消したとして示す」(Examples の各行を1ケースとする)
+- [x] T-105 InterviewMode.feature:866(再実行と照らし合わせ) [boundary] 「その画面に届いた試行の数が前回以上で、1回も起きなければ、解消したとして示す」(Examples の各行を1ケースとする)
       → 手法: ドメイン分析テスト(blackbox-partition)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `resolved_when_reach_not_fewer`、単体 `webqa-core::interview::compare` の `mismatch_reach_counts_pattern_trials` / issue: #25、#33
-- [x] T-106 InterviewMode.feature:873(再実行と照らし合わせ) [boundary] 「その画面に届いた試行の数が前回より1少なければ、1回も起きなくても解消したとせず、確かめられなかったとして示す」
+- [x] T-106 InterviewMode.feature:877(再実行と照らし合わせ) [boundary] 「その画面に届いた試行の数が前回より1少なければ、1回も起きなくても解消したとせず、確かめられなかったとして示す」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `one_fewer_reach_is_unverified` / issue: #25、#33
-- [x] T-107 InterviewMode.feature:878(再実行と照らし合わせ) [unwanted] 「前回課題が出た画面に届かなければ、確かめられなかったとして示す」
+- [x] T-107 InterviewMode.feature:882(再実行と照らし合わせ) [unwanted] 「前回課題が出た画面に届かなければ、確かめられなかったとして示す」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `unreached_screen_is_unverified` / issue: #25、#33
-- [x] T-108 InterviewMode.feature:884(再実行と照らし合わせ) [event] 「前回選んだ課題が残っていれば、選択を引き継ぐ」
+- [x] T-108 InterviewMode.feature:888(再実行と照らし合わせ) [event] 「前回選んだ課題が残っていれば、選択を引き継ぐ」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `selection_carries_to_remaining` / issue: #25、#33
-- [x] T-109 InterviewMode.feature:889(再実行と照らし合わせ) [event] 「新しく出た課題は、選ばれていない状態で台帳に出す」
+- [x] T-109 InterviewMode.feature:893(再実行と照らし合わせ) [event] 「新しく出た課題は、選ばれていない状態で台帳に出す」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `new_issue_unselected` / issue: #25、#33
-- [x] T-110 InterviewMode.feature:893(再実行と照らし合わせ) [boundary] 「前回の台帳を渡さなければ、すべての課題を新しく出たとして示す」
+- [x] T-110 InterviewMode.feature:897(再実行と照らし合わせ) [boundary] 「前回の台帳を渡さなければ、すべての課題を新しく出たとして示す」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `no_previous_all_new` / issue: #25、#33
-- [x] T-111 InterviewMode.feature:898(再実行と照らし合わせ) [unwanted] 「前回の台帳が決まった書式で読めなければ、照らし合わせずに設定エラーにする」
+- [x] T-111 InterviewMode.feature:902(再実行と照らし合わせ) [unwanted] 「前回の台帳が決まった書式で読めなければ、照らし合わせずに設定エラーにする」
       → 手法: 構文テスト(experience-scenario)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `broken_ledger_read_fails`、実行ファイル `webqa/tests/cli.rs` の `broken_previous_ledger_exits_two` / issue: #24、#31、#33
-- [x] T-112 InterviewMode.feature:905(再実行と照らし合わせ) [unwanted] 「前回の台帳のペルソナか目的が今回と違えば、照らし合わせずに設定エラーにする」(Examples の各行を1ケースとする)
+- [x] T-112 InterviewMode.feature:909(再実行と照らし合わせ) [unwanted] 「前回の台帳のペルソナか目的が今回と違えば、照らし合わせずに設定エラーにする」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `persona_or_purpose_mismatch_rejected`、単体 `webqa-core::interview::compare` の `previous_head_checked_before_trials`、実行ファイル `webqa/tests/cli.rs` の `mismatched_previous_ledger_exits_two` / issue: #25、#31、#33
-- [x] T-113 InterviewMode.feature:917(再実行と照らし合わせ) [event] 「目的を推測させた実行どうしは、推測した文が違っても、開始の URL が同じなら照らし合わせる」
+- [x] T-113 InterviewMode.feature:921(再実行と照らし合わせ) [event] 「目的を推測させた実行どうしは、推測した文が違っても、開始の URL が同じなら照らし合わせる」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `inferred_runs_compare_by_start_url` / issue: #25、#33
-- [x] T-114 InterviewMode.feature:925(手引きと形式の検査) [event] 「形式の検査のサブコマンドは、正しい文書を通す」(Examples の各行を1ケースとする)
+- [x] T-114 InterviewMode.feature:929(手引きと形式の検査) [event] 「形式の検査のサブコマンドは、正しい文書を通す」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、実行ファイル `webqa/tests/cli.rs` の `check_accepts_valid_documents` / issue: #31、#33
-- [x] T-115 InterviewMode.feature:935(手引きと形式の検査) [unwanted] 「形式の検査のサブコマンドは、誤りのある文書の誤りの場所を示して失敗する」(Examples の各行を1ケースとする)
+- [x] T-115 InterviewMode.feature:939(手引きと形式の検査) [unwanted] 「形式の検査のサブコマンドは、誤りのある文書の誤りの場所を示して失敗する」(Examples の各行を1ケースとする)
       → 手法: 構文テスト(experience-scenario)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::purpose` の `done_when_without_declarations_rejected`、実行ファイル `webqa/tests/cli.rs` の `check_reports_field_and_exits_two` / issue: #18、#31、#33
-- [x] T-116 InterviewMode.feature:946(手引きと形式の検査) [ubiquitous] 「手引きは Agent Skills の標準の形式で、形式の検査のサブコマンドを呼ぶ手順と書式の例を持つ」
+- [x] T-116 InterviewMode.feature:950(手引きと形式の検査) [ubiquitous] 「手引きは Agent Skills の標準の形式で、形式の検査のサブコマンドを呼ぶ手順と書式の例を持つ」
       → 手法: チェックリストベーステスト(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、文書 `webqa/tests/guide.rs` の `guide_has_frontmatter_steps_and_examples` / issue: #32、#33
-- [x] T-117 InterviewMode.feature:952(手引きと形式の検査) [ubiquitous] 「手引きは、目的の done_when を確定の操作ができる画面まで来たことで書くよう示す」
+- [x] T-117 InterviewMode.feature:956(手引きと形式の検査) [ubiquitous] 「手引きは、目的の done_when を確定の操作ができる画面まで来たことで書くよう示す」
       → 手法: チェックリストベーステスト(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、文書 `webqa/tests/guide.rs` の `guide_shows_done_when_at_confirm_screen` / issue: #32、#33
-- [x] T-118 InterviewMode.feature:956(手引きと形式の検査) [ubiquitous] 「手引きは、このリポジトリの開発用の手順書とは別の場所に置く」
+- [x] T-118 InterviewMode.feature:960(手引きと形式の検査) [ubiquitous] 「手引きは、このリポジトリの開発用の手順書とは別の場所に置く」
       → 手法: チェックリストベーステスト(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、文書 `webqa/tests/guide.rs` の `guide_lives_outside_dev_skills` / issue: #32、#33
-- [x] T-119 InterviewMode.feature:962(既存のモードとの関係) [ubiquitous] 「探索モードと決め打ちシナリオの受け入れシナリオは、そのまま通る」
+- [x] T-119 InterviewMode.feature:966(既存のモードとの関係) [ubiquitous] 「探索モードと決め打ちシナリオの受け入れシナリオは、そのまま通る」
       → 手法: 回帰テスト(levels-operational) / テスト名: 受け入れ(同題の Scenario)、受け入れ `webqa/tests/acceptance.rs` の `web_exploratory_qa_feature` / issue: #33
-- [x] T-120 InterviewMode.feature:967(既存のモードとの関係) [unwanted] 「インタビューのモードでも、既存のガードレールで止まる操作は実行しない」(Examples の各行を1ケースとする)
+- [x] T-120 InterviewMode.feature:971(既存のモードとの関係) [unwanted] 「インタビューのモードでも、既存のガードレールで止まる操作は実行しない」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、回帰テスト(levels-operational) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard::forbidden` の `forbidden_by_keyword`、単体 `webqa-core::guard::confidence` の `back_confidence_boundary`、単体 `webqa-core::guard::identity` の `missing_element_aborts`(WebExploratoryQA 台帳の T-007、T-005、T-008 に依存。未実装) / issue: #4、#33
-- [x] T-121 InterviewMode.feature:978(既存のモードとの関係) [unwanted] 「インタビューのモードでも、判断モデルの呼び出しが上限に達したら試行を止める」
+- [x] T-121 InterviewMode.feature:982(既存のモードとの関係) [unwanted] 「インタビューのモードでも、判断モデルの呼び出しが上限に達したら試行を止める」
       → 手法: 境界値分析(blackbox-partition)、回帰テスト(levels-operational) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_exhausted_finishes`(WebExploratoryQA 台帳の T-020 に依存。未実装) / issue: #12、#33
-- [x] T-122 InterviewMode.feature:983(既存のモードとの関係) [unwanted] 「インタビューのモードでも、設定で指定した機密情報は判断モデルに送るテキストで伏せる」
+- [x] T-122 InterviewMode.feature:987(既存のモードとの関係) [unwanted] 「インタビューのモードでも、設定で指定した機密情報は判断モデルに送るテキストで伏せる」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask` の `screen_text_redacted_in_interview` / issue: #20、#33
-- [x] T-123 InterviewMode.feature:989(既存のモードとの関係) [ubiquitous] 「インタビューのモードは課題を直さず、台帳と実行結果のほかにファイルを書き換えない」
+- [x] T-123 InterviewMode.feature:993(既存のモードとの関係) [ubiquitous] 「インタビューのモードは課題を直さず、台帳と実行結果のほかにファイルを書き換えない」
       → 手法: 禁止仕様からの導出(blackbox-state)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `writes_only_ledger_events_report_screenshots`、単体 `webqa::interview::trials` の `detected_problem_screenshots_do_not_overwrite_across_trials` / issue: #30、#33
 - [x] T-124 InterviewMode.feature:92(ペルソナと目的の入力) [unwanted] 「画面ごとの目的の URL の型に合う画面に届いた試行が無ければ、ずれの問いを聞かない」
       → 手法: デシジョンテーブル(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask` の `no_mismatch_question_without_reaching_trial` / issue: #20、#33
@@ -371,10 +371,12 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::natural` の `mismatch_issue_also_gets_natural_question` / issue: #23、#33
 - [x] T-131 InterviewMode.feature:69(ペルソナと目的の入力) [event] 「目的のずれの課題は、URL の型を画面とし、出現回数と届いた試行の数をその型に届いた終えた試行の数で書く」
       → 手法: 同値分割(blackbox-partition)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `mismatch_issue_counts_trials_reaching_pattern`、単体 `webqa-core::interview::issue` の `mismatch_screenshot_from_first_matching_observation` / issue: #22、#33
-- [x] T-132 InterviewMode.feature:595(課題の見つけ方) [boundary] 「判断モデルが見えにくい要素を4つ挙げても、視認性が悪い課題は先頭の3つにとどめる」
+- [x] T-132 InterviewMode.feature:599(課題の見つけ方) [boundary] 「判断モデルが見えにくい要素を4つ挙げても、視認性が悪い課題は先頭の3つにとどめる」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::answer` の `hard_to_see_cut_to_the_first_three` / issue:
-- [x] T-133 InterviewMode.feature:600(課題の見つけ方) [event] 「判断モデルの答えの書き方が揺れていても、見えにくい要素として読む」(Examples の各行を1ケースとする)
+- [x] T-133 InterviewMode.feature:604(課題の見つけ方) [event] 「判断モデルの答えの書き方が揺れていても、見えにくい要素として読む」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、非決定的出力システムのテスト(ai-nondeterministic) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::answer` の `hard_to_see_required_with_image_support`、単体 `webqa::run` の `interview_passes_on_a_malformed_reply_when_hard_to_see_is_not_an_option` / issue:
+- [x] T-134 InterviewMode.feature:549(試行の終わり方) [unwanted] 「判断予算切れで終わった試行は、試行の数に数えるが、目的に届かない課題にしない」
+      → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `budget_spent_counts_in_n_but_not_as_unreached`、単体 `webqa-core::interview::issue` の `unreached_trial_records_last_screen_and_reason`、単体 `webqa-core::interview::issue` の `budget_spent_trial_keeps_hesitation_without_unreached` / issue: #78
 
 ## 試行の外のループの性質テスト
 
@@ -459,7 +461,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-057 | event | 状態遷移テスト(blackbox-state) | `inferred_done_is_claimed_reach` | #21、#33 | [x] | [ ] | 要 |
 | T-058 | unwanted | 状態遷移テスト(blackbox-state) | `written_purpose_done_is_unverified_not_goal` | #21、#33 | [x] | [ ] | 要 |
 | T-059 | event | 状態遷移テスト(blackbox-state) | `stuck_answer_records_gave_up` | #21、#33 | [x] | [ ] | 要 |
-| T-060 | event | デシジョンテーブル(blackbox-partition) | `stuck_and_budget_count_as_unreached` | #21、#33 | [x] | [ ] | 要 |
+| T-060 | event | デシジョンテーブル(blackbox-partition) | `stuck_counts_as_unreached` | #21、#33、#78 | [x] | [ ] | 要 |
 | T-061 | unwanted | デシジョンテーブル(blackbox-partition) | `goal_and_claim_not_unreached` | #21、#33 | [x] | [ ] | 要 |
 | T-062 | boundary | 境界値分析(blackbox-partition) | `hesitation_threshold_boundary` | #21、#33 | [x] | [ ] | 要 |
 | T-063 | boundary | 境界値分析(blackbox-partition) | `low_confidence_threshold_boundary` | #21、#33 | [x] | [ ] | 要 |
@@ -533,6 +535,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-131 | event | 同値分割(blackbox-partition)、境界値分析(blackbox-partition) | `mismatch_issue_counts_trials_reaching_pattern`、`mismatch_screenshot_from_first_matching_observation` | #22、#33 | [x] | [ ] | 要 |
 | T-132 | boundary | 境界値分析(blackbox-partition) | `hard_to_see_cut_to_the_first_three` |  | [x] | [ ] | — |
 | T-133 | event | 同値分割(blackbox-partition)、非決定的出力システムのテスト(ai-nondeterministic) | `hard_to_see_required_with_image_support`、`interview_passes_on_a_malformed_reply_when_hard_to_see_is_not_an_option` |  | [x] | [ ] | — |
+| T-134 | unwanted | デシジョンテーブル(blackbox-partition) | `budget_spent_counts_in_n_but_not_as_unreached`、`unreached_trial_records_last_screen_and_reason`、`budget_spent_trial_keeps_hesitation_without_unreached` | #78 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
@@ -599,8 +602,8 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py InterviewMode
-feature の sha256: 1ae06b5206c10a33ca45fced4577c0e7d64e373013e2728f2b4697e03fa9e92f
-台帳の sha256:     1ae06b5206c10a33ca45fced4577c0e7d64e373013e2728f2b4697e03fa9e92f
+feature の sha256: a68cd4572993a4af7d9bf6f399b41ad5d05afb04770527e140a891722727eeb8
+台帳の sha256:     a68cd4572993a4af7d9bf6f399b41ad5d05afb04770527e140a891722727eeb8
 `- [ ]` の行: 0
 台帳の T-ID 行: 133(期待 133)
 欠番: なし
