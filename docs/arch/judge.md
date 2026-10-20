@@ -257,15 +257,86 @@ JEVの問いは1回の呼び出しにまとめ、`text`の問いは1つずつ別
 画像を扱えない言語モデルを`--text-model`に選ぶと、その問いはGatewayの失敗(`api`)になりうる。
 Gatewayへの送信、時間の予算、送り直し、リダイレクトの扱いは`bridge/gateway.py`にまとめてある。
 
-引数は次の3つである。
+### `claude -p`で答える
+
+`--text-claude`を書くと、`text`の問いはGatewayへ送らない。
+Claude Codeの`claude -p`で答える。
+JEVの問いは、今までどおりGatewayのJEVへ送る。
+`claude -p`は、`text`の問いごとに1回起動する。
+呼び出しは`bridge/claude_cli.py`にまとめてある。
+
+画面の文は外のサイトの文なので、`claude -p`には操作の手段を持たせない。
+ツールを`--tools ""`ですべて外す。
+`--safe-mode`で、CLAUDE.md、スキル、プラグイン、フック、MCPのサーバーを止める。
+`--setting-sources ""`で、設定のファイルも読ませない。
+会話は保存させない。
+作業ディレクトリは、問いごとに作る空の一時ディレクトリにする。
+2.1.304で、利用者のCLAUDE.mdの指示が答えに届かないことを確かめた。
+`claude`に渡す環境変数は、ログインと通信と文字の扱いに要るものだけにする。
+一覧は`bridge/claude_cli.py`の`PASSED`、`PASSED_PREFIXES`、`PROXIES`にある。
+`ANTHROPIC_`、`CLAUDE_`、`LC_`、`XDG_`で始まる変数は、名前ごと渡す。
+Gatewayのキーは、`WEBQA_JUDGE_API_KEY`にも、設定の`api_key`が指す元の変数にも入っている。
+`WEBQA_JUDGE_API_KEY`は`claude`に渡らない。
+元の変数も、上の接頭辞で始まらなければ渡らない。
+`claude`はツールを持たないので、渡った変数をモデルが読む手段は無い。
+AWSやGoogle Cloudの変数(地域や認証)は渡さない。
+そのため、BedrockやVertex AIを通す`claude`には使えない。
+`claude`は、利用者がClaude Codeでログインした認証か、`ANTHROPIC_API_KEY`で呼ぶ。
+`--bare`は使わない。
+キーチェーンを読まなくなり、ログインの認証が使えなくなるためである。
+
+問いは標準入力に`stream-json`の1行で渡し、答えも`stream-json`で受け取る。
+見えにくい要素の問いに画像があるときは、画像を`image`の内容として同じ行に入れる。
+答えは最後の行の`result`の文で、前後の空白を取って返す。
+最後の行が`result`でない、`is_error`が真、文が無い、のどれかなら`api`の失敗にする。
+入力のトークン数には、キャッシュに書いた分と読んだ分も足す。
+
+`claude`の場所は、環境変数`WEBQA_CLAUDE`で渡す。
+無ければ、PATHの`claude`を使う。
+起動できなければ`api`の失敗にする。
+時間の予算は、Gatewayのときと同じく行ごとに数える。
+残りの時間を過ぎたら`claude`を止め、`timeout`の失敗を返す。
+`claude`の標準エラーは捨てる。
+
+設定の`judge`は、たとえば次のように書く。
+
+```yaml
+judge:
+  kind: command
+  command: ["./bridge/jev.py", "--text-claude", "haiku", "--timeout", "60"]
+  api_key: { env: JEV_API_KEY }
+  timeout_secs: 70
+```
+
+`claude -p`は起動に数秒かかり、見えにくい要素の問いでは1問に数秒から10秒ほどかかる。
+1行に`text`の問いが2つ以上あると、その分だけ待つ。
+そのため、`--timeout`と`judge.timeout_secs`は、Gatewayの言語モデルのときより長めにとる。
+
+`claude`は、Claude Codeの2.1.304で確かめた。
+`--safe-mode`や`--tools`を知らない古い版では、答えの行が読めず`api`の失敗になる。
+標準エラーは捨てるので、失敗の理由は見えない。
+設定する前に、問いの行を1つ流して答えが返るかを確かめる。
+
+```sh
+echo '{"version":2,"seq":1,"screen":"1: button \"保存\"","questions":[{"kind":"text","id":"expectation","prompt":"押したら何が起きると思うか、1文で答える"}]}' \
+  | ./bridge/jev.py --text-claude haiku --timeout 60
+```
+
+1行目に申告の行、2行目に`answers`の行が出れば使える。
+2行目が`error`なら、`claude -p`をそのまま端末で動かして、ログインと版を確かめる。
+
+引数は次のとおり。
 
 | 引数 | 既定 | 中身 |
 |---|---|---|
 | `--model` | `typesafe-ai/jev-1.14.0` | JEVのモデル |
-| `--text-model` | 無し | `text`の問いを送る言語モデル |
+| `--text-model` | 無し | `text`の問いを送るGatewayの言語モデル |
+| `--text-claude` | 無し | `text`の問いに答える`claude`のモデル |
 | `--timeout` | 30 | 問いの1行あたりの時間の予算(秒) |
 
-`--text-model`を書かなければ、`text`の問いを含む行には`api`の失敗を返す。
+`--text-model`と`--text-claude`は、どちらか一方だけを書ける。
+両方を書くと、引数の誤りで終わる。
+どちらも書かなければ、`text`の問いを含む行には`api`の失敗を返す。
 `--timeout`は、0より大きく3600以下の秒数にする。
 外れた値では、橋渡しは引数の誤りで終わる。
 申告の行が来ないので、webqaは起動の失敗(終了コード3)で止まる。
