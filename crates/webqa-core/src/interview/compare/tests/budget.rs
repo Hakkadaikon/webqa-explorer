@@ -16,10 +16,11 @@ fn halted(number: &str, halt: Halt) -> Issue {
 }
 
 #[test]
-fn budget_spent_issue_of_the_previous_run_is_unverified_and_stays_selected() {
+fn budget_spent_issue_is_unverified_unlike_other_halts() {
     for (halt, compared, selected) in [
         (Halt::BudgetSpent, Compared::Unverified, true),
         (Halt::GaveUp, Compared::Resolved, false),
+        (Halt::NoProgress, Compared::Resolved, false),
     ] {
         let kept = Entry {
             selected: true,

@@ -3,7 +3,7 @@
 対象: インタビューのモード(ペルソナと目的の入力、試行と試行の外のループ、判断モデルへの問い、試行の終わり方、課題の見つけ方、ペルソナから外れないこと、台帳の書式、課題の選択とTUI、再実行と照らし合わせ、手引きと形式の検査、既存のモードとの関係)
 走査アンカー: 受け入れ条件(`tasks/loopeng/InterviewMode.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
-転記元の版: コミット d74fc90(ブランチ fix-budget)の `tasks/loopeng/InterviewMode.feature` に、見えにくい要素の問いを最大3つに絞り、答えの書き方の揺れを読むことに直した決定(T-132、T-133 を足し、題名は変えず、行番号を合わせた)と、issue #33 の決定(操作種別を9種と書き、画像が要る2本のシナリオに画像を扱えるという申告の前提を足し、課題を直さないシナリオに正常に終わる場面の前提を足し、1冊の台帳にまとめるシナリオに目的を達成する前提を足し、窓待ちの制限時間を50分にし、台帳の書式の2本に課題が2件出る場面の前提を足した)と、issue #78 の決定(判断予算切れを目的に届かない試行から外し、T-060 の Examples を1行にし、T-134 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
+転記元の版: コミット d74fc90(ブランチ fix-budget)の `tasks/loopeng/InterviewMode.feature` に、見えにくい要素の問いを最大3つに絞り、答えの書き方の揺れを読むことに直した決定(T-132、T-133 を足し、題名は変えず、行番号を合わせた)と、issue #33 の決定(操作種別を9種と書き、画像が要る2本のシナリオに画像を扱えるという申告の前提を足し、課題を直さないシナリオに正常に終わる場面の前提を足し、1冊の台帳にまとめるシナリオに目的を達成する前提を足し、窓待ちの制限時間を50分にし、台帳の書式の2本に課題が2件出る場面の前提を足した)と、issue #78 の決定(判断予算切れを目的に届かない試行から外し、T-060 の Examples を1行にし、T-060 の題名に判断予算切れを足し、T-134 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
 転記元の sha256: 101d270f14c4d6f14aed9436b593b0a6f4ef85df64fcc1444d73d9b9635b6061
 feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py InterviewMode` は、この値と実物の feature の sha256 が違えば失敗する。
 抽出台帳は `tasks/loopeng/InterviewMode.extract.md`、設計は `docs/superpowers/specs/2026-10-18-interview-mode-design.md` にある。
@@ -99,7 +99,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 | 自然さの問い | すべての試行を終えて課題をまとめたあと、課題の番号ごとに1回だけ問う別の問い合わせ。判断予算に数えない。上限(既定50)から、先に聞いたずれの問いの回数を引いた残りまでを、台帳の並びの順に問う。ずれの問いで出た目的のずれの課題も対象にする | 上限ちょうど、上限を超えた残り、ずれの問いで上限を使い切った場合 |
 | 台帳 | Markdown の1ファイル。ペルソナの名前、目的(書いた目的か、推測の印と推測した文か)、開始の URL、終えた試行の回数、課題の本体、確かめられなかった節、ペルソナから外れる節を持つ。書いて読み戻すと同じ値に戻る | 判断モデルの文に入った見出し・チェックボックス・改行、N = 0 |
 | 台帳の並び | 本体は出現の割合 k/N の降順、同じ割合なら番号の昇順 | 同率 |
-| 照らし合わせ | 新しく出た、残っている、解消した、確かめられなかった、の4つ。解消したは、前回の課題が今回1回も起きず、今回その画面に届いた試行の数が前回の数以上のときだけ | 届いた数が同じ、1少ない、0 |
+| 照らし合わせ | 新しく出た、残っている、解消した、確かめられなかった、の4つ。解消したは、前回の課題が今回1回も起きず、今回その画面に届いた試行の数が前回の数以上のときだけ。前回の判断予算切れの課題は除く(確かめられなかったになる) | 届いた数が同じ、1少ない、0 |
 | 選択 | 課題のチェックボックス。読み戻しで選んだ課題を区別する。残っている課題は前回の選択を引き継ぎ、新しく出た課題は選ばない | エディタでの直接の書き換え、TUI での付け外し、外での書き換えとの競合 |
 | 実行全体の時間窓 | 実行の開始から1時間ごとに区切り、試行をまたいで対象サーバーへのアクセスを数える窓。試行の最初のページの表示も1回数え、初期化のコマンドのアクセスは数えない | 窓の切り替わり、上限ちょうど |
 | 中核に渡す時間窓の上限 | 次の試行を始めるとき、上限 − u − 1(u は実行全体の今の窓のアクセスの数)。その2倍が上限以上なら待たずに渡し、下回れば窓が明けるまで待って上限 − 1 を渡す。試行の間は変えない | 上限10で u = 4(5を渡す、ちょうど半分)、u = 5(待つ)、u = 10 |
@@ -317,8 +317,8 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `seen_again_is_remaining` / issue: #25、#33
 - [x] T-104 InterviewMode.feature:861(再実行と照らし合わせ) [event] 「今回だけ出た課題は、新しく出たとして示す」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `only_now_is_new` / issue: #25、#33
-- [x] T-105 InterviewMode.feature:866(再実行と照らし合わせ) [boundary] 「その画面に届いた試行の数が前回以上で、1回も起きなければ、解消したとして示す」(Examples の各行を1ケースとする)
-      → 手法: ドメイン分析テスト(blackbox-partition)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `resolved_when_reach_not_fewer`、単体 `webqa-core::interview::compare` の `mismatch_reach_counts_pattern_trials` / issue: #25、#33
+- [x] T-105 InterviewMode.feature:866(再実行と照らし合わせ) [boundary] 「その画面に届いた試行の数が前回以上で、1回も起きなければ、解消したとして示す」(Examples の各行を1ケースとする。前回の判断予算切れの課題は除く: 確かめられなかったになる)
+      → 手法: ドメイン分析テスト(blackbox-partition)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `resolved_when_reach_not_fewer`、単体 `webqa-core::interview::compare` の `mismatch_reach_counts_pattern_trials`、単体 `webqa-core::interview::compare` の `budget_spent_issue_is_unverified_unlike_other_halts` / issue: #25、#33、#78
 - [x] T-106 InterviewMode.feature:877(再実行と照らし合わせ) [boundary] 「その画面に届いた試行の数が前回より1少なければ、1回も起きなくても解消したとせず、確かめられなかったとして示す」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::compare` の `one_fewer_reach_is_unverified` / issue: #25、#33
 - [x] T-107 InterviewMode.feature:882(再実行と照らし合わせ) [unwanted] 「前回課題が出た画面に届かなければ、確かめられなかったとして示す」
@@ -506,7 +506,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-102 | ubiquitous | 回帰テスト(levels-operational)、ゴールデンテスト(oracle-past-output) | `watch_view_snapshot` | #27、#33 | [x] | [ ] | — |
 | T-103 | event | デシジョンテーブル(blackbox-partition) | `seen_again_is_remaining` | #25、#33 | [x] | [ ] | 要 |
 | T-104 | event | デシジョンテーブル(blackbox-partition) | `only_now_is_new` | #25、#33 | [x] | [ ] | 要 |
-| T-105 | boundary | ドメイン分析テスト(blackbox-partition)、境界値分析(blackbox-partition) | `resolved_when_reach_not_fewer`、`mismatch_reach_counts_pattern_trials` | #25、#33 | [x] | [ ] | 要 |
+| T-105 | boundary | ドメイン分析テスト(blackbox-partition)、境界値分析(blackbox-partition) | `resolved_when_reach_not_fewer`、`mismatch_reach_counts_pattern_trials`、`budget_spent_issue_is_unverified_unlike_other_halts` | #25、#33、#78 | [x] | [ ] | 要 |
 | T-106 | boundary | 境界値分析(blackbox-partition) | `one_fewer_reach_is_unverified` | #25、#33 | [x] | [ ] | 要 |
 | T-107 | unwanted | 同値分割(blackbox-partition) | `unreached_screen_is_unverified` | #25、#33 | [x] | [ ] | 要 |
 | T-108 | event | デシジョンテーブル(blackbox-partition) | `selection_carries_to_remaining` | #25、#33 | [x] | [ ] | 要 |

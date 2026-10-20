@@ -30,7 +30,7 @@ fn budget_spent_trials_stay_in_n_of_the_unreached_issue() {
     let steps = [seen(&shipping, None, &[], None)];
     let stuck = record(NO_PROGRESS, &steps);
     let spent = record(BUDGET_SPENT, &steps);
-    let got = step_issues(&run(&[stuck, record(BUDGET_SPENT, &steps), spent]));
+    let got = step_issues(&run(&[stuck, spent, spent]));
     let expected = Issue {
         count: count(1, 3, 3),
         shot: Some(Shot { trial: 1, step: 1 }),
