@@ -148,7 +148,7 @@ async fn reset_across_deadline(
     extra: &[(OsString, OsString)],
     after: Duration,
     wakes: bool,
-) -> (Ending, usize, Option<Ledger>) {
+) -> (Ending, usize, Option<Ledger>, serde_json::Value) {
     let mut world = World::resetting(1, name, "counts.sh", extra);
     world.plan.max_duration = Some(minutes(60));
     let mut clock = Gauged {
@@ -168,7 +168,12 @@ async fn reset_across_deadline(
         &world.plan,
     )
     .await;
-    (ending, world.launch.launched, world.ledger())
+    let reason = world
+        .store
+        .report
+        .as_ref()
+        .map_or(serde_json::Value::Null, |r| r["reason"].clone());
+    (ending, world.launch.launched, world.ledger(), reason)
 }
 
 fn timed_out() -> Ending {
@@ -191,7 +196,12 @@ async fn deadline_during_reset_waits_then_cuts() {
     let ran = reset_across_deadline("deadline_during_reset", &[], minutes(61), false).await;
     assert_eq!(
         ran,
-        (timed_out(), 0, Some(empty())),
+        (
+            timed_out(),
+            0,
+            Some(empty()),
+            serde_json::json!("time_exceeded")
+        ),
         "the command ended, and no trial started"
     );
 }
@@ -204,7 +214,12 @@ async fn reset_timeout_after_deadline_is_time_up() {
     assert_eq!(
         (late, early.0, early.1),
         (
-            (timed_out(), 0, Some(empty())),
+            (
+                timed_out(),
+                0,
+                Some(empty()),
+                serde_json::json!("time_exceeded")
+            ),
             Ending::ResetFailed(ResetError::TimedOut),
             0
         ),
@@ -221,13 +236,18 @@ async fn interrupt_during_reset_cuts() {
         fire_on: vec![1],
     };
     let ending = world.run_with(&mut interrupt).await;
+    let reason = world
+        .store
+        .report
+        .as_ref()
+        .map(|report| report["reason"].clone());
     let interrupted = Ending::Wrote {
         stopped: Stopped::Interrupted,
         confirmed: false,
     };
     assert_eq!(
-        (ending, world.launch.launched),
-        (interrupted, 0),
-        "the command was dropped and nothing started"
+        (ending, world.launch.launched, reason),
+        (interrupted, 0, Some(serde_json::json!("user_aborted"))),
+        "the command was dropped and nothing started, and the user stopped it"
     );
 }
