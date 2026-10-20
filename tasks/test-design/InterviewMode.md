@@ -3,7 +3,7 @@
 対象: インタビューのモード(ペルソナと目的の入力、試行と試行の外のループ、判断モデルへの問い、試行の終わり方、課題の見つけ方、ペルソナから外れないこと、台帳の書式、課題の選択とTUI、再実行と照らし合わせ、手引きと形式の検査、既存のモードとの関係)
 走査アンカー: 受け入れ条件(`tasks/loopeng/InterviewMode.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
-転記元の版: コミット 7e4329b の `tasks/loopeng/InterviewMode.feature`。出典欄の行番号はこの版の行を指す。
+転記元の版: コミット 7e4329b の `tasks/loopeng/InterviewMode.feature` に、issue #33 の決定(操作種別を9種と書き、画像が要る2本のシナリオに画像を扱えるという申告の前提を足す)を反映した版。出典欄の行番号はこの版の行を指す。
 転記元の sha256: 258827d41f574259132b08f8c394696e80aef7b264ee126184f3633a68d48b8b
 feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py InterviewMode` は、この値と実物の feature の sha256 が違えば失敗する。
 抽出台帳は `tasks/loopeng/InterviewMode.extract.md`、設計は `docs/superpowers/specs/2026-10-18-interview-mode-design.md` にある。

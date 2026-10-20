@@ -3,8 +3,8 @@
 
 use cucumber::{given, then};
 
-use super::{goal_at_start, says, unreached_counts};
-use crate::questions::replies::{ledger_of, step};
+use super::{endings, goal_at_start, says, unreached_counts};
+use crate::questions::replies::{SAVE, button, ledger_of, step};
 use crate::world::InterviewWorld;
 
 #[given(expr = "試行が 行き詰まり として終わる")]
@@ -15,6 +15,7 @@ fn ends_stuck(world: &mut InterviewWorld) {
 #[given(expr = "試行が 判断予算切れ として終わる")]
 fn ends_over_budget(world: &mut InterviewWorld) {
     world.scene.max_decisions = 1;
+    button(&mut world.scene, SAVE);
     says(world, step("click", Some("1"), 0.0));
 }
 
@@ -31,6 +32,15 @@ fn ends_claimed(world: &mut InterviewWorld) {
 #[then(expr = "その試行は目的に届かない試行に数えられている")]
 async fn counted_unreached(world: &mut InterviewWorld) {
     world.run().await;
+    // The decision budget is 1 only in the scene that ends over budget.
+    let ends = [(1, "budget_spent"), (20, "gave_up")];
+    let budget = world.scene.max_decisions;
+    let (_, ending) = ends
+        .iter()
+        .find(|(cap, _)| *cap == budget)
+        .copied()
+        .unwrap_or_default();
+    assert_eq!(endings(world), [ending; 3], "how the trials ended");
     assert_eq!(
         unreached_counts(world),
         [(3, 3)],

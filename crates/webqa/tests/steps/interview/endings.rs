@@ -73,8 +73,8 @@ fn endings(world: &InterviewWorld) -> Vec<String> {
     ended.map(ending).collect()
 }
 
-/// The numbers of the trials that finished and of those that did not reach
-/// the purpose, of each issue of the ledger about a purpose not reached.
+/// For each issue of the ledger about a purpose not reached: in how many
+/// trials it happened, and how many trials finished.
 fn unreached_counts(world: &InterviewWorld) -> Vec<(usize, usize)> {
     let ledger = ledger_of(world);
     let issues = ledger.entries.iter().map(|entry| &entry.issue);
