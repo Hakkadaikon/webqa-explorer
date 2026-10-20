@@ -24,7 +24,7 @@
 | #30 試行の外のループ | `issue-30` | レビューを3回。最後の直し(孫のプロセスのテスト、M1・M2)の確認中。合格したら integ4 へ |
 | #31 interview と check-docs | `issue-31` | レビュー合格、should も直し済み。#30 の最新を `git merge issue-30` で取り込んでから integ4 へ |
 | #32 手引き | `issue-32` | レビュー合格、should 3件を直している途中 |
-| #70 Enter の操作 | `issue-70` | 実装中。仕様の変更(feature、extract.md、TLA+ の Operations、モデル検査)を含むので、終わったら loop-engineering-reviewer と reviewer の両方に通す |
+| #70 Enter の操作 | `issue-70` | 実装済み(TLC は前と同じ状態数で違反なし)。親の決定で「禁止要素があれば ops が enter だけでも外す」を直している途中。終わったら loop-engineering-reviewer と reviewer の両方に通す |
 | #33 受け入れ(インタビュー) | `issue-33a` | 土台の 33a を実装中。入ったら 33b〜33f を並列に回す(計画は `tasks/briefs/33-plan.md`) |
 
 integ4 の PR を出す前に: diff-review を6観点(design、test、security、docs、spec、fresh-eyes)で must 0 まで回し、証跡 `tasks/diff-review/evidence.md` を書く(フックが検査する)。
