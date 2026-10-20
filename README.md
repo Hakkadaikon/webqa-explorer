@@ -1,5 +1,24 @@
 # webqa-explorer
 
+[![CI][ci-badge]][ci]
+[![codecov][codecov-badge]][codecov]
+[![coverage gate][coverage-badge]][gates]
+[![mutation][mutation-badge]][gates]
+[![rust][rust-badge]][toolchain]
+[![license][license-badge]][license]
+
+[ci-badge]: https://github.com/Hakkadaikon/webqa-explorer/actions/workflows/ci.yml/badge.svg?branch=main
+[ci]: https://github.com/Hakkadaikon/webqa-explorer/actions/workflows/ci.yml
+[codecov-badge]: https://codecov.io/gh/Hakkadaikon/webqa-explorer/branch/main/graph/badge.svg
+[codecov]: https://codecov.io/gh/Hakkadaikon/webqa-explorer
+[coverage-badge]: https://img.shields.io/badge/coverage%20gate-100%25-brightgreen
+[mutation-badge]: https://img.shields.io/badge/mutation-cargo--mutants-blue
+[gates]: docs/quality-gates.md
+[rust-badge]: https://img.shields.io/badge/rust-1.99-orange?logo=rust
+[toolchain]: rust-toolchain.toml
+[license-badge]: https://img.shields.io/github/license/Hakkadaikon/webqa-explorer
+[license]: LICENSE
+
 webqa-explorerは、Webサービスの探索的テストエージェントである。
 判断モデルに画面のアクセシビリティ情報を渡し、返ってきた操作をブラウザで実行する。
 これを繰り返して画面を自律的に探索し、不具合や表示の違和感、アクセシビリティ上の問題を見つける。
