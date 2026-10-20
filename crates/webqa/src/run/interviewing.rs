@@ -30,7 +30,8 @@ pub struct Taken {
     pub viewport: Viewport,
     /// The answers, read; `None` when they were unusable.
     pub reply: Option<Reply>,
-    /// The screenshot sent with the question, if one was.
+    /// The screenshot taken for the question, if one was. It is sent only to
+    /// a judge that reads images, and kept either way.
     pub image: Option<Image>,
 }
 
