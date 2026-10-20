@@ -1,0 +1,12 @@
+- id: faint-price-link
+  kind: visibility
+  path: /product-a.html
+  element: {role: link, name: 料金を見る}
+  note: 薄い色の小さなリンク
+- id: attendance-title
+  kind: mismatch
+  path: /attendance.html
+  note: 題と中身が合わない
+- id: no-compare
+  kind: unreached
+  note: 料金を比べる手段が無い

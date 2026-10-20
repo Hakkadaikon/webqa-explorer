@@ -43,7 +43,7 @@ TUIの画面は2つある。
 
 ## crateの分け方
 
-crateは次の5つに分ける。
+crateは次の6つに分ける。
 
 | crate | 種類 | 受け持つもの |
 |---|---|---|
@@ -52,6 +52,7 @@ crateは次の5つに分ける。
 | `webqa-judge` | lib | 判断モデルのアダプタ。台本どおりに答えるスタブと、外部コマンドとの橋渡し |
 | `webqa-tui` | lib | `watch`の画面(イベントログの追跡と表示)、インタビューの台帳の画面、台帳の画面のキーと端末 |
 | `webqa` | lib、bin | CLI、実行ループ、時計、記録の保存、中断の処理、インタビューの試行のループ |
+| `webqa-eval` | lib、bin | インタビューのモードの課題を、仕込みのサイトで採点する([eval.md](eval.md)) |
 
 crateの依存の向きは次のとおり。
 矢印の先が依存される側である。
@@ -65,6 +66,7 @@ flowchart TD
   browser --> core
   judge --> core
   tui --> core
+  eval[webqa-eval] --> core
 ```
 
 `webqa-core`は、ワークスペースの中のほかのcrateに依存しない。
@@ -75,6 +77,7 @@ playwright-rs、tokio、ratatuiも`webqa-core`に入れない。
 `webqa`は、libとbinの2つのターゲットを持つ。
 受け入れのテストと保存のテストは、libを通して実行ループと保存を使う。
 配布する実行ファイルは`webqa`の1つだけで、TUIもサブコマンドで起動する。
+`webqa-eval`は開発の中で測るための道具で、配布しない。
 各crateが使う外部crateは[dependencies.md](dependencies.md)にある。
 
 ## 3つのモード
@@ -137,7 +140,9 @@ crates/
       interview/     試行のループと初期化のコマンド
       store/         記憶、イベントログ、実行結果の保存
     tests/           受け入れ、契約、実行ファイルのテスト
+  webqa-eval/        課題の採点と、仕込みのサイトの配信
 bridge/              判断モデルへの橋渡しのコマンド(Python)
+eval/                仕込みのサイトと、測定の設定、正解表
 share/skills/        配布する手引き(ペルソナと目的の書き方)
 scripts/             セットアップと品質ゲートの補助
 docs/                文書
@@ -160,6 +165,7 @@ tasks/               設計検討の記録
 | [explore-mode.md](explore-mode.md) | 探索モード |
 | [scenario-mode.md](scenario-mode.md) | 決め打ちシナリオモード |
 | [interview-mode.md](interview-mode.md) | インタビューのモード |
+| [eval.md](eval.md) | インタビューのモードの課題を測る仕組み |
 | [safety.md](safety.md) | ガードレール、負荷制御と判断予算、機密情報の扱い |
 | [judge.md](judge.md) | 判断モデルの抽象、アダプタ、橋渡し、再実行 |
 | [config.md](config.md) | 設定ファイル |

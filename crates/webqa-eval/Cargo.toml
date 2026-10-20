@@ -1,0 +1,19 @@
+[package]
+name = "webqa-eval"
+version = "0.1.0"
+description = "Measures how well the interview mode finds planted usability issues"
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+serde.workspace = true
+serde-saphyr.workspace = true
+thiserror.workspace = true
+url.workspace = true
+webqa-core.workspace = true
+
+[lints]
+workspace = true

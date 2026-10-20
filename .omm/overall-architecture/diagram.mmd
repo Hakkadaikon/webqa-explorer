@@ -4,6 +4,7 @@ graph LR
     webqa-browser["webqa-browser\ncrates/webqa-browser/"]
     webqa-judge["webqa-judge\ncrates/webqa-judge/"]
     webqa-tui["webqa-tui\ncrates/webqa-tui/"]
+    webqa-eval["webqa-eval\ncrates/webqa-eval/"]
     judge-bridge["Judge Bridge\nbridge/"]
     chromium["Chromium\nPlaywright"]:::external
     judge-model["Judge Model\nVercel AI Gateway"]:::external
@@ -15,6 +16,7 @@ graph LR
     webqa-browser -->|"Browserポートを実装する"| webqa-core
     webqa-judge -->|"Judgeポートを実装する"| webqa-core
     webqa-tui -->|"イベントログの型を読む"| webqa-core
+    webqa-eval -->|"台帳を読む"| webqa-core
     webqa-browser -->|"playwright-rsで操作する"| chromium
     webqa-judge -->|"標準入出力のJSON行"| judge-bridge
     judge-bridge -->|"HTTPSで問い合わせる"| judge-model

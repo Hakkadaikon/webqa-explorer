@@ -17,6 +17,7 @@ edition 2024で書き、最小の版(`rust-version`)は1.99である。
 | `webqa-browser` | Playwrightのアダプタ |
 | `webqa-judge` | 判断モデルのアダプタ |
 | `webqa-tui` | イベントログを表示する`watch`の画面と、インタビューの台帳の画面 |
+| `webqa-eval` | インタビューのモードの課題を、仕込みの正解表と突き合わせて測る。仕込みのサイトを配る`serve`も持つ([課題を測る仕組み](eval.md)) |
 | `webqa` | 実行ファイル。実行ループ、保存、CLIを持つ |
 
 分け方の理由は[全体設計](overview.md)にある。
@@ -31,16 +32,16 @@ edition 2024で書き、最小の版(`rust-version`)は1.99である。
 | playwright-rs | 0.20.1 | webqa-browser | ブラウザ操作 |
 | tokio | 1.53.3 | webqa、webqa-judge。webqa-browserはテストだけ | 非同期ランタイム、シグナル、子プロセス |
 | serde | 1.0.229 | webqa-tui以外 | 直列化 |
-| serde_json | 1.0.154 | webqa-tui以外 | イベントログ、記憶、実行結果、橋渡し |
-| serde-saphyr | 2.0.0 | webqa-core | YAMLの設定と文書の読み込み |
-| url | 2.5.8 | webqa-core、webqa-browser、webqa。webqa-judgeはテストだけ | URLとオリジンの比較 |
+| serde_json | 1.0.154 | webqa-core、webqa-browser、webqa-judge、webqa | イベントログ、記憶、実行結果、橋渡し |
+| serde-saphyr | 2.0.0 | webqa-core、webqa-eval | YAMLの設定と文書の読み込み |
+| url | 2.5.8 | webqa-core、webqa-browser、webqa、webqa-eval。webqa-judgeはテストだけ | URLとオリジンの比較 |
 | percent-encoding | 2.3.2 | webqa-core | URLの伏せ字 |
 | regex | 1.13.1 | webqa-core | 伏せ字の規則 |
 | thiserror | 2.0.21 | 全部 | エラーの型 |
 | base64 | 0.23.1 | webqa-judge | 橋渡しで画像を送る |
 | ratatui | 0.30.2 | webqa-tui | 描画 |
 | crossterm | 0.29.0 | webqa-tui | 端末の消去と大きさ、台帳の画面のキーの読み取りとrawモード |
-| clap | 4.6.7 | webqa | 引数 |
+| clap | 4.6.7 | webqa、webqa-eval | 引数 |
 | dotenvy | 0.15.7 | webqa | 作業ディレクトリの`.env`の読み込み |
 | jiff | 0.2.38 | webqa | 本物の時計の時刻の表記 |
 | tracing | 0.1.44 | webqa | 診断ログ |

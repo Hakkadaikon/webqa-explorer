@@ -40,5 +40,6 @@ children:
   - webqa
   - webqa-browser
   - webqa-core
+  - webqa-eval
   - webqa-judge
   - webqa-tui

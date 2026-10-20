@@ -1,0 +1,18 @@
+goal: 勤怠管理システムを料金と機能で比べ、候補を2〜3個に絞る
+done_when:
+  url: /compare.html
+screens:
+  - url: /
+    purpose: 検索語を入れるか分類を選んで、勤怠管理システムを探し始める
+  - url: /search.html
+    purpose: 検索語に合う製品を見て、詳しく見るものを選ぶ
+  - url: /attendance.html
+    purpose: 勤怠管理の製品を一覧で見て、気になる製品を選ぶ
+  - url: /product-a.html
+    purpose: 製品の機能と料金を確かめる
+  - url: /product-b.html
+    purpose: 製品の機能と料金を確かめる
+  - url: /product-c.html
+    purpose: 製品の機能と料金を確かめる
+  - url: /request.html
+    purpose: 気になる製品の資料を請求する

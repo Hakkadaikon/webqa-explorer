@@ -1,0 +1,26 @@
+# 仕込みに当たらなかった課題への人の判断(2026-10-21、利用者が決めた)。
+# ブラウザの標準の見た目の部品を「小さい、目立たない」とした視認性の課題は誤り。
+- kind: visibility
+  path: /
+  element: {role: textbox, name: 検索語}
+  verdict: false
+- kind: visibility
+  path: /
+  element: {role: button, name: 検索}
+  verdict: false
+- kind: visibility
+  path: /
+  element: {role: link, name: 勤怠管理の製品を探す}
+  verdict: false
+- kind: visibility
+  path: /attendance.html
+  element: {role: button, name: 次へ}
+  verdict: false
+- kind: visibility
+  path: /attendance.html
+  element: {role: button, name: 進む}
+  verdict: false
+# 料金のリンクが薄く、料金の比較にも進めないことによる迷い。仕込みの副作用だが本物の迷い。
+- kind: hesitant
+  path: /product-a.html
+  verdict: real

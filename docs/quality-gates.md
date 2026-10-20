@@ -37,7 +37,9 @@ PRのCIで回し、落ちたPRはmainへマージしない。
 
 PRのCIは、変えたファイルで回すジョブを絞る。
 判定は`scripts/ci_changes.py`が行い、対象のファイルの一覧は同じファイルの`CODE`にある。
-対象は、RustとPythonのコード、テストが読むファイル、lint・整形の設定、ワークフローである。
+対象は、RustとPythonのコード、テストが読むファイル、測定の設定(`eval/`)、
+lint・整形の設定、ワークフローである。
+`eval/`を入れるのは、`crates/webqa-eval`のテストが、`eval/`の正解表、人の判断、目的の文書、サイトを読むためである。
 対象のファイルを変えたPRでは、`just check`と`deny`を回す。
 ワークフローを対象に入れるのは、CIを変えたPRでも`just check`を回すためである。
 それ以外のPRでは、`docs-check`と`config-check`と`fmt-check-config`を回す。

@@ -45,6 +45,7 @@ class Decide(unittest.TestCase):
             "bridge/jev.py",
             "share/skills/writing-persona-purpose/SKILL.md",
             "docs/arch/config.md",
+            "eval/truth.yaml",
             "tasks/loopeng/InterviewMode.feature",
             ".github/workflows/ci.yml",
             "skills/writing-persona-purpose/SKILL.md",
