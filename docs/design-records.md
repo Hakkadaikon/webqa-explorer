@@ -15,7 +15,7 @@
 `tasks/`はmadoの検査の対象から外している。
 
 `tasks/`の記録は、`docs/architecture.md`と`docs/superpowers/specs/2026-10-18-interview-mode-design.md`を参照することがある。
-この2つは、コミット`92b3161`の版で読む。
+この2つは今のツリーに無いので、コミット`92b3161`の版で読む。
 
 ## 検討の手順
 
