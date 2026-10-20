@@ -1,0 +1,3 @@
+橋渡しのコマンドがHTTPSで問い合わせる、外の判断モデルである。
+問い合わせ先はVercel AI Gatewayで、JEVの判断モデルと自由記述の言語モデルがある。
+APIキーは環境変数`WEBQA_JUDGE_API_KEY`で渡す。

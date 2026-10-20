@@ -25,7 +25,8 @@ Webサービスの探索的テストエージェントを、Rustで作ってい�
 
 ## 参照先
 
-- `docs/architecture.md`: crateの分け方、中核の状態遷移、品質ゲートの下での書き方。
+- `docs/arch/`: 設計書。`overview.md`から読む。
+  crateの分け方は`overview.md`、中核の状態遷移は`core.md`、品質ゲートの下での書き方は`code-style.md`にある。
   実装の前に必ず読む。
 - `skills/`: 作業ごとの手順書(Agent Skills形式)。
   文書を書くときは`writing-docs`、レビューするときは`reviewing-docs`を使う。

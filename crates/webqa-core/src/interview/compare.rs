@@ -32,7 +32,11 @@ pub enum Mismatch {
 pub fn compare(now: Ledger, previous: Option<&Ledger>, run: &Run<'_>) -> Result<Ledger, Mismatch> {
     match previous {
         None => Ok(now),
-        Some(previous) => same_head(&now.head, &previous.head).map(|()| merge(now, previous, run)),
+        Some(previous) => {
+            let head = &now.head;
+            check_previous(&previous.head, &head.persona, &head.goal, &head.start)
+                .map(|()| merge(now, previous, run))
+        }
     }
 }
 
@@ -53,22 +57,33 @@ fn merge(mut now: Ledger, previous: &Ledger, run: &Run<'_>) -> Ledger {
     now
 }
 
-/// Whether the two heads are of runs that can be compared.
-fn same_head(now: &Head, previous: &Head) -> Result<(), Mismatch> {
-    if now.persona == previous.persona {
-        same_goal(now, previous)
+/// Whether `previous` can be compared with a run of `persona`, `goal` and
+/// `start`: the same persona, and the same purpose, or both inferred from
+/// one start URL.
+///
+/// # Errors
+///
+/// [`Mismatch`] when the persona or the purpose differs.
+pub fn check_previous(
+    previous: &Head,
+    persona: &str,
+    goal: &Goal,
+    start: &str,
+) -> Result<(), Mismatch> {
+    if previous.persona == persona {
+        same_goal(&previous.goal, &previous.start, goal, start)
     } else {
         Err(Mismatch::Persona)
     }
 }
 
 /// Whether the purposes are the same, or both inferred from one start URL.
-fn same_goal(now: &Head, previous: &Head) -> Result<(), Mismatch> {
-    match (&now.goal, &previous.goal) {
+fn same_goal(before: &Goal, before_start: &str, now: &Goal, start: &str) -> Result<(), Mismatch> {
+    match (now, before) {
         (Goal::Written(a), Goal::Written(b)) => (a == b).then_some(()).ok_or(Mismatch::Goal),
-        (Goal::Inferred(_), Goal::Inferred(_)) => (now.start == previous.start)
-            .then_some(())
-            .ok_or(Mismatch::Start),
+        (Goal::Inferred(_), Goal::Inferred(_)) => {
+            (start == before_start).then_some(()).ok_or(Mismatch::Start)
+        }
         _ => Err(Mismatch::Goal),
     }
 }

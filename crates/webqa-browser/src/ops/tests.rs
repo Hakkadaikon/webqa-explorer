@@ -38,6 +38,19 @@ fn timeouts_settle_as_unchanged() {
 }
 
 #[test]
+fn script_policy_is_told_from_other_failures() {
+    let policy = "EvalError: Evaluating a string as JavaScript violates the following \
+                  Content Security Policy directive";
+    let found = [
+        Error::ProtocolError(policy.to_owned()),
+        Error::ProtocolError("Timeout 1000ms exceeded".to_owned()),
+        Error::Timeout(policy.to_owned()),
+    ]
+    .map(|error| forbidden_eval(&error));
+    assert_eq!(found, [true, false, false], "only the policy's refusal");
+}
+
+#[test]
 fn ops_table_names() {
     let names: Vec<&str> = OPS.iter().map(|row| row.name).collect();
     assert_eq!(
@@ -48,6 +61,7 @@ fn ops_table_names() {
             "scroll_down",
             "scroll_up",
             "back",
+            "enter",
             "wait",
             "reload",
             "return"
@@ -70,7 +84,7 @@ fn leave_ops_are_untargeted_rows() {
     let untargeted: BTreeSet<&str> = OPS
         .iter()
         .map(|row| row.name)
-        .filter(|name| !["click", "input"].contains(name))
+        .filter(|name| !["click", "input", "enter"].contains(name))
         .collect();
     assert_eq!(
         LEAVE_OPS.into_iter().collect::<BTreeSet<&str>>(),

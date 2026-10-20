@@ -50,6 +50,7 @@ fn effects() -> Vec<Row> {
         }),
         row("reload", |t| t.touches("reload")),
         row("return", |t| t.touches("return")),
+        row("press enter", |t| t.touches("enter")),
     ]
 }
 

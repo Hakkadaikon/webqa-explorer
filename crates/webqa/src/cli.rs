@@ -1,6 +1,8 @@
 //! The command line: subcommands, start-up and the exit code.
 
 pub mod app;
+pub mod check;
+pub mod interview;
 pub mod start;
 #[cfg(test)]
 mod tests;
@@ -12,11 +14,13 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use tokio::runtime::{Builder, Runtime};
+use webqa_tui::keys::{RawMode, terminal};
+use webqa_tui::ledger::render::TERMINAL_SIZE;
 
 use crate::clock::RealClock;
 use crate::exit::CONFIG_ERROR;
 use crate::interrupt::CtrlC;
-use crate::{logging, setup, watch};
+use crate::{ledger, logging, setup, watch};
 use start::Stop;
 
 /// The command line of `webqa`.
@@ -32,29 +36,42 @@ pub struct Cli {
     pub command: Sub,
 }
 
-/// What the command line asks: a run, or watching one.
+/// What the command line asks: a [`Command`], or looking at records.
 ///
-/// Watching is not a [`Command`]: it starts no run, and the stages of
-/// starting never see it.
+/// Watching and the ledger screen are not a [`Command`]: they go through no
+/// stage of starting (`start.rs`), and those stages never see them.
 #[derive(Debug, PartialEq, Eq, clap::Subcommand)]
 pub enum Sub {
-    /// A run: `run`, `explore` or `replay`.
+    /// A subcommand passed to `app::app`, which sorts it in `start::job`:
+    /// `run`, `explore`, `replay`, `interview` or `check-docs`.
     #[command(flatten)]
     Exec(Command),
     /// Follows the event log of a run in another process.
     Watch(WatchArgs),
+    /// Opens the ledger of an interview, to look at and choose issues in.
+    Ledger(LedgerArgs),
+}
+
+/// What is looked at instead of starting a run.
+#[derive(Debug, PartialEq, Eq)]
+pub enum Viewing {
+    /// Following a run.
+    Watch(WatchArgs),
+    /// The ledger screen.
+    Ledger(LedgerArgs),
 }
 
 impl Sub {
-    /// The run to start, or the arguments of watching.
+    /// The run to start, or what to look at.
     ///
     /// # Errors
     ///
-    /// The arguments of `watch`, when that is what was asked.
-    pub fn split(self) -> Result<Command, WatchArgs> {
+    /// The arguments of `watch` or `ledger`, when that is what was asked.
+    pub fn split(self) -> Result<Command, Viewing> {
         match self {
             Self::Exec(command) => Ok(command),
-            Self::Watch(args) => Err(args),
+            Self::Watch(args) => Err(Viewing::Watch(args)),
+            Self::Ledger(args) => Err(Viewing::Ledger(args)),
         }
     }
 }
@@ -66,6 +83,13 @@ pub struct WatchArgs {
     pub dir: PathBuf,
 }
 
+/// The arguments of `ledger`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct LedgerArgs {
+    /// The ledger file of an interview.
+    pub path: PathBuf,
+}
+
 /// The subcommands.
 #[derive(Debug, PartialEq, Eq, clap::Subcommand)]
 pub enum Command {
@@ -75,6 +99,51 @@ pub enum Command {
     Explore(RunArgs),
     /// Runs again the operations of a report.
     Replay(ReplayArgs),
+    /// The subcommands that make no [`Job`](start::Job).
+    #[command(flatten)]
+    Jobless(Jobless),
+}
+
+/// The subcommands for which `start::job` makes no [`Job`](start::Job):
+/// `interview` runs the core by its own steps.
+#[derive(Debug, PartialEq, Eq, clap::Subcommand)]
+pub enum Jobless {
+    /// Interviews the target as a persona, trial after trial.
+    Interview(InterviewArgs),
+    /// Checks the form of a persona or purpose document.
+    CheckDocs(CheckDocsArgs),
+}
+
+/// The arguments of `interview`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct InterviewArgs {
+    /// The configuration file.
+    #[arg(long)]
+    pub config: PathBuf,
+    /// Where the records go.
+    #[arg(long, default_value = ".webqa")]
+    pub out: PathBuf,
+    /// The ledger of the run before, to compare with.
+    #[arg(long)]
+    pub previous: Option<PathBuf>,
+}
+
+/// The kinds of documents `check-docs` reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum DocKind {
+    /// A persona document.
+    Persona,
+    /// A purpose document.
+    Purpose,
+}
+
+/// The arguments of `check-docs`.
+#[derive(Debug, PartialEq, Eq, clap::Args)]
+pub struct CheckDocsArgs {
+    /// What the document is.
+    pub kind: DocKind,
+    /// The document.
+    pub file: PathBuf,
 }
 
 /// The arguments of `run` and `explore`.
@@ -174,13 +243,31 @@ fn in_runtime(command: Sub) -> u8 {
 fn drive(runtime: Runtime, sub: Sub) -> app::Done {
     let done = match sub.split() {
         Ok(command) => runtime.block_on(app::app(command)),
-        Err(args) => app::Done {
-            code: runtime.block_on(follow(&args)),
-            abandoned: false,
-        },
+        Err(Viewing::Watch(args)) => viewed(runtime.block_on(follow(&args))),
+        Err(Viewing::Ledger(args)) => viewed(screen(&args)),
     };
     stop_runtime(runtime, done.abandoned);
     done
+}
+
+/// The end of looking: nothing is left unwritten.
+const fn viewed(code: u8) -> app::Done {
+    app::Done {
+        code,
+        abandoned: false,
+    }
+}
+
+/// Opens the ledger of `args` on the terminal.
+fn screen(args: &LedgerArgs) -> u8 {
+    ledger::show(
+        &args.path,
+        &RawMode::enter,
+        &mut terminal(),
+        &mut io::stdout(),
+        &mut io::stderr(),
+        &TERMINAL_SIZE,
+    )
 }
 
 /// Watches the run of `args` on the standard output until Ctrl-C.

@@ -82,6 +82,10 @@ impl Store for Shelf {
         ready(Ok(()))
     }
 
+    fn write_ledger<'a>(&'a mut self, _: &'a str) -> Pending<'a, Result<(), StoreError>> {
+        ready(Err(StoreError))
+    }
+
     fn write_report<'a>(
         &'a mut self,
         _: &'a Redacted<Value>,
@@ -170,16 +174,17 @@ async fn load_follows_the_table() {
     }
     let mut failing = Shelf::holding(Err(StoreError));
     let kept = others(&mut failing).await;
-    assert_eq!(kept, [Err(StoreError); 3], "the fake keeps nothing else");
+    assert_eq!(kept, [Err(StoreError); 4], "the fake keeps nothing else");
 }
 
 /// The writes the fake does not keep.
-async fn others(store: &mut Shelf) -> [Result<(), StoreError>; 3] {
+async fn others(store: &mut Shelf) -> [Result<(), StoreError>; 4] {
     let value = Redactor::default().json(Value::Null);
     let image = Image::new(ImageFormat::Png, Vec::new());
     [
         store.write_event(&value).await,
         store.write_report(&value).await,
+        store.write_ledger("# ledger\n").await,
         store.write_screenshot("x.png", &image).await,
     ]
 }

@@ -97,12 +97,13 @@ const ITEMS: [(&str, &str, &str); 4] = [
 ];
 
 /// The operation kinds the judge may choose from.
-const OPERATIONS: [&str; 8] = [
+const OPERATIONS: [&str; 9] = [
     "click",
     "input",
     "scroll_down",
     "scroll_up",
     "back",
+    "enter",
     "wait",
     "done",
     "stuck",

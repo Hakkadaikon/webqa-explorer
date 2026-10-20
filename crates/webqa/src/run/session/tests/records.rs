@@ -82,3 +82,12 @@ async fn interrupt_after_finish_keeps_reason() {
     assert_eq!(ends(&store.inner).1, Some(last));
     assert_eq!(store.inner.report.unwrap()["reason"], "goal_achieved");
 }
+
+#[tokio::test]
+async fn ledger_goes_to_the_inner_store() {
+    let mut store = Slow::holding(Hold::Once);
+    let written = store.write_ledger("# ledger\n").await;
+    let kept = (written, store.order, store.inner.ledger);
+    let expected = (Ok(()), vec!["write_ledger"], Some("# ledger\n".to_owned()));
+    assert_eq!(kept, expected, "named, then passed on");
+}

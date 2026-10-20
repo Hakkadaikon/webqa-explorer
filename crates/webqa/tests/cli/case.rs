@@ -4,6 +4,8 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use serde_json::Value;
@@ -17,17 +19,38 @@ pub struct Case {
     pub dir: PathBuf,
     pub url: String,
     pub log: PathBuf,
+    hits: Arc<AtomicUsize>,
 }
 
 impl Case {
     pub fn new(name: &str) -> io::Result<Self> {
         let dir = exec::workdir(name)?;
         let log = dir.join("bridge.log");
+        let (url, hits) = site::serve()?;
         Ok(Self {
             dir,
-            url: site::serve()?,
+            url,
             log,
+            hits,
         })
+    }
+
+    /// The case of the directory `dir` and the site at `url`, already
+    /// serving: its hits are not counted.
+    pub fn of(dir: PathBuf, url: String) -> Self {
+        let log = dir.join("bridge.log");
+        let hits = Arc::default();
+        Self {
+            dir,
+            url,
+            log,
+            hits,
+        }
+    }
+
+    /// Whether the site was asked for a page.
+    pub fn visited(&self) -> bool {
+        self.hits.load(Ordering::SeqCst) > 0
     }
 
     pub fn out(&self) -> PathBuf {

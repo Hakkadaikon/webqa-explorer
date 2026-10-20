@@ -1,6 +1,7 @@
 //! What a step offers the judge: the questions asked, and the answers
 //! checked against the same offer.
 
+use super::material::forbidden_indices;
 use super::ops::offered;
 use super::rules::Rules;
 use super::state::State;
@@ -12,7 +13,7 @@ use crate::judge::{
     self, Answers, Ask, MAX_OPTIONS, Question, QuestionId, Unusable, Verdict, read_answers,
 };
 use crate::redact::Redacted;
-use crate::screen::{Screen, screen_text, visible};
+use crate::screen::{Screen, fillable, screen_text, visible};
 
 /// The operation kinds offered when no element is a candidate, in the
 /// order of the table of operation kinds.
@@ -49,8 +50,8 @@ pub(super) fn offer(state: &State) -> Offer {
     let last = &state.last;
     let elements = visible(last.screen.as_inner(), last.viewport).len();
     match state.rules.mode {
-        Mode::Scenario => Offer {
-            ops: kinds(&state.rules).collect(),
+        Mode::Scenario | Mode::Interview => Offer {
+            ops: with_enter(state, kinds(&state.rules).collect(), false),
             elements,
             numbers: None,
             goal: state.rules.stages.get(state.stage).map(|s| s.goal.clone()),
@@ -69,6 +70,7 @@ fn kinds(rules: &Rules) -> impl Iterator<Item = Op> {
 /// nothing is narrowed.
 fn explored(state: &State, elements: usize) -> Offer {
     let ops: Vec<Op> = kinds(&state.rules).filter(|&op| op != Op::Done).collect();
+    let ops = with_enter(state, ops, true);
     let last = &state.last;
     let unnarrowed = (ops.clone(), None);
     let (ops, numbers) = state.at.map_or(unnarrowed, |at| {
@@ -85,6 +87,41 @@ fn explored(state: &State, elements: usize) -> Offer {
         numbers,
         goal: None,
     }
+}
+
+/// Without `enter` when a forbidden element is on the page, since Enter
+/// can send a form. In explore mode, also when no element shown takes a
+/// value: the field typed is no candidate any more, so it is the elements
+/// shown that count. Unlike `input`, it goes even when it is the only kind
+/// the rules have: Enter would get around the forbidden element.
+fn with_enter(state: &State, ops: Vec<Op>, explore: bool) -> Vec<Op> {
+    let allowed = enter_allowed(state, explore);
+    ops.into_iter()
+        .filter(|&op| allowed || op != Op::Enter)
+        .collect()
+}
+
+/// Whether `enter` may be offered on the latest page.
+fn enter_allowed(state: &State, explore: bool) -> bool {
+    no_forbidden_shown(state) && value_field_when_exploring(state, explore)
+}
+
+/// Whether no forbidden element is on the latest page.
+fn no_forbidden_shown(state: &State) -> bool {
+    forbidden_indices(&state.rules, &state.last).is_empty()
+}
+
+/// Whether the mode asks no field, or a field shown takes a value.
+fn value_field_when_exploring(state: &State, explore: bool) -> bool {
+    !explore || shows_value_field(state)
+}
+
+/// Whether a field shown takes a value.
+fn shows_value_field(state: &State) -> bool {
+    let last = &state.last;
+    visible(last.screen.as_inner(), last.viewport)
+        .iter()
+        .any(|e| fillable(&e.role) && state.rules.input_names.contains(&e.name))
 }
 
 /// The elements of the tier, or the moves when no element is a candidate.
@@ -123,19 +160,19 @@ fn without_input(ops: Vec<Op>, types: bool) -> Vec<Op> {
     if types || rest.is_empty() { ops } else { rest }
 }
 
-/// Going back and scrolling, with no element. When the rules have none of
-/// them, every operation kind stays, rather than a question with nothing to
-/// do.
+/// Going back and scrolling, and `enter` beside them, with no element. When
+/// the rules have no going back or scrolling, every operation kind stays,
+/// rather than a question with nothing to do.
 fn moves(ops: Vec<Op>) -> (Vec<Op>, Option<Vec<usize>>) {
     let moves: Vec<Op> = ops
         .iter()
         .copied()
-        .filter(|op| MOVES.contains(op))
+        .filter(|op| MOVES.contains(op) || *op == Op::Enter)
         .collect();
-    if moves.is_empty() {
-        (ops, None)
-    } else {
+    if ops.iter().any(|op| MOVES.contains(op)) {
         (moves, Some(Vec::new()))
+    } else {
+        (ops, None)
     }
 }
 

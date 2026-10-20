@@ -26,6 +26,8 @@ pub enum Input {
     Saved(Ledger),
     /// The write back was refused: the file changed after it was opened.
     ChangedOutside,
+    /// The write back failed for another reason: nothing was written.
+    WriteFailed,
 }
 
 /// A notice shown under the list.
@@ -33,6 +35,8 @@ pub enum Input {
 pub enum Notice {
     /// The file changed outside after it was opened; nothing was written.
     ChangedOutside,
+    /// The write back failed; nothing was written.
+    WriteFailed,
 }
 
 /// The ledger screen.
@@ -79,10 +83,7 @@ impl Screen {
                 ..self
             }
             .clamped(),
-            Input::ChangedOutside => Self {
-                notice: Some(Notice::ChangedOutside),
-                ..self
-            },
+            Input::ChangedOutside | Input::WriteFailed => self.told(&input),
             moving @ (Input::Up | Input::Down | Input::Open | Input::Close) => self.moved(&moving),
         }
     }
@@ -114,6 +115,19 @@ impl Screen {
         self.shown().len().saturating_sub(1)
     }
 
+    /// Shows the notice of a refused or failed write back.
+    fn told(self, input: &Input) -> Self {
+        let notice = if *input == Input::ChangedOutside {
+            Notice::ChangedOutside
+        } else {
+            Notice::WriteFailed
+        };
+        Self {
+            notice: Some(notice),
+            ..self
+        }
+    }
+
     fn clamped(self) -> Self {
         Self {
             cursor: self.cursor.min(self.last()),
@@ -134,7 +148,11 @@ impl Screen {
             },
             Input::Open => Self { open: true, ..self },
             // Only Close arrives here; `fold` handles the others itself.
-            Input::Close | Input::Filter(_) | Input::Saved(_) | Input::ChangedOutside => Self {
+            Input::Close
+            | Input::Filter(_)
+            | Input::Saved(_)
+            | Input::ChangedOutside
+            | Input::WriteFailed => Self {
                 open: false,
                 ..self
             },
@@ -149,5 +167,6 @@ pub const fn notice_text(notice: Notice) -> &'static str {
         Notice::ChangedOutside => {
             "台帳が外で書き換えられたので、書き戻さなかった。開き直してから選び直す"
         }
+        Notice::WriteFailed => "台帳を書き戻せなかった。ファイルを確かめる",
     }
 }

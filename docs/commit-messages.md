@@ -29,7 +29,7 @@
 | `perf` | 性能を上げる |
 | `test` | テストを足す、直す |
 | `build` | ビルドの設定や依存を変える |
-| `ci` | CI の設定を変える |
+| `ci` | CIの設定を変える |
 | `chore` | 上のどれにも当たらない作業(開発ツールの設定など) |
 | `revert` | 以前のコミットを取り消す |
 
@@ -41,7 +41,7 @@
 
 ## 要約
 
-- 日本語で書く。ひらがな・カタカナ・漢字を1字以上含める。
+- 日本語で書き、ひらがな、カタカナ、漢字のどれかを1字以上含める。
 - 50字以内に収める。
 - 文末に句点やピリオドを付けない。
 - 何をするかを現在形で書く(例: 「CCNの上限を判定に加える」)。
@@ -52,8 +52,9 @@
 
 本文には、なぜ変えるのかと、何が変わるのかを書く。
 どう変えたかはコードを読めば分かるので、書かない。
-1行は72桁以内にし、全角文字は2桁と数える。
-ただしURLを含む行は、長さの検査から外れる。
+1行は72桁以内にし、全角の文字は2桁と数える。
+URLを含む行は、長さの検査から外す。
+長さの検査は、フッターの行にも当たる。
 
 ## フッター
 
@@ -67,7 +68,7 @@
 ```text
 feat(metrics): 認知的複雑度の上限を判定に加える
 
-rust-code-analysis の cognitive を読み、4 を超えた関数を報告する。
+rust-code-analysis の cognitive を読み、6 を超えた関数を報告する。
 clippy の cognitive_complexity と同じ閾値にそろえる。
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -75,14 +76,16 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 ## 検査の対象外
 
-- gitが作るメッセージは検査しない。
-- 具体的には`Merge`、`Revert "`、`fixup!`、`squash!`、`amend!`で始まるもの。
-- この規約より前の英語のコミットは、そのまま残す。
+gitが作るメッセージは検査しない。
+`Merge`、`Revert "`、`fixup!`、`squash!`、`amend!`で始まるものが当たる。
+mainに入った英語のコミットも、書き直さない。
 
 ## 検査の仕組み
 
-判定は`scripts/commit_msg.py`が行い、lefthookのcommit-msgフックがコミットのたびに走らせる。
+判定は`scripts/commit_msg.py`が行う。
+lefthookのcommit-msgフックが、コミットのたびにこれを走らせる。
 このフックは`just setup`で入る。
 CIは、PRに含まれるコミットをすべて判定する。
-そのため`--no-verify`でフックを飛ばしたコミットも、CIで捕まる。
+そのため、`--no-verify`でフックを飛ばしたコミットもCIで捕まる。
 手元で試すときは`just commit-msg <ファイル>`を使う。
+範囲を指定するときは`just commit-msg --range <範囲>`を使う。

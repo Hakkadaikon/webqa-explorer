@@ -35,10 +35,15 @@ thiserror.workspace = true
 [dev-dependencies]
 cucumber.workspace = true
 insta.workspace = true
+proptest.workspace = true
 tokio = { workspace = true, features = ["macros", "rt", "sync", "time"] }
 
 [[test]]
 name = "acceptance"
+harness = false
+
+[[test]]
+name = "interview_acceptance"
 harness = false
 
 [lints]

@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod tests;
 
+use crate::interview::trials::Ending as Interview;
 use crate::run::session::Ending;
 
 /// The configuration was rejected; nothing ran.
@@ -17,5 +18,19 @@ pub fn code(ending: &Ending) -> u8 {
     match ending {
         Ending::Finished { confirmed, .. } => u8::from(*confirmed),
         Ending::Abandoned | Ending::Failed(_) => RUNTIME_ERROR,
+    }
+}
+
+/// The exit code of an interview.
+///
+/// 0 or 1 when its records are written: 1 only for a confirmed issue, and
+/// the issues of the ledger do not count. 2 when the previous ledger does
+/// not match, 3 when it failed or was abandoned.
+#[must_use]
+pub fn interview_code(ending: &Interview) -> u8 {
+    match ending {
+        Interview::Wrote { confirmed, .. } => u8::from(*confirmed),
+        Interview::Mismatch(_) => CONFIG_ERROR,
+        Interview::ResetFailed(_) | Interview::Failed(_) | Interview::Abandoned => RUNTIME_ERROR,
     }
 }

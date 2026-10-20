@@ -24,6 +24,15 @@ P44とP45は`WebExploratoryQA.noexplorable.cfg`(要素1つで、それが禁止�
 検査の設定は3つとも、`StartsFresh`だけが状態述語の`PROPERTY`、ほかの状態述語はすべて`INVARIANT`。
 `WebExploratoryQA.tlc-run.log`で、3つの設定のどれもNo errorだった。
 
+## enter の追加(2026-10-20)
+
+利用者が、キーを押す操作を足すと決めた。操作の種類に、フォーカスのある要素でEnterを押す`enter`を1つ足した(9種)。
+
+- モデルでは、`enter`を対象の無い操作(`wait`や`scroll_down`と同じ)として扱う。`ASSUME Operations \subseteq {...}`に`"enter"`を足しただけで、`DirectOps`には足さない。3つの cfg の`Operations`は変えていない。
+- 禁止要素がページにあれば`enter`を選択肢から外すことは、モデルの外(選択肢を組む前の絞り込み)とする。安全性の`NeverOperatesForbidden`は、要素を操作する click/input の性質で、`enter`は対象を取らないため、写せない。受け入れシナリオ「ページに禁止要素があれば、操作種別の選択肢に enter を含めない」で確かめる。
+- 探索モードで、表示中に値のある入力欄が無ければ`enter`を外すことも、モデルの外とする。提案の操作は非決定に選ぶので、外した選択肢はその部分集合として含まれる。
+- `ASSUME`を変えたので、TLCを3つの cfg で回し直した。結果は変更前と同じ(違反なし、状態数も同じ)。数字は`WebExploratoryQA.tlc-run.log`の末尾にある。
+
 ## 判定表
 
 | 要件 | 式 | 読み手の言い直し | 判定 | 理由 / 直し方 |
@@ -313,7 +322,7 @@ partialの14行は「検証済み」に含めない。
 | NumStages | シナリオの段の数。1以上。 |
 | Elements | 画面上の要素の集合。空でもよい(制約がない)。 |
 | ForbiddenElements | 操作してはいけない要素。Elements の部分集合。 |
-| Operations | エージェントが提案できる操作。click、input、scroll_down、scroll_up、back、wait、done、stuck の部分集合。**空でもよい**。done や back を含まなくてもよい。 |
+| Operations | エージェントが提案できる操作。click、input、scroll_down、scroll_up、back、enter、wait、done、stuck の部分集合。**空でもよい**。done や back を含まなくてもよい。 |
 
 ## 2. 補助定義
 

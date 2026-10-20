@@ -48,7 +48,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 | `stage` | `1..NumStages` | 決め打ちシナリオの現在の段階(S-015)。探索モードでは1のまま |
 | `phase` | `{"idle", "awaiting_decision", "acting", "done", "stuck", "frozen_recovered", "error_exit", "timed_out", "aborted"}` | 1ステップ実行ループの進行フェーズ |
 | `proposedOp` | `Operations ∪ {"back", "none"}` | 判断モデルが返した操作種別(S-005)。paywallのときはガードが`"back"`に書き換える。探索モードでは`"done"`を選択肢に入れない(S-016) |
-| `proposedTarget` | `Elements ∪ {"none"}` | 判断モデルが返した対象要素(S-006)。対象を取らない操作(scroll_down、scroll_up、back、wait、done、stuck)では`"none"`。click/inputで要素が1つも無いときも`"none"`で、存在しない要素番号が返った応答の異常として扱う(`targetExists = FALSE`) |
+| `proposedTarget` | `Elements ∪ {"none"}` | 判断モデルが返した対象要素(S-006)。対象を取らない操作(scroll_down、scroll_up、back、enter、wait、done、stuck)では`"none"`。click/inputで要素が1つも無いときも`"none"`で、存在しない要素番号が返った応答の異常として扱う(`targetExists = FALSE`) |
 | `proposedLowConf` | `BOOLEAN` | 判断モデルの確信度が0.7未満か(S-010)。操作種別とは独立に観測する |
 | `isPaywall` | `BOOLEAN` | 現在画面がpaywall相当か(S-013、非決定的に観測) |
 | `targetExists` | `BOOLEAN` | 実行直前に対象要素が存在するか(S-028) |
@@ -73,7 +73,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 
 ## 定数(CONSTANTS、`.tla`と一致)
 
-- `Operations \subseteq {"click", "input", "scroll_down", "scroll_up", "back", "wait", "done", "stuck"}` (S-005)
+- `Operations \subseteq {"click", "input", "scroll_down", "scroll_up", "back", "enter", "wait", "done", "stuck"}` (S-005)
 - `ForbiddenElements \subseteq Elements` (S-012, S-028)
 - `Elements`: テスト対象ごとに具体化する有限集合
 - `MaxDecisions`, `MaxRequests`, `IdleThreshold`, `StuckThreshold`: 各閾値(S-041, S-042, S-021)。どれも正の整数(`ASSUME`)。0だと時間窓リセットや固まり復旧が空回りし、終了性が成り立たない。実装では設定値の検証で0を拒否する
@@ -134,7 +134,7 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 | `DomainRecordAccurate` | S-021, S-033 | `inAllowedDomain = ¬pageOutside` |
 | `VisitedOnlyByOps` | S-002, S-022 | `Cardinality(visited) ≤ decisionsMade` |
 | `RecoveryOnlyAfterFreeze` | S-017 | `phase = "frozen_recovered" ⇒ decisionsMade ≥ IdleThreshold` |
-| `ProposalWellFormed` | S-005, S-006, S-016, S-028 | 問い合わせ後の提案は操作種別8種のいずれか(paywall時はback)で、対象は要素か`"none"`。問い合わせの直後、対象を取らない操作の対象は`"none"`。click/inputの対象が`"none"`なら対象は存在しない扱いで、要素がある画面ではclick/inputの対象は要素。探索モードではdoneでない |
+| `ProposalWellFormed` | S-005, S-006, S-016, S-028 | 問い合わせ後の提案は操作種別9種のいずれか(paywall時はback)で、対象は要素か`"none"`。問い合わせの直後、対象を取らない操作の対象は`"none"`。click/inputの対象が`"none"`なら対象は存在しない扱いで、要素がある画面ではclick/inputの対象は要素。探索モードではdoneでない |
 
 ## 行動性質・時相性質(PROPERTY、`.tla`と一致)
 
@@ -196,6 +196,8 @@ TLA+でモデル検査する価値があるのは「並行・状態遷移・順�
 | `UserAbort` | S-044(中断) | 環境の事象。終了前ならいつでも、`phase="aborted"`、`exitReason="user_aborted"`へ。ほかの変数は変えない。記憶・終了のイベント・実行結果の書き出しはモデル外。公平性なし |
 
 **簡略化の明示(S-022)**: 何も起きなかった input(入力欄でない対象、値の無い入力欄)は、モデルでは対象の無い実行(wait 相当)として扱う。記憶に足さず、行き詰まりの数は進む。探索モードで、候補に入力できる要素が無いときに操作の種類から input を外すことも、`ProposableOps`には写さない。提案の操作と対象は非決定に選ぶので、input を外した選択肢はその部分集合として含まれる。
+
+**簡略化の明示(S-005, S-012, S-016)**: `enter`(フォーカスのある要素でEnterを押す。2026-10-20に追加)は、モデルでは対象の無い操作(`wait`や`scroll_down`と同じ)として扱う。`DirectOps`には足さず、記憶にも足さない。実装は、表示中に値のある入力欄が無い探索モードの画面と、ページに禁止要素がある画面で、操作の種類から`enter`を外す。この絞り込みは選択肢を組む前の処理で、モデルの外とする。提案の操作は非決定に選ぶので、`enter`を外した選択肢はその部分集合として含まれる。検査する cfg の`Operations`には`"enter"`を入れていない(`ASSUME`の集合に足しただけで、状態空間は変わらない)。
 
 **簡略化の明示(S-007, S-008)**: `is_error_shown`(S-007)・`goal_achieved`の自己申告(S-008)は、判断モデルへの問い合わせ自体は`RequestDecision`で行う前提だが、その返り値を状態変数として個別に持たず、S-019(エラー検出の閾値判定)・S-029(自己申告を信用しない方針)は実装レベルの検証に委ねる。ゴール達成の判定はS-014(done_when)とS-016(探索モードのゴール条件)だけで行う。判断モデルの自己申告doneは決め打ちシナリオで終了の契機にはなる(S-044)が、done_whenを満たさなければ`reported_done`として記録し、ゴール達成とは扱わない。
 

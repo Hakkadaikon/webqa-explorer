@@ -13,7 +13,7 @@ const DOCUMENTED: [&str; 4] = [
 ];
 
 /// One line of each kind added after the documented ones.
-const ADDED: [&str; 12] = [
+const ADDED: [&str; 14] = [
     r#"{"seq":1,"elapsed_ms":0,"kind":"memory_reset","cause":"unreadable"}"#,
     r#"{"seq":2,"elapsed_ms":1200,"step":1,"kind":"asked","input_tokens":120,"output_tokens":3,"think_ms":1200}"#,
     r#"{"seq":3,"elapsed_ms":1300,"step":2,"kind":"recovered","op":"reload","cause":"frozen"}"#,
@@ -25,12 +25,30 @@ const ADDED: [&str; 12] = [
     r#"{"seq":8,"elapsed_ms":1800,"step":5,"kind":"stage_advanced","stage":1,"name":"投稿"}"#,
     r#"{"seq":9,"elapsed_ms":1900,"step":5,"kind":"waited","until_ms":3600000}"#,
     r#"{"seq":10,"elapsed_ms":1950,"step":6,"kind":"skipped","cause":"not_an_input"}"#,
-    r#"{"seq":10,"elapsed_ms":2000,"kind":"run_finished","reason":"stuck","stuck":"no_progress"}"#,
+    r#"{"seq":10,"elapsed_ms":1960,"kind":"trial_started","trial":2}"#,
+    r#"{"seq":11,"elapsed_ms":1980,"step":4,"kind":"trial_finished","trial":2,"ending":"no_progress"}"#,
+    r#"{"seq":12,"elapsed_ms":2000,"kind":"run_finished","reason":"stuck","stuck":"no_progress"}"#,
+];
+
+/// Every way a trial ends and its name in the log.
+const ENDINGS: [(TrialEnding, &str); 7] = [
+    (TrialEnding::GoalMet, "goal_met"),
+    (TrialEnding::Done, "done"),
+    (TrialEnding::GaveUp, "gave_up"),
+    (TrialEnding::NoProgress, "no_progress"),
+    (TrialEnding::BudgetSpent, "budget_spent"),
+    (TrialEnding::TimeUp, "time_up"),
+    (TrialEnding::Interrupted, "interrupted"),
 ];
 
 #[test]
 fn mode_name_matches_the_log() {
-    for (mode, name) in [(Mode::Explore, "explore"), (Mode::Scenario, "scenario")] {
+    let names = [
+        (Mode::Explore, "explore"),
+        (Mode::Scenario, "scenario"),
+        (Mode::Interview, "interview"),
+    ];
+    for (mode, name) in names {
         assert_eq!(
             mode.as_str(),
             name,
@@ -70,6 +88,15 @@ fn new_events_round_trip() {
     for text in ADDED {
         let line = parse_line(text).unwrap();
         assert_eq!(to_json_line(&line), text, "the line round-trips unchanged");
+    }
+}
+
+#[test]
+fn trial_endings_are_named_in_snake_case() {
+    for (ending, name) in ENDINGS {
+        let written = serde_json::to_value(Event::TrialFinished { trial: 1, ending });
+        let expected = serde_json::json!({ "kind": "trial_finished", "trial": 1, "ending": name });
+        assert_eq!(written.unwrap(), expected, "the name of {name}");
     }
 }
 

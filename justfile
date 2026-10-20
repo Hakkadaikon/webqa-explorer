@@ -6,10 +6,10 @@ export AQUA_CONFIG := justfile_directory() + "/.config/aqua/aqua.yaml"
 export AQUA_POLICY_CONFIG := justfile_directory() + "/.config/aqua/policy.yaml"
 export UV_PYTHON := "3.14"
 
-# Build output is shared with the main checkout, so git worktrees reuse the
-# compiled dependencies and cargo's lock runs their builds one at a time.
+# Each checkout and git worktree builds into its own target directory.
+# Sharing one between worktrees mixes up artifacts of the same crates.
 
-export CARGO_TARGET_DIR := `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` + "/target"
+export CARGO_TARGET_DIR := justfile_directory() + "/target"
 export PATH := justfile_directory() + "/.aqua/bin:" + justfile_directory() + "/.config/npm/node_modules/.bin:" + env_var('PATH')
 
 _default:

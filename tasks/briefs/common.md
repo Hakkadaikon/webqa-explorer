@@ -13,4 +13,4 @@
 - コミットは worktree のブランチに積む。push しない。rebase しない(main の取り込みが要るときは `git merge main`)。
 - 報告: 状態、コミットの一覧、回したテストとフックの結果、ゲートで落ちた回数(ゲートごと)、気になった点。
 - 環境: 本体の checkout の `.aqua/bin` を PATH に入れ、`AQUA_ROOT_DIR`(本体の `.aqua`)、`AQUA_CONFIG`、`AQUA_POLICY_CONFIG`(作業している木の `.config/aqua/` の下)、`CARGO_BUILD_JOBS=2`、`PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright` を export する。`git commit` もこの環境で行う(フックが just と aqua のツールを使う)。
-- ビルドの置き場、`just check-serial`、環境変数(`CARGO_PROFILE_DEV_DEBUG`、`RUSTFLAGS`)は、Skill ツールで `parallel-work` を呼んで従う(2026-10-19 から)。自分専用の `CARGO_TARGET_DIR` は作らない。scratchpad に置くものは、自分だけの名前のディレクトリに入れる。
+- ビルドの置き場、`just check-serial`、環境変数(`CARGO_PROFILE_DEV_DEBUG`、`RUSTFLAGS`)は、Skill ツールで `parallel-work` を呼んで従う(2026-10-19 から)。ビルドの置き場は worktree の中の `target/` の1つだけにする(2026-10-20 から)。scratchpad に置くものは、自分だけの名前のディレクトリに入れる。

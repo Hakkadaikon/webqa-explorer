@@ -4,9 +4,9 @@ use std::mem::discriminant;
 
 use super::*;
 
-const ARCHITECTURE: &str = include_str!("../../../../../docs/architecture.md");
+const ARCHITECTURE: &str = include_str!("../../../../../docs/arch/config.md");
 
-/// The YAML example of `docs/architecture.md`, as written there.
+/// The YAML example of `docs/arch/config.md`, as written there.
 pub fn example() -> &'static str {
     let start = ARCHITECTURE.find("```yaml\ntarget:").unwrap() + "```yaml\n".len();
     let rest = &ARCHITECTURE[start..];
@@ -44,11 +44,12 @@ fn reads_target_inputs_and_stages() {
         Op::ScrollDown,
         Op::ScrollUp,
         Op::Back,
+        Op::Enter,
         Op::Wait,
         Op::Done,
         Op::Stuck,
     ];
-    assert_eq!(raw.ops, all, "all eight ops when omitted");
+    assert_eq!(raw.ops, all, "all nine ops when omitted");
     reads_two_stages_in_order();
     reads_snake_case_ops();
 }

@@ -10,7 +10,7 @@ use webqa_core::config::validate::validate;
 
 use super::*;
 
-/// The YAML example of `docs/architecture.md`, copied as written there.
+/// The YAML example of `docs/arch/config.md`, copied as written there.
 pub(super) const EXAMPLE: &str = r##"target:
   url: https://app.example.test
   allowed_origins: ["https://app.example.test", "https://*.app.example.test"]
@@ -181,6 +181,12 @@ fn cases() -> Vec<Case> {
         config_case(frozen, Mode::Explore, ALL_ENV, &yaml_error),
         config_case(no_scenario, Mode::Scenario, ALL_ENV, &ConfigError::NoStages),
         config_case(ops_done(), Mode::Explore, ALL_ENV, explore_ops),
+        config_case(
+            changed("scenario:", "ops: [enter]\nscenario:"),
+            Mode::Scenario,
+            ALL_ENV,
+            &ConfigError::ScenarioNeedsOpBesidesEnter,
+        ),
         bad_pattern(),
         Case {
             read: UNREADABLE,
@@ -230,3 +236,5 @@ fn setup_debug_hides_values() {
         "origin in {shown}"
     );
 }
+
+mod interview;

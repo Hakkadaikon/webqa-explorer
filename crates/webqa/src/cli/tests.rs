@@ -48,6 +48,12 @@ fn arguments_are_read() {
             dir: ".webqa/runs/r1".into()
         }))
     );
+    assert_eq!(
+        read_ok(&["webqa", "ledger", "out/ledger.md"]),
+        Ok(Sub::Ledger(LedgerArgs {
+            path: "out/ledger.md".into()
+        }))
+    );
 }
 
 #[test]
@@ -56,6 +62,10 @@ fn bad_arguments_are_errors() {
     assert_eq!(read(&limit), Err(ErrorKind::UnknownArgument));
     assert_eq!(
         read(&["webqa", "watch"]),
+        Err(ErrorKind::MissingRequiredArgument)
+    );
+    assert_eq!(
+        read(&["webqa", "ledger"]),
         Err(ErrorKind::MissingRequiredArgument)
     );
     assert_eq!(read(&["webqa", "tail"]), Err(ErrorKind::InvalidSubcommand));
@@ -91,8 +101,8 @@ fn an_unknown_judge_kind_is_said_without_its_name() {
 #[test]
 fn subcommands_become_jobs() {
     let job = |args: &[&str]| {
-        let cli = Cli::try_parse_from(args);
-        cli.map(|cli| cli.command.split().map(start::job))
+        let cli = Cli::try_parse_from(args).ok();
+        cli.map(|cli| cli.command.split().map(|c| start::job(c).ok()))
     };
     let expected = |source, out: &str| start::Job {
         source,
@@ -100,49 +110,47 @@ fn subcommands_become_jobs() {
         out: out.into(),
     };
     assert_eq!(
-        job(&["webqa", "run", "--config", "c.yaml"]).ok(),
-        Some(Ok(expected(start::Source::Scenario, ".webqa")))
+        job(&["webqa", "run", "--config", "c.yaml"]),
+        Some(Ok(Some(expected(start::Source::Scenario, ".webqa"))))
     );
     assert_eq!(
-        job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]).ok(),
-        Some(Ok(expected(start::Source::Explore, "o")))
+        job(&["webqa", "explore", "--config", "c.yaml", "--out", "o"]),
+        Some(Ok(Some(expected(start::Source::Explore, "o"))))
     );
     assert_eq!(
-        job(&["webqa", "replay", "r.json", "--config", "c.yaml"]).ok(),
-        Some(Ok(expected(
+        job(&["webqa", "replay", "r.json", "--config", "c.yaml"]),
+        Some(Ok(Some(expected(
             start::Source::Replay("r.json".into()),
             ".webqa"
-        )))
+        ))))
     );
     assert_eq!(
-        job(&["webqa", "watch", "d"]).ok(),
-        Some(Err(WatchArgs { dir: "d".into() })),
+        job(&["webqa", "watch", "d"]),
+        Some(Err(Viewing::Watch(WatchArgs { dir: "d".into() }))),
         "watching starts no run"
     );
 }
 
-#[tokio::test]
-async fn unreadable_files_stop_as_configuration_errors() {
-    let missing = Path::new("no/such/file");
-    assert_eq!(
-        start::config_text(missing).await,
-        Err(start::Stop::Config("設定ファイルを読めない".into()))
-    );
-    let replay = start::script(&start::Source::Replay(missing.into())).await;
-    assert_eq!(
-        replay.err(),
-        Some(start::Stop::Config("実行結果を読めない".into()))
-    );
+#[test]
+fn the_ledger_screen_starts_no_run() {
+    let cli = Cli::try_parse_from(["webqa", "ledger", "l.md"]).ok();
+    let split = cli.map(|cli| cli.command.split().map(|c| start::job(c).ok()));
+    let screen = Viewing::Ledger(LedgerArgs {
+        path: "l.md".into(),
+    });
+    assert_eq!(split, Some(Err(screen)));
 }
 
-#[tokio::test]
-async fn modes_come_from_the_subcommand() {
-    let mode = |source| async move { start::script(&source).await.map(|(mode, _)| mode) };
-    assert_eq!(
-        mode(start::Source::Scenario).await.ok(),
-        Some(Mode::Scenario)
-    );
-    assert_eq!(mode(start::Source::Explore).await.ok(), Some(Mode::Explore));
+#[test]
+fn other_subcommands_become_no_jobs() {
+    let job = |args: &[&str]| {
+        let cli = Cli::try_parse_from(args).ok();
+        cli.map(|cli| cli.command.split().map(|c| start::job(c).ok()))
+    };
+    let docs = ["webqa", "check-docs", "persona", "a"];
+    assert_eq!(job(&docs), Some(Ok(None)));
+    let interview = ["webqa", "interview", "--config", "a"];
+    assert_eq!(job(&interview), Some(Ok(None)));
 }
 
 #[test]
@@ -200,3 +208,4 @@ async fn an_output_that_cannot_be_made_stops_as_a_runtime_error() {
 }
 
 mod ending;
+mod replays;

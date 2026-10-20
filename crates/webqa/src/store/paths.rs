@@ -15,6 +15,9 @@ pub const RUNS: &str = "runs";
 /// The event log, in a run's directory.
 pub const EVENTS: &str = "events.jsonl";
 
+/// The interview ledger, in a run's directory.
+pub const LEDGER: &str = "ledger.md";
+
 /// The report, in a run's directory.
 pub const REPORT: &str = "report.json";
 

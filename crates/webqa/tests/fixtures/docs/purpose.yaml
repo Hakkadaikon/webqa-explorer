@@ -1,0 +1,3 @@
+goal: 注文を確定できる画面まで進む
+done_when:
+  url: /order/done

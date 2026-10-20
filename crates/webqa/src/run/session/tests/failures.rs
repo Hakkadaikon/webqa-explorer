@@ -55,6 +55,11 @@ async fn a_log_that_fails_during_the_run_ends_failed() {
     let (ending, short) = fails_after(2).await;
     assert_eq!(format!("{ending:?}"), "Failed(Store(StoreError))");
     assert_eq!(exit::code(&ending), 3);
+    let last = ends(&short).1.unwrap();
+    assert_eq!(
+        (short.lines.len(), last["kind"].clone()),
+        (3, json!("decided"))
+    );
     assert_eq!((short.report, short.memories.len()), (None, 0));
 }
 

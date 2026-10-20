@@ -30,7 +30,7 @@ pub struct Row {
 /// Every operation the browser knows. `reload` and `return` both open the
 /// start URL again: the core asks for `return` to come back to the allowed
 /// domain and for `reload` to recover a frozen page.
-pub static OPS: [Row; 8] = [
+pub static OPS: [Row; 9] = [
     Row {
         name: "click",
         run: click,
@@ -50,6 +50,10 @@ pub static OPS: [Row; 8] = [
     Row {
         name: "back",
         run: back,
+    },
+    Row {
+        name: "enter",
+        run: enter,
     },
     Row {
         name: "wait",
@@ -78,6 +82,10 @@ pub fn settled(result: playwright_rs::Result<()>) -> Result<(), BrowserError> {
     }
 }
 
+fn forbidden_eval(error: &Error) -> bool {
+    matches!(error, Error::ProtocolError(message) if message.contains("Content Security Policy"))
+}
+
 const fn timed_out(error: &Error) -> bool {
     matches!(error, Error::Timeout(_) | Error::NavigationTimeout { .. })
 }
@@ -85,6 +93,12 @@ const fn timed_out(error: &Error) -> bool {
 /// True once the document has loaded. Waited for by the driver, which keeps
 /// the timeout even while a navigation is pending.
 const LOADED: &str = "document.readyState === 'complete'";
+
+/// Resolves at `load`, or after `ms` milliseconds.
+const IN_PAGE: &str = "ms => new Promise(done => { \
+    if (document.readyState === 'complete') { done(); return; } \
+    addEventListener('load', () => done(), { once: true }); \
+    setTimeout(done, ms); })";
 
 impl PlaywrightBrowser {
     /// Runs the touch, then waits for the page it started to load or for the
@@ -102,9 +116,35 @@ impl PlaywrightBrowser {
     /// Waits for the load after an operation that went through.
     async fn loaded(&self, done: playwright_rs::Result<()>) -> playwright_rs::Result<()> {
         match done {
-            Ok(()) => self.page.wait_for_function(LOADED, None).await.map(drop),
+            Ok(()) => self.wait_loaded().await,
             Err(error) => Err(error),
         }
+    }
+
+    /// Waits for the document to load. The driver's wait runs `LOADED` by
+    /// `eval` in the page, which a page's script policy can forbid once the
+    /// document is still loading; then the page itself waits, with a script
+    /// that is no `eval` and a timer of the page timeout.
+    async fn wait_loaded(&self) -> playwright_rs::Result<()> {
+        let Err(error) = self.page.wait_for_function(LOADED, None).await else {
+            return Ok(());
+        };
+        if forbidden_eval(&error) {
+            self.wait_in_page().await
+        } else {
+            Err(error)
+        }
+    }
+
+    /// Waits in the page for `load` or for the page timeout. A failure, such
+    /// as a document replaced meanwhile, ends the wait: the observation
+    /// that follows fails if the page is really gone.
+    async fn wait_in_page(&self) -> playwright_rs::Result<()> {
+        let limit = self.page.default_timeout_ms();
+        let waited: playwright_rs::Result<serde_json::Value> =
+            self.page.evaluate(IN_PAGE, Some(&limit)).await;
+        drop(waited);
+        Ok(())
     }
 
     /// Stops a navigation still pending: while one is, the page runs no
@@ -172,6 +212,27 @@ fn scroll_up<'a>(b: &'a PlaywrightBrowser, _: Option<&'a ElementId>) -> Done<'a>
 
 fn back<'a>(b: &'a PlaywrightBrowser, _: Option<&'a ElementId>) -> Done<'a> {
     Box::pin(async move { b.page.go_back(None).await.map(drop) })
+}
+
+/// True when the focus is on what `fillable` calls an input field.
+/// shortcut: written apart from `fillable`, so a change to one must be made to the other by hand.
+const FIELD_FOCUSED: &str = "() => { const e = document.activeElement; \
+    if (!e) return false; \
+    if (e.isContentEditable || ['TEXTAREA', 'SELECT'].includes(e.tagName)) return true; \
+    return e.tagName === 'INPUT' && \
+        ['text', 'search', 'email', 'url', 'tel', 'number', 'password'].includes(e.type); }";
+
+/// Presses Enter where the focus is, if that is an input field. Anywhere
+/// else, such as on a button that Enter would click, nothing is pressed.
+fn enter<'a>(b: &'a PlaywrightBrowser, _: Option<&'a ElementId>) -> Done<'a> {
+    Box::pin(async move {
+        let focused: bool = b.page.evaluate(FIELD_FOCUSED, None::<&()>).await?;
+        if focused {
+            b.page.keyboard().press("Enter", None).await
+        } else {
+            Ok(())
+        }
+    })
 }
 
 /// Waiting is the core's and the clock's: the browser does nothing.

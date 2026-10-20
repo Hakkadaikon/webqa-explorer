@@ -21,7 +21,7 @@ pub(super) struct OpRow {
 }
 
 /// Every operation kind, in the order offered to the judge.
-pub(super) static OPS: [OpRow; 8] = [
+pub(super) static OPS: [OpRow; 9] = [
     OpRow {
         op: Op::Click,
         name: "click",
@@ -49,6 +49,12 @@ pub(super) static OPS: [OpRow; 8] = [
     OpRow {
         op: Op::Back,
         name: "back",
+        element: None,
+        ends: None,
+    },
+    OpRow {
+        op: Op::Enter,
+        name: "enter",
         element: None,
         ends: None,
     },

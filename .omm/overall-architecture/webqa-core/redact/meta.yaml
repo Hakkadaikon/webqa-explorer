@@ -1,0 +1,9 @@
+created: 2026-10-20T01:02:47.248Z
+updated: 2026-10-20T01:02:47.250Z
+update_count: 1
+last_field: description
+kind: nested-class
+title: redact
+children: []
+parentPath:
+  - webqa-core

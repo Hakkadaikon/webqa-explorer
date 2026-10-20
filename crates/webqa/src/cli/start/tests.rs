@@ -82,3 +82,42 @@ fn given_keeps_the_start_memory_of_the_report() {
         "the memory of the report, not an empty one"
     );
 }
+
+const PERSONA: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/tests/fixtures/docs/persona.yaml"
+);
+
+#[test]
+fn an_interview_setup_reads_secrets_from_the_environment() {
+    let yaml = format!(
+        "
+target: {{ url: 'http://localhost:1/', allowed_origins: [] }}
+judge:
+  kind: command
+  command: ['x']
+  api_key: {{ env: PATH }}
+  timeout_secs: 1
+  pricing: {{ input_per_1k: 0.0, output_per_1k: 0.0 }}
+limits:
+  freeze_threshold: 1
+  stuck_threshold: 1
+  max_decisions: 1
+  requests_per_hour: 2
+  page_timeout_secs: 1
+  back_confidence: 0.7
+  error_confidence: 0.8
+guard:
+  forbidden: {{ keywords: [], selectors: [] }}
+  allowed: {{ selectors: [] }}
+interview:
+  persona: {PERSONA}
+  trials: 1
+"
+    );
+    let (setup, _) = interview_setup(&yaml).unwrap();
+    assert!(
+        setup.judge.api_key.is_some(),
+        "the key came from the environment"
+    );
+}

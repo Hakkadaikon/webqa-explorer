@@ -1,0 +1,44 @@
+created: 2026-10-20T01:04:20.204Z
+updated: 2026-10-20T01:21:02.768Z
+update_count: 7
+last_field: description
+git_commit: 4faa69f
+git_branch: docs-arch
+prev_diagram: |
+  graph LR
+      idle["Idle\n待つ"]:::entry
+      awaiting["Awaiting\n判断モデルの答えを待つ"]
+      confirming["Confirming\n要素の引き直しを待つ"]
+      acting["Acting\n操作のあとの画面を待つ"]
+      returning["Returning\n戻ったあとの画面を待つ"]
+      recovering["Recovering\n再読み込みのあとの画面を待つ"]
+      sleeping["Sleeping\n時間の窓が開くのを待つ"]
+      ended["Ended\n実行の終わり"]:::store
+      idle -->|"段の目標に達して次の段へ"| idle
+      idle -->|"判断モデルに尋ねる"| awaiting
+      idle -->|"時間の窓が満ちた"| sleeping
+      idle -->|"画面が固まった"| recovering
+      idle -->|"許された生成元の外に出た"| returning
+      idle -->|"課金の壁から抜ける"| acting
+      idle -->|"目標、行き詰まり、予算、時間"| ended
+      awaiting -->|"異常か却下"| idle
+      awaiting -->|"要素を操作する提案"| confirming
+      awaiting -->|"要素の無い提案"| acting
+      awaiting -->|"doneかstuckの答え"| ended
+      confirming -->|"同じノード"| acting
+      confirming -->|"要素が消えたか替わった"| idle
+      acting -->|"操作のあとの画面"| idle
+      returning -->|"戻ったあとの画面"| idle
+      recovering -->|"再読み込みのあとの画面"| idle
+      sleeping -->|"目が覚めた"| idle
+      classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+      classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+children:
+  - acting
+  - awaiting
+  - confirming
+  - ended
+  - idle
+  - recovering
+  - returning
+  - sleeping

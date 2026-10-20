@@ -33,6 +33,12 @@ pub enum Mode {
     Explore,
     /// Following a scenario.
     Scenario,
+    /// Interviewing: trials of one purpose. It is treated twice on purpose:
+    /// the check of the configuration reads it as `Explore`
+    /// (`config/mode.rs`), while the core runs the trials as a `Scenario`
+    /// (its `Interview` arms in `machine/offer.rs` and `machine/waiting.rs`
+    /// are never reached from a real run).
+    Interview,
 }
 
 impl Mode {
@@ -42,6 +48,7 @@ impl Mode {
         match self {
             Self::Explore => "explore",
             Self::Scenario => "scenario",
+            Self::Interview => "interview",
         }
     }
 }
@@ -144,6 +151,18 @@ pub enum Event {
         /// Milliseconds since the run started.
         until_ms: u64,
     },
+    /// The interview's trial number `trial` (from 1) started.
+    TrialStarted {
+        /// The trial, from 1.
+        trial: usize,
+    },
+    /// The interview's trial number `trial` ended.
+    TrialFinished {
+        /// The trial, from 1.
+        trial: usize,
+        /// How it ended.
+        ending: TrialEnding,
+    },
     /// The last line of a run.
     RunFinished {
         /// Why the run ended.
@@ -152,6 +171,26 @@ pub enum Event {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         stuck: Option<StuckKind>,
     },
+}
+
+/// How an interview's trial ended, as the log names it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TrialEnding {
+    /// The goal was achieved.
+    GoalMet,
+    /// The judge said it was done.
+    Done,
+    /// The judge gave up.
+    GaveUp,
+    /// The steps without progress reached their threshold.
+    NoProgress,
+    /// The decision budget was used up.
+    BudgetSpent,
+    /// The time limit cut the trial.
+    TimeUp,
+    /// The user's interruption cut the trial.
+    Interrupted,
 }
 
 /// The fields of an anomaly line, as serde writes the anomaly.

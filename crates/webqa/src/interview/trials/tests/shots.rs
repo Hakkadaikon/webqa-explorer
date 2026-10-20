@@ -1,0 +1,115 @@
+//! Tests of the screenshots of the issues.
+
+use webqa_core::interview::ask::{DIFFERENT, HARD_TO_SEE, SAME};
+use webqa_core::interview::issue::{Kind, Shot};
+use webqa_core::ports::StoreError;
+
+use super::purposes::purposeful;
+use super::*;
+use crate::run::RunError;
+use crate::run::fakes::PNG;
+use crate::store::screenshots::issue_name;
+
+/// The judge reads images and says nothing is hard to see, `steps` times.
+fn seeing(script: Scripted, steps: usize) -> Scripted {
+    let sight = QuestionId::new(HARD_TO_SEE);
+    let script = (0..steps).fold(script, |script, _| script.then_text(sight.clone(), ""));
+    script.with_images()
+}
+
+/// The names and the bytes of the screenshots written.
+fn written(world: &World) -> Vec<(String, Vec<u8>)> {
+    let shots = world.store.shots.iter();
+    shots
+        .map(|(name, image)| (name.clone(), image.bytes().to_vec()))
+        .collect()
+}
+
+#[tokio::test]
+async fn hesitation_issue_keeps_the_page_the_judge_saw() {
+    let mut world = World::new(1);
+    world.judge.script = seeing(hesitating(&["done"], 0.9), 1);
+    world.run().await;
+    let number = world.ledger().unwrap().entries[0].issue.number;
+    let shot = Shot { trial: 1, step: 1 };
+    assert_eq!(
+        written(&world),
+        [(issue_name(number, shot), PNG.to_vec())],
+        "the first occurrence's trial and step name the screenshot"
+    );
+}
+
+#[tokio::test]
+async fn judge_that_reads_no_images_still_leaves_the_screenshot_of_the_issue() {
+    let mut world = World::new(1);
+    world.judge.script = hesitating(&["done"], 0.9);
+    world.run().await;
+    let number = world.ledger().unwrap().entries[0].issue.number;
+    let shot = Shot { trial: 1, step: 1 };
+    assert_eq!(
+        written(&world),
+        [(issue_name(number, shot), PNG.to_vec())],
+        "the ledger points at a screenshot that is there"
+    );
+}
+
+#[tokio::test]
+async fn mismatch_screenshot_named_from_first_match() {
+    let mut world = purposeful(&[SAME, DIFFERENT]);
+    world.judge.script = seeing(world.judge.script.clone(), 2);
+    world.run().await;
+    let ledger = world.ledger().unwrap();
+    let entry = &ledger.entries[0];
+    let first_match = Shot { trial: 1, step: 2 };
+    assert_eq!(
+        (entry.issue.kind(), written(&world)),
+        (
+            Kind::Mismatch,
+            vec![(issue_name(entry.issue.number, first_match), PNG.to_vec())]
+        ),
+        "the page of the first step that the pattern matches"
+    );
+}
+
+/// A browser whose start page reports the console error `error`.
+fn failing(error: &str) -> FakeBrowser {
+    let mut page = top();
+    page.console = vec![error.to_owned()];
+    FakeBrowser {
+        pages: iter::repeat_n(page, 5).collect(),
+        ..FakeBrowser::default()
+    }
+}
+
+#[tokio::test]
+async fn detected_problem_screenshots_do_not_overwrite_across_trials() {
+    let mut world = World::new(2);
+    world.launch.browsers = VecDeque::from([failing("boom one"), failing("boom two")]);
+    world.run().await;
+    let names: Vec<_> = written(&world).into_iter().map(|(name, _)| name).collect();
+    assert_eq!(
+        names,
+        [
+            "ISSUE_console_error_trial1_step0.png".to_owned(),
+            "ISSUE_console_error_trial2_step0.png".to_owned()
+        ],
+        "one file for each trial's problem"
+    );
+}
+
+#[tokio::test]
+async fn screenshot_that_cannot_be_written_fails_the_run() {
+    let mut world = World::new(1);
+    world.judge.script = hesitating(&["done"], 0.9);
+    world.run().await;
+    // The last line of the log comes after the screenshot and the ledger.
+    let before = world.store.lines.len() - 1;
+    let mut failing = World::new(1);
+    failing.judge.script = hesitating(&["done"], 0.9);
+    failing.store.limit = Some(before);
+    assert_eq!(
+        (failing.run().await, failing.store.ledger),
+        (Ending::Failed(RunError::Store(StoreError)), None),
+        "the first write after the log is the screenshot, and the ledger waits for it"
+    );
+}

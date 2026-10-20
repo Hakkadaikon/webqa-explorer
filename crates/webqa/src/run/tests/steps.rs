@@ -3,6 +3,7 @@
 use std::collections::VecDeque;
 
 use webqa_core::effect::Touch;
+use webqa_core::event::Line;
 use webqa_core::judge::JudgeError;
 use webqa_core::machine::{Anomaly, ExitReason, Note};
 use webqa_judge::scripted::Scripted;

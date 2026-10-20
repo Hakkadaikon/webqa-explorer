@@ -24,8 +24,8 @@
       → WHEN 判断モデルへ画面状態を渡すとき、システムはアクセシビリティ情報のテキスト表現を送らなければならない。(event)
 - [x] S-004 (A)§3 「YAML設定ファイル：アプリ固有のルールとシナリオを定義」
       → システムはテスト対象・入力値・段階をYAML設定で定義できなければならない。(ubiquitous)
-- [x] S-005 (A)§4 「operation(choice)8種を同時に質問する」[設計メモ1]
-      → WHEN 1ステップを実行するとき、システムは次に取るべき操作の種別(click/input/scroll_down/scroll_up/back/wait/done/stuck の8種)を判断モデルに問い合わせなければならない。(event)
+- [x] S-005 (A)§4 「operation(choice)9種を同時に質問する」[設計メモ1]
+      → WHEN 1ステップを実行するとき、システムは次に取るべき操作の種別(click/input/scroll_down/scroll_up/back/enter/wait/done/stuck の9種)を判断モデルに問い合わせなければならない。(event)
 - [x] S-006 (A)§4 「target(choice): 操作する要素の番号」
       → WHEN 操作対象が必要な操作種別が選ばれたとき、システムは対象要素を判断モデルに問い合わせなければならない。(event)
 - [x] S-007 (A)§4 「is_error_shown(noul): エラー表示の有無」
@@ -40,6 +40,7 @@
       → IF 直前の操作後に画面が変化せず同じ要素を再度選択しようとしたとき、システムは次に確信度の高い候補要素へ切り替えなければならない。(unwanted)
 - [x] S-012 (A)§5 「購入・削除・退会・サインインのボタンは押さない」
       → IF 対象要素が購入・削除・退会・サインイン等の破壊的/決済操作に分類されるとき、システムはその要素を操作してはならない。(unwanted)
+      → IF ページに購入・削除・退会・サインイン等に分類される要素(禁止要素)が1つでもあるとき、システムは判断モデルに問い合わせる操作種別の選択肢からenterを外さなければならない。Enterはフォームを送るので、送信のボタンが禁止要素でも送れてしまうため、探索モードでも決め打ちシナリオでも外す。設定の操作種別がenterだけの組み合わせは、どちらのモードでも設定で弾く。(unwanted)
 - [x] S-013 (A)§5 「課金画面が出たら、Jevに判断させず左上の×を押す」
       → IF paywall相当のUIが検出されたとき、システムは判断モデルに問い合わせず既定の離脱操作を実行しなければならない。(unwanted)
 - [x] S-014 (A)§5 「自己申告は信用せず、done_whenをツール側で確認する」
@@ -54,6 +55,7 @@
       → WHEN 制限時間(探索モードの指定時間、またはS-041の実行時間の上限)に達したとき、システムは実行を時間切れとして記録して終了しなければならない。(event)
       → WHILE 探索モードにあるとき、システムは判断モデルに問い合わせる操作種別の選択肢にdoneを含めてはならない。(state)
       → WHILE 探索モードで、その段の候補に入力できる要素(入力欄の役割で、設定に値のあるもの)が1つも無いとき、システムは判断モデルに問い合わせる操作種別の選択肢からinputを外さなければならない。ただし、設定の操作種別がdoneを除くとinputだけなら残す。(state)
+      → WHILE 探索モードで、表示中の要素に入力できる要素(入力欄の役割で、設定に値のあるもの)が1つも無いとき、システムは判断モデルに問い合わせる操作種別の選択肢からenterを外さなければならない。打ち込んだ入力欄は探索済みの要素になって候補から外れるが、表示中なら見るので、打ったあとの画面でもenterは残る。(state)
 - [x] S-017 (A)§6 「固まる、アプリ外に出る、行き詰まる場合はアプリを再起動して続行する」[設計メモ2]
       → IF 探索中にページが応答しない・対象ドメイン外に遷移した・行き詰まり状態になったとき、システムは対象ページを初期状態に戻して探索を継続しなければならない。初期状態に戻すのはページの状態だけで、探索の記憶(S-022)は保持する。(unwanted)
 - [x] S-018 (A)§6 「気になる点はISSUE_<種類>_step<番号>.pngの名前でスクリーンショットを保存する」
@@ -136,17 +138,17 @@
 | S-009    | ubiquitous | モデル外(送信データ形式)     | 「判断モデルに送る画面状態はアクセシビリティ情報のテキストで、操作可能要素の一覧を含む」、「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」、「判断モデルに送る操作可能要素の一覧は、表示領域の中の要素だけにする」 |
 | S-010    | unwanted   | Next: ApplyGuardrails / Inv: LowConfidenceBackNeverActed / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「確信度の低い「戻る」は実行しない」、「確信度が欠けた応答の「戻る」は低確信度として扱い、実行しない」 |
 | S-011    | unwanted   | Next: ExecuteNoChange(観測のみ。選択自体はモデル外) / Inv: NoChangeObservedOnlyAfterOps / Prop: ObservationChangesOnlyByExecution | 「画面が変わらないのに同じ要素を選んだら、次に確信度の高い候補へ切り替える」 |
-| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「購入・削除・退会・サインインに当たる要素は操作しない」、「禁止要素は未操作のまま残っていても、探索の候補に入れない」 |
+| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「購入・削除・退会・サインインに当たる要素は操作しない」、「禁止要素は未操作のまま残っていても、探索の候補に入れない」、「ページに禁止要素があれば、操作種別の選択肢に enter を含めない」。設定の操作種別が enter だけの組み合わせは設定で弾き、単体テストで確かめる |
 | S-013    | unwanted   | Next: ApplyGuardrails(paywall分岐) / Prop: PaywallForcesBack, ActingOnlyAfterGuardrails, ProposalChangesOnlyByDecision。抽象化の空洞は設計メモ8 | 「課金画面が出たら判断モデルに問い合わせず、既定の離脱操作をする」、「通常のページを課金画面と取り違えない」、「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」 |
 | S-014    | ubiquitous | Next: FinishNormally/FinishByProposalDone / Inv: ScenarioGoalOnlyAtLastStage, ReportedDoneOnlyWithoutDoneWhen / Prop: GoalPreempts, DoneWhenChangesOnlyByExecutionOrAdvance | 「done_when を満たしたら、判断モデルに問い合わせずにゴール達成で終了する」、「done_when を満たさないまま判断モデルが done を返したら、未検証の終了として記録する」 |
 | S-015    | optional/event(×2) | Next: AdvanceStage/Execute*(done_whenの観測) / Inv: ScenarioGoalOnlyAtLastStage, StagesOnlyInScenario / Prop: StageAdvancePreempts, StageAdvanceResetsCounters, BudgetSharedAcrossStages, CountersChangeOnlyBySteps, DoneWhenChangesOnlyByExecutionOrAdvance, GoalPreempts, StartsFresh。段階の定義(YAML)はモデル外 | 「テスト対象・入力値・段階を YAML の設定で定義して実行する」、「最後でない段階の done_when を満たしたら、判断モデルに問い合わせずに次の段階へ進む」、「最後の段階の done_when を満たしたら、ゴール達成で終了する」、「後の段階の done_when だけを満たしても、段階を飛ばさずゴール達成にもしない」、「段階を進めたら、固まりと行き詰まりの回数を0に戻す」、「段階を進めても、判断予算・時間窓の操作回数・探索の記憶は引き継ぐ」、「done_when に宣言が複数あれば、すべて成り立ったときだけ満たしたとみなす」、「done_when の要素とテキストは、表示領域の外にあっても成り立つ」、「実行を開始した時点で最初の段階の done_when を満たしていれば、操作せずに段階を進める」、「段階を進めた時点で次の段階の done_when も満たしていれば、操作せずにさらに進む」 |
-| S-016    | optional/event(×2)/state(×2) | Next: RequestDecision(探索モードはdoneを選択肢から外す)/FinishNormally/FinishTimeUp/TimeElapses / Inv: ExploreGoalOnlyWhenAllExplored, ExploreNeverReportedDone, TimeExceededOnlyWhenTimeUp, StagesOnlyInScenario, ProposalWellFormed, ExitReasonMatchesPhase / Prop: GoalPreempts, LimitStops, TimeNeverRewinds, TimeElapsesAlone, ModeFixed, TerminationKeepsState, TerminalAbsorbing, StartsFresh。優先順位の中身はモデル外。設定の操作種別が done を除くと input だけなら input を残す例外は、単体テストで確かめる | 「決め打ちシナリオと探索モードを同じツールで実行する」、「未操作の要素を、未探索の分岐が残る操作済み要素より先に選ぶ」、「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」、「探索モードで未操作の要素が禁止要素だけになったら、ゴール達成で終了する」、「探索モードで禁止要素以外の未操作の要素が残っていれば、ゴール達成にしない」、「探索モードで探索してよい要素が無くても、最初の問い合わせの前にはゴール達成にしない」、「探索モードで探索してよい要素が無ければ、1回問い合わせた後にゴール達成で終了する」、「探索モードで制限時間に達したら、判断モデルに問い合わせずに時間切れで終了する」、「制限時間の手前なら、時間切れにせず問い合わせる」、「決め打ちシナリオでも、実行時間の上限に達したら時間切れで終了する」、「時間窓が明けるのを待っている間に制限時間に達したら、窓を待たずに時間切れで終了する」、「探索モードでは、判断モデルに問い合わせる操作種別の選択肢に done を入れない」、「探索モードで判断モデルが done を返しても、未検証の終了にせず応答の異常として扱う」、「探索モードで使う操作種別に click も input も無ければ設定エラーにする」、「探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める」 |
+| S-016    | optional/event(×2)/state(×2) | Next: RequestDecision(探索モードはdoneを選択肢から外す)/FinishNormally/FinishTimeUp/TimeElapses / Inv: ExploreGoalOnlyWhenAllExplored, ExploreNeverReportedDone, TimeExceededOnlyWhenTimeUp, StagesOnlyInScenario, ProposalWellFormed, ExitReasonMatchesPhase / Prop: GoalPreempts, LimitStops, TimeNeverRewinds, TimeElapsesAlone, ModeFixed, TerminationKeepsState, TerminalAbsorbing, StartsFresh。優先順位の中身はモデル外。設定の操作種別が done を除くと input だけなら input を残す例外と、表示中に値のある入力欄が無ければ enter を外す条件は、単体テストで確かめる | 「決め打ちシナリオと探索モードを同じツールで実行する」、「未操作の要素を、未探索の分岐が残る操作済み要素より先に選ぶ」、「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」、「探索モードで未操作の要素が禁止要素だけになったら、ゴール達成で終了する」、「探索モードで禁止要素以外の未操作の要素が残っていれば、ゴール達成にしない」、「探索モードで探索してよい要素が無くても、最初の問い合わせの前にはゴール達成にしない」、「探索モードで探索してよい要素が無ければ、1回問い合わせた後にゴール達成で終了する」、「探索モードで制限時間に達したら、判断モデルに問い合わせずに時間切れで終了する」、「制限時間の手前なら、時間切れにせず問い合わせる」、「決め打ちシナリオでも、実行時間の上限に達したら時間切れで終了する」、「時間窓が明けるのを待っている間に制限時間に達したら、窓を待たずに時間切れで終了する」、「探索モードでは、判断モデルに問い合わせる操作種別の選択肢に done を入れない」、「探索モードで判断モデルが done を返しても、未検証の終了にせず応答の異常として扱う」、「探索モードで使う操作種別に click も input も無ければ設定エラーにする」、「探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める」 |
 | S-017    | unwanted   | Next: RecoverFromFreeze/ResumeAfterRecovery(固まりのみ。他2条件は別disjunct。設計メモ2参照) / Inv: RecoveryResetsPageState, RecoveryOnlyAfterFreeze / Prop: FreezePreemptsDecision, FreezeRecoveryRecorded, MemoryNeverShrinks, CountersChangeOnlyBySteps | 「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「固まりを検出しているステップでは判断モデルに問い合わせない」、「ページが応答しないステップが3回続けば、画面が変化しないステップと同じく開き直す」、「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」、「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」 |
 | S-018    | event      | モデル外(問題記録の分類・保存形式) | 「問題を見つけたら、種類とステップ番号を含む名前でスクリーンショットを残す」 |
 | S-019    | unwanted   | モデル外(閾値判定の簡略化)   | 「問題を見つけたら、種類とステップ番号を含む名前でスクリーンショットを残す」、「エラー表示の確信度が閾値に届かなければ問題として記録しない」、「エラー表示の確信度が閾値ちょうどなら問題として記録する」 |
 | S-020    | unwanted   | モデル外(パターン判定)       | 「読み上げ名が画像ファイル名や仮の値の要素はアクセシビリティの問題として記録する」 |
 | S-021    | state(×3)  | Next: RecoverFromFreeze/ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain/FinishStuck / Inv: CountersBoundedByOps, DomainRecordAccurate, NewSeenOnlyOnChangedAllowedPage, NoChangeObservedOnlyAfterOps / Prop: IdleCounterTracksScreen, StuckCounterTracksNewElements, StuckPreempts, CountersChangeOnlyBySteps, ObservationChangesOnlyByExecution | 「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「固まりを検出しているステップでは判断モデルに問い合わせない」、「探索済みの要素が増えず、未操作の要素も新しく見えない操作が閾値の1回手前までなら終了しない」、「ブラウザ操作が起きなかったステップは固まりにも行き詰まりにも数えず、判断予算切れで止まる」、「画面が変化すれば固まりの数え直しになる」、「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」、「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」、「許可ドメインかどうかは、最終的な遷移先のオリジンの完全一致で判定する」、「リダイレクトされたら、最終的な遷移先で許可ドメインかどうかを判定する」、「探索済みの要素が増えず、未操作の要素も新しく見えない操作が3回続けば、次のステップの前に行き詰まりで終了する」、「新しい要素を操作すると行き詰まりの数え直しになる」、「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」、「0 以下の閾値・上限や空の操作種別は設定エラーにする」、「スクロールで未操作の要素が新しく見えたら、行き詰まりの数え直しになる」、「スクロールしても未操作の要素が新しく見えなければ、行き詰まりを数え続ける」、「スクロールで表示領域の要素が変われば、画面が変化したと数えて固まりの数え直しになる」、「ページの一番下でスクロールして表示領域の要素が変わらなければ、画面が変化しないステップと数える」、「段階を進めたら、固まりと行き詰まりの回数を0に戻す」 |
-| S-022    | ubiquitous/unwanted/event | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: MemoryNeverShrinks, VisitedChangesOnlyByExecution | 「探索の記憶を次の実行に引き継ぐ」、「初めての実行では空の記憶から始める」、「探索の記憶が壊れていたら、空の記憶で始めてそのことを記録する」、「別の対象の探索の記憶は引き継がない」、「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」、「スクロールしても、探索の記憶では同じ画面として扱う」、「ページ全体の操作可能要素が変われば、探索の記憶では別の画面として扱う」、「何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない」、「値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える」 |
+| S-022    | ubiquitous/unwanted/event | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / Inv: VisitedOnlyByOps / Prop: MemoryNeverShrinks, VisitedChangesOnlyByExecution | 「探索の記憶を次の実行に引き継ぐ」、「初めての実行では空の記憶から始める」、「探索の記憶が壊れていたら、空の記憶で始めてそのことを記録する」、「別の対象の探索の記憶は引き継がない」、「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」、「スクロールしても、探索の記憶では同じ画面として扱う」、「ページ全体の操作可能要素が変われば、探索の記憶では別の画面として扱う」、「何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない」、「値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える」、「入力欄に打ったあと Enter を押すと、画面が変わり、変わった先の画面が探索の記憶に加わる」 |
 | S-023    | ubiquitous | Next: ExecuteNoChange/ExecuteChange/ExecuteOutOfDomain / モデル外(優先順位の中身) | 「未操作の要素を、未探索の分岐が残る操作済み要素より先に選ぶ」、「未操作の要素が無ければ、未探索の分岐が残る操作済み要素を戻る・スクロールより先に選ぶ」、「どの要素にも未探索の分岐が残っていなければ、戻るかスクロールを選ぶ」、「禁止要素は未操作のまま残っていても、探索の候補に入れない」 |
 | S-024    | unwanted   | モデル外(単一画面への簡略化) | 「遷移先を探索し終えるまで、途中のボタンを探索し終えた要素として扱わない」 |
 | S-025    | optional   | モデル外(計測・観測用副作用) | 「判断・操作・画面変化待ちの時間と、判断モデルのコストを記録する」 |
@@ -207,7 +209,7 @@
 
 ## 設計メモ(ID別の補足・他IDとの関係・レビュー対応の経緯)
 
-1. **S-005**: 原文のoperationの選択肢は「タップ／入力／下スクロール／上スクロール／戻る／待つ／完了／行き詰まり」の8種。上下スクロールを1つの`scroll`に統合すると情報量を減らした変換になるため、8種のまま維持する。
+1. **S-005**: 原文のoperationの選択肢は「タップ／入力／下スクロール／上スクロール／戻る／待つ／完了／行き詰まり」の8種。上下スクロールを1つの`scroll`に統合すると情報量を減らした変換になるため、8種のまま維持する。2026-10-20に、利用者が、キーを押す操作を足すと決めた。押すキーはEnterだけで、対象の要素を取らない`enter`を1つ足し、9種にした。
 2. **S-017**: 固まる/アプリ外/行き詰まりの3条件はOR→単一アクション(「初期状態へ戻して続行」)として0段で1文のまま抽出した。ただしformalize工程のTLA+実装では3条件それぞれ異なる扱いになった(固まりのみ`RecoverFromFreeze`で復旧、ドメイン外は`ExecuteOutOfDomain`/`ReturnToAllowedDomain`で継続、行き詰まりは`FinishStuck`で終了)。「結果のアクションが1つに収束する」という0段時点の想定はformalize実装と一致しなかったため、トレーサビリティ・マトリクスのS-017行に実装の実態を注記した。詳細は`WebExploratoryQA.faithfulness.md`のS-017説明を参照。
    - S-018も同様に6条件のOR→単一アクション(命名規則に沿ったスクリーンショット保存)として1文のまま抽出し、こちらは実装も単一アクションのまま変わっていない。
    - S-021は同じ3条件を「異なるstate名への判定」としてS-017とは別に3文へ分割した。S-017(復旧アクション)とS-021(検出条件)は検出→復旧の前後関係にあるが、一方が他方に吸収されるものではない独立要件。

@@ -11,7 +11,7 @@ mod tests;
 
 use std::ffi::OsString;
 use std::io;
-use std::process::{ExitStatus, Stdio};
+use std::process::{Command as Blocking, ExitStatus, Stdio};
 use std::time::Duration;
 
 use tokio::io::{AsyncRead, AsyncReadExt, empty};
@@ -72,7 +72,7 @@ pub async fn run(
 ) -> Ran {
     let deadline = deadline(clock.elapsed(), reset);
     match command(reset, env, withheld).spawn() {
-        Ok(child) => supervise(child, deadline, redactor, clock).await,
+        Ok(child) => watched(child, deadline, redactor, clock).await,
         Err(_) => silent(ResetError::Launch, redactor),
     }
 }
@@ -95,6 +95,39 @@ fn command(reset: &Reset, env: &[(OsString, OsString)], withheld: &[&str]) -> Co
         .process_group(0)
         .kill_on_drop(true);
     command
+}
+
+/// As [`supervise`], and stops the command's whole group should this future
+/// be dropped before the command ends: `kill_on_drop` only stops the
+/// command itself, not what it started.
+async fn watched(
+    child: Child,
+    deadline: Duration,
+    redactor: &Redactor,
+    clock: &mut dyn Clock,
+) -> Ran {
+    let mut group = Group(child.id());
+    let ran = supervise(child, deadline, redactor, clock).await;
+    group.0 = None;
+    ran
+}
+
+/// The process group led by a command that has not ended. Dropped, it is
+/// sent SIGKILL.
+struct Group(Option<u32>);
+
+impl Drop for Group {
+    fn drop(&mut self) {
+        if let Some(leader) = self.0 {
+            // Synchronous: a drop cannot await, and the kill must be done when it returns.
+            let _ = Blocking::new("kill")
+                .args(["-KILL", "--", &format!("-{leader}")])
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status();
+        }
+    }
 }
 
 /// Waits for the started command until `deadline`, and stops it if it has

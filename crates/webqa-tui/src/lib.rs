@@ -1,12 +1,13 @@
 //! Terminal viewer of the webqa event log.
 
 pub mod follow;
+pub mod keys;
 pub mod ledger;
 pub mod ledger_file;
 pub mod tail;
 pub mod view;
 
-/// The event log example of `docs/architecture.md`.
+/// The event log example of `docs/arch/records.md`.
 #[cfg(test)]
 const EXAMPLE: [&str; 4] = [
     r#"{"seq":0,"elapsed_ms":0,"kind":"run_started","schema":1,"mode":"explore","started_at":"2026-10-18T02:00:00Z"}"#,

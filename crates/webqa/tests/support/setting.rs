@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use crate::world::QaWorld;
 
-/// The example of `docs/architecture.md` with the values of the background.
+/// The example of `docs/arch/config.md` with the values of the background.
 pub const BASE: &str = r##"target:
   url: https://app.example.test
   allowed_origins: []

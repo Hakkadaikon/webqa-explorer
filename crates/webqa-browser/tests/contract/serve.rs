@@ -3,9 +3,10 @@
 
 use std::collections::HashMap;
 use std::future;
-use std::io::{self, BufRead, BufReader, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
 use std::thread;
+use std::time::Duration;
 
 use playwright_rs::{FulfillOptions, Route};
 use url::Url;
@@ -62,21 +63,47 @@ fn account(cookie: Option<&str>) -> &'static str {
 }
 
 /// Answers one request on 127.0.0.1 with a page of `button "外"`, from
-/// another thread. Returns the port.
+/// another thread. The page forbids evaluating a string as script, as
+/// GitHub's pages do, and goes on loading for 600 ms after it starts, then
+/// ends with `button "後"`. Returns the port.
 pub fn outside_server() -> Res<u16> {
+    delayed_server("\r\nContent-Security-Policy: script-src 'none'", 600)
+}
+
+/// The same page as [`outside_server`], but with no script policy.
+pub fn open_server() -> Res<u16> {
+    delayed_server("", 600)
+}
+
+/// The same page as [`open_server`], but the rest of it comes after 3
+/// seconds, later than any page timeout of the tests.
+pub fn stalled_server() -> Res<u16> {
+    delayed_server("", 3000)
+}
+
+fn delayed_server(policy: &'static str, millis: u64) -> Res<u16> {
     let listener = TcpListener::bind("127.0.0.1:0")?;
     let port = listener.local_addr()?.port();
-    thread::spawn(move || answer_once(&listener));
+    thread::spawn(move || answer_once(&listener, policy, millis));
     Ok(port)
 }
 
-fn answer_once(listener: &TcpListener) -> io::Result<()> {
+fn answer_once(listener: &TcpListener, policy: &str, millis: u64) -> io::Result<()> {
     let (mut stream, _) = listener.accept()?;
     BufReader::new(&stream).read_line(&mut String::new())?;
-    let body = "<!doctype html><html lang=\"ja\"><button>外</button></html>";
+    let (first, rest) = (
+        "<!doctype html><html lang=\"ja\"><button>外</button>",
+        "<button>後</button></html>",
+    );
     let head = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: close";
-    let response = format!("{head}\r\nContent-Length: {}\r\n\r\n{body}", body.len());
-    stream.write_all(response.as_bytes())
+    let length = first.len() + rest.len();
+    let response = format!("{head}{policy}\r\nContent-Length: {length}\r\n\r\n{first}");
+    stream.write_all(response.as_bytes())?;
+    // The request has been read, so nothing comes: this only waits.
+    stream.set_read_timeout(Some(Duration::from_millis(millis)))?;
+    let waited = stream.read_exact(&mut [0; 1]);
+    drop(waited);
+    stream.write_all(rest.as_bytes())
 }
 
 /// A port nothing listens on.

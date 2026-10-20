@@ -9,6 +9,7 @@ use serde_json::Value;
 use tokio::fs as async_fs;
 use webqa_browser::probe::ProbeArg;
 use webqa_browser::{LaunchOptions, PlaywrightBrowser};
+use webqa_core::config::interview::Interview;
 use webqa_core::event::Mode;
 use webqa_core::explore::{Memory, MemoryFileError};
 use webqa_core::ports::Judge;
@@ -16,13 +17,19 @@ use webqa_core::redact::Redactor;
 use webqa_core::screen::Viewport;
 use webqa_judge::table::{self, StartError};
 
-use super::{Command, RunArgs};
+use super::{Command, Jobless, RunArgs};
 use crate::clock::{RealClock, Wall};
 use crate::exit::{CONFIG_ERROR, RUNTIME_ERROR};
 use crate::replay::{Replay, ReplayError};
 use crate::run::session::Start;
 use crate::setup::{self, BrowserPlan, Setup};
 use crate::store::file::FileStore;
+
+/// The viewport of the browsers.
+pub const VIEWPORT: Viewport = Viewport {
+    width: 1280,
+    height: 720,
+};
 
 /// Why the run did not start: a sentence for the user, which holds no value
 /// of the configuration, the environment or a page.
@@ -77,17 +84,21 @@ pub struct Job {
     pub out: PathBuf,
 }
 
-/// The job of a subcommand.
-#[must_use]
-pub fn job(command: Command) -> Job {
+/// The job of a subcommand that makes one, or else the subcommand.
+///
+/// # Errors
+///
+/// [`Jobless`] for `interview` and `check-docs`.
+pub fn job(command: Command) -> Result<Job, Jobless> {
     match command {
-        Command::Run(args) => with(Source::Scenario, args),
-        Command::Explore(args) => with(Source::Explore, args),
-        Command::Replay(args) => Job {
+        Command::Run(args) => Ok(with(Source::Scenario, args)),
+        Command::Explore(args) => Ok(with(Source::Explore, args)),
+        Command::Replay(args) => Ok(Job {
             source: Source::Replay(args.report),
             config: args.config,
             out: args.out,
-        },
+        }),
+        Command::Jobless(other) => Err(other),
     }
 }
 
@@ -126,6 +137,9 @@ async fn replayed(path: &Path) -> Result<(Mode, Option<Script>), Stop> {
     let text = async_fs::read_to_string(path).await;
     let text = text.map_err(|_| Stop::config("実行結果を読めない"))?;
     let (mode, replay, memory) = Replay::from_report(&text).map_err(Stop::config)?;
+    if mode == Mode::Interview {
+        return Err(Stop::config("インタビューの実行結果は再実行できない"));
+    }
     Ok((mode, Some((replay, memory))))
 }
 
@@ -162,6 +176,18 @@ pub fn setup(yaml: &str, mode: Mode) -> Result<Setup, Stop> {
     let env = |name: &str| env::var(name).ok();
     let read = |path: &Path| fs::read_to_string(path);
     setup::load(yaml, mode, &env, &read).map_err(Stop::config)
+}
+
+/// The checked configuration and the interview settings, with the
+/// persona and purpose read.
+///
+/// # Errors
+///
+/// [`Stop::Config`] with the sentence of the configuration error.
+pub fn interview_setup(yaml: &str) -> Result<(Setup, Interview), Stop> {
+    let env = |name: &str| env::var(name).ok();
+    let read = |path: &Path| fs::read_to_string(path);
+    setup::load_interview(yaml, &env, &read).map_err(Stop::config)
 }
 
 /// The judge, the replay or the one the configuration names.
@@ -203,10 +229,7 @@ pub async fn browser(plan: BrowserPlan, redactor: Redactor) -> Result<Playwright
         start: plan.start,
         storage_state: plan.storage_state,
         page_timeout: plan.page_timeout,
-        viewport: Viewport {
-            width: 1280,
-            height: 720,
-        },
+        viewport: VIEWPORT,
         selectors: ProbeArg {
             forbidden: plan.forbidden_selectors,
             allowed: plan.allowed_selectors,

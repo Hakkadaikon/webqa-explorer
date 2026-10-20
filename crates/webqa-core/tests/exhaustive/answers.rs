@@ -9,7 +9,15 @@ use webqa_core::machine::{Facts, Heard};
 use super::Choice;
 
 /// The operation kinds answered. `drag` is not offered.
-const OPS: [&str; 6] = ["click", "back", "scroll_down", "done", "stuck", "drag"];
+const OPS: [&str; 7] = [
+    "click",
+    "back",
+    "scroll_down",
+    "enter",
+    "done",
+    "stuck",
+    "drag",
+];
 
 /// A sure and an unsure probability of the operation kind.
 const CONFIDENCES: [f64; 2] = [0.9, 0.5];
@@ -50,7 +58,7 @@ fn combinations() -> Vec<(&'static str, f64, &'static str)> {
         .collect()
 }
 
-/// The 36 replies with answers, then the judge failing.
+/// The 42 replies with answers, then the judge failing.
 pub fn replies() -> Vec<Choice> {
     let failed = Choice {
         facts: Facts::Outside(Heard::Answered(Err(JudgeError::Exhausted))),

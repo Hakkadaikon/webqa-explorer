@@ -270,6 +270,12 @@ impl State {
         self.notes.push(note);
         self
     }
+
+    /// With the window replaced.
+    pub(crate) const fn with_window(mut self, window: RequestWindow) -> Self {
+        self.window = window;
+        self
+    }
 }
 
 #[cfg(test)]
@@ -283,12 +289,6 @@ impl State {
     /// With the budget replaced.
     pub(crate) const fn with_budget(mut self, budget: Budget) -> Self {
         self.budget = budget;
-        self
-    }
-
-    /// With the window replaced.
-    pub(crate) const fn with_window(mut self, window: RequestWindow) -> Self {
-        self.window = window;
         self
     }
 

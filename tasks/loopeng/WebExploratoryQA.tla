@@ -36,10 +36,10 @@ CONSTANTS
     \* @type: Set(Str);
     ForbiddenElements,   \* S-012, S-028: 禁止要素の部分集合(購入/削除/退会/サインイン等)
     \* @type: Set(Str);
-    Operations           \* S-005: 判断モデルが返す操作種別8種の抽象化(部分集合でも検査可)
+    Operations           \* S-005: 判断モデルが返す操作種別9種の抽象化(部分集合でも検査可)
 
 ASSUME ForbiddenElements \subseteq Elements
-ASSUME Operations \subseteq {"click", "input", "scroll_down", "scroll_up", "back", "wait", "done", "stuck"}
+ASSUME Operations \subseteq {"click", "input", "scroll_down", "scroll_up", "back", "enter", "wait", "done", "stuck"}
 \* 終了性(EventuallyTerminates)の前提: 閾値と上限は正。0 だと時間窓リセットや固まり復旧が空回りする。
 ASSUME MaxDecisions \in Nat \ {0}
 ASSUME MaxRequests \in Nat \ {0}
@@ -550,7 +550,7 @@ RecoveryResetsPageState ==
 DomainRecordAccurate ==
     inAllowedDomain = ~pageOutside
 
-\* S-005, S-006, S-016: 問い合わせ後の提案は操作種別8種のいずれか(paywall 時は既定の back)と、実在する対象要素。
+\* S-005, S-006, S-016: 問い合わせ後の提案は操作種別9種のいずれか(paywall 時は既定の back)と、実在する対象要素。
 \* 探索モードでは done を提案させない。
 ProposalWellFormed ==
     phase \in {"awaiting_decision", "acting"}
