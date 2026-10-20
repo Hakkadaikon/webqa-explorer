@@ -1,5 +1,6 @@
 //! Explore mode: no `done` to choose, and the candidates narrow the options.
 
+mod enter;
 mod goal;
 mod input;
 mod moves;
@@ -65,6 +66,7 @@ fn explore_questions_omit_done() {
         "scroll_down",
         "scroll_up",
         "back",
+        "enter",
         "wait",
         "stuck",
     ];

@@ -4,18 +4,20 @@ use crate::config::raw::Op;
 use crate::effect::{Effect, Outside, Questions};
 use crate::judge::{Ask, Question, QuestionId, questions};
 use crate::machine::Rules;
+use crate::machine::material::forbidden_indices;
 use crate::machine::ops::offered;
 use crate::screen::{Screen, screen_text, visible};
 
 use super::screens::{VIEWPORT, seen};
 
 /// The operation kinds of explore mode: every kind but `done`.
-pub const EXPLORE_OPS: [Op; 7] = [
+pub const EXPLORE_OPS: [Op; 8] = [
     Op::Click,
     Op::Input,
     Op::ScrollDown,
     Op::ScrollUp,
     Op::Back,
+    Op::Enter,
     Op::Wait,
     Op::Stuck,
 ];
@@ -73,7 +75,10 @@ pub fn ask_with(screen: &Screen, questions: Vec<Question>) -> Effect {
 
 /// The effect of asking about `screen` under `rules`, with no goal.
 pub fn asking(rules: &Rules, screen: &Screen) -> Effect {
-    ask_with(screen, asked(rules, visible(screen, VIEWPORT).len()))
+    ask_with(
+        screen,
+        asked(&unforbidden(rules, screen), visible(screen, VIEWPORT).len()),
+    )
 }
 
 /// The options of the choice `id` that the effect asks. None when it asks
@@ -100,5 +105,15 @@ fn choices(question: &Question) -> Vec<String> {
     match question {
         Question::Choice { options, .. } => options.clone(),
         Question::Noul { .. } | Question::Score { .. } | Question::Text { .. } => Vec::new(),
+    }
+}
+
+/// `rules` without `enter` when the page shows a forbidden element.
+fn unforbidden(rules: &Rules, screen: &Screen) -> Rules {
+    let ops = rules.ops.iter().copied();
+    let keep = forbidden_indices(rules, &seen(screen)).is_empty();
+    Rules {
+        ops: ops.filter(|&op| keep || op != Op::Enter).collect(),
+        ..rules.clone()
     }
 }

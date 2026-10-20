@@ -44,11 +44,12 @@ fn reads_target_inputs_and_stages() {
         Op::ScrollDown,
         Op::ScrollUp,
         Op::Back,
+        Op::Enter,
         Op::Wait,
         Op::Done,
         Op::Stuck,
     ];
-    assert_eq!(raw.ops, all, "all eight ops when omitted");
+    assert_eq!(raw.ops, all, "all nine ops when omitted");
     reads_two_stages_in_order();
     reads_snake_case_ops();
 }

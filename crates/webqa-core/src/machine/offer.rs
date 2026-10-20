@@ -1,6 +1,7 @@
 //! What a step offers the judge: the questions asked, and the answers
 //! checked against the same offer.
 
+use super::material::forbidden_indices;
 use super::ops::offered;
 use super::rules::Rules;
 use super::state::State;
@@ -12,7 +13,7 @@ use crate::judge::{
     self, Answers, Ask, MAX_OPTIONS, Question, QuestionId, Unusable, Verdict, read_answers,
 };
 use crate::redact::Redacted;
-use crate::screen::{Screen, screen_text, visible};
+use crate::screen::{Screen, fillable, screen_text, visible};
 
 /// The operation kinds offered when no element is a candidate, in the
 /// order of the table of operation kinds.
@@ -50,7 +51,7 @@ pub(super) fn offer(state: &State) -> Offer {
     let elements = visible(last.screen.as_inner(), last.viewport).len();
     match state.rules.mode {
         Mode::Scenario => Offer {
-            ops: kinds(&state.rules).collect(),
+            ops: with_enter(state, kinds(&state.rules).collect(), false),
             elements,
             numbers: None,
             goal: state.rules.stages.get(state.stage).map(|s| s.goal.clone()),
@@ -69,6 +70,7 @@ fn kinds(rules: &Rules) -> impl Iterator<Item = Op> {
 /// nothing is narrowed.
 fn explored(state: &State, elements: usize) -> Offer {
     let ops: Vec<Op> = kinds(&state.rules).filter(|&op| op != Op::Done).collect();
+    let ops = with_enter(state, ops, true);
     let last = &state.last;
     let unnarrowed = (ops.clone(), None);
     let (ops, numbers) = state.at.map_or(unnarrowed, |at| {
@@ -85,6 +87,33 @@ fn explored(state: &State, elements: usize) -> Offer {
         numbers,
         goal: None,
     }
+}
+
+/// Without `enter` when a forbidden element is on the page, since Enter
+/// can send a form. In explore mode, also when no element shown takes a
+/// value: the field typed is no candidate any more, so it is the elements
+/// shown that count. When the rules have nothing else, `enter` stays.
+fn with_enter(state: &State, ops: Vec<Op>, explore: bool) -> Vec<Op> {
+    let rest: Vec<Op> = ops.iter().copied().filter(|&op| op != Op::Enter).collect();
+    if enter_allowed(state, explore) || rest.is_empty() {
+        ops
+    } else {
+        rest
+    }
+}
+
+/// Whether `enter` may be offered on the latest page.
+fn enter_allowed(state: &State, explore: bool) -> bool {
+    let last = &state.last;
+    forbidden_indices(&state.rules, last).is_empty() && (!explore || shows_value_field(state))
+}
+
+/// Whether a field shown takes a value.
+fn shows_value_field(state: &State) -> bool {
+    let last = &state.last;
+    visible(last.screen.as_inner(), last.viewport)
+        .iter()
+        .any(|e| fillable(&e.role) && state.rules.input_names.contains(&e.name))
 }
 
 /// The elements of the tier, or the moves when no element is a candidate.
@@ -123,14 +152,14 @@ fn without_input(ops: Vec<Op>, types: bool) -> Vec<Op> {
     if types || rest.is_empty() { ops } else { rest }
 }
 
-/// Going back and scrolling, with no element. When the rules have none of
+/// Going back, scrolling and `enter`, with no element. When the rules have none of
 /// them, every operation kind stays, rather than a question with nothing to
 /// do.
 fn moves(ops: Vec<Op>) -> (Vec<Op>, Option<Vec<usize>>) {
     let moves: Vec<Op> = ops
         .iter()
         .copied()
-        .filter(|op| MOVES.contains(op))
+        .filter(|op| MOVES.contains(op) || *op == Op::Enter)
         .collect();
     if moves.is_empty() {
         (ops, None)

@@ -222,6 +222,8 @@ pub enum Op {
     ScrollUp,
     /// Go back.
     Back,
+    /// Press Enter where the focus is.
+    Enter,
     /// Wait.
     Wait,
     /// Declare the stage done.
@@ -237,6 +239,7 @@ fn all_ops() -> Vec<Op> {
         Op::ScrollDown,
         Op::ScrollUp,
         Op::Back,
+        Op::Enter,
         Op::Wait,
         Op::Done,
         Op::Stuck,
