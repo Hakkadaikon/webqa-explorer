@@ -11,7 +11,6 @@ use webqa_core::judge::Image;
 use webqa_core::ports::{Browser, BrowserError, Observation, Pending};
 
 use crate::fakes::FakeBrowser;
-use crate::fakes::stuck::stuck;
 
 /// The touches of every trial, with the number of the trial from 1.
 pub type Touches = Arc<Mutex<Vec<(usize, Touch)>>>;
@@ -25,16 +24,11 @@ pub struct SceneLaunch {
     pub launched: usize,
     /// Where the browsers hand in their touches when they are dropped.
     pub touches: Touches,
-    /// Whether it never finishes launching.
-    pub hangs: bool,
 }
 
 impl Launch for SceneLaunch {
     fn launch(&mut self) -> Pending<'_, Result<Box<dyn Browser>, BrowserError>> {
         self.launched += 1;
-        if self.hangs {
-            return stuck();
-        }
         let trial = self.launched;
         let touches = Arc::clone(&self.touches);
         let next = self.browsers.pop_front().map(|inner| -> Box<dyn Browser> {

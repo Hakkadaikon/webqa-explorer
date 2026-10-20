@@ -11,6 +11,8 @@ use crate::page::PageSpec;
 use crate::scene::Scene;
 use crate::world::InterviewWorld;
 
+#[path = "checks_config.rs"]
+mod config_checks;
 #[path = "checks_judge.rs"]
 mod judge_checks;
 #[path = "checks_ledger.rs"]
@@ -108,4 +110,5 @@ pub async fn check() {
     judge_checks::check().await;
     ledger_checks::check();
     check_run().await;
+    config_checks::check().await;
 }

@@ -115,13 +115,15 @@ async fn config_fails(world: &mut InterviewWorld) {
 #[then(expr = "その試行はゴール達成として終わっている")]
 async fn trial_reached_goal(world: &mut InterviewWorld) {
     world.run().await;
+    let trial = Value::from(world.scene.trial);
     let lines = world.lines();
-    let mut ended = lines
-        .iter()
-        .filter(|line| line.get("kind") == Some(&Value::from("trial_finished")));
-    let last = found(ended.next_back(), "a trial finished");
+    let mut ended = lines.iter().filter(|line| {
+        line.get("kind") == Some(&Value::from("trial_finished"))
+            && line.get("trial") == Some(&trial)
+    });
+    let it = found(ended.next(), "the trial finished");
     assert_eq!(
-        last.get("ending"),
+        it.get("ending"),
         Some(&Value::from("goal_met")),
         "the ending"
     );

@@ -1,7 +1,9 @@
 //! Runs a scene once, with fakes tied to one gate.
 
 use std::collections::VecDeque;
+use std::fmt::Display;
 use std::iter;
+use std::path::Path;
 use std::sync::atomic::AtomicU64;
 use std::sync::{Arc, PoisonError};
 
@@ -9,10 +11,12 @@ use tokio::sync::Notify;
 use webqa::exit;
 use webqa::interview::trials::{Ending, Plan, interview};
 use webqa::run::Detect;
+use webqa::setup;
 use webqa_core::config::interview::Interview;
-use webqa_core::config::persona::{self, Persona};
-use webqa_core::config::purpose::{self, Purpose};
+use webqa_core::config::purpose::Aim;
 use webqa_core::event::Mode;
+use webqa_core::interview::compare::check_previous;
+use webqa_core::interview::ledger::{self, Goal, Ledger};
 use webqa_core::redact::Redactor;
 
 use super::Ran;
@@ -24,29 +28,50 @@ use crate::launch::SceneLaunch;
 use crate::page::PageSpec;
 use crate::scene::{PAGES, Scene, found};
 
-/// The persona: from its document when the scene has it as text, else as
-/// set. The sentence of an error does not carry the text.
-fn persona_of(scene: &Scene) -> Result<Persona, String> {
-    let read = |text: &str| persona::parse(text).map_err(|error| error.to_string());
-    scene
-        .persona_text
+/// The stages of starting, in the order of the CLI: the configuration
+/// with its documents, then the ledger before and whether its head is of
+/// this persona and purpose. The first failure stops the run with its
+/// sentence, which carries no text of the documents.
+fn start(scene: &Scene, url: &str) -> Result<(Interview, Option<Ledger>), String> {
+    let interview = configured(scene)?;
+    let previous = scene
+        .previous
         .as_deref()
-        .map_or_else(|| Ok(scene.persona.clone()), read)
+        .map(|text| previous(text, &interview, url));
+    Ok((interview, previous.transpose()?))
 }
 
-/// The purpose, as [`persona_of`] gives the persona.
-fn purpose_of(scene: &Scene) -> Result<Purpose, String> {
-    let read = |text: &str| purpose::parse(text).map_err(|error| error.to_string());
-    scene
-        .purpose_text
-        .as_deref()
-        .map_or_else(|| Ok(scene.purpose.clone()), read)
+/// The settings and the documents, read as the CLI reads them. A purpose
+/// set without its text stands for the document.
+fn configured(scene: &Scene) -> Result<Interview, String> {
+    let read = |path: &Path| scene.document(path);
+    let loaded = setup::load_interview(&scene.yaml(), &|_| None, &read);
+    let (_, mut interview) = loaded.map_err(sentence)?;
+    if scene.purpose_text.is_none() {
+        interview.purpose = scene.purpose.clone();
+    }
+    Ok(interview)
 }
 
-/// The settings the scene gives. The first document that does not read
-/// stops the run.
-fn read_settings(scene: &Scene) -> Result<Interview, String> {
-    Ok(scene.settings(persona_of(scene)?, purpose_of(scene)?))
+/// The ledger before, read and checked as the CLI does.
+fn previous(text: &str, interview: &Interview, url: &str) -> Result<Ledger, String> {
+    let ledger = ledger::read(text).map_err(sentence)?;
+    let goal = goal_of(&interview.purpose.aim);
+    let checked = check_previous(&ledger.head, &interview.persona.name, &goal, url);
+    checked.map(|()| ledger).map_err(sentence)
+}
+
+/// The purpose a ledger head is checked against, as the CLI has it.
+fn goal_of(aim: &Aim) -> Goal {
+    match aim {
+        Aim::Written(written) => Goal::Written(written.goal.clone()),
+        Aim::Inferred => Goal::Inferred(Vec::new()),
+    }
+}
+
+/// The sentence of an error.
+fn sentence(error: impl Display) -> String {
+    error.to_string()
 }
 
 /// One browser for each trial: the start page, the pages after it, then
@@ -70,17 +95,18 @@ fn browsers(scene: &Scene) -> VecDeque<FakeBrowser> {
 }
 
 /// The plan of the loop for `scene`.
-fn plan(scene: &Scene, settings: Interview, redactor: &Redactor) -> Plan {
+fn plan(scene: &Scene, started: (Interview, Option<Ledger>), redactor: &Redactor) -> Plan {
     let url = scene.start.build(&scene.origin()).screen.url;
+    let (interview, previous) = started;
     Plan {
-        interview: settings,
+        interview,
         rules: scene.rules(),
         start: redactor.url(&url),
         viewport: VIEWPORT,
-        previous: scene.previous.clone(),
+        previous,
         max_duration: scene.max_duration,
-        env: Vec::new(),
-        withheld: Vec::new(),
+        env: scene.env.clone(),
+        withheld: scene.withheld.clone(),
         mode: Mode::Scenario,
         started_at: Some("2026-10-18T02:00:00Z".to_owned()),
         detect: Detect::default(),
@@ -165,10 +191,11 @@ pub async fn play(scene: &Scene) -> Ran {
         Redactor::new(&scene.redact).ok(),
         "the redaction rules read",
     );
-    match read_settings(scene) {
-        Ok(settings) => {
+    let url = scene.start.build(&scene.origin()).screen.url;
+    match start(scene, redactor.url(&url).as_inner()) {
+        Ok(started) => {
             let ended = fakes
-                .conduct(&plan(scene, settings, &redactor), &redactor)
+                .conduct(&plan(scene, started, &redactor), &redactor)
                 .await;
             fakes.into_ran(Some(ended), None)
         }
