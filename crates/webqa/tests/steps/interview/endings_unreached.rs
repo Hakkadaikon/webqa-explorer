@@ -32,15 +32,7 @@ fn ends_claimed(world: &mut InterviewWorld) {
 #[then(expr = "その試行は目的に届かない試行に数えられている")]
 async fn counted_unreached(world: &mut InterviewWorld) {
     world.run().await;
-    // The decision budget is 1 only in the scene that ends over budget.
-    let ends = [(1, "budget_spent"), (20, "gave_up")];
-    let budget = world.scene.max_decisions;
-    let (_, ending) = ends
-        .iter()
-        .find(|(cap, _)| *cap == budget)
-        .copied()
-        .unwrap_or_default();
-    assert_eq!(endings(world), [ending; 3], "how the trials ended");
+    assert_eq!(endings(world), ["gave_up"; 3], "how the trials ended");
     assert_eq!(
         unreached_counts(world),
         [(3, 3)],
@@ -57,5 +49,17 @@ async fn not_counted_unreached(world: &mut InterviewWorld) {
         unreached_counts(world),
         [],
         "none is counted as not reaching it"
+    );
+}
+
+#[then(expr = "その試行は判断予算切れとして試行の数に数えられ、目的に届かない課題は出ていない")]
+async fn budget_counted_not_unreached(world: &mut InterviewWorld) {
+    world.run().await;
+    assert_eq!(endings(world), ["budget_spent"; 3], "how the trials ended");
+    assert_eq!(ledger_of(world).head.finished, 3, "the trials are in N");
+    assert_eq!(
+        unreached_counts(world),
+        [],
+        "no issue of an unreached purpose"
     );
 }
