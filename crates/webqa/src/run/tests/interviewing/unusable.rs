@@ -4,7 +4,7 @@ use super::*;
 
 /// The answers of a step that clicks the first element, with every added
 /// question answered but the elements hard to see, which no image asks for.
-fn complete() -> Answers {
+pub(super) fn complete() -> Answers {
     let mut said = Answers::default();
     let mut put = |id: QuestionId, options: Vec<(&str, f64)>| {
         let options = options.into_iter().map(|(o, p)| (o.to_owned(), p));
@@ -95,10 +95,10 @@ async fn interview_passes_on_a_malformed_reply_when_hard_to_see_is_not_an_option
     let mut fakes = Fakes::new();
     let judge = Spy::giving(said);
     let asked = asked(judge, Some(interviewing(&[Op::Click], true)), &mut fakes).await;
-    let kept = asked.steps.iter().map(|t| t.reply.is_none());
+    let kept = asked.steps.iter().map(|t| (t.step, t.reply.is_none()));
     assert_eq!(
         (asked.reply, kept.collect::<Vec<_>>()),
-        (Err(JudgeError::Malformed), vec![true]),
+        (Err(JudgeError::Malformed), vec![(1, true)]),
         "the core reads an anomaly, and the step is kept without a reply"
     );
 }

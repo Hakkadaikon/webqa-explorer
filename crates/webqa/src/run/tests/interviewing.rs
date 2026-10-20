@@ -21,6 +21,7 @@ use super::super::*;
 use super::events::stage;
 use super::{Fakes, limited};
 
+mod forbidden;
 mod images;
 mod kept;
 mod unusable;
