@@ -89,20 +89,9 @@ fn numbers_of(ran: &Ran) -> Vec<Number> {
         .collect()
 }
 
-#[then(expr = "2つの課題の番号は違う")]
-async fn numbers_differ(world: &mut InterviewWorld) {
-    world.run().await;
-    let (before, now) = (numbers_of(world.before()), numbers_of(world.ran()));
-    assert_eq!((before.len(), now.len()), (1, 1), "one issue each time");
-    assert_ne!(before, now, "the numbers differ");
-}
-
-#[then(expr = "今回の課題の番号は前回と同じである")]
-async fn number_stays(world: &mut InterviewWorld) {
-    world.run().await;
-    let (before, now) = (numbers_of(world.before()), numbers_of(world.ran()));
-    assert_eq!(now.len(), 1, "one issue");
-    assert_eq!(now, before, "the number of the run before");
+/// The number the screen, the element and the kind of the issue of the run
+/// make.
+fn made_of(world: &InterviewWorld) -> Number {
     let entry = found(entries(world).into_iter().next(), "the issue");
     let page = &world.scene.start;
     let elements: Vec<(&str, &str)> = page
@@ -112,10 +101,31 @@ async fn number_stays(world: &mut InterviewWorld) {
         .collect();
     let target = entry.issue.target.as_ref();
     let target = target.map(|t| (t.role.as_str(), t.name.as_str(), t.nth));
-    let expected = number_of(&page.path, &elements, target, entry.issue.kind());
+    number_of(&page.path, &elements, target, entry.issue.kind())
+}
+
+#[then(expr = "2つの課題の番号は違う")]
+async fn numbers_differ(world: &mut InterviewWorld) {
+    world.run().await;
+    let (before, now) = (numbers_of(world.before()), numbers_of(world.ran()));
+    assert_eq!((before.len(), now.len()), (1, 1), "one issue each time");
+    assert_ne!(before, now, "the numbers differ");
     assert_eq!(
         now,
-        [expected],
+        [made_of(world)],
+        "made of the screen, the element and the kind"
+    );
+}
+
+#[then(expr = "今回の課題の番号は前回と同じである")]
+async fn number_stays(world: &mut InterviewWorld) {
+    world.run().await;
+    let (before, now) = (numbers_of(world.before()), numbers_of(world.ran()));
+    assert_eq!(now.len(), 1, "one issue");
+    assert_eq!(now, before, "the number of the run before");
+    assert_eq!(
+        now,
+        [made_of(world)],
         "made of the screen, the element and the kind"
     );
 }

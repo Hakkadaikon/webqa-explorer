@@ -36,6 +36,25 @@ fn a_b_c(world: &mut InterviewWorld) {
     };
     let runs: Vec<_> = hesitant.iter().map(run).collect();
     trials(&mut world.scene, &runs);
+    let by_ratio = numbers_by_ratio();
+    let mut by_number = by_ratio;
+    by_number.sort();
+    // The order of the numbers must not be B, C, A, or the order of the
+    // ratios could not be told from it.
+    assert_ne!(
+        by_number, by_ratio,
+        "the numbers are not in the order B, C, A"
+    );
+}
+
+/// The numbers of the issues of B, C and A, in that order.
+fn numbers_by_ratio() -> [Number; 3] {
+    let elements = ORDER.map(|name| ("button", name));
+    let number = |n: usize| {
+        let name = found(ORDER.get(n), "a button");
+        number_of("/", &elements, Some(("button", *name, 0)), Kind::Hesitant)
+    };
+    [number(1), number(2), number(0)]
 }
 
 /// The name of the button of the issue and how many trials it happened in,

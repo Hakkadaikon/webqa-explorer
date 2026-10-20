@@ -11,51 +11,99 @@ use crate::ledger::number_of;
 use crate::page::PageSpec;
 use crate::world::InterviewWorld;
 
-/// The pages of two screens whose visits alternate, with buttons for as
-/// many visits as the scenarios make, so that every operation is on an
-/// element not operated before.
-fn two_screens() -> Vec<PageSpec> {
-    let list = screen(
-        "商品一覧",
-        &["商品を見る", "ほかの商品を見る", "人気の商品を見る"],
-    );
-    let detail = screen("商品詳細", &["カートに入れる", "レビューを見る"]);
-    vec![list.clone(), detail.clone(), list, detail]
+/// The buttons of the list and of the detail: one for each visit the
+/// scenarios make, so that every operation is on an element not operated
+/// before.
+const LIST: [&str; 4] = [
+    "商品を見る",
+    "ほかの商品を見る",
+    "人気の商品を見る",
+    "新着の商品を見る",
+];
+const DETAIL: [&str; 4] = [
+    "カートに入れる",
+    "レビューを見る",
+    "仕様を見る",
+    "在庫を見る",
+];
+
+/// The first `visits` pages of two screens whose visits alternate, the
+/// list first.
+fn alternating(visits: usize) -> Vec<PageSpec> {
+    let (list, detail) = (screen("商品一覧", &LIST), screen("商品詳細", &DETAIL));
+    vec![list, detail]
+        .into_iter()
+        .cycle()
+        .take(visits)
+        .collect()
 }
 
-/// The clicks of the four visits, each on an element not clicked before.
-fn four_clicks() -> Vec<Step> {
-    [1, 1, 2, 2].map(Step::click).to_vec()
+/// The clicks of `visits` visits, each on an element not clicked before:
+/// the visits of a screen take its buttons in order.
+fn clicks(visits: usize) -> Vec<Step> {
+    (0..visits)
+        .map(|visit| Step::click(visit / 2 + 1))
+        .collect()
 }
+
+/// The moves of the scenarios: four round trips between the two screens.
+const MOVES: usize = 8;
 
 #[given(expr = "試行の中で画面 {string} と画面 {string} の間を移っている")]
 fn between(world: &mut InterviewWorld, first: String, second: String) {
     let screens = (first.as_str(), second.as_str());
     assert_eq!(screens, ("商品一覧", "商品詳細"), "the two screens");
     drop((first, second));
-    let steps = [four_clicks(), vec![Step::of("done")]].concat();
-    journey(&mut world.scene, &two_screens(), &steps);
+    let steps = [clicks(MOVES), vec![Step::of("done")]].concat();
+    journey(&mut world.scene, &alternating(MOVES + 1), &steps);
+    // Not in the feature: the moves are more than the 3 steps without progress that end a trial, so a trial that goes on shows the back and forth was not counted.
+    world.scene.stuck_threshold = 3;
 }
 
 #[when(expr = "操作の結果、{string}、{string}、{string}、{string} の順に画面が移る")]
-fn moves_in_order(world: &mut InterviewWorld, a: String, b: String, c: String, d: String) {
+fn moves_in_order(_world: &mut InterviewWorld, a: String, b: String, c: String, d: String) {
     let order = ["商品一覧", "商品詳細", "商品一覧", "商品詳細"];
-    assert_eq!([a, b, c, d], order, "the screens of the four steps");
-    // Not in the feature: at 1 any step without progress ends the trial, so a trial that goes on shows none was counted.
-    world.scene.stuck_threshold = 1;
+    assert_eq!([a, b, c, d], order, "the screens of the first four steps");
+}
+
+/// The number of the hesitation about the button `n` of the screen at
+/// `path` with the buttons `names`, or about no element.
+fn hesitation(path: &str, names: &[&str; 4], n: Option<usize>) -> Number {
+    let elements = names.map(|name| ("button", name));
+    let target = n
+        .and_then(|n| names.get(n))
+        .map(|name| ("button", *name, 0));
+    number_of(path, &elements, target, Kind::Hesitant)
+}
+
+/// The numbers of the issues of the back and forth, which shows from the
+/// fourth step on: on the detail and the list by turns, on the element
+/// each step clicks, and the last step on the list with none.
+fn back_and_forth() -> Vec<Number> {
+    let on_detail = |n| hesitation("/products/1", &DETAIL, n);
+    let on_list = |n| hesitation("/products", &LIST, n);
+    [
+        on_detail(Some(1)),
+        on_list(Some(2)),
+        on_detail(Some(2)),
+        on_list(Some(3)),
+        on_detail(Some(3)),
+        on_list(None),
+    ]
+    .to_vec()
 }
 
 #[then(expr = "2つの画面の行き来が、判断に迷う手がかりとして記録されている")]
 async fn ping_pong_recorded(world: &mut InterviewWorld) {
     world.run().await;
-    let elements = [("button", "カートに入れる"), ("button", "レビューを見る")];
-    let number = |target| number_of("/products/1", &elements, target, Kind::Hesitant);
-    let detail = Detail::Hesitant {
+    let hesitation = Detail::Hesitant {
         clues: vec![Clue::PingPong],
         expectation: "進む".to_owned(),
     };
-    let review = Some(("button", "レビューを見る", 0));
-    let mut expected = vec![(number(review), detail.clone()), (number(None), detail)];
+    let mut expected: Vec<(Number, Detail)> = back_and_forth()
+        .into_iter()
+        .map(|number| (number, hesitation.clone()))
+        .collect();
     expected.sort_by_key(|(number, _)| *number);
     let mut found: Vec<(Number, Detail)> = entries(world)
         .into_iter()
@@ -84,15 +132,7 @@ const fn stuck_at(world: &mut InterviewWorld, threshold: u32) {
 #[given(expr = "操作のたびに未操作の要素を操作していて、行き詰まりの回数は {int} である")]
 fn operates_new(world: &mut InterviewWorld, count: u32) {
     assert_eq!(count, 0, "no step without progress yet");
-    let pages = [
-        two_screens(),
-        vec![screen(
-            "商品一覧",
-            &["商品を見る", "ほかの商品を見る", "人気の商品を見る"],
-        )],
-    ]
-    .concat();
-    open_journey(&mut world.scene, &pages, &four_clicks());
+    open_journey(&mut world.scene, &alternating(5), &clicks(4));
 }
 
 #[when(expr = "同じ2つの画面の間を {int} 回行き来する")]

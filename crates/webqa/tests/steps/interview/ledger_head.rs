@@ -6,7 +6,7 @@ use webqa::interview::trials::{Ending, Stopped};
 use webqa_core::interview::issue::Kind;
 use webqa_core::interview::ledger::{Goal, Head};
 
-use super::text;
+use super::text::{self, blocks};
 use super::{NEXT, home, one_issue};
 use crate::issues::script::{Step, entries, journey, ledger};
 use crate::scene::EMAIL_RULE;
@@ -30,8 +30,14 @@ async fn address_hidden(world: &mut InterviewWorld, address: String) {
     let text = text::text(world);
     let mask = format!("[[{EMAIL_RULE}]]");
     assert!(!text.contains(&address), "the address is not in the ledger");
-    let masked = format!("{mask} の表示が小さい");
-    assert!(text.contains(&masked), "the name stands in its place");
+    let all = blocks(&text);
+    let reasons: Vec<Option<&str>> = all.iter().map(|block| block.field("理由")).collect();
+    let masked = format!("\"{mask} の表示が小さい\"");
+    assert_eq!(
+        reasons,
+        [Some(masked.as_str())],
+        "the reason, with the name in its place"
+    );
 }
 
 /// The head of the ledger of the run.
