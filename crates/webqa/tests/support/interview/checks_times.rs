@@ -77,9 +77,13 @@ const fn minutes(m: u64) -> Duration {
 /// a run that does not finish stops the run.
 async fn check_reset_runs() {
     let twice = ran(resetting(&[], None, 5)).await;
-    let launched = |(_, opened): &&(usize, Opened)| matches!(opened, Opened::Launched(_));
+    let launched = |(_, opened): &&(usize, Opened)| matches!(opened, Opened::Launched { .. });
     let launched: Vec<_> = twice.openings.iter().filter(launched).collect();
-    let expected = [&(1, Opened::Launched(1)), &(2, Opened::Launched(2))];
+    let after = |n| Opened::Launched {
+        started: n,
+        finished: n,
+    };
+    let expected = [&(1, after(1)), &(2, after(2))];
     assert_eq!(launched, expected, "after each run");
     let hung = ran(resetting(&[], Some(2), 5)).await;
     let failed = Some(Ending::ResetFailed(ResetError::TimedOut));
@@ -122,7 +126,13 @@ async fn check_reset_window() {
     let after = Duration::from_secs(3605);
     let expected = [(Duration::from_secs(5), 0), (hour, 1), (after, 1)];
     assert_eq!(full.clock.sleeps, expected, "the window, then the run");
-    let launched = (2, Opened::Launched(2));
+    let launched = (
+        2,
+        Opened::Launched {
+            started: 2,
+            finished: 2,
+        },
+    );
     assert!(full.openings.contains(&launched), "then the trial");
 }
 

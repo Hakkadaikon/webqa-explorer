@@ -13,7 +13,7 @@ use webqa_core::ports::{Browser, BrowserError, Observation, Pending};
 
 use crate::fakes::FakeBrowser;
 use crate::fakes::stuck::stuck;
-use crate::run_clock::resets;
+use crate::run_clock::{done_of, resets};
 
 /// The touches of every trial, with the number of the trial from 1.
 pub type Touches = Arc<Mutex<Vec<(usize, Touch)>>>;
@@ -21,9 +21,15 @@ pub type Touches = Arc<Mutex<Vec<(usize, Touch)>>>;
 /// What happened as a trial's browser opened, in order.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Opened {
-    /// The browser was asked for, after this many runs of the reset
-    /// command.
-    Launched(usize),
+    /// The browser was asked for, when this many runs of the reset command
+    /// had started and this many had finished.
+    Launched {
+        /// The runs started: the lines of `RESET_OUT`.
+        started: usize,
+        /// The runs finished: the lines of `RESET_OUT.done`, which only
+        /// `runs.sh` writes.
+        finished: usize,
+    },
     /// The storage state at this path was put into the fresh browser.
     Auth(PathBuf),
     /// The first page of the trial was shown.
@@ -55,15 +61,18 @@ pub struct SceneLaunch {
     /// The trial whose launch never finishes, from 1.
     pub hangs_on: Option<usize>,
     /// The file the reset command counts its runs in.
-    pub reset_out: Option<PathBuf>,
+    pub reset_out: PathBuf,
 }
 
 impl Launch for SceneLaunch {
     fn launch(&mut self) -> Pending<'_, Result<Box<dyn Browser>, BrowserError>> {
         self.launched += 1;
         let trial = self.launched;
-        let resets = resets(self.reset_out.as_deref());
-        note(&self.openings, trial, Opened::Launched(resets));
+        let launched = Opened::Launched {
+            started: resets(&self.reset_out),
+            finished: resets(&done_of(&self.reset_out)),
+        };
+        note(&self.openings, trial, launched);
         if self.hangs_on == Some(trial) {
             return stuck();
         }

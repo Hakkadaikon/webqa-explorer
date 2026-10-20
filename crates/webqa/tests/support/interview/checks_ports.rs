@@ -72,14 +72,33 @@ async fn check_auth() {
     let mut scene = on_button("保存");
     scene.auth = true;
     let auth = Opened::Auth(PathBuf::from("auth.json"));
-    let opened = [(1, Opened::Launched(0)), (1, auth), (1, Opened::FirstPage)];
+    let opened = [
+        (
+            1,
+            Opened::Launched {
+                started: 0,
+                finished: 0,
+            },
+        ),
+        (1, auth),
+        (1, Opened::FirstPage),
+    ];
     assert_eq!(
         ran(scene).await.openings,
         opened,
         "the state, then the page"
     );
     let plain = ran(on_button("保存")).await.openings;
-    let opened = [(1, Opened::Launched(0)), (1, Opened::FirstPage)];
+    let opened = [
+        (
+            1,
+            Opened::Launched {
+                started: 0,
+                finished: 0,
+            },
+        ),
+        (1, Opened::FirstPage),
+    ];
     assert_eq!(plain, opened, "no state");
 }
 
