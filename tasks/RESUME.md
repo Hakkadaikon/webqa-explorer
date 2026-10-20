@@ -1,37 +1,62 @@
-# 再開の起点(2026-10-19 更新)
+# 再開の起点(2026-10-20 更新)
 
-週の利用上限(10月23日 05:00 UTC に戻る)で止めた。下の「2026-10-19 の状態」から再開する。その下の古い節は、環境や決まりの参照として残す。
+ローカルの Claude Code のセッションで、利用者のコンテキストの都合で区切った。下の「2026-10-20 の状態」から再開する。決めたことは `tasks/decisions.md` に、状態の印(【済】【後】)つきで並べてある。
 
-## 2026-10-19 の状態
+## 2026-10-20 の状態
 
-### main に入っていないもの(作業ブランチ `claude/stoic-hopper-jp70gf` と、作業中の `claude/wip-*` ブランチ)
+### main に入ったもの
 
-`claude/wip-*` は別のマシンで続けるために push した。取り込むときは作業ブランチで `git merge origin/claude/wip-…` する。
+| PR | 中身 |
+|---|---|
+| #58 | #14 の 14a、14b |
+| #60 | 14c、14d、14e、#24、#25、#59(`bridge/jev.py`) |
+| #65 | 14f〜14m(#14 の完了。受け入れ190本)、#27 |
+| #68 | #57(`webqa watch`)、#61(replay の記憶)、#62〜#64(探索の input の扱い。仕様の変更つき) |
 
-| 単位 | 場所 | 状態と次の一手 |
+### 統合用のブランチ integ4(`.claude/worktrees/integ4`、次の PR の元)
+
+入っているもの: #66(外のサイトの CSP で落ちる不具合)、PR #68 のレビューの should の直し、skill `parallel-work` の直し、justfile のビルドの置き場を worktree ごとにする直し(`3e10f4c`)、`tasks/decisions.md` の追記。
+
+これから入れるもの:
+
+| 単位 | ブランチ(worktree) | 状態と次の一手 |
 |---|---|---|
-| 14a・14b | 作業ブランチ(9207dab)、PR #58 | CI の mutation のジョブが、ランナーの停止で2回止まった(資源不足の疑い)。3回目を回した。通ればマージ。また止まれば、手元の mutation の結果(14a は生き残り0、14b は1つで直し済み)を PR に書いて相談する |
-| #24 台帳 | ブランチ `claude/wip-24-ledger` | レビューの直しと mutation の生き残り2つを落とすテストまで済み(1d92b60)。作業ブランチへ取り込む |
-| 14c 保存 | ブランチ `claude/wip-14c-store` | レビュー合格、mutation 生き残り0。should 4件(`input_key` の条件、`usage_section` の件数、`MAX_TOKENS` の境界、失敗時の `.tmp` の後始末)と nit を直してから取り込む |
-| 14d 実行ループ | ブランチ `claude/wip-14d-run-loop` | レビュー不合格(must 3件: 書き込みの失敗のあとに書かないこと、`Act.p`/`Act.target`、入力欄への input で skipped が出ないこと。ほかに should 5件)。直したら親が mutation |
-| 14e 起動の材料 | ブランチ `claude/wip-14e-setup` | 実装済み。レビューと mutation がまだ |
+| #30 試行の外のループ | `issue-30` | レビューを3回。最後の直し(孫のプロセスのテスト、M1・M2)の確認中。合格したら integ4 へ |
+| #31 interview と check-docs | `issue-31` | レビュー合格、should も直し済み。#30 の最新を `git merge issue-30` で取り込んでから integ4 へ |
+| #32 手引き | `issue-32` | レビュー合格、should 3件を直している途中 |
+| #70 Enter の操作 | `issue-70` | 実装中。仕様の変更(feature、extract.md、TLA+ の Operations、モデル検査)を含むので、終わったら loop-engineering-reviewer と reviewer の両方に通す |
+| #33 受け入れ(インタビュー) | `issue-33a` | 土台の 33a を実装中。入ったら 33b〜33f を並列に回す(計画は `tasks/briefs/33-plan.md`) |
 
-14c と 14d は `Found.shot` と `Event::Issue.screenshot` を `Option<String>` にする変更でつながる(14d が変えた)。統合のときに 14c の `store/report/sections.rs` を `found.shot.as_deref().map(screenshot)` に直す。
+integ4 の PR を出す前に: diff-review を6観点(design、test、security、docs、spec、fresh-eyes)で must 0 まで回し、証跡 `tasks/diff-review/evidence.md` を書く(フックが検査する)。
 
-### 次にやる順(優先度は `tasks/briefs/14-plan.md` の末尾)
+### 残りの issue
 
-1. 上の表の5つを片づけ、2段目までを PR にする。
-2. 14f(1回の実行の一巡と終了コード)、14g(CLI と `main.rs`)。
-3. 判断モデルの橋渡しのコマンド(`./bridge/jev.py`。JEV の API は `tasks/jev-api.md`)。issue にしてよいかを利用者に聞いている途中。
-4. ここまでで、実物のサイトで探索モードを1回走らせられる。
-5. そのあと #30、#31(インタビューのモード)、受け入れの配線(14h〜14m、#33)、#25、#27、#32、#57。
+- #33(上の表)、#67(失敗で終わったときも実行結果を書く。仕様の判断を含む)、#69(インタビューの実行結果に入力の名前と単価)、#71(Linux で OS を汚さずに回すコンテナ。OrbStack が入っているが止まっている)。
+- 探索モードの使い方の文書(Playwright の TodoMVC デモを手本に): #70 が入って ToDo の追加まで回れるようになってから書く。worktree `docs-usage` を用意してある。
 
-### 決めたことと注意
+### 実物での確かめ(Playwright の TodoMVC デモ、JEV 1.14.0)
 
-- 論点の決定は `tasks/briefs/14-plan.md` の「決まったこと」と各 brief の末尾。利用者が決めたもの: `webqa watch` は #57 に切り出す、記録の出力先は `--out`、制限時間は設定だけ、課題の番号は `I-` と16進8桁 ほか。
-- 担当への頼み方と環境は `tasks/briefs/common.md`(`PLAYWRIGHT_BROWSERS_PATH` と AQUA_* を export してからコミットする。ビルド先は担当ごと)。
-- メモリが 15G しかない。重いビルドは同時に3本まで、`CARGO_BUILD_JOBS=1`。ディスクは取り込み済みの worktree と `target/debug` を消すと空く。
-- PR の本文には `Closes #番号` を書く(以前は書かず、終わった issue を手で閉じた)。
+- キーは本体の checkout の `.env` の `WEBQA_JUDGE_API_KEY`(git の管理外)。CLI は作業ディレクトリの `.env` を読むので、本体の checkout の直下で回す。
+- 設定の例と記録: scratchpad の `real/config4.yaml` と `real/out*`(このセッションの scratchpad。次のセッションでは消えているかもしれない)。設定の中身は README の手順に書く予定。
+- 費用は利用者の許可で合計10ドルまで。ここまでの使用は 0.001 ドル未満。
+- it-trend.jp は許可が無いので回さない(利用者)。
+
+## 決めたことと注意
+
+- 決めたことは `tasks/decisions.md`。仕様を決めないと進まないときは、推す案で変えてから記録し、重要な決定はサブエージェントにもレビューさせる(利用者)。
+- push と、diff-review の must 0 と CI の `check` が緑の PR のマージは、聞かずに行ってよい(利用者)。マージしたら Closes の issue が閉じたかを確かめ、閉じていなければ手で閉じる。
+- 全体のテストとカバレッジはコミット前に回さず、PR の CI で確かめる。CI の mutation は4つのジョブに分けて回る。待ち時間切れ(TIMEOUT)も失敗になるので、壊れたときに止まり続けるテストを書かない(`tokio::time` は clippy で禁止。待つなら別スレッドの `recv_timeout` か `tests/support/stuck.rs`)。
+
+## 環境の注意(このマシン)
+
+- PATH の先頭に `$HOME/.cargo/bin` を置く。Homebrew の Rust 1.86 が先に見つかると、ビルドもフックも落ちる。rustup の入れ直しは親が1回だけ行う(担当が同時に回すと壊れる)。
+- `rust-code-analysis-cli` は `~/.cargo/bin` にある。Chromium は `~/.cache/ms-playwright`(`PLAYWRIGHT_BROWSERS_PATH` で渡す)。
+- 環境変数: `CARGO_BUILD_JOBS=2`、`CARGO_PROFILE_DEV_DEBUG=line-tables-only`、`RUSTFLAGS="-C link-arg=-fuse-ld=lld"`、`RUST_TEST_THREADS=4`、`RUSTC_WRAPPER=sccache`(置き場を `--target-dir` で渡すとき)。
+- ビルドの置き場は worktree ごとに1つ(worktree の中の `target/`)。worktree をまたいで共有すると、同じ名前のクレートの成果物が上書きし合ってビルドが落ちる。
+- ディスクが一度埋まって全部止まった(置き場の溜めすぎ)。空きを見張り、15GB を切ったら担当を起こさない。main に入った worktree は `git worktree remove --force` で片づける(先に `git status --porcelain` で変更が無いことを確かめる)。`rm -rf` は権限で止められる。
+- メモリは 16GB。重いビルドは同時に3本まで。swap は `sysctl vm.swapusage` で見る。
+- コミットメッセージの各行は72桁以内(全角は2桁)。`;` や `| head` の後ろで git commit しない(git-guard が止める)。worktree の作成が失敗したら、そのあとのコマンドが別の場所で動かないよう `&&` でつなぐ。
+- 本体の checkout のローカルの `main` は、誤って `issue-30` を取り込んで `origin/main` とずれている(#30 の最後の docs のコミットまで進んでいる)。reset は保護ブランチの検査で止まるので、利用者が手で `git reset --hard origin/main` する。作業は worktree で行うので影響は無い。
 
 ## 以前の引き継ぎ(2026-10-18)
 
