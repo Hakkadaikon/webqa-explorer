@@ -59,8 +59,10 @@ async fn timed_out_before_window(world: &mut InterviewWorld) {
     world.run().await;
     let ran = world.ran();
     assert_eq!(ran.ending, Some(TIME_UP), "how the run ended");
-    // The limit and the end of the first window are the same time.
-    assert_eq!(ran.clock.sleeps, [(HOUR, 0)], "it woke at the limit");
+    // The limit comes before the end of the first window: it woke at the limit.
+    let limit = found(world.scene.max_duration, "the limit is set");
+    assert_eq!(ran.clock.sleeps, [(limit, 0)], "it woke at the limit");
+    assert_eq!(ran.clock.elapsed(), limit, "and the clock stopped there");
 }
 
 #[when(expr = "2回目の試行を続ける")]

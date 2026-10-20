@@ -10,6 +10,7 @@ use webqa_core::judge::{Question, QuestionId};
 use webqa_core::redact::Redactor;
 use webqa_core::screen::element_ids;
 
+use super::plan::claim_goal;
 use super::{End, ending_of, fill, first, found, has, kind_of, openings, within};
 use crate::judge::Asked;
 use crate::launch::Opened;
@@ -18,6 +19,11 @@ use crate::world::InterviewWorld;
 
 /// The storage state the scenes name.
 const AUTH: &str = "auth.json";
+
+#[given(expr = "判断モデルは各試行で、目的を達成したと答える")]
+fn judge_claims_goal(world: &mut InterviewWorld) {
+    claim_goal(&mut world.scene);
+}
 
 #[then(expr = "試行は {int} 回行われている")]
 async fn trials_ran(world: &mut InterviewWorld, n: usize) {

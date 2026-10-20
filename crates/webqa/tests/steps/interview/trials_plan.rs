@@ -71,7 +71,11 @@ pub(super) fn said(op: &str, hesitation: f64) -> Answers {
         .choose("operation", op, 0.9)
         .choose("target", "1", 0.9)
         .choose("error_shown", "true", 0.0)
-        .choose("goal_reached", "true", 0.0)
+        .choose(
+            "goal_reached",
+            "true",
+            f64::from(u8::from(op == "done")) * 0.9,
+        )
         .choose(HESITATION, "true", hesitation)
         .write(EXPECTATION, "進む")
         .write(PURPOSE_GUESS, "買う")
@@ -183,5 +187,14 @@ pub(super) fn think(scene: &mut Scene, call: usize, time: Duration) {
     scene.thinks.extend(longer);
     if let Some(slot) = scene.thinks.get_mut(call) {
         *slot = time;
+    }
+}
+
+/// Plans every trial to end with the judge answering that the goal is met.
+pub(super) fn claim_goal(scene: &mut Scene) {
+    first(scene, 0, End::Done);
+    let trials = usize::try_from(scene.trials).unwrap_or(usize::MAX);
+    for _ in 1..trials {
+        course(scene, 0, End::Done);
     }
 }
