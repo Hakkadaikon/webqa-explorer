@@ -2,12 +2,12 @@
 
 use webqa_core::machine::Phase;
 
-use super::candidates::pages::{BUY, CART_MARKS, TOP_MARKS};
+use super::candidates::pages::{BUY, CART, CART_MARKS, SWAPPED, TOP, TOP_MARKS};
 use super::candidates::{PRICING, STOP, TWO};
 use super::view::{Property, Transition, all, any, asks, implies, looks, sleeps};
 
 /// Never operating a forbidden element, and acting only after the checks.
-pub static ACTING: [Property; 5] = [
+pub static ACTING: [Property; 6] = [
     Property {
         name: "an operation never targets the forbidden button",
         holds: |t| t.target().is_none_or(|id| id.name != BUY),
@@ -15,6 +15,15 @@ pub static ACTING: [Property; 5] = [
     Property {
         name: "the forbidden buttons are never marked operated",
         holds: forbidden_untouched,
+    },
+    Property {
+        name: "enter is never pressed on a page with a forbidden button",
+        holds: |t| {
+            implies(
+                t.touches("enter"),
+                ![TOP, CART, SWAPPED].map(Some).contains(&t.last),
+            )
+        },
     },
     Property {
         name: "an operation on an element comes only from confirming",

@@ -33,9 +33,9 @@ pub const STOP: Duration = Duration::from_secs(5000);
 pub const TIMES: [Duration; 3] = [Duration::from_secs(10), Duration::from_secs(3600), STOP];
 
 /// The facts in the order of [`choices`]: the replies, the pages, waking up.
-const REPLIES: Range<usize> = 0..37;
-const PAGES: Range<usize> = 37..44;
-const WOKE: Range<usize> = 44..45;
+const REPLIES: Range<usize> = 0..43;
+const PAGES: Range<usize> = 43..50;
+const WOKE: Range<usize> = 50..51;
 
 /// One fact of each kind: a reply, a page and waking up. An ended run
 /// takes in no fact, so one of each stands for the others of its kind.
@@ -88,6 +88,7 @@ pub fn rules() -> Rules {
             Op::ScrollDown,
             Op::ScrollUp,
             Op::Back,
+            Op::Enter,
             Op::Wait,
             Op::Done,
             Op::Stuck,

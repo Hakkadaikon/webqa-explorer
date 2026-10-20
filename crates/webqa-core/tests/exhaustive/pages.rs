@@ -17,6 +17,8 @@ pub const AWAY: usize = 3;
 pub const EMPTY: usize = 4;
 /// The page with only a forbidden button.
 pub const CART: usize = 5;
+/// The start page with "保存" replaced, the last of the pages.
+pub const SWAPPED: usize = 6;
 
 /// The pages whose operated marks are read: those with elements, the
 /// start page with "保存" replaced being the same screen as the start page.
