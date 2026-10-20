@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="ja">
+<title>restless</title>
+<button onclick="
+  let ticks = 0;
+  const out = document.querySelector('#out');
+  setInterval(() => { out.textContent = 'tick' + (++ticks); }, 100);">動かす</button>
+<button id="out">tick0</button>
+</html>
