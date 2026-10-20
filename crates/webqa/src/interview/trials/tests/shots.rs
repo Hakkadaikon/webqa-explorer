@@ -2,9 +2,11 @@
 
 use webqa_core::interview::ask::{DIFFERENT, HARD_TO_SEE, SAME};
 use webqa_core::interview::issue::{Kind, Shot};
+use webqa_core::ports::StoreError;
 
 use super::purposes::purposeful;
 use super::*;
+use crate::run::RunError;
 use crate::run::fakes::PNG;
 use crate::store::screenshots::issue_name;
 
@@ -92,5 +94,22 @@ async fn detected_problem_screenshots_do_not_overwrite_across_trials() {
             "ISSUE_console_error_trial2_step0.png".to_owned()
         ],
         "one file for each trial's problem"
+    );
+}
+
+#[tokio::test]
+async fn screenshot_that_cannot_be_written_fails_the_run() {
+    let mut world = World::new(1);
+    world.judge.script = hesitating(&["done"], 0.9);
+    world.run().await;
+    // The last line of the log comes after the screenshot and the ledger.
+    let before = world.store.lines.len() - 1;
+    let mut failing = World::new(1);
+    failing.judge.script = hesitating(&["done"], 0.9);
+    failing.store.limit = Some(before);
+    assert_eq!(
+        (failing.run().await, failing.store.ledger),
+        (Ending::Failed(RunError::Store(StoreError)), None),
+        "the first write after the log is the screenshot, and the ledger waits for it"
     );
 }

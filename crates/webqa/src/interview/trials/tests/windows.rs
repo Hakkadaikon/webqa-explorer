@@ -132,7 +132,7 @@ pub(super) async fn slow_run(world: &mut World, script: Scripted) -> Ending {
         minutes: 20,
     };
     world.plan.max_duration = Some(minutes(60));
-    interview(
+    watched(interview(
         &mut world.launch,
         &mut judge,
         &mut Ticking(now),
@@ -140,7 +140,7 @@ pub(super) async fn slow_run(world: &mut World, script: Scripted) -> Ending {
         &world.redactor,
         &mut Never,
         &world.plan,
-    )
+    ))
     .await
 }
 

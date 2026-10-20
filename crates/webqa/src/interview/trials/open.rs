@@ -1,9 +1,6 @@
 //! Before a trial: the reset command, and the browser.
 
-use std::future;
-use std::time::Duration;
-
-use webqa_core::ports::{Browser, BrowserError, Clock};
+use webqa_core::ports::{Browser, BrowserError};
 
 use super::course::{Course, Halt};
 use crate::interrupt::guard;
@@ -72,17 +69,7 @@ impl Course<'_> {
     /// Opens the browser, unless the user interrupts or the time limit
     /// passes first.
     async fn open(&mut self) -> Result<Option<Box<dyn Browser>>, RunError> {
-        let launching = self.parts.launch.launch();
-        let interrupt = &mut *self.interrupt;
-        let late = until(&mut *self.parts.clock, self.plan.max_duration);
-        // Launch before the limit: a clock that ends a sleep at once must not win.
-        let raced = tokio::select! {
-            biased;
-            () = interrupt.wait() => Raced::Interrupted,
-            launched = launching => Raced::Launched(launched),
-            () = late => Raced::TimeUp,
-        };
-        match raced {
+        match self.race().await {
             Raced::Launched(launched) => Ok(Some(launched?)),
             Raced::Interrupted => {
                 self.interrupted = true;
@@ -91,12 +78,20 @@ impl Course<'_> {
             Raced::TimeUp => Ok(None),
         }
     }
-}
 
-/// Waits until `limit` on `clock`, and never when there is no limit.
-async fn until(clock: &mut dyn Clock, limit: Option<Duration>) {
-    match limit {
-        Some(at) => clock.sleep_until(at).await,
-        None => future::pending().await,
+    /// What happens first: the launch, an interruption or the time limit.
+    async fn race(&mut self) -> Raced {
+        let launching = self.parts.launch.launch();
+        let interrupt = &mut *self.interrupt;
+        let limit = self.plan.max_duration;
+        let clock = &mut *self.parts.clock;
+        let late = async { clock.sleep_until(limit.unwrap_or_default()).await };
+        // Launch before the limit: a clock that ends a sleep at once must not win.
+        tokio::select! {
+            biased;
+            () = interrupt.wait() => Raced::Interrupted,
+            launched = launching => Raced::Launched(launched),
+            () = late, if limit.is_some() => Raced::TimeUp,
+        }
     }
 }

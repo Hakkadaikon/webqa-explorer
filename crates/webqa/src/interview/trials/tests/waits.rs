@@ -32,7 +32,7 @@ async fn abort_while_waiting_writes_ledger() {
         calls: 0,
         fire_on: vec![3],
     };
-    let ending = interview(
+    let ending = watched(interview(
         &mut world.launch,
         &mut world.judge,
         &mut clock,
@@ -40,7 +40,7 @@ async fn abort_while_waiting_writes_ledger() {
         &world.redactor,
         &mut interrupt,
         &world.plan,
-    )
+    ))
     .await;
     let interrupted = Ending::Wrote {
         stopped: Stopped::Interrupted,
