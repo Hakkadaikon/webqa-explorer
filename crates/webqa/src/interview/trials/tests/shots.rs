@@ -38,15 +38,16 @@ async fn hesitation_issue_keeps_the_page_the_judge_saw() {
 }
 
 #[tokio::test]
-async fn judge_that_reads_no_images_leaves_issues_without_screenshots() {
+async fn judge_that_reads_no_images_still_leaves_the_screenshot_of_the_issue() {
     let mut world = World::new(1);
     world.judge.script = hesitating(&["done"], 0.9);
     world.run().await;
-    let issues = world.ledger().unwrap().entries.len();
+    let number = world.ledger().unwrap().entries[0].issue.number;
+    let shot = Shot { trial: 1, step: 1 };
     assert_eq!(
-        (issues, written(&world)),
-        (1, Vec::new()),
-        "an issue, and nothing to show of it"
+        written(&world),
+        [(issue_name(number, shot), PNG.to_vec())],
+        "the ledger points at a screenshot that is there"
     );
 }
 

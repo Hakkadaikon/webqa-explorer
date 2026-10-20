@@ -10,7 +10,8 @@ use crate::run::RunError;
 use crate::store::screenshots::issue_name;
 
 /// Writes the screenshot of each issue of `ledger` whose first occurrence
-/// had one: the page the judge was asked about, sent to it as an image.
+/// had one: the page the judge was asked about, as it was taken, whether
+/// or not the judge was sent it.
 pub(super) async fn write_shots(
     store: &mut dyn Store,
     trials: &[Trial],
