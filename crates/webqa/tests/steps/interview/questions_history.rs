@@ -7,6 +7,11 @@ use crate::world::InterviewWorld;
 
 pub(super) const HEAD: &str = "\n\n直近の操作\n";
 
+#[given(expr = "画面は変わらず、固まったとみなす閾値は {int} である")]
+const fn freezes_at(world: &mut InterviewWorld, threshold: u32) {
+    world.scene.freeze_threshold = threshold;
+}
+
 #[given(expr = "判断モデルが、scroll_down を選んだあとに click を5回選び、そのあと done を選ぶ")]
 fn scrolls_then_clicks(world: &mut InterviewWorld) {
     button(&mut world.scene, SAVE);

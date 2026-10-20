@@ -2,9 +2,10 @@
 //! such.
 
 use cucumber::{given, then};
+use webqa_core::interview::issue::Kind;
 
 use super::{endings, goal_at_start, says, unreached_counts};
-use crate::questions::replies::{SAVE, button, ledger_of, step};
+use crate::questions::replies::{HESITANT, SAVE, button, ledger_of, step};
 use crate::world::InterviewWorld;
 
 #[given(expr = "試行が 行き詰まり として終わる")]
@@ -12,11 +13,11 @@ fn ends_stuck(world: &mut InterviewWorld) {
     says(world, step("stuck", None, 0.0));
 }
 
-#[given(expr = "試行が 判断予算切れ として終わる")]
+#[given(expr = "試行が 判断予算切れ として終わり、その最後の操作で迷っている")]
 fn ends_over_budget(world: &mut InterviewWorld) {
     world.scene.max_decisions = 1;
     button(&mut world.scene, SAVE);
-    says(world, step("click", Some("1"), 0.0));
+    says(world, step("click", Some("1"), HESITANT));
 }
 
 #[given(expr = "試行が ゴール達成 として終わる")]
@@ -62,4 +63,12 @@ async fn budget_counted_not_unreached(world: &mut InterviewWorld) {
         [],
         "no issue of an unreached purpose"
     );
+}
+
+#[then(expr = "その試行の迷いの課題は残る")]
+async fn hesitation_stays(world: &mut InterviewWorld) {
+    world.run().await;
+    let issues = ledger_of(world).entries;
+    let kinds: Vec<Kind> = issues.iter().map(|entry| entry.issue.kind()).collect();
+    assert_eq!(kinds, [Kind::Hesitant], "only the hesitation is left");
 }

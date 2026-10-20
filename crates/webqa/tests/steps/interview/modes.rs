@@ -100,7 +100,7 @@ async fn did_not_go_back(world: &mut InterviewWorld) {
     assert_eq!(rejections(world), why, "why the step was stopped");
 }
 
-#[when(expr = "1回の試行で判断モデルを {int} 回呼び出す")]
+#[when(expr = "1回の試行で {int} 回判断する")]
 async fn calls_the_judge(world: &mut InterviewWorld, calls: usize) {
     let scene = &mut world.scene;
     scene.start = page("/");

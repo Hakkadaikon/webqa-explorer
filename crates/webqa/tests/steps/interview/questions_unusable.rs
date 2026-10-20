@@ -25,9 +25,17 @@ fn no_hesitation(world: &mut InterviewWorld) {
     answering(world, lacking(HESITATION));
 }
 
-#[given(expr = "判断モデルの応答に 期待の文 が無い")]
+#[given(expr = "判断モデルの応答の 期待の文 が 欠けている")]
 fn no_expectation(world: &mut InterviewWorld) {
     answering(world, lacking(EXPECTATION));
+}
+
+#[given(expr = "判断モデルの応答の 期待の文 が 空の文字列である")]
+fn empty_expectation(world: &mut InterviewWorld) {
+    answering(
+        world,
+        written(step("click", Some("1"), 0.0), EXPECTATION, ""),
+    );
 }
 
 #[given(expr = "判断モデルの応答に 見えにくい要素の答え が無い")]
