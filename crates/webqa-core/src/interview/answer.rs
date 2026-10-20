@@ -71,7 +71,8 @@ pub fn read_expectation(answers: &Answers) -> Result<String, Unusable> {
     read_text(answers, EXPECTATION)
 }
 
-/// Reads the four added questions, in the order they are asked.
+/// Reads the four added questions, in the order they are asked. The
+/// expectation is read from the answer of the second call, by `expectation`.
 fn read_added(
     answers: &Answers,
     step: &Step<'_>,

@@ -95,7 +95,9 @@ impl CallEntry {
 }
 
 /// `error`, or [`JudgeError::Unreadable`] when `question` names the one whose
-/// answer could not be used.
+/// answer could not be used. A replay is never given a result of the
+/// interview mode, so reading `question` back only keeps the result's round
+/// trip symmetric.
 fn failed(error: JudgeError, question: Option<String>) -> JudgeError {
     match (error, question) {
         (JudgeError::Malformed, Some(question)) => JudgeError::Unreadable { question },

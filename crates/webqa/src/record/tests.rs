@@ -159,4 +159,5 @@ fn told_starts_at_the_operation_given() {
     let want = "\n\n直近の操作\n1. scroll_down なし → 画面は変わらなかった";
     assert_eq!(told(&record, 1, &Redactor::default()), want);
     assert_eq!(told(&record, 2, &Redactor::default()), "");
+    assert_eq!(told(&record, 3, &Redactor::default()), "", "past the end");
 }
