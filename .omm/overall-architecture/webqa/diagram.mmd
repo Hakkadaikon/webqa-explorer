@@ -5,6 +5,7 @@ graph LR
     interview-trials["Interview Trials\nsrc/interview.rs, src/interview/"]
     replay-judge["Replay Judge\nsrc/replay.rs"]
     watch["Watch\nsrc/watch.rs"]
+    ledger["Ledger\nsrc/ledger.rs"]
     file-store["File Store\nsrc/store.rs, src/store/"]:::store
     real-clock["Real Clock\nsrc/clock.rs"]
     cli -->|"設定を読んで部品にする"| setup
@@ -12,6 +13,7 @@ graph LR
     cli -->|"interviewを始める"| interview-trials
     cli -->|"実行結果から判断モデルを作る"| replay-judge
     cli -->|"watchを始める"| watch
+    cli -->|"台帳の画面を開く"| ledger
     interview-trials -->|"試行ごとに中核を回す"| run-loop
     run-loop -->|"Storeポート"| file-store
     run-loop -->|"Clockポート"| real-clock

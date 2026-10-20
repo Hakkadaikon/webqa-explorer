@@ -8,6 +8,7 @@ children:
   - cli
   - file-store
   - interview-trials
+  - ledger
   - real-clock
   - replay-judge
   - run-loop

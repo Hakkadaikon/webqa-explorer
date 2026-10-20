@@ -14,6 +14,9 @@
 設計判断の根拠を遡りたいときに読む。
 `tasks/`はmadoの検査の対象から外している。
 
+`tasks/`の記録は、`docs/architecture.md`と`docs/superpowers/specs/2026-10-18-interview-mode-design.md`を参照することがある。
+この2つの設計書は今のリポジトリに無く、コミット`92b3161`で読める。
+
 ## 検討の手順
 
 設計の検討には、Claude Codeのプラグイン[hymme](https://github.com/Hakkadaikon/hymme)を使う。
@@ -59,8 +62,11 @@ hymmeのloop-engineeringの手順に沿って、次の順に進める。
 
 TLCは反例を出さなかったので、反例から作ったシナリオは無い。
 受け入れシナリオは、要件から正常系、異常系、境界を書き起こした。
-受け入れテストが実行するfeatureファイルは、`crates/webqa/tests/features/web_exploratory_qa.feature`である。
-`tasks/loopeng/`の`.feature`は、検討の記録として読む。
+探索モードと決め打ちシナリオモードの受け入れテストが実行するfeatureファイルは、`crates/webqa/tests/features/web_exploratory_qa.feature`である。
+`WebExploratoryQA.feature`は、検討の記録として読む。
+`InterviewMode.feature`は、インタビューのモードの受け入れテストの入力である。
+受け入れテストは、`crates/webqa/tests/features/interview_mode.feature`がこのファイルの写しであることを確かめる。
+仕組みは[テストの層](arch/testing.md)にある。
 
 ## `tasks/test-design/`の中身
 

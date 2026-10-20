@@ -276,7 +276,7 @@ TLA+の仕様は`tasks/loopeng/WebExploratoryQA.tla`にある。
 | 仕様のアクション | 実装の行 | ずれ |
 |---|---|---|
 | `RequestDecision` | 待機の5段目と、判断待ちで答えを受ける行 | 時間窓に数えない。課金画面の観測を含まない |
-| `ApplyGuardrails` | 判断待ちの行と、確認中の2行 | 課金画面の判定は待機の4段目へ移した。要素の存在と同一性は確認中に分けた |
+| `ApplyGuardrails` | 判断待ちの行と、確認中の2行 | 課金画面の判定は待機の4段目にある。要素の存在と同一性は確認中で確かめる |
 | `ExecuteNoChange`、`ExecuteChange`、`ExecuteOutOfDomain` | 実行で観測を受ける1行 | 3つの結果を観測で分け、1行にまとめた |
 | `FinishByProposalDone`、`FinishByProposalStuck` | 判断待ちのdoneとstuckの行 | 実行の状態を通らずに終わる |
 | `ReturnToAllowedDomain` | 待機の4段目の戻る行と、移動中で観測を受ける行 | 時間窓に数える。戻った先が外なら行き詰まりの回数を増やす |

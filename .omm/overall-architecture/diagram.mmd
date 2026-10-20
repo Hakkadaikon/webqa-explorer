@@ -11,7 +11,7 @@ graph LR
     webqa -->|"状態機械を回し、ポートを渡す"| webqa-core
     webqa -->|"Browserの実装を起動する"| webqa-browser
     webqa -->|"Judgeの実装を起動する"| webqa-judge
-    webqa -->|"watchで画面を描く"| webqa-tui
+    webqa -->|"watchと台帳の画面を描く"| webqa-tui
     webqa-browser -->|"Browserポートを実装する"| webqa-core
     webqa-judge -->|"Judgeポートを実装する"| webqa-core
     webqa-tui -->|"イベントログの型を読む"| webqa-core
