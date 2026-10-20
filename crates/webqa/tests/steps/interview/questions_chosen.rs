@@ -14,7 +14,7 @@ use crate::page::PageSpec;
 use crate::scene::found;
 use crate::world::InterviewWorld;
 
-#[given(expr = "判断モデルが、期待を自由な文 {string} で答える")]
+#[given(expr = "判断モデルが、期待の問いに自由な文 {string} で答える")]
 fn expects(world: &mut InterviewWorld, text: String) {
     one_issue(&mut world.scene, &text, Ok(natural_yes()));
     drop(text);
@@ -47,7 +47,7 @@ fn operated_and_not(world: &mut InterviewWorld, operated: String, fresh: String)
 #[then(expr = "対象要素の問いの選択肢に {string} と {string} の両方が含まれる")]
 async fn both_offered(world: &mut InterviewWorld, operated: String, fresh: String) {
     world.run().await;
-    let asked = found(world.ran().judge.asked.get(1), "the second step asked");
+    let asked = found(world.ran().judge.decision(1), "the second step asked");
     assert_eq!(options_of(asked, "target"), ["1", "2"], "both are offered");
     let lines: Vec<&str> = asked.screen.lines().collect();
     let names = [

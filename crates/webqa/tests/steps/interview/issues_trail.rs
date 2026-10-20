@@ -93,17 +93,24 @@ fn back_and_forth() -> Vec<Number> {
     .to_vec()
 }
 
+/// The issues of the back and forth with what the persona expected: the
+/// last step is done, with no operation, so no expectation was asked.
+fn expected_issues() -> Vec<(Number, Detail)> {
+    let hesitation = |expectation: &str| Detail::Hesitant {
+        clues: vec![Clue::PingPong],
+        expectation: expectation.to_owned(),
+    };
+    let expectations = ["進む", "進む", "進む", "進む", "進む", ""];
+    let issues = back_and_forth().into_iter().zip(expectations);
+    issues
+        .map(|(number, text)| (number, hesitation(text)))
+        .collect()
+}
+
 #[then(expr = "2つの画面の行き来が、判断に迷う手がかりとして記録されている")]
 async fn ping_pong_recorded(world: &mut InterviewWorld) {
     world.run().await;
-    let hesitation = Detail::Hesitant {
-        clues: vec![Clue::PingPong],
-        expectation: "進む".to_owned(),
-    };
-    let mut expected: Vec<(Number, Detail)> = back_and_forth()
-        .into_iter()
-        .map(|number| (number, hesitation.clone()))
-        .collect();
+    let mut expected = expected_issues();
     expected.sort_by_key(|(number, _)| *number);
     let mut found: Vec<(Number, Detail)> = entries(world)
         .into_iter()
@@ -145,7 +152,7 @@ async fn trial_goes_on(world: &mut InterviewWorld) {
     world.run().await;
     let ran = world.ran();
     assert_eq!(ran.touches.len(), 4, "the four operations ran");
-    assert_eq!(ran.judge.asked.len(), 5, "the fifth step asked the judge");
+    assert_eq!(ran.judge.decisions(), 5, "the fifth step asked the judge");
     assert!(ran.judge.stalled, "and found no answer");
     assert_eq!(endings(world), [Value::from("interrupted")], "only the cut");
 }

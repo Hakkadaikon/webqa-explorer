@@ -106,6 +106,6 @@ async fn check_previous() {
 
 /// Checks the stages of starting.
 pub async fn check() {
-    check_ranges().await;
+    Box::pin(check_ranges()).await;
     check_previous().await;
 }

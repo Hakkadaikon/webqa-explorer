@@ -125,7 +125,7 @@ async fn first_line_is_instruction(world: &mut InterviewWorld) {
     let mut firsts: Vec<String> = blocks(&text).into_iter().map(|block| block.first).collect();
     firsts.sort();
     let unreached = format!(
-        "- [ ] {} {HOME} の画面で、このペルソナが目的まで進めるようにする(期待: 進む)",
+        "- [ ] {} {HOME} の画面で、このペルソナが目的まで進めるようにする",
         unreached_number()
     );
     let mut expected = [hesitation_line(hesitation_number(), "進む"), unreached];

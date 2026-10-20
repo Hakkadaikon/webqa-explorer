@@ -9,7 +9,7 @@ use crate::judge::Asked;
 use crate::questions::replies::{
     CALM, HESITANT, SAVE, button, hesitation_number, natural_yes, prompt, reply, step,
 };
-use crate::world::InterviewWorld;
+use crate::world::{InterviewWorld, steps_asked};
 
 #[given(expr = "判断モデルとして、台本どおりに答えるスタブを使う")]
 const fn scripted_stub(world: &mut InterviewWorld) {
@@ -77,8 +77,8 @@ async fn apart_from_steps(world: &mut InterviewWorld) {
     let calls: Vec<Vec<String>> = naturalness(world).into_iter().map(ids_of).collect();
     let apart = vec![NATURAL.to_owned(), PERSONA_TRAIT.to_owned()];
     assert_eq!(calls, [apart], "a call of its own");
-    let counted = world.kinds().iter().filter(|kind| *kind == "asked").count();
+    let counted = steps_asked(&world.lines());
     assert_eq!(counted, 6, "two steps of each of three trials count");
-    let all = world.ran().judge.asked.len();
+    let all = world.ran().judge.decisions();
     assert_eq!(all, 7, "and the question about the issue is one more");
 }

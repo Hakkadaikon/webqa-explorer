@@ -103,3 +103,17 @@ impl InterviewWorld {
         self.lines().iter().map(kind).collect()
     }
 }
+
+/// How many steps the lines of `lines` that say the judge was asked are
+/// of. A step may ask twice, and its lines are next to each other with the
+/// same trial and step.
+pub fn steps_asked<'a>(lines: impl IntoIterator<Item = &'a Value>) -> usize {
+    let asked = |line: &&Value| line.get("kind").and_then(Value::as_str) == Some("asked");
+    let mut keys: Vec<_> = lines
+        .into_iter()
+        .filter(asked)
+        .map(|line| (line.get("trial"), line.get("step")))
+        .collect();
+    keys.dedup();
+    keys.len()
+}

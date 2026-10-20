@@ -64,7 +64,7 @@ fn hard_to_see_unlisted(world: &mut InterviewWorld) {
 }
 
 /// The calls of the first step of the first trial that the run counted.
-fn first_step_calls(world: &InterviewWorld) -> usize {
+pub(super) fn first_step_calls(world: &InterviewWorld) -> usize {
     let asked = Value::from("asked");
     let started = Value::from("trial_started");
     let lines = world.lines();

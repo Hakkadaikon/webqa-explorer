@@ -8,7 +8,7 @@ use webqa_core::interview::ledger::Entry;
 
 use super::found;
 use crate::launch::Opened;
-use crate::world::InterviewWorld;
+use crate::world::{InterviewWorld, steps_asked};
 
 /// How a run ends when the time limit cuts it.
 pub(super) const TIME_UP: Ending = Ending::Wrote {
@@ -63,11 +63,16 @@ pub(super) fn started_at(world: &InterviewWorld, n: usize) -> Option<u64> {
 }
 
 /// How many of the lines of `kind` of the trial `n` came before its first
-/// wait for the window.
+/// wait for the window. The questions of one step count once: the second
+/// call of a step is the next line of `asked` with the same step.
 pub(super) fn before_wait(world: &InterviewWorld, kind: &str, n: usize) -> usize {
     let inside = within(world, n);
     let before = inside.iter().take_while(|line| kind_of(line) != "waited");
-    before.filter(|line| kind_of(line) == kind).count()
+    let of_kind: Vec<&Value> = before.filter(|line| kind_of(line) == kind).collect();
+    if kind == "asked" {
+        return steps_asked(of_kind);
+    }
+    of_kind.len()
 }
 
 /// The runs of the reset command at each launch, as (trial, runs started,

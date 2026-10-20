@@ -64,7 +64,8 @@ async fn gave_up_recorded(world: &mut InterviewWorld) {
     let halts: Vec<&Detail> = ledger.entries.iter().map(|e| &e.issue.detail).collect();
     let gave_up = Detail::Unreached {
         halt: Halt::GaveUp,
-        expectation: Some("進む".to_owned()),
+        // The step that gave up carries out no operation: no expectation.
+        expectation: Some(String::new()),
     };
     assert_eq!(halts, [&gave_up], "the issue of the persona who gave up");
 }
