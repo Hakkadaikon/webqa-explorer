@@ -114,7 +114,7 @@ YAMLはserde-saphyrで読む。
 |---|---|---|
 | `limits.freeze_threshold` | 必須 | 画面が変わらないステップが何回続けば固まったとみなすか |
 | `limits.stuck_threshold` | 必須 | 進まないステップが何回続けば行き詰まりとみなすか |
-| `limits.max_decisions` | 必須 | 1回の実行で判断モデルを呼ぶ回数の上限 |
+| `limits.max_decisions` | 必須 | 判断のステップ数の上限。インタビューのモードでは1ステップで最大2回呼ぶ |
 | `limits.requests_per_hour` | 必須 | 1時間の時間窓で対象へアクセスする回数の上限 |
 | `limits.page_timeout_secs` | 必須 | 画面の読み込みと操作を待つ秒数 |
 | `limits.max_duration_secs` | 任意 | 実行の時間の上限(秒)。書かなければ時間切れにならない |
