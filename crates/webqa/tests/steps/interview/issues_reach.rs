@@ -2,10 +2,11 @@
 //! reaching the purpose.
 
 use cucumber::{given, then};
-use webqa_core::interview::issue::{Detail, Halt, Kind, Number};
+use webqa_core::interview::issue::{Detail, HALTS, Halt, Kind, Number};
 
 use super::script::{Step, entries, journey, path_of, screen};
 use crate::ledger::number_of;
+use crate::scene::found;
 use crate::world::InterviewWorld;
 
 #[given(expr = "試行が画面 {string} で行き詰まりとして終わる")]
@@ -26,6 +27,20 @@ async fn unreached_found(world: &mut InterviewWorld, name: String) {
     world.run().await;
     let found: Vec<Number> = entries(world).iter().map(|e| e.issue.number).collect();
     assert_eq!(found, [unreached_number(&name)], "the issue of the screen");
+}
+
+#[then(expr = "その課題の理由に、終わり方 {string} が書かれている")]
+async fn halt_written(world: &mut InterviewWorld, label: String) {
+    world.run().await;
+    let named = HALTS.iter().find(|(_, name)| *name == label);
+    let (halt, _) = found(named.copied(), "the ledger names the ending");
+    // The step that gave up carries out no operation: no expectation.
+    let expected = Detail::Unreached {
+        halt,
+        expectation: Some(String::new()),
+    };
+    let details: Vec<Detail> = entries(world).into_iter().map(|e| e.issue.detail).collect();
+    assert_eq!(details, [expected], "how the trial ended");
 }
 
 #[then(expr = "その課題に、最後のステップの期待は書かれていない")]

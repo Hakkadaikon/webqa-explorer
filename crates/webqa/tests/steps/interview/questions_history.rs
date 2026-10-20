@@ -2,10 +2,17 @@
 
 use cucumber::{given, then};
 
-use super::replies::{CALM, SAVE, button, each_trial, step};
+use super::replies::{CALM, button, each_trial, step};
 use crate::world::InterviewWorld;
 
 pub(super) const HEAD: &str = "\n\n直近の操作\n";
+
+#[given(expr = "試行は2回で、画面に要素 {string} がある")]
+fn two_trials_on_a_page_with(world: &mut InterviewWorld, name: String) {
+    world.scene.trials = 2;
+    button(&mut world.scene, &name);
+    drop(name);
+}
 
 #[given(expr = "画面は変わらず、固まったとみなす閾値は {int} である")]
 const fn freezes_at(world: &mut InterviewWorld, threshold: u32) {
@@ -14,7 +21,6 @@ const fn freezes_at(world: &mut InterviewWorld, threshold: u32) {
 
 #[given(expr = "判断モデルが、scroll_down を選んだあとに click を5回選び、そのあと done を選ぶ")]
 fn scrolls_then_clicks(world: &mut InterviewWorld) {
-    button(&mut world.scene, SAVE);
     let click = step("click", Some("1"), CALM);
     let mut steps = vec![step("scroll_down", None, CALM)];
     steps.extend(vec![click; 5]);
