@@ -30,6 +30,7 @@ mod groups;
 mod opening;
 mod purposes;
 mod records;
+mod reset_ends;
 mod resets;
 mod shots;
 mod stubs;
@@ -41,7 +42,7 @@ mod windows;
 mod launch;
 
 use self::launch::FakeLaunch;
-use self::stubs::{FIXTURES, Fires, Never, Stalled, scratch, var};
+use self::stubs::{FIXTURES, Fires, Never, Stalled, scratch, stuck, var};
 use super::*;
 use crate::run::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 

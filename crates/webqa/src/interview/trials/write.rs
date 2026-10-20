@@ -7,7 +7,7 @@ use webqa_core::interview::compare::{Mismatch, compare};
 use webqa_core::interview::issue::{Record, Run, Seen};
 use webqa_core::interview::ledger::{Goal, Head, Ledger, inferred_goal, write};
 use webqa_core::interview::outcome::{Outcome, tally};
-use webqa_core::machine::ExitReason;
+use webqa_core::machine::{ExitReason, StuckKind};
 use webqa_core::ports::{Clock, Judge, Store};
 use webqa_core::redact::Redactor;
 
@@ -27,6 +27,8 @@ pub(super) struct Closing<'a> {
     pub(super) kept: &'a mut Kept,
     pub(super) trials: &'a [Trial],
     pub(super) plan: &'a Plan,
+    /// Whether the reset command failed, which stopped the loop.
+    pub(super) reset_failed: bool,
 }
 
 /// What came of writing the records.
@@ -123,8 +125,8 @@ async fn put(closing: Closing<'_>, ledger: &Ledger, stopped: Stopped) -> Result<
     write_shots(&mut *closing.store, closing.trials, ledger).await?;
     let text = write(ledger, closing.redactor);
     closing.store.write_ledger(&text).await?;
-    let last = closing.trials.last().map(|trial| trial.reason);
-    let confirmed = conclude(closing, reason(stopped, last)).await?;
+    let why = reason_of(&closing, stopped);
+    let confirmed = conclude(closing, why).await?;
     Ok(Closed::Wrote { confirmed })
 }
 
@@ -156,12 +158,26 @@ async fn conclude(closing: Closing<'_>, reason: ExitReason) -> Result<bool, RunE
     Ok(kept.record.confirmed())
 }
 
-/// Why the report says the run ended: the time limit, the interruption, or
-/// the last trial's end.
-fn reason(stopped: Stopped, last: Option<ExitReason>) -> ExitReason {
-    match stopped {
-        Stopped::TimeUp => ExitReason::TimeExceeded,
-        Stopped::Interrupted => ExitReason::UserAborted,
-        Stopped::Completed => last.unwrap_or(ExitReason::UserAborted),
+/// Why the report says the run of `closing` ended after it stopped for
+/// `stopped`.
+fn reason_of(closing: &Closing<'_>, stopped: Stopped) -> ExitReason {
+    let last = closing.trials.last().map(|trial| trial.reason);
+    let nowhere = closing.reset_failed && closing.trials.is_empty();
+    reason(stopped, nowhere, last)
+}
+
+/// What the report says of a run whose reset command failed before any
+/// trial: the run got nowhere. No reason of the core is nearer, as none is a
+/// failure. A failure after a trial leaves the reason of the last trial.
+const RESET_FAILED: ExitReason = ExitReason::Stuck(StuckKind::NoProgress);
+
+/// Why the report says the run ended: the reset command's failure before any
+/// trial, the time limit, the interruption, or the last trial's end.
+fn reason(stopped: Stopped, nowhere: bool, last: Option<ExitReason>) -> ExitReason {
+    match (nowhere, stopped) {
+        (true, _) => RESET_FAILED,
+        (false, Stopped::TimeUp) => ExitReason::TimeExceeded,
+        (false, Stopped::Interrupted) => ExitReason::UserAborted,
+        (false, Stopped::Completed) => last.unwrap_or(ExitReason::UserAborted),
     }
 }

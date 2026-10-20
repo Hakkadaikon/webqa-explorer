@@ -1,21 +1,22 @@
 //! Tests of stopping the reset command with what it started.
 
 use std::process::{Command, Stdio};
+use std::time::Duration;
 
 use tokio::task::yield_now;
 
 use super::resets::Watching;
+use super::stubs::Limit;
 use super::*;
 
-/// How many times to yield for the command's file before giving up.
-const YIELDS: u32 = 10_000_000;
+/// How long to wait for the command, in real time.
+const WAIT: Duration = Duration::from_secs(5);
 
-/// Yields until `file` has something in it.
+/// Yields until `file` holds both pids.
 async fn written(file: PathBuf) {
-    let mut yields = 0;
-    while fs::metadata(&file).is_ok_and(|meta| meta.len() == 0) || !file.exists() {
-        assert!(yields < YIELDS, "the reset command wrote nothing");
-        yields += 1;
+    let limit = Limit::of(WAIT);
+    while fs::read_to_string(&file).map_or(0, |text| text.split_whitespace().count()) < 2 {
+        assert!(!limit.passed(), "the reset command wrote no pids");
         yield_now().await;
     }
 }
@@ -40,6 +41,18 @@ fn alive(pid: &str) -> bool {
     signalled.is_ok_and(|status| status.success())
 }
 
+/// Whether the process `pid` stops within `WAIT`, which is far shorter than
+/// the grandchild lives on its own.
+fn gone(pid: &str) -> bool {
+    let limit = Limit::of(WAIT);
+    while alive(pid) {
+        if limit.passed() {
+            return false;
+        }
+    }
+    true
+}
+
 #[tokio::test]
 async fn interrupt_stops_the_command_and_what_it_started() {
     let mut world = World::resetting(1, "interrupt_stops_the_group", "spawn.sh", &[]);
@@ -52,7 +65,7 @@ async fn interrupt_stops_the_command_and_what_it_started() {
         confirmed: false,
     };
     assert_eq!(
-        (ending, (0..2000).any(|_| !alive(grandchild))),
+        (ending, gone(grandchild)),
         (interrupted, true),
         "the process the command started is gone after the interruption"
     );

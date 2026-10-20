@@ -130,6 +130,11 @@ fn wait_ends_on_abort_or_deadline() {
             .interrupt_from
             .is_some_and(|from| trace.interrupts >= from);
         prop_assert!(trace.ending != stopped || asked_for, "interrupted unasked");
+        prop_assert!(
+            trace.fired == 0 || trace.ending == stopped,
+            "an interruption was seen, and the run ended as {:?}",
+            trace.ending
+        );
         Ok(())
     })
     .unwrap();

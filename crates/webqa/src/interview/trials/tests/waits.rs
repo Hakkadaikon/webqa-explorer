@@ -6,7 +6,6 @@ use super::*;
 async fn deadline_while_waiting_times_out() {
     let mut world = World::tight(2);
     world.plan.max_duration = Some(minutes(30));
-    world.plan.rules.max_duration = Some(minutes(30));
     let ending = world.run().await;
     let timed_out = Ending::Wrote {
         stopped: Stopped::TimeUp,

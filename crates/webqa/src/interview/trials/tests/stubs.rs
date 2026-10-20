@@ -16,14 +16,16 @@ use webqa_core::redact::Redacted;
 use webqa_core::screen::ScreenText;
 
 use crate::interrupt::Interrupt;
+
 use crate::run::fakes::RecordingJudge;
+pub(super) use crate::run::fakes::stuck::{Limit, stuck};
 
 /// The user who never interrupts.
 pub(super) struct Never;
 
 impl Interrupt for Never {
     fn wait(&mut self) -> Pending<'_, ()> {
-        Box::pin(future::pending())
+        stuck()
     }
 }
 
@@ -39,7 +41,7 @@ impl Interrupt for Fires {
         if self.fire_on.contains(&self.calls) {
             Box::pin(future::ready(()))
         } else {
-            Box::pin(future::pending())
+            stuck()
         }
     }
 }
@@ -57,7 +59,7 @@ impl Clock for Stalled {
 
     fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
         self.sleeps.push(at);
-        Box::pin(future::pending())
+        stuck()
     }
 }
 

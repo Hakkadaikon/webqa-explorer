@@ -16,6 +16,13 @@ pub fn name(kind: IssueKind, step: u64) -> String {
     format!("ISSUE_{}_step{step}.png", kind_name(kind))
 }
 
+/// As [`name`], for an issue found in the trial `trial` of an interview, so
+/// that the trials of a run do not write over each other's screenshots.
+#[must_use]
+pub fn trial_name(kind: IssueKind, trial: usize, step: u64) -> String {
+    format!("ISSUE_{}_trial{trial}_step{step}.png", kind_name(kind))
+}
+
 /// The file name of the screenshot of the issue `number`, first seen at
 /// `shot`. It is made of the three numbers and nothing the judge or the
 /// page said.

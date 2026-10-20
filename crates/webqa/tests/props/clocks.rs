@@ -19,6 +19,8 @@ use webqa_core::screen::ScreenText;
 
 use crate::fakes::{FakeBrowser, RecordingJudge};
 
+use crate::fakes::stuck::stuck;
+
 /// A minute, in milliseconds.
 pub const MINUTE_MS: u64 = 60_000;
 
@@ -54,7 +56,7 @@ impl Clock for Virtual {
     fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
         let ms = u64::try_from(at.as_millis()).unwrap_or(u64::MAX);
         if !ms.is_multiple_of(MINUTE_MS) {
-            return Box::pin(future::pending());
+            return stuck();
         }
         self.sleeps.push(Sleep {
             at_ms: ms,
@@ -121,15 +123,24 @@ fn boxed(browser: FakeBrowser) -> Box<dyn Browser> {
 pub struct Fires {
     pub from: Option<usize>,
     pub calls: usize,
+    /// How many times the run saw an interruption: polled one that came.
+    pub fired: Arc<AtomicUsize>,
 }
 
 impl Interrupt for Fires {
     fn wait(&mut self) -> Pending<'_, ()> {
         self.calls += 1;
         if self.from.is_some_and(|from| self.calls >= from) {
-            Box::pin(future::ready(()))
+            seen(Arc::clone(&self.fired))
         } else {
-            Box::pin(future::pending())
+            stuck()
         }
     }
+}
+
+/// An interruption that is counted when the run polls it.
+fn seen(fired: Arc<AtomicUsize>) -> Pending<'static, ()> {
+    Box::pin(async move {
+        fired.fetch_add(1, Ordering::SeqCst);
+    })
 }

@@ -29,7 +29,7 @@ impl Clock for Gauged {
             self.slept = true;
             Box::pin(future::ready(()))
         } else {
-            Box::pin(future::pending())
+            stuck()
         }
     }
 }
@@ -50,7 +50,7 @@ impl Clock for Watching {
 
     fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
         if !at.as_secs().is_multiple_of(3600) {
-            return Box::pin(future::pending());
+            return stuck();
         }
         self.at_sleep.push(lines(&self.out));
         self.now = at;
@@ -113,29 +113,6 @@ async fn no_reset_command_runs_nothing() {
 }
 
 #[tokio::test]
-async fn reset_failure_writes_ledger_then_exits_three() {
-    let allow = [var("RESET_ALLOW", "1")];
-    let mut world = World::resetting(3, "reset_failure_writes_ledger", "counts.sh", &allow);
-    let (ending, _) = Watching::run(&mut world).await;
-    let ledger = world.ledger().map(|ledger| ledger.head);
-    assert_eq!(
-        (
-            ending,
-            ledger,
-            world.launch.launched,
-            world.store.report.is_some()
-        ),
-        (
-            Ending::ResetFailed(ResetError::Exit(1)),
-            Some(head(1)),
-            1,
-            true
-        ),
-        "the ledger of the first trial, and no second one"
-    );
-}
-
-#[tokio::test]
 async fn reset_accesses_not_counted() {
     let mut plain = World::tight(2);
     plain.run().await;
@@ -171,7 +148,7 @@ async fn reset_across_deadline(
     extra: &[(OsString, OsString)],
     after: Duration,
     wakes: bool,
-) -> (Ending, usize, Option<Ledger>) {
+) -> (Ending, usize, Option<Ledger>, serde_json::Value) {
     let mut world = World::resetting(1, name, "counts.sh", extra);
     world.plan.max_duration = Some(minutes(60));
     let mut clock = Gauged {
@@ -191,7 +168,12 @@ async fn reset_across_deadline(
         &world.plan,
     )
     .await;
-    (ending, world.launch.launched, world.ledger())
+    let reason = world
+        .store
+        .report
+        .as_ref()
+        .map_or(serde_json::Value::Null, |r| r["reason"].clone());
+    (ending, world.launch.launched, world.ledger(), reason)
 }
 
 fn timed_out() -> Ending {
@@ -214,7 +196,12 @@ async fn deadline_during_reset_waits_then_cuts() {
     let ran = reset_across_deadline("deadline_during_reset", &[], minutes(61), false).await;
     assert_eq!(
         ran,
-        (timed_out(), 0, Some(empty())),
+        (
+            timed_out(),
+            0,
+            Some(empty()),
+            serde_json::json!("time_exceeded")
+        ),
         "the command ended, and no trial started"
     );
 }
@@ -227,7 +214,12 @@ async fn reset_timeout_after_deadline_is_time_up() {
     assert_eq!(
         (late, early.0, early.1),
         (
-            (timed_out(), 0, Some(empty())),
+            (
+                timed_out(),
+                0,
+                Some(empty()),
+                serde_json::json!("time_exceeded")
+            ),
             Ending::ResetFailed(ResetError::TimedOut),
             0
         ),
@@ -244,35 +236,18 @@ async fn interrupt_during_reset_cuts() {
         fire_on: vec![1],
     };
     let ending = world.run_with(&mut interrupt).await;
+    let reason = world
+        .store
+        .report
+        .as_ref()
+        .map(|report| report["reason"].clone());
     let interrupted = Ending::Wrote {
         stopped: Stopped::Interrupted,
         confirmed: false,
     };
     assert_eq!(
-        (ending, world.launch.launched),
-        (interrupted, 0),
-        "the command was dropped and nothing started"
-    );
-}
-
-#[tokio::test]
-async fn reset_child_env_withholds_api_key() {
-    let key = "value-of-the-judge-key";
-    let env = [
-        var("COPY_OF_KEY", format!("Bearer {key}")),
-        var("KEEP", "kept"),
-    ];
-    let mut world = World::resetting(1, "reset_child_env", "record.sh", &env);
-    world.plan.withheld = vec![key.to_owned()];
-    Watching::run(&mut world).await;
-    let seen = fs::read_to_string(world.out().with_extension("env")).unwrap();
-    assert_eq!(
-        (
-            seen.contains(key),
-            seen.contains("COPY_OF_KEY"),
-            seen.contains("KEEP=\"kept\"")
-        ),
-        (false, false, true),
-        "the variable with the key is left out and the others are passed"
+        (ending, world.launch.launched, reason),
+        (interrupted, 0, Some(serde_json::json!("user_aborted"))),
+        "the command was dropped and nothing started, and the user stopped it"
     );
 }
