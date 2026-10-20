@@ -32,18 +32,25 @@ fn fold_tracks_step_elapsed_and_finish() {
     );
 }
 
+/// A stopped proposal: the log has no `decided` line before it.
+const STOPPED: &str =
+    r#"{"seq":2,"elapsed_ms":2,"step":1,"kind":"rejected","why":"low_confidence"}"#;
+/// A decided operation not yet run.
+const DECIDED: &str =
+    r#"{"seq":3,"elapsed_ms":3,"step":2,"kind":"decided","op":"click","target":null,"p":0.5}"#;
+
 const COUNTED: [&str; 11] = [
     r#"{"seq":1,"elapsed_ms":1,"step":1,"kind":"asked","input_tokens":100,"output_tokens":7,"think_ms":5}"#,
     r#"{"seq":2,"elapsed_ms":2,"step":1,"kind":"rejected","why":"low_confidence"}"#,
     r#"{"seq":3,"elapsed_ms":3,"step":2,"kind":"decided","op":"click","target":null,"p":0.5}"#,
     r#"{"seq":4,"elapsed_ms":4,"step":2,"kind":"executed","changed":true,"accesses":1}"#,
     r#"{"seq":5,"elapsed_ms":5,"step":3,"kind":"anomaly","cause":"malformed"}"#,
-    r#"{"seq":5,"elapsed_ms":5,"step":4,"kind":"recovered","op":"back","cause":"frozen"}"#,
-    r#"{"seq":6,"elapsed_ms":6,"step":4,"kind":"executed","changed":false,"accesses":2}"#,
-    r#"{"seq":7,"elapsed_ms":7,"step":3,"kind":"issue","issue":"console_error","class":"reference","evidence":null,"label":null,"p":null}"#,
-    r#"{"seq":8,"elapsed_ms":8,"kind":"trial_started","trial":2}"#,
-    r#"{"seq":9,"elapsed_ms":9,"kind":"trial_finished","trial":2,"ending":"gave_up"}"#,
-    r#"{"seq":10,"elapsed_ms":3,"kind":"stage_advanced","stage":1,"name":"買う"}"#,
+    r#"{"seq":6,"elapsed_ms":5,"step":4,"kind":"recovered","op":"back","cause":"frozen"}"#,
+    r#"{"seq":7,"elapsed_ms":6,"step":4,"kind":"executed","changed":false,"accesses":2}"#,
+    r#"{"seq":8,"elapsed_ms":7,"step":4,"kind":"issue","issue":"console_error","class":"reference","evidence":null,"label":null,"p":null}"#,
+    r#"{"seq":9,"elapsed_ms":8,"kind":"trial_started","trial":2}"#,
+    r#"{"seq":10,"elapsed_ms":9,"kind":"trial_finished","trial":2,"ending":"gave_up"}"#,
+    r#"{"seq":11,"elapsed_ms":3,"kind":"stage_advanced","stage":1,"name":"買う"}"#,
 ];
 
 #[test]
@@ -96,7 +103,7 @@ fn each_operation_keeps_what_came_of_it() {
 #[test]
 fn a_stopped_proposal_is_not_settled_by_the_next_run() {
     let state = folded(&[
-        COUNTED[1],
+        STOPPED,
         r#"{"seq":3,"elapsed_ms":3,"step":1,"kind":"executed","changed":true,"accesses":0}"#,
     ]);
     assert_eq!(
@@ -107,7 +114,7 @@ fn a_stopped_proposal_is_not_settled_by_the_next_run() {
 
 #[test]
 fn an_operation_left_unsettled_stays_pending() {
-    let state = folded(&[COUNTED[2], COUNTED[2]]);
+    let state = folded(&[DECIDED, DECIDED]);
     assert_eq!(
         state.recent.iter().map(|r| r.outcome).collect::<Vec<_>>(),
         [Outcome::Pending, Outcome::Pending]

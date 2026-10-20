@@ -63,11 +63,11 @@ impl Counts {
         let (input, output) = tokens(event);
         Self {
             decided: self.decided + decided_count(event),
-            changed: self.changed + changed(event),
+            changed: self.changed + changed_count(event),
             rejected: self.rejected + rejected_count(event),
-            anomalies: self.anomalies + anomaly(event),
+            anomalies: self.anomalies + anomaly_count(event),
             recovered: self.recovered + recovered_count(event),
-            issues: self.issues + issue(event),
+            issues: self.issues + issue_count(event),
             accesses: self.accesses + accesses(event),
             input_tokens: self.input_tokens + input,
             output_tokens: self.output_tokens + output,
@@ -83,7 +83,7 @@ const fn decided_count(event: &Event) -> u64 {
     }
 }
 
-const fn changed(event: &Event) -> u64 {
+const fn changed_count(event: &Event) -> u64 {
     if let Event::Executed { changed: true, .. } = event {
         1
     } else {
@@ -99,7 +99,7 @@ const fn rejected_count(event: &Event) -> u64 {
     }
 }
 
-const fn anomaly(event: &Event) -> u64 {
+const fn anomaly_count(event: &Event) -> u64 {
     if let Event::Anomaly { .. } = event {
         1
     } else {
@@ -115,7 +115,7 @@ const fn recovered_count(event: &Event) -> u64 {
     }
 }
 
-const fn issue(event: &Event) -> u64 {
+const fn issue_count(event: &Event) -> u64 {
     if let Event::Issue { .. } = event {
         1
     } else {
@@ -123,7 +123,7 @@ const fn issue(event: &Event) -> u64 {
     }
 }
 
-const fn trial_finished(event: &Event) -> usize {
+const fn trial_finished_count(event: &Event) -> usize {
     if let Event::TrialFinished { .. } = event {
         1
     } else {
@@ -164,7 +164,7 @@ impl State {
             step: line.step.or(self.step),
             elapsed_ms: line.elapsed_ms.max(self.elapsed_ms),
             trial: trial(event).or(self.trial),
-            trials_ended: self.trials_ended + trial_finished(event),
+            trials_ended: self.trials_ended + trial_finished_count(event),
             stage: stage(event).or(self.stage),
             counts: self.counts.add(event),
             recent: recent(self.recent, line),
