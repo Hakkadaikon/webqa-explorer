@@ -4,6 +4,7 @@
 pub mod found;
 pub mod report;
 pub mod score;
+pub mod serve;
 pub mod truth;
 
 /// A failure of reading the answer key, the labels or a ledger.
