@@ -126,9 +126,13 @@ impl PlaywrightBrowser {
     /// document is still loading; then the page itself waits, with a script
     /// that is no `eval` and a timer of the page timeout.
     async fn wait_loaded(&self) -> playwright_rs::Result<()> {
-        match self.page.wait_for_function(LOADED, None).await {
-            Err(error) if forbidden_eval(&error) => self.wait_in_page().await,
-            waited => waited.map(drop),
+        let Err(error) = self.page.wait_for_function(LOADED, None).await else {
+            return Ok(());
+        };
+        if forbidden_eval(&error) {
+            self.wait_in_page().await
+        } else {
+            Err(error)
         }
     }
 
