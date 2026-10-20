@@ -120,7 +120,7 @@ impl SceneJudge {
         self.clock.fetch_add(think, Ordering::SeqCst);
         if let Some(reply) = self.replies.pop_front() {
             self.last = Some(reply.clone());
-            return Box::pin(future::ready(reply));
+            return Box::pin(future::ready(reply.map(without_expectation)));
         }
         self.stalled = true;
         self.gate.notify_one();
@@ -130,6 +130,14 @@ impl SceneJudge {
 
 /// The id of the question about what is expected.
 const EXPECTATION: &str = "expectation";
+
+/// `answers` without the answer to the question about what is expected: the
+/// first call of a step does not ask it, so a reader that finds it there
+/// reads what was never asked.
+fn without_expectation(mut answers: Answers) -> Answers {
+    answers.table.remove(&QuestionId::new(EXPECTATION));
+    answers
+}
 
 /// Whether `questions` are the one call that asks only what is expected.
 fn asks_expectation(questions: &[Question]) -> bool {

@@ -5,7 +5,9 @@ use cucumber::{given, then};
 use webqa_core::interview::ask::EXPECTATION;
 
 use super::asked::sent;
-use super::replies::{CALM, SAVE, button, each_trial, first_call, prompt, step};
+use super::replies::{
+    CALM, SAVE, button, each_trial, first_call, natural_yes, prompt, reply, step,
+};
 use super::unusable::first_step_calls;
 use crate::judge::{Asked, Kind};
 use crate::scene::found;
@@ -61,6 +63,14 @@ async fn second_call_sees_the_same_screen(world: &mut InterviewWorld) {
 fn chooses_click(world: &mut InterviewWorld) {
     button(&mut world.scene, SAVE);
     each_trial(&mut world.scene, &[step("click", Some("1"), CALM)]);
+}
+
+#[given(expr = "判断モデルが操作として stuck を選ぶ")]
+fn chooses_stuck(world: &mut InterviewWorld) {
+    button(&mut world.scene, SAVE);
+    each_trial(&mut world.scene, &[step("stuck", None, CALM)]);
+    // The persona gave up: one issue, and the question about it.
+    reply(&mut world.scene, natural_yes());
 }
 
 #[given(expr = "判断モデルが操作として done を選ぶ")]
