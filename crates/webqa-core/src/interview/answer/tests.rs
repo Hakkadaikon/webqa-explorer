@@ -147,3 +147,39 @@ fn added_ids_are_named() {
     );
     assert_eq!([SAME, DIFFERENT], ["同じ", "同じでない"], "the two choices");
 }
+
+#[test]
+fn expectation_is_empty_when_it_was_not_asked() {
+    let without = changed(full(false), &[(EXPECTATION, None)]);
+    let got = read_without_expectation(&without, &step(None));
+    let expectation = got.map(|r| (r.hesitation, r.expectation, r.purpose_guess));
+    let want = (0.7, String::new(), "商品をカートに入れる".to_owned());
+    assert_eq!(expectation, Ok(want), "the others are read");
+    let hesitation = changed(full(false), &[(HESITATION, None)]);
+    let got = read_without_expectation(&hesitation, &step(None));
+    assert_eq!(got, Err(Unusable::Missing(QuestionId::new(HESITATION))));
+    assert_eq!(
+        read_step(&without, &step(None)),
+        Err(Unusable::Missing(QuestionId::new(EXPECTATION))),
+        "asked, it must be there"
+    );
+}
+
+#[test]
+fn expectation_alone_is_read_as_written() {
+    let only = |options: &[(&str, f64)]| {
+        let table = [(EXPECTATION, options)];
+        read_expectation(&Answers {
+            table: table.into_iter().map(row).collect(),
+            usage: Usage::default(),
+        })
+    };
+    for text in VERBATIM {
+        assert_eq!(only(&[(text, 0.3)]), Ok(text.to_owned()), "{text:?}");
+    }
+    let missing = Err(Unusable::Missing(QuestionId::new(EXPECTATION)));
+    assert_eq!(only(&[]), missing, "no option");
+    assert_eq!(only(&[(" \n", NAN)]), missing, "blank");
+    assert_eq!(only(&[("a", NAN), ("b", NAN)]), missing, "two texts");
+    assert_eq!(read_expectation(&Answers::default()), missing, "no answer");
+}

@@ -21,22 +21,20 @@ fn attaches_screenshot_when_judge_reads_images() {
     assert_eq!(calls, want, "one call with the screen text and the image");
 }
 
+const SIX_IDS: &[&str] = &[
+    "operation",
+    "target",
+    "error_shown",
+    "goal_reached",
+    "hesitation",
+    "purpose_guess",
+];
 const SEVEN_IDS: &[&str] = &[
     "operation",
     "target",
     "error_shown",
     "goal_reached",
     "hesitation",
-    "expectation",
-    "purpose_guess",
-];
-const EIGHT_IDS: &[&str] = &[
-    "operation",
-    "target",
-    "error_shown",
-    "goal_reached",
-    "hesitation",
-    "expectation",
     "hard_to_see",
     "purpose_guess",
 ];
@@ -44,10 +42,10 @@ const EIGHT_IDS: &[&str] = &[
 /// Whether the judge reads images and whether a screenshot was taken, with
 /// whether it is attached and the questions asked.
 const CAPABILITY: [(bool, bool, bool, &[&str]); 4] = [
-    (true, true, true, EIGHT_IDS),
-    (false, true, false, SEVEN_IDS),
-    (true, false, false, SEVEN_IDS),
-    (false, false, false, SEVEN_IDS),
+    (true, true, true, SEVEN_IDS),
+    (false, true, false, SIX_IDS),
+    (true, false, false, SIX_IDS),
+    (false, false, false, SIX_IDS),
 ];
 
 #[test]
@@ -77,10 +75,7 @@ fn no_screenshot_when_judge_cannot_read_images() {
         .map(|call| (call.image.clone(), ids(&call.questions)))
         .collect();
     let bytes = b"shot of test@example.test".to_vec();
-    let want = vec![
-        (None, SEVEN_IDS.to_vec()),
-        (Some(bytes), SEVEN_IDS.to_vec()),
-    ];
+    let want = vec![(None, SIX_IDS.to_vec()), (Some(bytes), SIX_IDS.to_vec())];
     assert_eq!(calls, want, "ask without an image, then ask_with_image");
 }
 

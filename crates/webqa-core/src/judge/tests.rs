@@ -187,3 +187,23 @@ fn question_ids_are_named() {
         "the names sent to the judge"
     );
 }
+
+#[test]
+fn joined_answers_hold_both_calls_and_add_the_usage() {
+    let used = |input_tokens, output_tokens| Usage {
+        input_tokens,
+        output_tokens,
+    };
+    let first = Answers {
+        usage: used(10, 2),
+        ..answers(&QuestionId::operation(), &[("click", 0.9)])
+    };
+    let later = Answers {
+        usage: used(u64::MAX, 3),
+        ..answers(&QuestionId::new("expectation"), &[("進む", f64::NAN)])
+    };
+    let joined = first.joined(later);
+    let ids: Vec<&str> = joined.table.keys().map(QuestionId::as_str).collect();
+    assert_eq!(ids, ["expectation", "operation"], "both calls");
+    assert_eq!(joined.usage, used(u64::MAX, 5), "added, never overflowing");
+}

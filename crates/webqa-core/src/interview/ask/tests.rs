@@ -1,5 +1,6 @@
 //! Tests of the questions of an interview step and of sending them.
 
+mod expectation;
 mod prompt;
 mod send;
 use std::future;

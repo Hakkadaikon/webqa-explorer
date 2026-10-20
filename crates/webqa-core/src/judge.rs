@@ -133,6 +133,24 @@ pub struct Answers {
 }
 
 impl Answers {
+    /// The answers of both calls: the questions of each, and the sum of the
+    /// tokens used. A question answered by both keeps the answer of `later`.
+    #[must_use]
+    pub fn joined(mut self, later: Self) -> Self {
+        self.table.extend(later.table);
+        self.usage = Usage {
+            input_tokens: self
+                .usage
+                .input_tokens
+                .saturating_add(later.usage.input_tokens),
+            output_tokens: self
+                .usage
+                .output_tokens
+                .saturating_add(later.usage.output_tokens),
+        };
+        self
+    }
+
     /// The most probable option of the question and its probability.
     ///
     /// A NaN probability counts as missing, so its option is never chosen.

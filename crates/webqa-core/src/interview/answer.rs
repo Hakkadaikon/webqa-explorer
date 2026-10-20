@@ -35,15 +35,51 @@ pub struct Reply {
 /// elements hard to see (only when the step has an image) and the purpose
 /// guess, in this order.
 pub fn read_step(answers: &Answers, step: &Step<'_>) -> Result<Reply, Unusable> {
+    read_with(answers, step, read_expectation)
+}
+
+/// As [`read_step`], for a step that did not ask what was expected, since
+/// no operation was carried out. The expectation of the reply is empty.
+///
+/// # Errors
+///
+/// As [`read_step`], without the expectation.
+pub fn read_without_expectation(answers: &Answers, step: &Step<'_>) -> Result<Reply, Unusable> {
+    read_with(answers, step, |_| Ok(String::new()))
+}
+
+/// How the expectation is read.
+type Expectation = fn(&Answers) -> Result<String, Unusable>;
+
+fn read_with(
+    answers: &Answers,
+    step: &Step<'_>,
+    expectation: Expectation,
+) -> Result<Reply, Unusable> {
     let ops = with_done(step.ops);
     let verdict = read_answers(answers, &step.ask(&ops))?;
-    read_added(answers, step, verdict)
+    read_added(answers, step, verdict, expectation)
+}
+
+/// What the persona expected, as the judge wrote it.
+///
+/// # Errors
+///
+/// [`Unusable::Missing`] when the answer is missing, blank, or has more
+/// than one text.
+pub fn read_expectation(answers: &Answers) -> Result<String, Unusable> {
+    read_text(answers, EXPECTATION)
 }
 
 /// Reads the four added questions, in the order they are asked.
-fn read_added(answers: &Answers, step: &Step<'_>, verdict: Verdict) -> Result<Reply, Unusable> {
+fn read_added(
+    answers: &Answers,
+    step: &Step<'_>,
+    verdict: Verdict,
+    expectation: Expectation,
+) -> Result<Reply, Unusable> {
     let hesitation = read_hesitation(answers)?;
-    let expectation = read_text(answers, EXPECTATION)?;
+    let expectation = expectation(answers)?;
     let hard_to_see = read_sight(answers, step)?;
     let purpose_guess = read_text(answers, PURPOSE_GUESS)?;
     Ok(Reply {
