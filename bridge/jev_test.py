@@ -119,7 +119,8 @@ class TextTest(unittest.TestCase):
             {
                 "model": "some/llm",
                 "messages": [
-                    {"role": "user", "content": "何を期待したか\n\n画面:\n" + SCREEN}
+                    {"role": "system", "content": jev.TEXT_SYSTEM},
+                    {"role": "user", "content": "何を期待したか\n\n画面:\n" + SCREEN},
                 ],
             },
         )
@@ -134,6 +135,45 @@ class TextTest(unittest.TestCase):
         ask(request([TEXT], image=image), http, options(text_model="some/llm"))
         self.assertEqual(http.requests[0].full_url, jev.CHAT_URL)
         self.assertEqual(http.header("Typesafe-danger-zone-images"), None)
+
+    def test_system_message_asks_for_the_answer_only(self):
+        http = FakeHttp(CHAT_REPLY)
+        ask(request([TEXT]), http, options(text_model="m"))
+        system = http.body()["messages"][0]
+        self.assertEqual(system["role"], "system")
+        for rule in ("答えだけ", "Markdown", "見出し", "前置き", "独白", "空"):
+            self.assertIn(rule, system["content"])
+
+    def test_hard_to_see_carries_the_screenshot(self):
+        http = FakeHttp(CHAT_REPLY, CHAT_REPLY)
+        image = {"media_type": "image/png", "data": "iVBORw=="}
+        hard = {**TEXT, "id": "hard_to_see", "prompt": "見えにくい要素"}
+        ask(request([TEXT, hard], image=image), http, options(text_model="m"))
+        plain = http.body(0)["messages"][1]["content"]
+        self.assertEqual(plain, "何を期待したか\n\n画面:\n" + SCREEN)
+        self.assertEqual(
+            http.body(1)["messages"][1]["content"],
+            [
+                {"type": "text", "text": "見えにくい要素\n\n画面:\n" + SCREEN},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/png;base64,iVBORw=="},
+                },
+            ],
+        )
+
+    def test_hard_to_see_without_image_is_plain_text(self):
+        http = FakeHttp(CHAT_REPLY)
+        hard = {**TEXT, "id": "hard_to_see", "prompt": "見えにくい要素"}
+        ask(request([hard]), http, options(text_model="m"))
+        self.assertEqual(
+            http.body()["messages"][1]["content"], "見えにくい要素\n\n画面:\n" + SCREEN
+        )
+
+    def test_answer_is_trimmed(self):
+        reply = {**CHAT_REPLY, "choices": [{"message": {"content": "\n 一文 \n\n"}}]}
+        answer, _ = ask(request([TEXT]), FakeHttp(reply), options(text_model="m"))
+        self.assertEqual(answer["answers"], {"expectation": [{"option": "一文"}]})
 
     def test_text_and_jev_usage_add_up(self):
         http = FakeHttp(JEV_REPLY, CHAT_REPLY)
