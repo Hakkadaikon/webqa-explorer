@@ -173,7 +173,7 @@ impl Fakes {
         if scene.bridge.is_some() {
             bridge::write_answers(&run.0, &scene.replies);
             let gate = Arc::clone(&self.gate);
-            self.bridge = Some(bridge::start(&setup.judge, scene.replies.len(), gate).await);
+            self.bridge = Some(bridge::start(&setup.judge, &run.0, gate).await);
         }
     }
 }

@@ -5,6 +5,7 @@
 use std::collections::VecDeque;
 use std::env;
 use std::fs;
+use std::future;
 use std::path::{Path, PathBuf};
 use std::process;
 use std::sync::Arc;
@@ -13,6 +14,7 @@ use std::time::Duration;
 
 use serde_json::{Map, Value, json};
 use tokio::sync::Notify;
+use tokio::task::yield_now;
 use webqa_core::config;
 use webqa_core::judge::{Answers, JudgeError};
 use webqa_core::ports::{Clock, Judge, Pending};
@@ -120,26 +122,24 @@ pub fn asked(dir: &Path) -> Vec<Value> {
     text.lines().map(read).collect()
 }
 
-/// Starts the judge of the configuration, as the CLI does, with a bridge
-/// that has `answers` answers. Once they are used, the wait for the next
-/// one wakes `gate`.
-pub async fn start(judge: &config::Judge, answers: usize, gate: Arc<Notify>) -> Box<dyn Judge> {
+/// Starts the judge of the configuration, as the CLI does, with the bridge
+/// answering from `dir`. Once its answers are used, a wait wakes `gate`.
+pub async fn start(judge: &config::Judge, dir: &Path, gate: Arc<Notify>) -> Box<dyn Judge> {
     let clock = BridgeClock {
         gate,
-        answers,
-        waits: 0,
+        exhausted: dir.join("exhausted"),
     };
     let started = table::start(judge, Box::new(clock)).await;
     found(started.ok(), "the bridge starts")
 }
 
-/// The clock of the bridge. The judge waits once for the version line and
-/// once for each answer. Those waits never end, so the line comes first;
-/// the wait for an answer the bridge does not have wakes the gate.
+/// The clock of the bridge. Its waits never end, so the line comes first.
+/// The bridge marks the file `exhausted` when it has no answer for a
+/// request; a wait that sees the mark wakes the gate. Counting the waits
+/// instead would miss those the judge skips when the answer comes first.
 struct BridgeClock {
     gate: Arc<Notify>,
-    answers: usize,
-    waits: usize,
+    exhausted: PathBuf,
 }
 
 impl Clock for BridgeClock {
@@ -148,10 +148,21 @@ impl Clock for BridgeClock {
     }
 
     fn sleep_until(&mut self, _at: Duration) -> Pending<'_, ()> {
-        self.waits += 1;
-        if self.waits > self.answers + 1 {
-            self.gate.notify_one();
-        }
-        stuck()
+        let marked = marked(self.exhausted.clone(), Arc::clone(&self.gate));
+        Box::pin(async move {
+            tokio::select! {
+                () = stuck() => {}
+                () = marked => {}
+            }
+        })
     }
+}
+
+/// Wakes `gate` once the bridge marks `exhausted`, and then never ends.
+async fn marked(exhausted: PathBuf, gate: Arc<Notify>) {
+    while !exhausted.exists() {
+        yield_now().await;
+    }
+    gate.notify_one();
+    future::pending::<()>().await;
 }
