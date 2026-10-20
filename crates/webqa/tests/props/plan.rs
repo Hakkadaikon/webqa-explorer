@@ -49,7 +49,11 @@ pub fn plan(case: &Case, out: &Path) -> Fallible<Plan> {
         viewport: fakes::VIEWPORT,
         previous: None,
         max_duration: deadline(case),
-        env: vec![var("RESET_OUT", out), var("PATH", path)],
+        env: vec![
+            var("RESET_OUT", out),
+            var("PATH", path),
+            var("RESET_SLEEP", format!("0.{:03}", case.reset_ms)),
+        ],
         withheld: Vec::new(),
     })
 }

@@ -45,6 +45,8 @@ pub struct Trace {
     /// When each reset command started.
     pub resets: Vec<u64>,
     pub interrupts: usize,
+    /// How many interruptions the run saw.
+    pub fired: usize,
 }
 
 /// The ports and the plan of a run.
@@ -99,6 +101,7 @@ fn prepare(case: &Case, n: usize) -> Fallible<Run> {
     let interrupt = Fires {
         from: case.interrupt_from,
         calls: 0,
+        fired: Arc::default(),
     };
     let plan = plan(case, &out)?;
     let store = MemoryStore::default();
@@ -134,6 +137,7 @@ async fn simulate(case: &Case, n: usize) -> Fallible<Trace> {
         sleeps: run.clock.sleeps,
         launches: run.launch.started,
         interrupts: run.interrupt.calls,
+        fired: run.interrupt.fired.load(Ordering::SeqCst),
     })
 }
 

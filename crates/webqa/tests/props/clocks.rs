@@ -123,15 +123,24 @@ fn boxed(browser: FakeBrowser) -> Box<dyn Browser> {
 pub struct Fires {
     pub from: Option<usize>,
     pub calls: usize,
+    /// How many times the run saw an interruption: polled one that came.
+    pub fired: Arc<AtomicUsize>,
 }
 
 impl Interrupt for Fires {
     fn wait(&mut self) -> Pending<'_, ()> {
         self.calls += 1;
         if self.from.is_some_and(|from| self.calls >= from) {
-            Box::pin(future::ready(()))
+            seen(Arc::clone(&self.fired))
         } else {
             stuck()
         }
     }
+}
+
+/// An interruption that is counted when the run polls it.
+fn seen(fired: Arc<AtomicUsize>) -> Pending<'static, ()> {
+    Box::pin(async move {
+        fired.fetch_add(1, Ordering::SeqCst);
+    })
 }
