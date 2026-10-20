@@ -91,8 +91,9 @@ Chromiumは、そのdriverが求める版を`just install-browsers`で入れる�
 既定のモデルは`typesafe-ai/jev-1.14.0`である。
 JEVが答えない自由な文の問いは、AI Gatewayの言語モデルへ送る。
 ただし、送るのは`--text-model`を渡したときだけである。
-`--text-claude`を渡したときは、Gatewayを使わない。
-代わりに、Claude Codeの`claude -p`で答える。
+`--text-claude`を渡したときは、自由な文の問いをGatewayへ送らない。
+Claude Codeの`claude -p`で答える。
+JEVの問いは、そのときもGatewayへ送る。
 `bridge/`はPythonの標準ライブラリだけで書き、外部のパッケージを使わない。
 橋渡しの形式と引数は[判断モデル](judge.md)にある。
 

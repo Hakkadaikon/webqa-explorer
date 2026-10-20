@@ -266,10 +266,16 @@ JEVの問いは、今までどおりGatewayのJEVへ送る。
 呼び出しは`bridge/claude_cli.py`にまとめてある。
 
 画面の文は外のサイトの文なので、`claude -p`には操作の手段を持たせない。
-ツールを`--tools ""`ですべて外し、設定のファイルとMCPのサーバーも読ませない。
+ツールを`--tools ""`ですべて外す。
+`--safe-mode`で、CLAUDE.md、スキル、プラグイン、フック、MCPのサーバーを止める。
+`--setting-sources ""`で、設定のファイルも読ませない。
 会話は保存させない。
 作業ディレクトリは、問いごとに作る空の一時ディレクトリにする。
-環境変数`WEBQA_JUDGE_API_KEY`は、`claude`に渡さない。
+2.1.304で、利用者のCLAUDE.mdの指示が答えに届かないことを確かめた。
+`claude`に渡す環境変数は、ログインと通信と文字の扱いに要るものだけにする。
+`HOME`、`PATH`、`ANTHROPIC_`と`CLAUDE_`と`LC_`と`XDG_`で始まるもの、プロキシの変数などである。
+Gatewayのキーは、`WEBQA_JUDGE_API_KEY`にも、設定の`api_key`が指す元の変数にも入っている。
+どちらの名前も、`claude`には渡らない。
 `claude`は、利用者がClaude Codeでログインした認証か、`ANTHROPIC_API_KEY`で呼ぶ。
 `--bare`は使わない。
 キーチェーンを読まなくなり、ログインの認証が使えなくなるためである。
@@ -301,7 +307,20 @@ judge:
 1行に`text`の問いが2つ以上あると、その分だけ待つ。
 そのため、`--timeout`と`judge.timeout_secs`は、Gatewayの言語モデルのときより長めにとる。
 
-引数は次の4つである。
+`claude`は、Claude Codeの2.1.304で確かめた。
+`--safe-mode`や`--tools`を知らない古い版では、答えの行が読めず`api`の失敗になる。
+標準エラーは捨てるので、失敗の理由は見えない。
+設定する前に、問いの行を1つ流して答えが返るかを確かめる。
+
+```sh
+echo '{"version":2,"seq":1,"screen":"1: button \"保存\"","questions":[{"kind":"text","id":"expectation","prompt":"押したら何が起きると思うか、1文で答える"}]}' \
+  | ./bridge/jev.py --text-claude haiku --timeout 60
+```
+
+1行目に申告の行、2行目に`answers`の行が出れば使える。
+2行目が`error`なら、`claude -p`をそのまま端末で動かして、ログインと版を確かめる。
+
+引数は次のとおり。
 
 | 引数 | 既定 | 中身 |
 |---|---|---|
