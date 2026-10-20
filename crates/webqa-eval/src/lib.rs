@@ -2,6 +2,7 @@
 //! reads the answer key, takes the issues out of a ledger and scores them.
 
 pub mod found;
+pub mod score;
 pub mod truth;
 
 /// A failure of reading the answer key, the labels or a ledger.
