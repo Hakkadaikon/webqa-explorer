@@ -1,0 +1,31 @@
+- id: faint-price-link
+  kind: visibility
+  path: /product-a.html
+  element: {role: link, name: 料金を見る}
+  note: 薄い灰色で小さな字の「料金を見る」のリンク
+- id: invisible-filter
+  kind: visibility
+  path: /attendance.html
+  element: {role: button, name: 条件}
+  note: 文字の色が背景と同じで見えない「条件」のボタン
+- id: next-or-go
+  kind: hesitant
+  path: /attendance.html
+  element: {role: button, name: 次へ}
+  note: 意味の違いが書かれていない「次へ」と「進む」のボタンが並ぶ
+- id: same-name-links
+  kind: hesitant
+  path: /search.html
+  element: {role: link, name: 詳しく}
+  note: 同じ名前の「詳しく」のリンクが3つ並び、どの製品か名前から分からない
+- id: no-compare
+  kind: unreached
+  note: 料金を並べて比べる画面(/compare.html)へのリンクがどこにも無い
+- id: title-not-products
+  kind: mismatch
+  path: /attendance.html
+  note: 題は「人気の製品」だが、中身は製品ではなく記事の一覧
+- id: request-asks-signup
+  kind: mismatch
+  path: /request.html
+  note: 資料請求の画面なのに、見出しと文が会員登録を求めている

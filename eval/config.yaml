@@ -1,0 +1,27 @@
+target:
+  url: __URL__
+  allowed_origins: []
+judge:
+  kind: command
+  command: ["./bridge/jev.py", "--model", "typesafe-ai/jev-1.14.0", "--text-model", "anthropic/claude-haiku-5.5", "--timeout", "60"]
+  api_key: {env: WEBQA_JUDGE_API_KEY}
+  timeout_secs: 70
+  pricing: {input_per_1k: 0.0, output_per_1k: 0.0}
+limits:
+  freeze_threshold: 3
+  stuck_threshold: 3
+  max_decisions: 30
+  requests_per_hour: 600
+  page_timeout_secs: 10
+  max_duration_secs: 600
+  back_confidence: 0.7
+  error_confidence: 0.8
+guard:
+  forbidden: {keywords: ["登録"], selectors: []}
+  allowed: {selectors: []}
+inputs:
+  検索語: {env: WEBQA_SEARCH, secret: false}
+interview:
+  persona: eval/persona.yaml
+  purpose: eval/purpose.yaml
+  trials: 3
