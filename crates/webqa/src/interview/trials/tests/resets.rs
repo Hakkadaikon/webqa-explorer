@@ -37,7 +37,7 @@ impl Clock for Gauged {
 /// A clock for runs with a reset command: it wakes only for the waits for
 /// the window, which end on the hour, and never for the command's own
 /// timeout. It counts the lines of the command's file at each of them.
-struct Watching {
+pub(super) struct Watching {
     out: PathBuf,
     now: Duration,
     at_sleep: Vec<usize>,
@@ -60,7 +60,15 @@ impl Clock for Watching {
 
 impl Watching {
     /// Runs `world` on a clock that watches its reset command's file.
-    async fn run(world: &mut World) -> (Ending, Self) {
+    pub(super) async fn run(world: &mut World) -> (Ending, Self) {
+        Self::run_with(world, &mut Never).await
+    }
+
+    /// As [`Self::run`], with the user interrupting as `interrupt` says.
+    pub(super) async fn run_with(
+        world: &mut World,
+        interrupt: &mut dyn Interrupt,
+    ) -> (Ending, Self) {
         let mut clock = Self {
             out: world.out(),
             now: Duration::ZERO,
@@ -72,7 +80,7 @@ impl Watching {
             &mut clock,
             &mut world.store,
             &world.redactor,
-            &mut Never,
+            interrupt,
             &world.plan,
         )
         .await;

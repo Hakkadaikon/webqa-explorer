@@ -26,6 +26,7 @@ use webqa_judge::scripted::Scripted;
 mod ends;
 mod findings;
 mod given;
+mod groups;
 mod opening;
 mod purposes;
 mod records;
