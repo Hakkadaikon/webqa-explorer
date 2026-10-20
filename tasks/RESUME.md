@@ -17,13 +17,13 @@
 | `webqa ledger` | 終わった実行の台帳を開いて課題を選ぶ TUI |
 | 文書 | `docs/architecture.md` を `docs/arch/` の14本に分け、README を概要にし、`.omm/` に図を置いた |
 
-PR の前にすること: diff-review を6観点(design、test、security、docs、spec、fresh-eyes)で must 0 まで回し、証跡 `tasks/diff-review/evidence.md` を書く(フックが検査する)。PR の本文には、c18ac7d に旧設計書の削除が混ざり、85bb5a3 までビルドが通らないことを書く。
+PR の前にすること: diff-review を6観点(design、test、security、docs、spec、fresh-eyes)で must 0 まで回し、証跡 `tasks/diff-review/evidence.md` を書く(フックが検査する)。PR の本文には、c18ac7d に旧設計書の削除が混ざり、85bb5a3 までビルドが通らないことと、55aaf51 に文書の直し(records.md と .omm/command-surface)が混ざり、38d2572 のメッセージがそれを指していることを書く。
 
 ### 残りの課題
 
-- 台帳のスクリーンショットのステップ番号を、イベントログの step に揃える(`tasks/decisions.md` の「台帳のステップ番号」)。
-- インタビューの問いの操作の種類を、中核の絞り込み(`offer`)に合わせる(`tasks/decisions.md` の「インタビューの enter」)。
-- 設定の値が0のときの誤りの文に、項目の名前が入らない(受け入れでは位置まで比べている)。
+- #73: 台帳のスクリーンショットのステップ番号を、イベントログの step に揃える。
+- #72: インタビューの問いの操作の種類を、中核の絞り込み(`offer`)に合わせる。
+- #74: 設定の値が0のときの誤りの文に、項目の名前を入れる(受け入れでは今は位置まで比べている)。
 - #67(失敗で終わったときも実行結果を書く)、#69(インタビューの実行結果に入力の名前と単価)、#71(Linux のコンテナ)。
 - 探索モードの使い方の文書(TodoMVC を手本に)。worktree `docs-usage` を用意してある。
 
