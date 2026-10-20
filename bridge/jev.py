@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Bridge between webqa's judge format (version 2) and the JEV judge model
 behind the Vercel AI Gateway. Free-text questions go to a language model of
-the gateway, since JEV answers only yes-or-no, choice and score.
+the gateway, or to `claude -p` with `--text-claude`, since JEV answers only
+yes-or-no, choice and score.
 
 Reads one request line from stdin and writes one answer line to stdout per
 request, after a version line. Writes nothing to stderr: the core throws it

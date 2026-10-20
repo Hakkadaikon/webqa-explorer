@@ -72,9 +72,10 @@ def request(questions, seq=1, image=None):
     return json.dumps(line, ensure_ascii=False)
 
 
-def options(model=jev.DEFAULT_MODEL, text_model=None, timeout="30"):
+def options(model=jev.DEFAULT_MODEL, text_model=None, timeout="30", text_claude=None):
     argv = ["--model", model, "--timeout", timeout]
     argv += ["--text-model", text_model] if text_model else []
+    argv += ["--text-claude", text_claude] if text_claude else []
     return jev.parse_args(argv)
 
 

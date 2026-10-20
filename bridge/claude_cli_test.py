@@ -9,7 +9,7 @@ from unittest import mock
 import claude_cli
 import gateway
 import jev
-from fake import SCREEN, TEXT, FakeHttp, ask, error, request
+from fake import JEV_REPLY, NOUL, SCREEN, TEXT, FakeHttp, ask, error, options, request
 from gateway import Budget
 
 IMAGE = {"media_type": "image/png", "data": "iVBORw=="}
@@ -50,13 +50,13 @@ class FakeRun:
         return json.loads(self.calls[n][1]["input"])
 
 
-def options(model="haiku"):
-    return jev.parse_args(["--text-claude", model])
-
-
-def asked(line, run, env=()):
+def asked(line, run, env=(), http=None):
     with mock.patch.object(claude_cli.subprocess, "run", run):
-        return ask(line, FakeHttp(), options(), env=env)[0]
+        return ask(line, http or FakeHttp(), options(text_claude="haiku"), env=env)[0]
+
+
+def system_of(argv):
+    return argv[argv.index("--system-prompt") + 1]
 
 
 class ClaudeTextTest(unittest.TestCase):
@@ -66,12 +66,27 @@ class ClaudeTextTest(unittest.TestCase):
         command, kwargs = run.calls[0]
         self.assertEqual(
             command,
-            ["claude", "-p", "--model", "haiku", "--system-prompt", jev.TEXT_SYSTEM]
-            + claude_cli.FLAGS,
+            [
+                "claude",
+                "-p",
+                "--model",
+                "haiku",
+                "--system-prompt",
+                jev.TEXT_SYSTEM,
+                "--safe-mode",
+                "--tools",
+                "",
+                "--setting-sources",
+                "",
+                "--strict-mcp-config",
+                "--no-session-persistence",
+                "--input-format",
+                "stream-json",
+                "--output-format",
+                "stream-json",
+                "--verbose",
+            ],
         )
-        for flag in ("--tools", "--setting-sources", "--strict-mcp-config"):
-            self.assertIn(flag, claude_cli.FLAGS)
-        self.assertEqual(claude_cli.FLAGS[claude_cli.FLAGS.index("--tools") + 1], "")
         self.assertEqual(
             run.message(),
             {
@@ -83,21 +98,62 @@ class ClaudeTextTest(unittest.TestCase):
             },
         )
         self.assertEqual(kwargs["timeout"], 30.0)
+        self.assertEqual(kwargs["encoding"], "utf-8")
         self.assertEqual(
             answer["answers"], {"expectation": [{"option": "注文が確定すると思った"}]}
         )
         self.assertEqual(answer["usage"], {"input_tokens": 662, "output_tokens": 40})
 
-    def test_claude_runs_in_an_empty_directory_without_the_gateway_key(self):
+    def test_claude_runs_in_an_empty_directory_with_only_what_it_needs(self):
         run = FakeRun(output(RESULT))
-        env = {gateway.KEY_ENV: "secret", "HOME": "/home/x"}
+        env = {
+            gateway.KEY_ENV: "secret",
+            "JEV_API_KEY": "secret",
+            "HOME": "/home/x",
+            "PATH": "/bin",
+            "ANTHROPIC_API_KEY": "own",
+            "CLAUDE_CONFIG_DIR": "/c",
+            "LC_ALL": "C.UTF-8",
+            "https_proxy": "http://proxy",
+        }
         asked(request([TEXT]), run, env=env)
         kwargs = run.calls[0][1]
-        self.assertEqual(kwargs["env"], {"HOME": "/home/x"})
+        self.assertEqual(
+            kwargs["env"],
+            {
+                "HOME": "/home/x",
+                "PATH": "/bin",
+                "ANTHROPIC_API_KEY": "own",
+                "CLAUDE_CONFIG_DIR": "/c",
+                "LC_ALL": "C.UTF-8",
+                "https_proxy": "http://proxy",
+            },
+        )
         self.assertEqual(run.seen, [], "nothing to read where claude starts")
         self.assertNotEqual(kwargs["cwd"], os.getcwd())
         self.assertFalse(os.path.exists(kwargs["cwd"]), "removed afterwards")
         self.assertEqual(kwargs["stderr"], subprocess.DEVNULL)
+
+    def test_jev_questions_still_go_to_the_gateway_and_the_tokens_add_up(self):
+        run = FakeRun(output(RESULT))
+        http = FakeHttp(JEV_REPLY)
+        answer = asked(request([NOUL, TEXT]), run, http=http)
+        self.assertEqual([r.full_url for r in http.requests], [jev.JEV_URL])
+        self.assertEqual(sorted(answer["answers"]), ["error_shown", "expectation"])
+        jev_in, jev_out = (
+            JEV_REPLY["usage"]["input_tokens"],
+            JEV_REPLY["usage"]["output_tokens"],
+        )
+        self.assertEqual(
+            answer["usage"],
+            {"input_tokens": jev_in + 662, "output_tokens": jev_out + 40},
+        )
+
+    def test_usage_without_cache_counts_the_input_alone(self):
+        usage = {"input_tokens": 5, "output_tokens": 1}
+        run = FakeRun(output({**RESULT, "usage": usage}))
+        answer = asked(request([TEXT]), run)
+        self.assertEqual(answer["usage"], {"input_tokens": 5, "output_tokens": 1})
 
     def test_the_program_comes_from_the_environment(self):
         run = FakeRun(output(RESULT))
@@ -118,7 +174,7 @@ class ClaudeTextTest(unittest.TestCase):
                 {"type": "image", "source": {"type": "base64", **IMAGE}},
             ],
         )
-        self.assertEqual(run.calls[1][0][5], jev.HARD_TO_SEE_SYSTEM)
+        self.assertEqual(system_of(run.calls[1][0]), jev.HARD_TO_SEE_SYSTEM)
 
     def test_a_failed_result_is_an_api_error(self):
         run = FakeRun(output({**RESULT, "is_error": True}))

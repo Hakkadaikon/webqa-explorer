@@ -1,18 +1,24 @@
 """Free-text questions for jev.py through the Claude Code CLI (`claude -p`).
 
 The screen is a page's text, never instructions to act on, so claude runs
-with no tool, no setting, no MCP server and no saved session, in an empty
-directory. The gateway's key stays with jev.py; claude signs in on its own."""
+with no tool, no setting, no customization, no MCP server and no saved
+session, in an empty directory, with only the environment it needs to sign
+in: no key of the gateway reaches it under any name."""
 
 import json
 import os
 import subprocess
 import tempfile
 
-from gateway import KEY_ENV, Failure, dump
+from gateway import Failure, dump
 
 PROGRAM_ENV = "WEBQA_CLAUDE"
+# What claude needs to find its sign-in, reach the network and read text.
+PASSED = ("HOME", "PATH", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "TZ")
+PASSED_PREFIXES = ("ANTHROPIC_", "CLAUDE_", "LC_", "XDG_")
+PROXIES = ("HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "ALL_PROXY")
 FLAGS = [
+    "--safe-mode",
     "--tools",
     "",
     "--setting-sources",
@@ -41,9 +47,15 @@ def message(text, image):
     return dump({"type": "user", "message": {"role": "user", "content": content}})
 
 
+def passed(name):
+    upper = name.upper()
+    return upper in PASSED + PROXIES or upper.startswith(PASSED_PREFIXES)
+
+
 def child_env():
-    """The environment without the gateway's key."""
-    return {name: value for name, value in os.environ.items() if name != KEY_ENV}
+    """Only the variables claude needs; the gateway's key, whatever its
+    name, stays behind."""
+    return {name: value for name, value in os.environ.items() if passed(name)}
 
 
 def run(argv, line, budget):
@@ -56,6 +68,7 @@ def run(argv, line, budget):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
                 text=True,
+                encoding="utf-8",
                 timeout=budget.left(),
                 cwd=cwd,
                 env=child_env(),
