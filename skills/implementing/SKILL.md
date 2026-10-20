@@ -11,8 +11,8 @@ description: >
 
 ## 読む順番
 
-1. `docs/architecture.md`で、触るcrateとモジュールの受け持ちを確かめる。
-   「複雑度の上限に耐える書き方」と「テストの層」は必ず読む。
+1. `docs/arch/overview.md`で、触るcrateとモジュールの受け持ちを確かめる。
+   `docs/arch/code-style.md`と`docs/arch/testing.md`は必ず読む。
 2. `docs/quality-gates.md`で、基準と落ちたときの直し方を確かめる。
 3. `tasks/test-design/WebExploratoryQA.md`で、briefが指す行を読む。
    確かめる振る舞い、出典、手法を確かめる。

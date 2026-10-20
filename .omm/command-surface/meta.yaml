@@ -1,0 +1,36 @@
+created: 2026-10-20T01:05:24.569Z
+updated: 2026-10-20T01:43:33.373Z
+update_count: 7
+last_field: diagram
+git_commit: 461ad44
+git_branch: docs-arch
+children:
+  - check-docs
+  - explore
+  - interview
+  - ledger
+  - replay
+  - run
+  - run-session
+  - watch
+  - webqa
+prev_diagram: |
+  graph TD
+      webqa["webqa\ncrates/webqa/src/cli.rs"]:::entry
+      run["run\n--config --out"]
+      explore["explore\n--config --out"]
+      replay["replay\nreport --config --out"]
+      interview["interview\n--config --out --previous"]
+      check-docs["check-docs\npersona|purpose file"]
+      watch["watch\ndir"]
+      run-session["Run Session\ncrates/webqa/src/run/session.rs"]
+      webqa -->|"決め打ちシナリオモード"| run
+      webqa -->|"探索モード"| explore
+      webqa -->|"実行結果の答えで再実行"| replay
+      webqa -->|"ペルソナの試行"| interview
+      webqa -->|"文書の形の検査"| check-docs
+      webqa -->|"別の実行を追う"| watch
+      run -->|"起動の手順のあと"| run-session
+      explore -->|"起動の手順のあと"| run-session
+      replay -->|"起動の手順のあと"| run-session
+      classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e

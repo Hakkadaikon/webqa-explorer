@@ -1,0 +1,21 @@
+graph LR
+    machine["Machine\nsrc/machine.rs, src/machine/"]
+    plan["Plan\nsrc/plan.rs, src/stage.rs, src/window.rs"]
+    guard["Guard\nsrc/guard.rs, src/guard/"]
+    redact["Redact\nsrc/redact.rs, src/redact/"]
+    explore["Explore\nsrc/explore.rs, src/explore/"]
+    judge["Judge Questions\nsrc/judge.rs, src/judge/"]
+    config["Config\nsrc/config.rs, src/config/"]
+    interview["Interview\nsrc/interview.rs, src/interview/"]
+    event["Event\nsrc/event.rs, src/issue.rs"]
+    ports["Ports\nsrc/ports.rs, src/effect.rs"]
+    machine -->|"待機のときの行を選ぶ"| plan
+    machine -->|"提案を止めるか確かめる"| guard
+    machine -->|"画面を記憶に入れる"| explore
+    machine -->|"質問を作り、答えを確かめる"| judge
+    machine -->|"返す効果の型"| ports
+    machine -->|"モードと問題の種類"| event
+    config -->|"設定のモード"| event
+    ports -->|"伏せ字済みの値だけを渡す"| redact
+    interview -->|"台帳を伏せ字で書く"| redact
+    config -->|"伏せ字の規則を作る"| redact

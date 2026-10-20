@@ -9,7 +9,7 @@ use webqa_core::interview::issue::Kind;
 use webqa_tui::ledger::{self, Input, Screen};
 use webqa_tui::view::{Decision, State, render};
 
-/// The event log example of `docs/architecture.md`.
+/// The event log example of `docs/arch/records.md`.
 const EXAMPLE: [&str; 4] = [
     r#"{"seq":0,"elapsed_ms":0,"kind":"run_started","schema":1,"mode":"explore","started_at":"2026-10-18T02:00:00Z"}"#,
     r#"{"seq":1,"elapsed_ms":1200,"step":1,"kind":"decided","op":"click","target":"保存","p":0.9}"#,

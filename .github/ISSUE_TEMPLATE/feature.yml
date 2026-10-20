@@ -22,7 +22,7 @@ body:
     id: modules
     attributes:
       label: 関わるcrateとモジュール
-      description: docs/architecture.mdのディレクトリ構成にある名前で書く
+      description: docs/arch/overview.mdのディレクトリ構成にある名前で書く
       placeholder: webqa-core::guard
     validations:
       required: true

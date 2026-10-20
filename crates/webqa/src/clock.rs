@@ -23,7 +23,7 @@ impl RealClock {
     #[must_use]
     #[expect(
         clippy::disallowed_methods,
-        reason = "the one place that reads the time (docs/architecture.md)"
+        reason = "the one place that reads the time (docs/arch/runtime.md)"
     )]
     pub fn start() -> Self {
         Self {
@@ -40,7 +40,7 @@ impl Clock for RealClock {
     /// A time too far to represent is never reached, so the wait never ends.
     #[expect(
         clippy::disallowed_methods,
-        reason = "the one place that reads the time (docs/architecture.md)"
+        reason = "the one place that reads the time (docs/arch/runtime.md)"
     )]
     fn sleep_until(&mut self, at: Duration) -> Pending<'_, ()> {
         let never: Pending<'_, ()> = Box::pin(future::pending());
@@ -64,7 +64,7 @@ impl Wall {
     #[must_use]
     #[expect(
         clippy::disallowed_methods,
-        reason = "the one place that reads the time (docs/architecture.md)"
+        reason = "the one place that reads the time (docs/arch/runtime.md)"
     )]
     pub fn now() -> Self {
         Self::at(Timestamp::now())

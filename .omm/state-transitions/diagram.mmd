@@ -1,0 +1,38 @@
+graph LR
+    begin(("開始"))
+    idle["Idle\n待機"]:::entry
+    awaiting["Awaiting\n判断モデルの答えを待つ"]
+    confirming["Confirming\n要素の引き直しを待つ"]
+    acting["Acting\n操作のあとの画面を待つ"]
+    returning["Returning\n開き直したあとの画面を待つ"]
+    recovering["Recovering\n再読み込みのあとの画面を待つ"]
+    sleeping["Sleeping\n時間窓が開くのを待つ"]
+    ended["Ended\n実行の終わり"]:::store
+    finish(("終了"))
+    begin -->|"最初の観測"| idle
+    idle -->|"段階の目標に達して次の段階へ"| idle
+    idle -->|"判断モデルに尋ねる"| awaiting
+    idle -->|"時間窓が満ちた"| sleeping
+    idle -->|"画面が固まった"| recovering
+    idle -->|"許可ドメインの外に出た"| returning
+    idle -->|"課金画面から抜ける"| acting
+    idle -->|"目標、行き詰まり、予算、時間"| ended
+    awaiting -->|"異常か却下"| idle
+    awaiting -->|"要素を操作する提案"| confirming
+    awaiting -->|"要素の無い提案"| acting
+    awaiting -->|"doneかstuckの答え"| ended
+    confirming -->|"同じノード"| acting
+    confirming -->|"要素が消えたか替わった"| idle
+    acting -->|"操作のあとの画面"| idle
+    returning -->|"開き直したあとの画面"| idle
+    recovering -->|"再読み込みのあとの画面"| idle
+    sleeping -->|"目が覚めた"| idle
+    awaiting -.->|"利用者の中断"| ended
+    confirming -.->|"利用者の中断"| ended
+    acting -.->|"利用者の中断"| ended
+    returning -.->|"利用者の中断"| ended
+    recovering -.->|"利用者の中断"| ended
+    sleeping -.->|"利用者の中断"| ended
+    ended -->|"終了理由を返す"| finish
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
