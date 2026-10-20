@@ -81,7 +81,7 @@ mod tests {
     use super::super::validate;
     use super::*;
     use crate::config::raw::parse;
-    use crate::config::raw::tests::changed;
+    use crate::config::raw::tests::{changed, example};
 
     fn missing(yaml: &str, absent: &str) -> ConfigError {
         let env = |name: &str| (name != absent).then(|| value_of(name));
@@ -116,6 +116,22 @@ mod tests {
         let shown = format!("{config:?}");
         assert!(!shown.contains("value-of-"), "Debug hides secrets: {shown}");
         assert!(shown.contains("Secret(***)"), "Debug marks secrets");
+    }
+
+    #[test]
+    fn only_inputs_marked_not_secret_are_open() {
+        let load = |yaml: &str| validate(parse(yaml).unwrap(), ALL_ENV, STATE_OK).unwrap();
+        assert_eq!(
+            load(example()).open_inputs,
+            BTreeSet::new(),
+            "secret by default"
+        );
+        let open = changed("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, secret: false }");
+        assert_eq!(
+            load(&open).open_inputs,
+            BTreeSet::from(["メールアドレス".to_owned()]),
+            "secret: false"
+        );
     }
 
     #[test]
