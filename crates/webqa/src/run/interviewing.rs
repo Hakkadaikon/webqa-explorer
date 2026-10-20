@@ -36,22 +36,36 @@ pub struct Interviewing {
     goal: String,
     ops: Vec<Op>,
     reads_images: bool,
+    trial: usize,
     steps: Vec<Taken>,
 }
 
 impl Interviewing {
-    /// The interview of `persona` towards `goal`, offering the operation
-    /// kinds `ops`. A judge that reads images gets a screenshot with each
-    /// question.
+    /// The interview of `persona` in trial number `trial`, towards `goal`,
+    /// offering the operation kinds `ops`. A judge that reads images gets a
+    /// screenshot with each question.
     #[must_use]
-    pub const fn new(persona: Persona, goal: String, ops: Vec<Op>, reads_images: bool) -> Self {
+    pub const fn new(
+        persona: Persona,
+        goal: String,
+        ops: Vec<Op>,
+        reads_images: bool,
+        trial: usize,
+    ) -> Self {
         Self {
             persona,
             goal,
             ops,
             reads_images,
+            trial,
             steps: Vec::new(),
         }
+    }
+
+    /// The number of the trial, from 1.
+    #[must_use]
+    pub const fn trial(&self) -> usize {
+        self.trial
     }
 
     /// The steps kept so far, which are no longer kept.

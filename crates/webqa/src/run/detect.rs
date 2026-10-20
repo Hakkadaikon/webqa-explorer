@@ -5,7 +5,7 @@ use webqa_core::issue::{Issue, IssueKind, accessible_name_issues, console_issues
 use webqa_core::machine::Seen;
 use webqa_core::redact::Redacted;
 
-use super::{Ports, RunError};
+use super::{Interviewing, Ports, RunError};
 use crate::record::Found;
 use crate::store::screenshots;
 
@@ -40,11 +40,20 @@ pub(super) async fn note_issue(ports: &mut Ports<'_>, issue: Issue) -> Result<()
     Ok(())
 }
 
+/// The file name of the screenshot of an issue of `kind` at the current
+/// step: in an interview, with the number of the trial.
+fn screenshot_name(ports: &Ports<'_>, kind: IssueKind) -> String {
+    let step = ports.step;
+    let plain = || screenshots::name(kind, step);
+    let trial = |interview: &Interviewing| screenshots::trial_name(kind, interview.trial(), step);
+    ports.interview.as_ref().map_or_else(plain, trial)
+}
+
 /// Takes the screenshot of an issue of `kind` and writes it, once per
 /// name. `None` when the browser could not take it: the issue is recorded
 /// without one and the run goes on.
 async fn shoot(ports: &mut Ports<'_>, kind: IssueKind) -> Result<Option<String>, RunError> {
-    let name = screenshots::name(kind, ports.step);
+    let name = screenshot_name(ports, kind);
     let Ok(image) = ports.browser.screenshot().await else {
         return Ok(None);
     };

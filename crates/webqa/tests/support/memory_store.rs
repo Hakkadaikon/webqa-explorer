@@ -1,7 +1,6 @@
 //! The store that keeps the records in memory.
 
 use std::collections::BTreeMap;
-use std::future;
 
 use serde_json::Value;
 use webqa_core::judge::Image;
@@ -9,6 +8,8 @@ use webqa_core::ports::{Pending, Store, StoreError};
 use webqa_core::redact::Redacted;
 
 use super::ready;
+
+use super::stuck::stuck;
 
 /// Keeps the records in memory. Once it has taken `limit` writes of any
 /// kind (lines, memories, reports, screenshots), it fails every write.
@@ -80,7 +81,7 @@ impl Store for MemoryStore {
 
     fn write_ledger<'a>(&'a mut self, text: &'a str) -> Pending<'a, Result<(), StoreError>> {
         if self.hangs_on_ledger {
-            return Box::pin(future::pending());
+            return stuck();
         }
         self.ledger = Some(text.to_owned());
         self.wrote()

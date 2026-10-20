@@ -51,7 +51,11 @@ pub fn plan(case: &Case, out: &Path) -> Fallible<Plan> {
         viewport: fakes::VIEWPORT,
         previous: None,
         max_duration: deadline(case),
-        env: vec![var("RESET_OUT", out), var("PATH", path)],
+        env: vec![
+            var("RESET_OUT", out),
+            var("PATH", path),
+            var("RESET_SLEEP", format!("0.{:03}", case.reset_ms)),
+        ],
         withheld: Vec::new(),
         mode: Mode::Scenario,
         started_at: None,
@@ -68,11 +72,7 @@ fn deadline(case: &Case) -> Option<Duration> {
 fn rules(case: &Case) -> Fallible<Rules> {
     let limits = [5, 5, 10, case.accesses].map(nz);
     let app = AllowedOrigin::parse(ORIGIN)?;
-    let rules = fakes::rules(&[Op::Click], limits, vec![app]);
-    Ok(Rules {
-        max_duration: deadline(case),
-        ..rules
-    })
+    Ok(fakes::rules(&[Op::Click], limits, vec![app]))
 }
 
 /// The settings of `case`: a reset command that writes a line.

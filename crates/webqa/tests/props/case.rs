@@ -17,6 +17,8 @@ pub struct Case {
     pub think: u64,
     /// The minutes the browser takes to open.
     pub launch: u64,
+    /// The milliseconds the reset command takes.
+    pub reset_ms: u64,
     /// The time limit, in minutes.
     pub deadline: Option<u64>,
     /// From which call on the user interrupts.
@@ -30,16 +32,18 @@ pub fn cases() -> impl Strategy<Value = Case> {
         vec(0usize..=4, 4),
         1u64..=25,
         1u64..=10,
+        0u64..=30,
         option::weighted(0.6, 20u64..=300),
         option::weighted(0.25, 3usize..=40),
     )
         .prop_map(
-            |(trials, accesses, clicks, think, launch, deadline, interrupt_from)| Case {
+            |(trials, accesses, clicks, think, launch, reset_ms, deadline, interrupt_from)| Case {
                 trials,
                 accesses,
                 clicks,
                 think,
                 launch,
+                reset_ms,
                 deadline,
                 interrupt_from,
             },

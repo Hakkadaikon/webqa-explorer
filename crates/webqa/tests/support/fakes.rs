@@ -220,4 +220,7 @@ impl Clock for FakeClock {
 #[path = "memory_store.rs"]
 mod memory_store;
 
+#[path = "stuck.rs"]
+pub mod stuck;
+
 pub use memory_store::MemoryStore;

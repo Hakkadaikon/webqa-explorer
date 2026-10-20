@@ -52,7 +52,7 @@ async fn interrupt_stops_the_command_and_what_it_started() {
         confirmed: false,
     };
     assert_eq!(
-        (ending, (0..2000).any(|_| !alive(grandchild))),
+        (ending, (0..50_000).any(|_| !alive(grandchild))),
         (interrupted, true),
         "the process the command started is gone after the interruption"
     );

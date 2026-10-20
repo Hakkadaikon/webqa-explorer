@@ -75,6 +75,7 @@ impl Course<'_> {
         let launching = self.parts.launch.launch();
         let interrupt = &mut *self.interrupt;
         let late = until(&mut *self.parts.clock, self.plan.max_duration);
+        // Launch before the limit: a clock that ends a sleep at once must not win.
         let raced = tokio::select! {
             biased;
             () = interrupt.wait() => Raced::Interrupted,
