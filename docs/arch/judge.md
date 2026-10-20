@@ -244,7 +244,7 @@ JEVの問いは1回の呼び出しにまとめ、`text`の問いは1つずつ別
 インタビューのモードは、期待(`expectation`)の問いだけを別の行で送る([インタビューのモード](interview-mode.md))。
 その行にはJEVの問いが無いので、JEVを呼ばず、言語モデルへの1回の呼び出しだけで答える。
 時間の予算は行ごとに測るので、1つのステップの2行は、それぞれ`--timeout`まで待つ。
-`text`の問いには、system のメッセージで次の決まりを伝える。
+`text`の問いには、systemのメッセージで次の決まりを伝える。
 答えだけを返す。Markdown、見出し、前置き、独白を書かない。
 問いが求める形(1文、「番号: 理由」の行の並び)を守る。
 空の文字列を返してよいのは、見えにくい要素(`hard_to_see`)の問いだけにする。
@@ -253,9 +253,8 @@ JEVの問いは1回の呼び出しにまとめ、`text`の問いは1つずつ別
 それでも崩れたときの守りは、受け取った文の前後の空白を取ることだけにする。
 中身は作り変えない。
 見えにくい要素(`hard_to_see`)の問いは、行に画像があれば、画面の文と並べて画像も送る。
-画像は、chat completions の`image_url`に data URL で入れる。
-画像を扱えない言語モデルを`--text-model`に選ぶと、
-その問いは Gateway の失敗(`api`)になりうる。
+画像は、chat completionsの`image_url`にdata URLで入れる。
+画像を扱えない言語モデルを`--text-model`に選ぶと、その問いはGatewayの失敗(`api`)になりうる。
 Gatewayへの送信、時間の予算、送り直し、リダイレクトの扱いは`bridge/gateway.py`にまとめてある。
 
 引数は次の3つである。
@@ -280,8 +279,8 @@ Gatewayへの送信、時間の予算、送り直し、リダイレクトの扱�
 そのため、`--timeout`は`judge.timeout_secs`より短くする。
 
 `--model`が`typesafe-ai/jev-1.13.0`か`typesafe-ai/jev-1.14.0`のときだけ、画像を読めると申告する。
-JEVへの問いに画像を添えるときは、
-要求に`TypeSafe-Danger-Zone-Images: true`のヘッダを付ける。
+JEVへの問いに画像を添えるときは、画像を許すヘッダを要求に付ける。
+ヘッダは`TypeSafe-Danger-Zone-Images: true`である。
 言語モデルへの自由文の問いには付けない。
 
 APIキーは、環境変数`WEBQA_JUDGE_API_KEY`から読む。

@@ -24,7 +24,7 @@ lintやカバレッジの除外の注釈も足さない。
 | コミットメッセージ | `commit-msg` | 回る | PRで回る |
 | 依存の監査 | `deny` | 回らない | 回る |
 | mutation | `mutants` | 回らない | PRの変更箇所で回る |
-| カバレッジの送信 | `coverage-lcov` | 回らない | mainへのマージと手動の実行で回る |
+| カバレッジの書き出し(Codecovへ送るのはワークフロー) | `coverage-lcov` | 回らない | mainへのマージと手動の実行で回る |
 
 コミット前の検査はlefthookが走らせる。
 設定は`.config/lefthook.yml`にある。

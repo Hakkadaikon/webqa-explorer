@@ -86,7 +86,7 @@
 | `goal_achieved` | ゴールを達成した |
 | `reported_done` | 判断モデルが終わったと答えた。達成は確かめていない |
 | `stuck` | 行き詰まった。`stuck`は`declared`(判断モデルが答えた)か`no_progress`(進まない回数が閾値に達した) |
-| `budget_exceeded` | 判断モデルを呼ぶ回数の上限に達した |
+| `budget_exceeded` | 判断のステップの数の上限に達した。インタビューのモードでは1ステップで最大2回呼ぶ |
 | `time_exceeded` | 実行の時間の上限に達した |
 | `user_aborted` | 利用者が中断した |
 
