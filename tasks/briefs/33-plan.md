@@ -9,7 +9,7 @@ issue #33(インタビューのモードの受け入れシナリオを配線す�
 - feature は `tasks/loopeng/InterviewMode.feature`。Rule が11、Scenario(Outline を含む)が131本ある。
 - 下の層のテストは #18〜#32 が持つ。#33 は受け入れの層だけを配線する。
 - 試行の外のループ(#30)、`webqa interview` と `webqa check-docs`(#31)、台帳(#24)、照らし合わせ(#25)、台帳の画面(#27)が入っていることを前提にする。
-- 探索モードの受け入れ(`crates/webqa/tests/acceptance.rs`、196本)は、そのまま通らなければならない。
+- 探索モードの受け入れ(`crates/webqa/tests/acceptance.rs`、190本)は、そのまま通らなければならない。
 
 ## 分け方
 

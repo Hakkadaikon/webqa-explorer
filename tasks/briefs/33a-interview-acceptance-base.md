@@ -89,7 +89,7 @@
 | 土台の確かめ | 偽物の判断モデルが答えを使い切ると、止まらずに失敗する(`stuck.rs` の待ち) |
 | 土台の確かめ | 書いた台帳を読み戻すと、課題の番号が `I-` と16進8桁である |
 | `cargo test -p webqa --test interview_acceptance` | 0本のシナリオで成功し、あいまいな手順の出力が無い |
-| `cargo test -p webqa --test acceptance` | 探索モードの196本がそのまま通る |
+| `cargo test -p webqa --test acceptance` | 探索モードの190本がそのまま通る |
 
 止まり続けるテストを書かない。`tokio::time` はこのクレートで禁止なので、待つなら std の `recv_timeout` か `stuck.rs` を使う。
 
