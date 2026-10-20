@@ -94,7 +94,6 @@ fn plan(trials: u32) -> Plan {
         interview: settings(trials),
         rules: fakes::rules(&[Op::Click], limits, vec![app]),
         start: Redactor::default().text("https://app.example.test/"),
-        viewport: fakes::VIEWPORT,
         previous: None,
         max_duration: None,
         env: Vec::new(),

@@ -26,7 +26,6 @@ use webqa_core::interview::schedule::Stop;
 use webqa_core::machine::Rules;
 use webqa_core::ports::{Browser, BrowserError, Clock, Judge, Pending, Store};
 use webqa_core::redact::{Redacted, Redactor};
-use webqa_core::screen::Viewport;
 
 use super::reset::ResetError;
 use crate::interrupt::Interrupt;
@@ -41,8 +40,6 @@ pub struct Plan {
     pub rules: Rules,
     /// The start URL, redacted: the ledger's head says it.
     pub start: Redacted<String>,
-    /// The viewport of the browsers.
-    pub viewport: Viewport,
     /// The ledger of the run before, whose head was checked against this
     /// run's.
     pub previous: Option<Ledger>,

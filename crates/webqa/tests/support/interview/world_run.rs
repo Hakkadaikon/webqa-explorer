@@ -19,7 +19,7 @@ use super::Ran;
 #[path = "world_env.rs"]
 mod env;
 use crate::bridge::{self, RunDir};
-use crate::fakes::{FakeBrowser, MemoryStore, VIEWPORT};
+use crate::fakes::{FakeBrowser, MemoryStore};
 use crate::interruption::SceneInterrupt;
 use crate::judge::SceneJudge;
 use crate::launch::{Openings, SceneLaunch};
@@ -66,7 +66,6 @@ fn plan(started: Started, env: Vec<(OsString, OsString)>) -> Plan {
         max_duration: setup.rules.max_duration,
         rules: setup.rules,
         start: setup.target,
-        viewport: VIEWPORT,
         previous,
         env,
         withheld: withheld.collect(),

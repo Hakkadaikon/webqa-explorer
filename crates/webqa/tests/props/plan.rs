@@ -48,7 +48,6 @@ pub fn plan(case: &Case, out: &Path) -> Fallible<Plan> {
         interview: interview(case),
         rules: rules(case)?,
         start: Redactor::default().text("https://app.example.test/"),
-        viewport: fakes::VIEWPORT,
         previous: None,
         max_duration: deadline(case),
         env: vec![

@@ -19,7 +19,7 @@ use webqa_core::redact::Redactor;
 
 use super::InterviewArgs;
 use super::app::{ABANDONED, Done, stopped};
-use super::start::{self, Stop, VIEWPORT};
+use super::start::{self, Stop};
 use crate::clock::{RealClock, Wall};
 use crate::exit;
 use crate::interrupt::CtrlC;
@@ -92,7 +92,6 @@ fn plan(setup: Setup, interview: Interview, previous: Option<Ledger>, started_at
         max_duration: setup.rules.max_duration,
         rules: setup.rules,
         start: setup.target,
-        viewport: VIEWPORT,
         previous,
         env: vars_os().collect(),
         withheld: withheld.collect(),
