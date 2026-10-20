@@ -66,7 +66,7 @@ async fn reset_child_env_withholds_api_key() {
         (
             seen.contains(key),
             seen.contains("COPY_OF_KEY"),
-            seen.contains("KEEP=\"kept\"")
+            seen.lines().any(|line| line == "KEEP=kept")
         ),
         (false, false, true),
         "the variable with the key is left out and the others are passed"
