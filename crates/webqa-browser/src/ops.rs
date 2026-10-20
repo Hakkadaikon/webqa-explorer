@@ -90,15 +90,42 @@ const fn timed_out(error: &Error) -> bool {
     matches!(error, Error::Timeout(_) | Error::NavigationTimeout { .. })
 }
 
-/// True once the document has loaded. Waited for by the driver, which keeps
-/// the timeout even while a navigation is pending.
-const LOADED: &str = "document.readyState === 'complete'";
+/// True once the document has loaded and no modal that is shown says it is
+/// busy. A hidden one stays in some pages and is not waited for. Waited
+/// for by the driver, which keeps the timeout even while a navigation is
+/// pending.
+///
+/// A page that changes its route by script stays `complete` while its
+/// loading veil, a busy modal, covers every operation. Observed then, the
+/// screen would look like a paywall.
+const LOADED: &str = "document.readyState === 'complete' \
+    && [...document.querySelectorAll('[role=dialog][aria-busy=true]')] \
+        .every(veil => !veil.checkVisibility({ visibilityProperty: true, opacityProperty: true }))";
 
 /// Resolves at `load`, or after `ms` milliseconds.
 const IN_PAGE: &str = "ms => new Promise(done => { \
     if (document.readyState === 'complete') { done(); return; } \
     addEventListener('load', () => done(), { once: true }); \
     setTimeout(done, ms); })";
+
+/// Resolves once the document has had no change for `quiet` milliseconds,
+/// or after `cap` milliseconds if it never rests. A script in the page, as
+/// `IN_PAGE` is, so that a script policy that forbids `eval` does not stop it.
+const QUIET: &str = "([quiet, cap]) => new Promise(done => { \
+    let rest = setTimeout(finish, quiet); \
+    const watch = new MutationObserver(() => { clearTimeout(rest); rest = setTimeout(finish, quiet); }); \
+    const limit = setTimeout(finish, cap); \
+    function finish() { watch.disconnect(); clearTimeout(rest); clearTimeout(limit); done(); } \
+    watch.observe(document, { childList: true, subtree: true, attributes: true, characterData: true }); })";
+
+/// How long the page must rest, in milliseconds, before it is read. Longer
+/// than the gaps seen between the changes of a page that is still drawing
+/// (under 100 ms on it-trend.jp), and than the delay of the scripts that
+/// rewrite a page after a click (300 ms in the fixture).
+const QUIET_MS: u32 = 400;
+
+/// The longest the wait for the rest takes, for pages that never rest.
+const QUIET_CAP_MS: u32 = 2000;
 
 impl PlaywrightBrowser {
     /// Runs the touch, then waits for the page it started to load or for the
@@ -113,12 +140,30 @@ impl PlaywrightBrowser {
         settled(loaded)
     }
 
-    /// Waits for the load after an operation that went through.
+    /// Waits for the load, then for the page to rest, after an operation that
+    /// went through. A page that still changes at the cap is read as it is.
     async fn loaded(&self, done: playwright_rs::Result<()>) -> playwright_rs::Result<()> {
         match done {
-            Ok(()) => self.wait_loaded().await,
+            Ok(()) => {
+                self.wait_loaded().await?;
+                self.wait_quiet().await;
+                Ok(())
+            }
             Err(error) => Err(error),
         }
+    }
+
+    /// Waits in the page for the changes to stop. A failure, such as a
+    /// document replaced meanwhile, ends the wait, as in `wait_in_page`.
+    // shortcut: the cap is the page's own setTimeout, so a page that replaces
+    // setTimeout or MutationObserver, or blocks the main thread, never ends the
+    // wait; add a limit on the Rust side when such a page turns up.
+    async fn wait_quiet(&self) {
+        let waited: playwright_rs::Result<serde_json::Value> = self
+            .page
+            .evaluate(QUIET, Some(&[QUIET_MS, QUIET_CAP_MS]))
+            .await;
+        drop(waited);
     }
 
     /// Waits for the document to load. The driver's wait runs `LOADED` by

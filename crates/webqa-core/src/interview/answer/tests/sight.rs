@@ -3,7 +3,7 @@
 use super::*;
 
 /// Answers to `hard_to_see` with the elements read from them.
-const SIGHTS: [(&str, &[(usize, &str)]); 5] = [
+const SIGHTS: [(&str, &[(usize, &str)]); 21] = [
     ("", &[]),
     ("\n  \n", &[]),
     ("1: 小さい\n2: 薄い", &[(1, "小さい"), (2, "薄い")]),
@@ -12,6 +12,25 @@ const SIGHTS: [(&str, &[(usize, &str)]); 5] = [
         &[(2, "文字が薄い"), (1, "小さい")],
     ),
     ("2: 色: 薄い", &[(2, "色: 薄い")]),
+    ("1：小さい", &[(1, "小さい")]),
+    ("- 1: 小さい\n* 2: 薄い", &[(1, "小さい"), (2, "薄い")]),
+    ("・1: 小さい\n• 2: 薄い", &[(1, "小さい"), (2, "薄い")]),
+    ("１: 小さい\n２：薄い", &[(1, "小さい"), (2, "薄い")]),
+    ("次のとおり。\n1: 小さい", &[(1, "小さい")]),
+    ("見えにくい要素:\n1: 小さい", &[(1, "小さい")]),
+    ("```\n1: 小さい\n```", &[(1, "小さい")]),
+    ("なし", &[]),
+    ("1: \n2:", &[]),
+    (": 小さい\n1.小さい", &[]),
+    ("1: 小さい\n1: 薄い", &[(1, "小さい")]),
+    (
+        "2: 薄い\n\n1: 小さい\n2: 薄い",
+        &[(2, "薄い"), (1, "小さい")],
+    ),
+    ("**1**: 小さい", &[]),
+    ("番号3: x", &[]),
+    ("3番: x", &[]),
+    ("[3]: x", &[]),
 ];
 
 fn sights(listed: &[(usize, &str)]) -> Vec<HardToSee> {
@@ -64,4 +83,48 @@ fn hard_to_see_limited_to_max_options() {
         Err(Unusable::NotAnOption(QuestionId::new(HARD_TO_SEE))),
         "past the options"
     );
+}
+
+#[test]
+fn hard_to_see_cut_to_the_first_three() {
+    let shot = shot();
+    let step = Step {
+        elements: 9,
+        ..step(Some(&shot))
+    };
+    let at = |text| {
+        let answers = changed(full(true), &[(HARD_TO_SEE, Some(&[(text, NAN)]))]);
+        read_step(&answers, &step).map(|r| r.hard_to_see)
+    };
+    let four = "5: a\n4: b\n4: c\n3: d\n2: e";
+    assert_eq!(
+        at(four),
+        Ok(Some(sights(&[(5, "a"), (4, "b"), (3, "d")]))),
+        "three distinct numbers, the repeat not counted"
+    );
+    assert_eq!(
+        at("1: a\n2: b\n3: c\n10: d"),
+        Err(Unusable::NotAnOption(QuestionId::new(HARD_TO_SEE))),
+        "a number not asked is an anomaly even past the cut"
+    );
+}
+
+#[test]
+fn hard_to_see_numbers_are_read_by_value() {
+    let shot = shot();
+    let step = Step {
+        elements: 20,
+        ..step(Some(&shot))
+    };
+    let not_listed = Err(Unusable::NotAnOption(QuestionId::new(HARD_TO_SEE)));
+    let cases = [
+        ("02: x", Ok(Some(sights(&[(2, "x")])))),
+        ("１０: x", Ok(Some(sights(&[(10, "x")])))),
+        ("99999999999999999999: x", not_listed),
+    ];
+    for (text, want) in cases {
+        let answers = changed(full(true), &[(HARD_TO_SEE, Some(&[(text, NAN)]))]);
+        let got = read_step(&answers, &step).map(|r| r.hard_to_see);
+        assert_eq!(got, want, "{text:?}");
+    }
 }

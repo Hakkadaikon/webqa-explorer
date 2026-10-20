@@ -27,7 +27,7 @@ pub struct RawConfig {
     pub redact: Vec<RawRedact>,
     /// Values to type into inputs, keyed by the input's accessible name.
     #[serde(default)]
-    pub inputs: BTreeMap<String, EnvRef>,
+    pub inputs: BTreeMap<String, RawInput>,
     /// Authentication state.
     pub auth: Option<Auth>,
     /// A scripted scenario.
@@ -75,6 +75,22 @@ pub struct EnvRef {
     pub env: String,
 }
 
+/// An input's value, read from an environment variable.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RawInput {
+    /// The variable name.
+    pub env: String,
+    /// Whether the value is hidden from the judge and the logs. `true` when
+    /// omitted.
+    #[serde(default = "default_secret")]
+    pub secret: bool,
+}
+
+const fn default_secret() -> bool {
+    true
+}
+
 /// Prices per 1000 tokens.
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -93,7 +109,8 @@ pub struct Limits {
     pub freeze_threshold: NonZeroU32,
     /// Steps without progress that count as stuck.
     pub stuck_threshold: NonZeroU32,
-    /// The most judge calls in a run.
+    /// The most decision steps in a run. The interview mode calls the judge
+    /// up to twice in one step.
     pub max_decisions: NonZeroU32,
     /// The most operations in an hour.
     pub requests_per_hour: NonZeroU32,

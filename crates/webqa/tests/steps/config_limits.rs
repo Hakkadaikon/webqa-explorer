@@ -83,6 +83,16 @@ async fn outputs_hide(world: &mut QaWorld, value: String) {
     drop(value);
 }
 
+#[then(expr = "イベントログに {string} は含まれない")]
+async fn log_hides(world: &mut QaWorld, value: String) {
+    world.run().await;
+    let lines = world.lines();
+    let leaks = lines
+        .iter()
+        .filter(|line| line.to_string().contains(&value));
+    assert_eq!(leaks.count(), 0, "the log has no value of an input");
+}
+
 #[then(expr = "エラーの表示に API キーの値は含まれない")]
 async fn error_hides_key(world: &mut QaWorld) {
     world.run().await;

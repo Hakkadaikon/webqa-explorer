@@ -13,7 +13,7 @@ use super::super::fakes;
 use super::super::*;
 use super::{Fakes, limited, script, url};
 
-fn act(op: &str, target: Option<ElementId>, p: f64, cause: Cause) -> Act {
+fn act(op: &str, target: Option<ElementId>, (p, cause): (f64, Cause), changed: bool) -> Act {
     Act {
         step: 1,
         op: op.to_owned(),
@@ -21,6 +21,7 @@ fn act(op: &str, target: Option<ElementId>, p: f64, cause: Cause) -> Act {
         p,
         cause,
         act: Duration::ZERO,
+        changed,
         settle: Duration::ZERO,
     }
 }
@@ -35,7 +36,7 @@ async fn act_keeps_the_judge_probability_and_the_target() {
         name: "[[メールアドレス]] に送る".to_owned(),
         nth: 0,
     };
-    let expected = [act("click", Some(link), 0.7, Cause::Judge)];
+    let expected = [act("click", Some(link), (0.7, Cause::Judge), true)];
     assert_eq!(fakes.record.acts, expected, "the second element, redacted");
 }
 
@@ -59,7 +60,7 @@ async fn act_without_a_target_keeps_the_probability() {
     fakes.judge.script = script(&[("scroll_down", 0.6, "1")]);
     fakes.rules = limited(&[Op::Click, Op::ScrollDown], 1, 10);
     let _ = fakes.explore().await;
-    let expected = [act("scroll_down", None, 0.6, Cause::Judge)];
+    let expected = [act("scroll_down", None, (0.6, Cause::Judge), false)];
     assert_eq!(fakes.record.acts, expected, "no element");
 }
 

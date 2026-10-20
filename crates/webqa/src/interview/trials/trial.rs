@@ -62,7 +62,7 @@ impl Course<'_> {
         let kept = mem::take(&mut self.kept);
         let acts_from = kept.record.acts.len();
         let rules = self.rules();
-        let interviewing = self.interviewing(&rules, number);
+        let interviewing = self.interviewing(&rules, number, acts_from);
         let mut ports = Ports::new(
             browser,
             &mut *self.parts.judge,
@@ -86,7 +86,7 @@ impl Course<'_> {
     }
 
     /// The interview's questions, offering the operations of `rules`.
-    fn interviewing(&self, rules: &Rules, number: usize) -> Interviewing {
+    fn interviewing(&self, rules: &Rules, number: usize, acts_from: usize) -> Interviewing {
         let interview = &self.plan.interview;
         let goal = interview.purpose.stage().goal;
         let reads_images = self.parts.judge.reads_images();
@@ -96,6 +96,7 @@ impl Course<'_> {
             rules.ops.clone(),
             reads_images,
             number,
+            acts_from,
         )
     }
 

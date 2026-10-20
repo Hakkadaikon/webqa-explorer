@@ -1,0 +1,42 @@
+name: codecov
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  AQUA_ROOT_DIR: ${{ github.workspace }}/.aqua
+  AQUA_CONFIG: ${{ github.workspace }}/.config/aqua/aqua.yaml
+  AQUA_POLICY_CONFIG: ${{ github.workspace }}/.config/aqua/policy.yaml
+concurrency:
+  group: codecov-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Place the Playwright driver
+        run: echo "PLAYWRIGHT_DRIVER_CACHE_DIR=$RUNNER_TEMP/playwright-driver" >> "$GITHUB_ENV"
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          cache-directories: ${{ runner.temp }}/playwright-driver
+      - name: Install tools
+        run: |
+          sh scripts/install-aqua.sh
+          echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
+          "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
+          "$AQUA_ROOT_DIR/bin/aqua" install
+      - name: Chromium for the contract tests
+        run: just install-browsers-with-deps
+      - name: Coverage in lcov
+        run: just coverage-lcov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/lcov.info
+          fail_ci_if_error: true

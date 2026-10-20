@@ -6,10 +6,12 @@ mod tests;
 
 use std::time::Duration;
 
+use webqa_core::interview::ask::{Past, recent_section, with_section};
 use webqa_core::issue::{Issue, has_confirmed};
 use webqa_core::judge::{Answers, JudgeError, Usage};
 use webqa_core::machine::Cause;
-use webqa_core::screen::ElementId;
+use webqa_core::redact::{Redacted, Redactor};
+use webqa_core::screen::{ElementId, ScreenText};
 
 /// What a run did, for the report.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -46,6 +48,8 @@ pub struct Act {
     pub p: f64,
     /// Who asked for it.
     pub cause: Cause,
+    /// Whether the screen changed by it: the URL or the viewport's text differs.
+    pub changed: bool,
     /// How long the operation took.
     pub act: Duration,
     /// How long the page took to be observed after it.
@@ -72,6 +76,30 @@ impl Record {
             .iter()
             .filter_map(|call| call.reply.as_ref().ok())
             .fold(Usage::default(), |total, answers| add(total, answers.usage))
+    }
+
+    /// `screen` and the latest operations from the `from`th on, the section
+    /// passed through `redactor`.
+    #[must_use]
+    pub fn told(
+        &self,
+        from: usize,
+        screen: &Redacted<ScreenText>,
+        redactor: &Redactor,
+    ) -> Redacted<ScreenText> {
+        let section = recent_section(&self.past(from));
+        let with = |text: String| with_section(screen, &redactor.text(&text));
+        section.map_or_else(|| screen.clone(), with)
+    }
+
+    fn past(&self, from: usize) -> Vec<Past> {
+        let acts = self.acts.get(from..).unwrap_or_default();
+        let past = acts.iter().map(|act| Past {
+            op: act.op.clone(),
+            target: act.target.clone(),
+            changed: act.changed,
+        });
+        past.collect()
     }
 
     /// Whether a confirmed issue was found.

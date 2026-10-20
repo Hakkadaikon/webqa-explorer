@@ -119,6 +119,6 @@ pub async fn check() {
     judge_checks::check().await;
     ledger_checks::check();
     check_run().await;
-    config_checks::check().await;
+    Box::pin(config_checks::check()).await;
     ports_checks::check().await;
 }

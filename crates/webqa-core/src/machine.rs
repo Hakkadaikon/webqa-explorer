@@ -7,6 +7,7 @@
 mod actions;
 #[cfg(test)]
 mod cause_tests;
+mod chosen;
 pub mod counters;
 mod guards;
 mod material;
@@ -36,6 +37,7 @@ use crate::screen::{Screen, Viewport};
 use crate::window::RequestWindow;
 use actions::{Action, MISMATCH, Next, Now};
 
+pub use chosen::{Chosen, Pointed, chosen};
 pub use material::Material;
 pub use note::{Anomaly, Note, Rejection};
 pub use rules::Rules;

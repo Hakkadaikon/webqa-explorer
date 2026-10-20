@@ -109,6 +109,13 @@ async fn third_is_unchecked(world: &mut InterviewWorld) {
     assert_eq!(unchecked(world), [expected], "the unchecked purposes");
 }
 
+/// Whether `call` of the report is the second of a step: the answers hold
+/// what is expected and no operation.
+fn is_second_call(call: &Value) -> bool {
+    let answers = call.get("answers");
+    answers.is_some_and(|a| a.is_object() && a.get("operation").is_none())
+}
+
 #[then(expr = "試行の中の判断予算の使った回数は、ずれの問いで増えていない")]
 async fn budget_is_not_spent(world: &mut InterviewWorld) {
     world.run().await;
@@ -118,7 +125,10 @@ async fn budget_is_not_spent(world: &mut InterviewWorld) {
         "it lists calls",
     );
     let step_of = |call: &Value| call.get("step").and_then(Value::as_u64).unwrap_or(0);
-    let in_trials = calls.iter().filter(|call| step_of(call) != 0).count();
+    let in_trials = calls
+        .iter()
+        .filter(|call| step_of(call) != 0 && !is_second_call(call))
+        .count();
     assert_eq!(
         in_trials,
         steps_scripted(&world.scene),

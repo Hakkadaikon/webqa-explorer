@@ -1,17 +1,20 @@
 //! The questions of an interview step, and sending them to the judge.
 
+mod history;
 mod mismatch;
 mod persona;
 
+pub use history::{Past, RECENT, recent_section, with_section};
 pub use mismatch::{DIFFERENT, MismatchQuestion, SAME, Trial, Visit, mismatch_questions};
 pub use persona::preamble;
 
 use crate::config::persona::Persona;
 use crate::config::raw::Op;
 use crate::judge::{self, Answers, Ask, Image, JudgeError, Question, QuestionId};
+use crate::machine::Chosen;
 use crate::ports::{Judge, Pending};
 use crate::redact::Redacted;
-use crate::screen::{Screen, ScreenText, Viewport, visible};
+use crate::screen::{Screen, ScreenText, Viewport, escaped, visible};
 
 /// How hesitant the persona was: the probability of yes is the degree.
 pub const HESITATION: &str = "hesitation";
@@ -25,8 +28,8 @@ pub const PURPOSE_GUESS: &str = "purpose_guess";
 pub const PURPOSE_MATCH: &str = "purpose_match";
 
 const HESITATION_PROMPT: &str = "次に何をするかで迷ったか";
-const EXPECTATION_PROMPT: &str = "選んだ操作で何が起きると期待したかを、1文で書く";
-const HARD_TO_SEE_PROMPT: &str = "スクリーンショットを見て、見えにくい、目立たない、読みにくいと感じた要素を、1行に1つ「番号: 理由」の形で書く。番号は画面の一覧の番号。無ければ何も書かない";
+const EXPECTATION_PROMPT: &str = "この操作で何が起きると期待するか、1文で答える。";
+const HARD_TO_SEE_PROMPT: &str = "スクリーンショットを見て、あなたの目的に関わる要素のうち、特に目立って見えにくいものを、最大3つ、1行に1つ「番号: 理由」の形で書く。理由は、文字の大きさ、色の薄さ、隠れているなど、見た目に限る。番号は画面の一覧の番号。無ければ何も書かない";
 const PURPOSE_GUESS_PROMPT: &str =
     "この画面は、利用者に何をしてもらうための画面だと思うかを、1文で書く";
 
@@ -84,7 +87,25 @@ pub fn with_done(ops: &[Op]) -> Vec<Op> {
     ops
 }
 
-/// The questions of the step, each prompt led by the persona.
+/// The question of what the persona expects the operation `chosen` to do,
+/// led by the persona. It is asked on its own, after the judge chose.
+#[must_use]
+pub fn expectation_question(step: &Step<'_>, chosen: &Chosen) -> Question {
+    let target = chosen.element.as_ref().map_or_else(
+        || "なし".to_owned(),
+        |element| format!("{}番「{}」", element.number, escaped(&element.name)),
+    );
+    let prompt = format!(
+        "あなたは次に『{}』をする。対象: {target}。{EXPECTATION_PROMPT}",
+        chosen.op
+    );
+    let mut question = text(EXPECTATION, &prompt);
+    lead_with(&mut question, &preamble(step.persona, step.goal));
+    question
+}
+
+/// The questions of the step, each prompt led by the persona. What the
+/// persona expects is not among them: [`expectation_question`] asks it.
 #[must_use]
 pub fn questions(step: &Step<'_>) -> Vec<Question> {
     let ops = with_done(step.ops);
@@ -110,8 +131,8 @@ pub fn send<'a>(
     }
 }
 
-/// The questions added to the four of every mode. The elements hard to
-/// see are asked only with an image.
+/// The questions added to the four of every mode, but what was expected.
+/// The elements hard to see are asked only with an image.
 fn added(image: bool) -> Vec<Question> {
     let hard_to_see = image.then(|| text(HARD_TO_SEE, HARD_TO_SEE_PROMPT));
     [
@@ -119,7 +140,6 @@ fn added(image: bool) -> Vec<Question> {
             id: QuestionId::new(HESITATION),
             prompt: HESITATION_PROMPT.to_owned(),
         }),
-        Some(text(EXPECTATION, EXPECTATION_PROMPT)),
         hard_to_see,
         Some(text(PURPOSE_GUESS, PURPOSE_GUESS_PROMPT)),
     ]

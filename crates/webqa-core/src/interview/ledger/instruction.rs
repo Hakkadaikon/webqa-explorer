@@ -32,7 +32,8 @@ fn target(target: &Target) -> String {
 fn body(detail: &Detail) -> String {
     match detail {
         Detail::Hesitant { expectation, .. } => {
-            format!("このペルソナが迷わずに次の操作を選べるようにする(期待: {expectation})")
+            let expected = expected(expectation);
+            format!("このペルソナが迷わずに次の操作を選べるようにする{expected}")
         }
         Detail::Visibility { reason, .. } => {
             format!("このペルソナに見えやすく、目立つようにする(理由: {reason})")
@@ -47,9 +48,14 @@ fn body(detail: &Detail) -> String {
     }
 }
 
-/// What the persona expected, in parentheses.
+/// What the persona expected, in parentheses; nothing when it was not asked,
+/// since no operation was carried out at the step.
 fn expected(expectation: &str) -> String {
-    format!("(期待: {expectation})")
+    if expectation.is_empty() {
+        String::new()
+    } else {
+        format!("(期待: {expectation})")
+    }
 }
 
 /// `text` with each character that breaks a line made a space.

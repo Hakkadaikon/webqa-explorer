@@ -49,6 +49,9 @@ type Table = BTreeMap<String, Vec<(String, Option<f64>)>>;
 #[derive(Deserialize)]
 struct CallEntry {
     error: Option<JudgeError>,
+    /// The question of an unusable answer; reports before it was kept have none.
+    #[serde(default)]
+    question: Option<String>,
     answers: Option<Table>,
     usage: Option<UsageEntry>,
 }
@@ -82,10 +85,23 @@ impl CallEntry {
     fn reply(self) -> Result<Answers, JudgeError> {
         let Self {
             error,
+            question,
             answers,
             usage,
         } = self;
-        error.map_or_else(|| Ok(replied(answers, usage)), Err)
+        let failure = |error| Err(failed(error, question));
+        error.map_or_else(|| Ok(replied(answers, usage)), failure)
+    }
+}
+
+/// `error`, or [`JudgeError::Unreadable`] when `question` names the one whose
+/// answer could not be used. A replay is never given a result of the
+/// interview mode, so reading `question` back only keeps the result's round
+/// trip symmetric.
+fn failed(error: JudgeError, question: Option<String>) -> JudgeError {
+    match (error, question) {
+        (JudgeError::Malformed, Some(question)) => JudgeError::Unreadable { question },
+        (error, _) => error,
     }
 }
 

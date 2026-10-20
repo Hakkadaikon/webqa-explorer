@@ -1,14 +1,16 @@
 //! Reading the secrets the configuration refers to.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
-use super::super::raw::{EnvRef, RawConfig, RawRedact};
+use super::super::raw::{RawConfig, RawInput, RawRedact};
 use super::super::{ConfigError, Redact, RedactSource, Secret};
 use super::Env;
 
 /// The input values and the values to hide.
 pub struct Secrets {
     pub inputs: BTreeMap<String, Secret>,
+    /// The inputs written with `secret: false`.
+    pub open_inputs: BTreeSet<String>,
     pub redact: Vec<Redact>,
 }
 
@@ -16,6 +18,7 @@ impl Secrets {
     pub fn read(raw: &RawConfig, env: Env<'_>) -> Result<Self, ConfigError> {
         Ok(Self {
             inputs: inputs(&raw.inputs, env)?,
+            open_inputs: open_inputs(&raw.inputs),
             redact: redacts(&raw.redact, env)?,
         })
     }
@@ -29,12 +32,20 @@ pub fn secret(name: &str, env: Env<'_>) -> Result<Secret, ConfigError> {
 }
 
 fn inputs(
-    inputs: &BTreeMap<String, EnvRef>,
+    inputs: &BTreeMap<String, RawInput>,
     env: Env<'_>,
 ) -> Result<BTreeMap<String, Secret>, ConfigError> {
     inputs
         .iter()
         .map(|(name, var)| secret(&var.env, env).map(|value| (name.clone(), value)))
+        .collect()
+}
+
+fn open_inputs(inputs: &BTreeMap<String, RawInput>) -> BTreeSet<String> {
+    inputs
+        .iter()
+        .filter(|(_, input)| !input.secret)
+        .map(|(name, _)| name.clone())
         .collect()
 }
 
@@ -70,7 +81,7 @@ mod tests {
     use super::super::validate;
     use super::*;
     use crate::config::raw::parse;
-    use crate::config::raw::tests::changed;
+    use crate::config::raw::tests::{changed, example};
 
     fn missing(yaml: &str, absent: &str) -> ConfigError {
         let env = |name: &str| (name != absent).then(|| value_of(name));
@@ -105,6 +116,22 @@ mod tests {
         let shown = format!("{config:?}");
         assert!(!shown.contains("value-of-"), "Debug hides secrets: {shown}");
         assert!(shown.contains("Secret(***)"), "Debug marks secrets");
+    }
+
+    #[test]
+    fn only_inputs_marked_not_secret_are_open() {
+        let load = |yaml: &str| validate(parse(yaml).unwrap(), ALL_ENV, STATE_OK).unwrap();
+        assert_eq!(
+            load(example()).open_inputs,
+            BTreeSet::new(),
+            "secret by default"
+        );
+        let open = changed("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, secret: false }");
+        assert_eq!(
+            load(&open).open_inputs,
+            BTreeSet::from(["メールアドレス".to_owned()]),
+            "secret: false"
+        );
     }
 
     #[test]

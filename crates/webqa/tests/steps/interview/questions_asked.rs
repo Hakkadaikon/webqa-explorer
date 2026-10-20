@@ -13,15 +13,14 @@ use crate::world::InterviewWorld;
 
 /// The items of the table of the feature: the id and the kind of the
 /// question each stands for.
-const ITEMS: [(&str, &str, Kind); 8] = [
+const ITEMS: [(&str, &str, Kind); 7] = [
     ("操作種別", "operation", Kind::Choice),
     ("対象要素", "target", Kind::Choice),
     ("エラー表示の有無", "error_shown", Kind::Truth),
     ("ゴール達成の有無", "goal_reached", Kind::Truth),
     ("次に何をするかで迷った度合い", "hesitation", Kind::Truth),
-    ("何を期待してその操作を選んだか", "expectation", Kind::Text),
     (
-        "見えにくい、目立たない、読みにくい要素",
+        "目的に関わる要素のうち、特に目立って見えにくいもの",
         "hard_to_see",
         Kind::Text,
     ),
@@ -81,17 +80,16 @@ fn listed(step: &Step) -> Vec<(String, Kind)> {
 }
 
 /// The id and the kind of each question of `asked`, in order.
-fn sent(asked: &Asked) -> Vec<(String, Kind)> {
+pub(super) fn sent(asked: &Asked) -> Vec<(String, Kind)> {
     let ids = asked.questions.iter().map(|q| q.id().as_str().to_owned());
     ids.zip(asked.kinds()).collect()
 }
 
-#[then(expr = "判断モデルに次の項目を1回の問い合わせで問うている")]
+#[then(expr = "判断モデルに次の項目を1回目の問い合わせで問うている")]
 async fn asks_items(world: &mut InterviewWorld, step: &Step) {
     world.run().await;
     let asked = first_call(world);
-    assert_eq!(sent(asked), listed(step), "the questions of the one call");
-    assert_eq!(world.ran().judge.asked.len(), 1, "the one call");
+    assert_eq!(sent(asked), listed(step), "the questions of the first call");
     let ops = [
         "click",
         "input",

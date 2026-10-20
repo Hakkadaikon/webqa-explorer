@@ -2,8 +2,11 @@
 
 use std::time::Duration;
 
+use url::Url;
 use webqa_core::issue::IssueKind;
-use webqa_core::redact::Redactor;
+use webqa_core::machine::Cause;
+use webqa_core::redact::{Redactor, Rule};
+use webqa_core::screen::{Screen, Viewport, screen_text};
 
 use super::*;
 
@@ -97,4 +100,64 @@ fn knows_same_kind_evidence_and_label() {
         [true, false, false, false],
         "the same kind, evidence and label, whatever the probability"
     );
+}
+
+fn act(op: &str, name: Option<&str>, changed: bool) -> Act {
+    Act {
+        step: 1,
+        op: op.to_owned(),
+        target: name.map(|name| ElementId {
+            role: "button".to_owned(),
+            name: name.to_owned(),
+            nth: 0,
+        }),
+        p: 1.0,
+        cause: Cause::Judge,
+        changed,
+        act: Duration::ZERO,
+        settle: Duration::ZERO,
+    }
+}
+
+/// The screen text of a page with no element.
+fn empty_text(redactor: &Redactor) -> Redacted<ScreenText> {
+    let url = Url::parse("https://shop.example.test/").unwrap();
+    let screen = Screen {
+        url,
+        elements: Vec::new(),
+    };
+    let viewport = Viewport {
+        width: 800,
+        height: 600,
+    };
+    screen_text(&redactor.screen(screen), viewport)
+}
+
+fn told(record: &Record, from: usize, redactor: &Redactor) -> String {
+    let text = record.told(from, &empty_text(redactor), redactor);
+    text.as_inner().as_str().to_owned()
+}
+
+#[test]
+fn told_passes_the_section_through_the_redactor() {
+    let rule = Rule::literal("メールアドレス", "test@example.test");
+    let redactor = Redactor::new(&[rule]).unwrap();
+    let record = Record {
+        acts: vec![act("click", Some("test@example.test"), true)],
+        ..Record::default()
+    };
+    let want = "\n\n直近の操作\n1. click 「[[メールアドレス]]」 → 画面が変わった";
+    assert_eq!(told(&record, 0, &redactor), want);
+}
+
+#[test]
+fn told_starts_at_the_operation_given() {
+    let record = Record {
+        acts: vec![act("back", None, true), act("scroll_down", None, false)],
+        ..Record::default()
+    };
+    let want = "\n\n直近の操作\n1. scroll_down なし → 画面は変わらなかった";
+    assert_eq!(told(&record, 1, &Redactor::default()), want);
+    assert_eq!(told(&record, 2, &Redactor::default()), "");
+    assert_eq!(told(&record, 3, &Redactor::default()), "", "past the end");
 }

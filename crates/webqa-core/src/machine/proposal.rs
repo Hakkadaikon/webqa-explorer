@@ -23,6 +23,8 @@ pub(super) struct Proposal {
     pub(super) row: Option<&'static OpRow>,
     /// The element to operate on.
     pub(super) element: Option<ElementId>,
+    /// The number of the element in the screen text, from 1.
+    pub(super) number: Option<usize>,
     /// The position of the element in `screen.elements`.
     pub(super) index: Option<usize>,
     /// The element as it was when the judge was asked.
@@ -46,6 +48,7 @@ impl Proposal {
             op,
             row: None,
             element: None,
+            number: None,
             index: None,
             identity: None,
             confidence: None,
@@ -81,11 +84,13 @@ fn proposal(verdict: &Verdict, state: &State) -> Proposal {
     let pointed = row
         .and_then(|row| row.element)
         .and_then(|_| pointed(verdict, state));
+    let number = pointed.as_ref().map(|p| p.number);
     let (element, index, identity) = located(pointed, state);
     Proposal {
         op: row.map(|row| row.name.to_owned()).unwrap_or_default(),
         row,
         element,
+        number,
         index,
         identity,
         confidence: verdict.confidence,

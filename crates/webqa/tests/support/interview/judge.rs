@@ -74,6 +74,10 @@ pub struct SceneJudge {
     gate: Arc<Notify>,
     clock: Arc<AtomicU64>,
     think_ms: u64,
+    /// The last reply given to a call of the first kind. The call that asks
+    /// only what is expected is answered from it, without using up a reply
+    /// or any of the time the judge thinks: the scenes count the steps.
+    last: Option<Result<Answers, JudgeError>>,
 }
 
 impl SceneJudge {
@@ -93,6 +97,7 @@ impl SceneJudge {
             gate,
             clock,
             think_ms: millis(think),
+            last: None,
         }
     }
 
@@ -108,14 +113,68 @@ impl SceneJudge {
             questions: questions.to_vec(),
             image: image.cloned(),
         });
+        if asks_expectation(questions) {
+            return Box::pin(future::ready(Ok(self.expected())));
+        }
         let think = self.thinks.pop_front().map_or(self.think_ms, millis);
         self.clock.fetch_add(think, Ordering::SeqCst);
         if let Some(reply) = self.replies.pop_front() {
-            return Box::pin(future::ready(reply));
+            self.last = Some(reply.clone());
+            return Box::pin(future::ready(reply.map(without_expectation)));
         }
         self.stalled = true;
         self.gate.notify_one();
         stuck()
+    }
+}
+
+/// The id of the question about what is expected.
+const EXPECTATION: &str = "expectation";
+
+/// `answers` without the answer to the question about what is expected: the
+/// first call of a step does not ask it, so a reader that finds it there
+/// reads what was never asked.
+fn without_expectation(mut answers: Answers) -> Answers {
+    answers.table.remove(&QuestionId::new(EXPECTATION));
+    answers
+}
+
+/// Whether `questions` are the one call that asks only what is expected.
+fn asks_expectation(questions: &[Question]) -> bool {
+    let ids: Vec<&str> = questions.iter().map(|q| q.id().as_str()).collect();
+    ids == [EXPECTATION]
+}
+
+impl SceneJudge {
+    /// The `n`th call (from 0) of the steps and the other questions.
+    pub fn decision(&self, n: usize) -> Option<&Asked> {
+        let mut apart = self
+            .asked
+            .iter()
+            .filter(|call| !asks_expectation(&call.questions));
+        apart.nth(n)
+    }
+
+    /// How many calls asked more than what is expected: the calls of the
+    /// steps and the other questions, not the second call of a step.
+    pub fn decisions(&self) -> usize {
+        let apart = self
+            .asked
+            .iter()
+            .filter(|call| !asks_expectation(&call.questions));
+        apart.count()
+    }
+
+    /// What the last reply said was expected, or no answer at all.
+    fn expected(&self) -> Answers {
+        let id = QuestionId::new(EXPECTATION);
+        let said = self.last.as_ref().and_then(|last| last.as_ref().ok());
+        let row = said.and_then(|answers| answers.table.get(&id));
+        let table = row.map(|row| (id, row.clone()));
+        Answers {
+            table: table.into_iter().collect(),
+            usage: Usage::default(),
+        }
     }
 }
 

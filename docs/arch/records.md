@@ -86,7 +86,7 @@
 | `goal_achieved` | ゴールを達成した |
 | `reported_done` | 判断モデルが終わったと答えた。達成は確かめていない |
 | `stuck` | 行き詰まった。`stuck`は`declared`(判断モデルが答えた)か`no_progress`(進まない回数が閾値に達した) |
-| `budget_exceeded` | 判断モデルを呼ぶ回数の上限に達した |
+| `budget_exceeded` | 判断のステップの数の上限に達した。インタビューのモードでは1ステップで最大2回呼ぶ |
 | `time_exceeded` | 実行の時間の上限に達した |
 | `user_aborted` | 利用者が中断した |
 
@@ -116,7 +116,11 @@
 
 ### 判断モデルの答えの記録
 
-`calls`には、判断モデルを呼ぶたびに1つずつ書く。
+`calls`には、判断モデルを呼ぶたびに1つずつ、呼んだ順に書く。
+インタビューのモードは、操作を行うステップで2回呼ぶ(1回目は期待を除いた問い、2回目は期待の問い)。
+その2件は同じ`step`を持つので、`calls`の数はステップの数より多くなりうる。
+2回目の答えが使えなかったときは、`error`を`malformed`、`question`を`expectation`にして書く。
+インタビューの実行は`webqa replay`に渡せないので、この記録の2件は再生に使わない。
 
 | 項目 | 中身 |
 |---|---|
@@ -124,6 +128,7 @@
 | `think_ms` | 判断モデルが答えるまでの時間 |
 | `answers` | 問いごとの選択肢と確率。失敗したときは`null` |
 | `error` | 失敗の種類。答えたときは`null` |
+| `question` | インタビューで足した問いの答えが使えなかったときの、その問いのid。そうでない失敗と、答えたときは`null` |
 | `usage` | その回のトークン数。失敗したときは`null` |
 
 `webqa replay`は、この記録を台本にして実行をやり直す([コマンド](cli.md))。
@@ -187,7 +192,7 @@ CLIは1行書くたびにフラッシュする。
 |---|---|
 | `run_started` | 実行の開始。`schema`、`mode`、`started_at` |
 | `memory_reset` | 探索の記憶のファイルが使えず、空の記憶から始めた。`cause`に理由 |
-| `asked` | 判断モデルに1回問いを送った。`input_tokens`、`output_tokens`、`think_ms` |
+| `asked` | 判断モデルに1回問いを送った。呼び出しごとに1行書くので、インタビューのモードでは1つのステップに2行出ることがある。`input_tokens`、`output_tokens`、`think_ms` |
 | `decided` | 判断モデルが操作を選んだ。`op`、`target`、`p` |
 | `recovered` | 中核が自分で操作した。`op`と、操作の理由の`cause` |
 | `executed` | ブラウザが操作した。画面が変わったかの`changed`と、ネットワークへのアクセスの数`accesses` |
@@ -208,6 +213,7 @@ CLIは1行書くたびにフラッシュする。
 試行の区切りは、`trial_started`と`trial_finished`の行で示す。
 試行の中のステップ番号は、試行ごとに1から数え直す。
 `ending`は、`goal_met`、`done`、`gave_up`、`no_progress`、`budget_spent`、`time_up`、`interrupted`のどれかである。
+`budget_spent`の試行は試行の数Nに入るが、目的に届かない課題は出さない。
 
 ```json
 {"seq":1,"elapsed_ms":0,"kind":"trial_started","trial":1}

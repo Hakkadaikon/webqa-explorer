@@ -1,6 +1,7 @@
 //! Tests of the lines written for an issue: the instruction, the fields,
 //! their values and free text kept on one line.
 
+mod blank;
 mod order;
 mod redaction;
 

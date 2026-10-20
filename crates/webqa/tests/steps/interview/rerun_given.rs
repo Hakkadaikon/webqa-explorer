@@ -15,7 +15,7 @@ use crate::scene::found;
 use crate::world::InterviewWorld;
 
 /// Runs the scene as the run before, and hands its ledger to the next run.
-async fn hand_over(world: &mut InterviewWorld) {
+pub(super) async fn hand_over(world: &mut InterviewWorld) {
     world.run().await;
     world.again();
     let text = world.before().store.ledger.clone();

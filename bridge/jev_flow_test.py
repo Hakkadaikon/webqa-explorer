@@ -12,6 +12,9 @@ from unittest import mock
 import gateway
 import jev
 from fake import (
+    CHAT_REPLY,
+    EXPECT,
+    GUESS,
     JEV_REPLY,
     KEY,
     NOUL,
@@ -90,10 +93,10 @@ class FlowTest(unittest.TestCase):
 
 
 class MainTest(unittest.TestCase):
-    def run_main(self, lines, argv):
+    def run_main(self, lines, argv, replies=(JEV_REPLY,)):
         out = io.StringIO()
         with (
-            mock.patch.object(gateway, "urlopen", FakeHttp(JEV_REPLY)),
+            mock.patch.object(gateway, "urlopen", FakeHttp(*replies)),
             mock.patch.object(sys, "stdin", io.StringIO("".join(lines))),
             mock.patch.object(sys, "stdout", out),
         ):
@@ -121,6 +124,16 @@ class MainTest(unittest.TestCase):
                     "usage": {"input_tokens": 0, "output_tokens": 0},
                 },
             ],
+        )
+
+    def test_main_loop_answers_the_two_calls_of_a_step(self):
+        lines = [request([NOUL, GUESS], seq=1) + "\n", request([EXPECT], seq=2) + "\n"]
+        argv = ["--model", "typesafe-ai/jev", "--text-model", "some/llm"]
+        code, out = self.run_main(lines, argv, (JEV_REPLY, CHAT_REPLY, CHAT_REPLY))
+        self.assertEqual(code, 0)
+        answers = [(line["seq"], sorted(line["answers"])) for line in out[1:]]
+        self.assertEqual(
+            answers, [(1, ["error_shown", "purpose_guess"]), (2, ["expectation"])]
         )
 
     def test_running_the_script_writes_the_declaration(self):

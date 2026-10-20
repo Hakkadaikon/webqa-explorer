@@ -84,7 +84,7 @@ fn purpose_done_when_button(world: &mut InterviewWorld, name: String) {
     world.scene.purpose.aim = Aim::Written(Written { goal, done_when });
 }
 
-#[given(expr = "判断モデルの呼び出し上限は {int} 回に設定されている")]
+#[given(expr = "判断の上限は {int} 回に設定されている")]
 const fn decisions_capped(world: &mut InterviewWorld, calls: u32) {
     world.scene.max_decisions = calls;
 }

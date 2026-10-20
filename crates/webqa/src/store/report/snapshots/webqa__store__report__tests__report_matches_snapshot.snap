@@ -30,6 +30,7 @@ expression: "serde_json::to_string_pretty(&report).unwrap()"
         ]
       },
       "error": null,
+      "question": null,
       "step": 1,
       "think_ms": 1200,
       "usage": {
@@ -40,6 +41,7 @@ expression: "serde_json::to_string_pretty(&report).unwrap()"
     {
       "answers": null,
       "error": "timeout",
+      "question": null,
       "step": 2,
       "think_ms": 800,
       "usage": null

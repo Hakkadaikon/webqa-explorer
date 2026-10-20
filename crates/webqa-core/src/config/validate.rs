@@ -52,6 +52,7 @@ fn assemble(raw: RawConfig, secrets: Secrets, env: Env<'_>) -> Result<Config, Co
         guard: raw.guard,
         redact: secrets.redact,
         inputs: secrets.inputs,
+        open_inputs: secrets.open_inputs,
         auth: raw.auth,
         scenario: raw.scenario,
         ops: raw.ops,

@@ -129,14 +129,14 @@ async fn cut_trial_is_not_counted_in_the_issues() {
 }
 
 #[tokio::test]
-async fn trial_that_ran_out_of_answers_is_an_unreached_issue() {
+async fn trial_that_ran_out_of_answers_leaves_no_issue() {
     let mut world = World::new(1);
     world.plan.rules.max_decisions = nz(3);
     world.judge.script = script(&["click"]);
     world.run().await;
     assert_eq!(
         entries(&world),
-        [(Kind::Unreached, Section::Unchecked, ONCE)],
-        "the steps without usable answers carry no hesitation, and the trial did not get there"
+        [],
+        "the steps without usable answers carry no hesitation, and a spent budget is not unreached"
     );
 }

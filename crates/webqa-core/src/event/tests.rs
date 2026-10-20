@@ -146,6 +146,12 @@ fn anomaly_and_issue_events() {
     let cases = [
         (Anomaly::Judge(JudgeError::Api), anomaly("api", None)),
         (
+            Anomaly::Judge(JudgeError::Unreadable {
+                question: "hard_to_see".to_owned(),
+            }),
+            anomaly("malformed", Some("hard_to_see")),
+        ),
+        (
             Anomaly::Unusable(Unusable::Missing(QuestionId::target())),
             anomaly("missing", Some("target")),
         ),

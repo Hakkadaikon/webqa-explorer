@@ -7,14 +7,15 @@ use webqa_core::redact::Rule;
 const API_KEY: &str = "APIキー";
 
 /// The redaction rules of the configuration: `redact` in order, then each
-/// input value under its key, then the API key as `APIキー`. Empty values
-/// make no rule.
+/// input value under its key, unless it is `secret: false`, then the API key
+/// as `APIキー`. Empty values make no rule.
 #[must_use]
 pub fn rules(config: &Config) -> Vec<Rule> {
     let redact = config.redact.iter().filter_map(configured);
     let inputs = config
         .inputs
         .iter()
+        .filter(|(key, _)| !config.open_inputs.contains(*key))
         .filter_map(|(key, value)| literal(key, value));
     let key = config
         .judge
@@ -73,6 +74,17 @@ mod tests {
     }
 
     #[test]
+    fn inputs_marked_not_secret_make_no_rule() {
+        let yaml = changed("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, secret: false }");
+        let all = rules(&config(&yaml, ALL_ENV));
+        assert_eq!(
+            names(&all),
+            [rule("メールアドレス"), rule("APIキー")],
+            "the pattern and the key only"
+        );
+    }
+
+    #[test]
     fn values_from_the_environment_come_first_unless_empty() {
         let yaml = changed("redact:\n", "redact:\n  - { name: トークン, env: TOKEN }\n");
         let email = rule("メールアドレス");
@@ -82,5 +94,19 @@ mod tests {
         assert_eq!(names(&token), four, "the env value first");
         let blank = rules(&config(&yaml, &|_| Some(String::new())));
         assert_eq!(names(&blank), [email], "only the pattern");
+    }
+
+    #[test]
+    fn redactor_keeps_not_secret_values_and_hides_the_rest() {
+        let yaml = changed(
+            "  メールアドレス: { env: TEST_EMAIL }",
+            "  検索語: { env: TEST_QUERY, secret: false }\n  \
+             会員番号: { env: TEST_ID }",
+        );
+        let all = rules(&config(&yaml, ALL_ENV));
+        let redactor = Redactor::new(&all).unwrap();
+        let text = "q value-of-TEST_QUERY id value-of-TEST_ID";
+        let want = "q value-of-TEST_QUERY id [[会員番号]]";
+        assert_eq!(redactor.text(text).into_inner(), want, "redacted");
     }
 }

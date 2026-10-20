@@ -65,7 +65,8 @@ pub enum Ending {
     Claimed(Claim),
     /// The trial got stuck.
     Stuck(Stuck),
-    /// The decision budget ran out.
+    /// The decision budget ran out: counted in N, neither unreached nor
+    /// reached.
     BudgetSpent,
 }
 
@@ -106,11 +107,11 @@ const fn claim(aim: &Aim) -> Claim {
 }
 
 impl Ending {
-    /// Whether the ending does not reach the purpose: stuck or out of
-    /// budget.
+    /// Whether the ending does not reach the purpose: stuck. Running out of
+    /// budget is the tool's limit, not the persona's failure.
     #[must_use]
     pub const fn unreached(self) -> bool {
-        matches!(self, Self::Stuck(_) | Self::BudgetSpent)
+        matches!(self, Self::Stuck(_))
     }
 }
 
@@ -122,7 +123,7 @@ impl Outcome {
     }
 
     /// Whether the trial counts as not reaching the purpose: a finished
-    /// trial that got stuck or ran out of budget.
+    /// trial that got stuck.
     #[must_use]
     pub const fn unreached(self) -> bool {
         match self {

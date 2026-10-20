@@ -22,6 +22,18 @@ IMAGE_MODELS = ("typesafe-ai/jev-1.13.0", "typesafe-ai/jev-1.14.0")
 VERSION = 2
 FORMATS = {"image/png": "png", "image/jpeg": "jpeg"}
 JEV_KINDS = ("noul", "choice", "score")
+HARD_TO_SEE = "hard_to_see"
+TEXT_BASE = (
+    "あなたは、問いに答えるだけの回答器である。"
+    "答えだけを返し、Markdown、見出し、前置き、独白、説明は書かない。"
+    "問いが求める形を守る。"
+)
+TEXT_SYSTEM = TEXT_BASE + "1文と言われたら、必ず1文だけを返す。空の文字列は返さない。"
+# Only this question may come back empty; the core reads the lines as they are.
+HARD_TO_SEE_SYSTEM = TEXT_BASE + (
+    "半角の「番号: 理由」の行だけを、1行に1つ書く。"
+    "記号や前置きは付けない。何も無いときは、空の文字列を返す。"
+)
 # The socket timeout overflows past about 1e9 seconds on some platforms.
 MAX_TIMEOUT = 3600
 
@@ -103,20 +115,39 @@ def ask_jev(request, opts, budget):
     return answers, (usage["input_tokens"], usage["output_tokens"])
 
 
-def ask_text(screen, question, opts, budget):
+def text_content(request, question):
+    """The user message; the screenshot goes only with the hard-to-see question."""
+    text = f"{question['prompt']}\n\n画面:\n{request['screen']}"
+    if question["id"] != HARD_TO_SEE or not has_image(request):
+        return text
+    image = request["image"]
+    url = f"data:{image['media_type']};base64,{image['data']}"
+    return [
+        {"type": "text", "text": text},
+        {"type": "image_url", "image_url": {"url": url}},
+    ]
+
+
+def text_system(question):
+    return HARD_TO_SEE_SYSTEM if question["id"] == HARD_TO_SEE else TEXT_SYSTEM
+
+
+def ask_text(request, question, opts, budget):
     if not opts.text_model:
         raise Failure("no text model")
-    content = f"{question['prompt']}\n\n画面:\n{screen}"
     body = {
         "model": opts.text_model,
-        "messages": [{"role": "user", "content": content}],
+        "messages": [
+            {"role": "system", "content": text_system(question)},
+            {"role": "user", "content": text_content(request, question)},
+        ],
     }
     reply = post(CHAT_URL, body, budget)
     text = reply["choices"][0]["message"]["content"]
     if not isinstance(text, str):
         raise Failure("malformed response")
     usage = reply["usage"]
-    answers = {question["id"]: [{"option": text}]}
+    answers = {question["id"]: [{"option": text.strip()}]}
     return answers, (usage["prompt_tokens"], usage["completion_tokens"])
 
 
@@ -138,9 +169,8 @@ def total(parts):
 def answer(request, opts, budget):
     """JEV answers its kinds in one call; each free-text question is one call.
     All the calls share the budget of the request line."""
-    screen = request["screen"]
     parts = [ask_jev(request, opts, budget)]
-    parts += [ask_text(screen, q, opts, budget) for q in text_questions(request)]
+    parts += [ask_text(request, q, opts, budget) for q in text_questions(request)]
     return {"answers": merged(parts), "usage": total(parts)}
 
 

@@ -4,17 +4,14 @@ import unittest
 
 import jev
 from fake import (
-    CHAT_REPLY,
     CHOICE,
     JEV_REPLY,
     KEY,
     NOUL,
     SCORE,
     SCREEN,
-    TEXT,
     FakeHttp,
     ask,
-    error,
     options,
     request,
 )
@@ -106,48 +103,3 @@ class JevTest(unittest.TestCase):
         self.assertEqual(http.header("Authorization", 0), f"Bearer {KEY}")
         self.assertEqual(http.header("Authorization", 1), None)
         self.assertEqual(http.header("Content-type", 1), "application/json")
-
-
-class TextTest(unittest.TestCase):
-    def test_text_question_goes_to_language_model(self):
-        http = FakeHttp(CHAT_REPLY)
-        answer, _ = ask(request([TEXT]), http, options(text_model="some/llm"))
-        self.assertEqual(len(http.requests), 1)
-        self.assertEqual(http.requests[0].full_url, jev.CHAT_URL)
-        self.assertEqual(
-            http.body(),
-            {
-                "model": "some/llm",
-                "messages": [
-                    {"role": "user", "content": "何を期待したか\n\n画面:\n" + SCREEN}
-                ],
-            },
-        )
-        self.assertEqual(
-            answer["answers"], {"expectation": [{"option": "注文が確定すると思った"}]}
-        )
-        self.assertEqual(answer["usage"], {"input_tokens": 30, "output_tokens": 12})
-
-    def test_text_request_has_no_image_header(self):
-        http = FakeHttp(CHAT_REPLY)
-        image = {"media_type": "image/png", "data": "iVBORw=="}
-        ask(request([TEXT], image=image), http, options(text_model="some/llm"))
-        self.assertEqual(http.requests[0].full_url, jev.CHAT_URL)
-        self.assertEqual(http.header("Typesafe-danger-zone-images"), None)
-
-    def test_text_and_jev_usage_add_up(self):
-        http = FakeHttp(JEV_REPLY, CHAT_REPLY)
-        answer, _ = ask(request([NOUL, TEXT]), http, options(text_model="some/llm"))
-        self.assertEqual(answer["usage"], {"input_tokens": 456, "output_tokens": 112})
-        self.assertEqual(sorted(answer["answers"]), ["error_shown", "expectation"])
-
-    def test_text_without_model_is_api_error(self):
-        http = FakeHttp()
-        answer, _ = ask(request([TEXT]), http)
-        self.assertEqual(answer, error("no text model"))
-        self.assertEqual(http.requests, [])
-
-    def test_text_answer_must_be_a_string(self):
-        reply = {"choices": [{"message": {"content": None}}]}
-        answer, _ = ask(request([TEXT]), FakeHttp(reply), options(text_model="m"))
-        self.assertEqual(answer, error("malformed response"))

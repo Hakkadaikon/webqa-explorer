@@ -22,29 +22,38 @@ use super::events::stage;
 use super::{Fakes, limited};
 
 mod forbidden;
+mod history;
 mod images;
 mod kept;
+mod second;
+mod unmoved;
 mod unusable;
 
 /// Records what it was asked and whether an image came with it, then
 /// answers from the script.
 struct Spy {
     asked: Vec<Vec<Question>>,
+    /// The screen text of each call.
+    screens: Vec<String>,
     images: Vec<Image>,
     reads: bool,
     script: Scripted,
     /// Answers every call with these, whatever was asked.
     fixed: Option<Answers>,
+    /// Answers the calls that ask one question with this instead.
+    later: Option<Result<Answers, JudgeError>>,
 }
 
 impl Spy {
     fn new(reads: bool, script: Scripted) -> Self {
         Self {
             asked: Vec::new(),
+            screens: Vec::new(),
             images: Vec::new(),
             reads,
             script,
             fixed: None,
+            later: None,
         }
     }
 
@@ -64,8 +73,10 @@ impl Judge for Spy {
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>> {
         self.asked.push(questions.to_vec());
-        match &self.fixed {
-            Some(fixed) => Box::pin(future::ready(Ok(fixed.clone()))),
+        self.screens.push(screen.as_inner().as_str().to_owned());
+        let fixed = self.later.clone().filter(|_| questions.len() == 1);
+        match fixed.or_else(|| self.fixed.clone().map(Ok)) {
+            Some(fixed) => Box::pin(future::ready(fixed)),
             None => self.script.ask(screen, questions),
         }
     }
@@ -115,7 +126,7 @@ fn persona() -> Persona {
 /// The interview of the persona towards the goal of the stage.
 fn interviewing(ops: &[Op], reads_images: bool) -> Interviewing {
     let goal = "経費を申請する".to_owned();
-    Interviewing::new(persona(), goal, with_done(ops), reads_images, 1)
+    Interviewing::new(persona(), goal, with_done(ops), reads_images, 1, 0)
 }
 
 /// The rules of a scenario of one stage, with `ops`.

@@ -2,9 +2,10 @@
 //! such.
 
 use cucumber::{given, then};
+use webqa_core::interview::issue::Kind;
 
 use super::{endings, goal_at_start, says, unreached_counts};
-use crate::questions::replies::{SAVE, button, ledger_of, step};
+use crate::questions::replies::{HESITANT, SAVE, button, ledger_of, step};
 use crate::world::InterviewWorld;
 
 #[given(expr = "試行が 行き詰まり として終わる")]
@@ -12,11 +13,11 @@ fn ends_stuck(world: &mut InterviewWorld) {
     says(world, step("stuck", None, 0.0));
 }
 
-#[given(expr = "試行が 判断予算切れ として終わる")]
+#[given(expr = "試行が 判断予算切れ として終わり、その最後の操作で迷っている")]
 fn ends_over_budget(world: &mut InterviewWorld) {
     world.scene.max_decisions = 1;
     button(&mut world.scene, SAVE);
-    says(world, step("click", Some("1"), 0.0));
+    says(world, step("click", Some("1"), HESITANT));
 }
 
 #[given(expr = "試行が ゴール達成 として終わる")]
@@ -32,15 +33,7 @@ fn ends_claimed(world: &mut InterviewWorld) {
 #[then(expr = "その試行は目的に届かない試行に数えられている")]
 async fn counted_unreached(world: &mut InterviewWorld) {
     world.run().await;
-    // The decision budget is 1 only in the scene that ends over budget.
-    let ends = [(1, "budget_spent"), (20, "gave_up")];
-    let budget = world.scene.max_decisions;
-    let (_, ending) = ends
-        .iter()
-        .find(|(cap, _)| *cap == budget)
-        .copied()
-        .unwrap_or_default();
-    assert_eq!(endings(world), [ending; 3], "how the trials ended");
+    assert_eq!(endings(world), ["gave_up"; 3], "how the trials ended");
     assert_eq!(
         unreached_counts(world),
         [(3, 3)],
@@ -58,4 +51,24 @@ async fn not_counted_unreached(world: &mut InterviewWorld) {
         [],
         "none is counted as not reaching it"
     );
+}
+
+#[then(expr = "その試行は判断予算切れとして試行の数に数えられ、目的に届かない課題は出ていない")]
+async fn budget_counted_not_unreached(world: &mut InterviewWorld) {
+    world.run().await;
+    assert_eq!(endings(world), ["budget_spent"; 3], "how the trials ended");
+    assert_eq!(ledger_of(world).head.finished, 3, "the trials are in N");
+    assert_eq!(
+        unreached_counts(world),
+        [],
+        "no issue of an unreached purpose"
+    );
+}
+
+#[then(expr = "その試行の迷いの課題は残る")]
+async fn hesitation_stays(world: &mut InterviewWorld) {
+    world.run().await;
+    let issues = ledger_of(world).entries;
+    let kinds: Vec<Kind> = issues.iter().map(|entry| entry.issue.kind()).collect();
+    assert_eq!(kinds, [Kind::Hesitant], "only the hesitation is left");
 }

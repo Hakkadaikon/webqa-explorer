@@ -24,6 +24,7 @@ lintやカバレッジの除外の注釈も足さない。
 | コミットメッセージ | `commit-msg` | 回る | PRで回る |
 | 依存の監査 | `deny` | 回らない | 回る |
 | mutation | `mutants` | 回らない | PRの変更箇所で回る |
+| カバレッジの書き出し(Codecovへ送るのはワークフロー) | `coverage-lcov` | 回らない | mainへのマージと手動の実行で回る |
 
 コミット前の検査はlefthookが走らせる。
 設定は`.config/lefthook.yml`にある。
@@ -33,6 +34,11 @@ lintやカバレッジの除外の注釈も足さない。
 PRのCIで回し、落ちたPRはmainへマージしない。
 手で回すときは`just check`を使い、テストも含めて回る。
 秘密情報とコミットメッセージの検査は、`just check`に入っていない。
+
+カバレッジの送信は、`.github/workflows/codecov.yml`がRustのカバレッジをCodecovへ送る。
+mainへのマージのたびに回り、Actionsの画面から枝を選んで手で回せる。
+合否はCodecovに頼らず、閾値は`test`が見る。
+リポジトリのsecretsに`CODECOV_TOKEN`が要る。
 
 ## 整形
 

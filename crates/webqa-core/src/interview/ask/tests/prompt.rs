@@ -83,8 +83,8 @@ fn prompt_trims_every_persona_field() {
     );
 }
 
-/// The eight questions of a step with an image.
-fn eight() -> Vec<Question> {
+/// The seven questions of a step with an image.
+fn seven() -> Vec<Question> {
     vec![
         operation(owned(&["click", "back", "done"])),
         target(owned(&["1", "2"])),
@@ -101,13 +101,9 @@ fn eight() -> Vec<Question> {
             prompt: p("次に何をするかで迷ったか"),
         },
         Question::Text {
-            id: QuestionId::new(EXPECTATION),
-            prompt: p("選んだ操作で何が起きると期待したかを、1文で書く"),
-        },
-        Question::Text {
             id: QuestionId::new(HARD_TO_SEE),
             prompt: p(
-                "スクリーンショットを見て、見えにくい、目立たない、読みにくいと感じた要素を、1行に1つ「番号: 理由」の形で書く。番号は画面の一覧の番号。無ければ何も書かない",
+                "スクリーンショットを見て、あなたの目的に関わる要素のうち、特に目立って見えにくいものを、最大3つ、1行に1つ「番号: 理由」の形で書く。理由は、文字の大きさ、色の薄さ、隠れているなど、見た目に限る。番号は画面の一覧の番号。無ければ何も書かない",
             ),
         },
         Question::Text {
@@ -118,14 +114,14 @@ fn eight() -> Vec<Question> {
 }
 
 #[test]
-fn one_request_asks_eight_items() {
+fn first_request_asks_seven_items() {
     let shot = shot();
     let qs = questions(&step(Some(&shot)));
-    assert_eq!(qs, eight(), "the four of every mode, then the four added");
+    assert_eq!(qs, seven(), "the four of every mode, then three added");
     let mut judge = Recorder::new(true);
     sent(&mut judge, &cart_text(), Some(&shot), &qs);
     let asked: Vec<_> = judge.calls.into_iter().map(|call| call.questions).collect();
-    assert_eq!(asked, vec![eight()], "one call with the eight questions");
+    assert_eq!(asked, vec![seven()], "one call with the seven questions");
 }
 
 #[test]

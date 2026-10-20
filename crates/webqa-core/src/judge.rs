@@ -133,6 +133,24 @@ pub struct Answers {
 }
 
 impl Answers {
+    /// The answers of both calls: the questions of each, and the sum of the
+    /// tokens used. A question answered by both keeps the answer of `later`.
+    #[must_use]
+    pub fn joined(mut self, later: Self) -> Self {
+        self.table.extend(later.table);
+        self.usage = Usage {
+            input_tokens: self
+                .usage
+                .input_tokens
+                .saturating_add(later.usage.input_tokens),
+            output_tokens: self
+                .usage
+                .output_tokens
+                .saturating_add(later.usage.output_tokens),
+        };
+        self
+    }
+
     /// The most probable option of the question and its probability.
     ///
     /// A NaN probability counts as missing, so its option is never chosen.
@@ -189,9 +207,38 @@ pub enum JudgeError {
     /// The answer could not be read.
     #[error("判断モデルの答えの形式が崩れている")]
     Malformed,
+    /// The answer to a question the interview added could not be used. Names
+    /// the question, which holds no page string.
+    #[error("判断モデルの答えの {question} が使えない")]
+    Unreadable {
+        /// The id of the question.
+        question: String,
+    },
     /// The bridge command could not be written to or read from.
     #[error("橋渡しのコマンドとやりとりできない")]
     Bridge,
+}
+
+impl JudgeError {
+    /// The kind of failure, as the logs write it. An unusable answer to an
+    /// added question is `malformed`; [`Self::question`] names the question.
+    #[must_use]
+    pub fn cause(&self) -> serde_json::Value {
+        if self.question().is_some() {
+            return serde_json::json!("malformed");
+        }
+        serde_json::json!(self)
+    }
+
+    /// The id of the question whose answer could not be used, if that is the
+    /// failure.
+    #[must_use]
+    pub fn question(&self) -> Option<&str> {
+        let Self::Unreadable { question } = self else {
+            return None;
+        };
+        Some(question)
+    }
 }
 
 /// The two questions of a step: the kind of operation among `ops`, and the

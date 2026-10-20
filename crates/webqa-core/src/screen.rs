@@ -68,6 +68,11 @@ impl ScreenText {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    /// The text with `section` after a blank line.
+    pub(crate) fn followed_by(&self, section: &str) -> Self {
+        Self(format!("{}\n\n{section}", self.0))
+    }
 }
 
 /// Identifies a screen: the URL path and the set of (role, normalized name).
@@ -151,7 +156,7 @@ fn quote(s: &str) -> String {
 }
 
 /// Escapes `\`, `"`, control characters and line separators.
-fn escaped(s: &str) -> String {
+pub(crate) fn escaped(s: &str) -> String {
     s.chars().map(escape).collect()
 }
 

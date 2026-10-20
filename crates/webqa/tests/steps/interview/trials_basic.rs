@@ -10,10 +10,10 @@ use webqa_core::redact::Redactor;
 use webqa_core::screen::element_ids;
 
 use super::plan::{claim_goal, stay};
-use super::{End, ending_of, fill, first, found, has, kind_of, openings, within};
+use super::{End, ending_of, fill, first, found, has, openings, within};
 use crate::launch::Opened;
 use crate::page::PageSpec;
-use crate::world::InterviewWorld;
+use crate::world::{InterviewWorld, steps_asked};
 
 /// The storage state the scenes name.
 const AUTH: &str = "auth.json";
@@ -134,6 +134,5 @@ async fn second_asks(world: &mut InterviewWorld) {
     let ended = ending_of(world, 1);
     assert_eq!(ended.as_deref(), Some("budget_spent"), "the first ran out");
     let inside = within(world, 2);
-    let asked = inside.iter().filter(|line| kind_of(line) == "asked");
-    assert_eq!(asked.count(), 1, "the second trial asked the judge");
+    assert_eq!(steps_asked(&inside), 1, "the second trial asked the judge");
 }

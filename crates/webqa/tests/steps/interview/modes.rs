@@ -14,7 +14,7 @@ use crate::world::InterviewWorld;
 /// The scenarios of this Rule that have their steps.
 pub const READY: &[&str] = &[
     "インタビューのモードでも、既存のガードレールで止まる操作は実行しない",
-    "インタビューのモードでも、判断モデルの呼び出しが上限に達したら試行を止める",
+    "インタビューのモードでも、判断の回数が上限に達したら試行を止める",
     "インタビューのモードでも、設定で指定した機密情報は判断モデルに送るテキストで伏せる",
     "インタビューのモードは課題を直さず、台帳と実行結果のほかにファイルを書き換えない",
 ];
@@ -100,7 +100,7 @@ async fn did_not_go_back(world: &mut InterviewWorld) {
     assert_eq!(rejections(world), why, "why the step was stopped");
 }
 
-#[when(expr = "1回の試行で判断モデルを {int} 回呼び出す")]
+#[when(expr = "1回の試行で {int} 回判断する")]
 async fn calls_the_judge(world: &mut InterviewWorld, calls: usize) {
     let scene = &mut world.scene;
     scene.start = page("/");

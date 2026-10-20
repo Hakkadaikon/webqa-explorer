@@ -133,7 +133,7 @@ async fn free_text_redacted_before_ledger_and_log() {
     let mut world = World::new(1);
     world.redactor = Redactor::new(&[Rule::literal("氏名", secret)]).unwrap();
     let said = format!("{secret}の画面が保存される");
-    world.judge.script = judged(expecting(&["done"], 0.9, &said));
+    world.judge.script = judged(expecting(&["click", "done"], 0.9, &said));
     world.run().await;
     let ledger = world.store.ledger.clone().unwrap();
     let log = world

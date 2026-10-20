@@ -7,6 +7,7 @@ use webqa_core::interview::ask::{EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_G
 use webqa_core::judge::Answers;
 
 use super::replies::{SAVE, button, each_trial, step, without, written};
+use crate::scene::found;
 use crate::world::InterviewWorld;
 
 /// A page with a button, and `answers` as the step of every trial.
@@ -25,9 +26,17 @@ fn no_hesitation(world: &mut InterviewWorld) {
     answering(world, lacking(HESITATION));
 }
 
-#[given(expr = "判断モデルの応答に 期待の文 が無い")]
+#[given(expr = "判断モデルの応答の 期待の文 が 欠けている")]
 fn no_expectation(world: &mut InterviewWorld) {
     answering(world, lacking(EXPECTATION));
+}
+
+#[given(expr = "判断モデルの応答の 期待の文 が 空の文字列である")]
+fn empty_expectation(world: &mut InterviewWorld) {
+    answering(
+        world,
+        written(step("click", Some("1"), 0.0), EXPECTATION, ""),
+    );
 }
 
 #[given(expr = "判断モデルの応答に 見えにくい要素の答え が無い")]
@@ -64,7 +73,7 @@ fn hard_to_see_unlisted(world: &mut InterviewWorld) {
 }
 
 /// The calls of the first step of the first trial that the run counted.
-fn first_step_calls(world: &InterviewWorld) -> usize {
+pub(super) fn first_step_calls(world: &InterviewWorld) -> usize {
     let asked = Value::from("asked");
     let started = Value::from("trial_started");
     let lines = world.lines();
@@ -83,4 +92,24 @@ fn first_step_calls(world: &InterviewWorld) -> usize {
 async fn calls_grew(world: &mut InterviewWorld, calls: usize) {
     world.run().await;
     assert_eq!(first_step_calls(world), calls, "the calls the step counted");
+}
+
+#[then(expr = "応答の異常のイベントと実行結果の両方に、問いの名前 {string} が残っている")]
+async fn question_is_named(world: &mut InterviewWorld, name: String) {
+    world.run().await;
+    let named = Value::from(name);
+    let anomaly = Value::from("anomaly");
+    let lines = world.lines();
+    let mut anomalies = lines
+        .iter()
+        .filter(|line| line.get("kind") == Some(&anomaly));
+    let event = found(anomalies.next(), "the log has an anomaly");
+    assert_eq!(event.get("question"), Some(&named), "the event names it");
+    let report = found(world.ran().store.report.as_ref(), "the report was written");
+    let calls = found(
+        report.get("calls").and_then(Value::as_array),
+        "it lists calls",
+    );
+    let named_in = |call: &Value| call.get("question") == Some(&named);
+    assert!(calls.iter().any(named_in), "the report names it in a call");
 }

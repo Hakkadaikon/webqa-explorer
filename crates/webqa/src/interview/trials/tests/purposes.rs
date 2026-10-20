@@ -100,8 +100,8 @@ async fn mismatch_questions_leave_trial_budget() {
     let steps: Vec<_> = calls.iter().filter_map(|c| c["step"].as_u64()).collect();
     assert_eq!(
         steps,
-        [1, 2, 0, 0],
-        "the trial's two decisions, then the two questions about the screens"
+        [1, 1, 2, 0, 0],
+        "the two calls of the click, the done, then the two questions about the screens"
     );
 }
 
@@ -118,7 +118,7 @@ async fn questions_over_the_cap_are_unchecked() {
             world.ledger().unwrap().unchecked_purposes.len(),
             entries(&world)
         ),
-        (Some(3), 1, Vec::new()),
-        "two decisions, one question within the cap; the other purpose is unchecked"
+        (Some(4), 1, Vec::new()),
+        "three calls for two decisions, one question within the cap; the other purpose is unchecked"
     );
 }
