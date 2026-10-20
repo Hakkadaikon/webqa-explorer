@@ -50,16 +50,12 @@ fn typed(screen: &Screen) -> Step {
 
 /// The operation kinds offered when the field and the other elements shown
 /// are all operated, so that only the moves are left.
-fn moves_options() -> Vec<String> {
+fn moves_options(rules: Rules) -> Vec<String> {
     let start = with(fielded(), below("link", "通知設定"));
     let field = id("textbox", "メール", 0);
     let edges = [(0, field, 1), (0, save(), 1), (1, notice(), 1)];
     let screens = [&start, &settings(&[("button", "通知")])];
-    let state = idle(
-        valued(&["メール"]),
-        seen(&start),
-        memory_of(&screens, &edges),
-    );
+    let state = idle(rules, seen(&start), memory_of(&screens, &edges));
     let moves = next(state.with_budget(budget(20, 1)), secs(0));
     options(moves.effect())[0].clone()
 }
@@ -72,9 +68,19 @@ fn enter_stays_after_the_field_is_typed() {
     assert!(operated(asked.state(), &screen, &field), "operated");
     let untouched = options(asked.effect())[0].clone();
     assert!(untouched.contains(&"enter".to_owned()), "{untouched:?}");
-    let moves = moves_options();
+    let moves = moves_options(valued(&["メール"]));
     let kinds = ["scroll_down", "scroll_up", "back", "enter"].map(str::to_owned);
     assert_eq!(moves, kinds.to_vec(), "the moves and enter");
+}
+
+#[test]
+fn enter_alone_does_not_narrow_to_the_moves() {
+    let no_moves = Rules {
+        ops: vec![Op::Click, Op::Input, Op::Enter],
+        ..valued(&["メール"])
+    };
+    let kinds = ["click", "input", "enter"].map(str::to_owned);
+    assert_eq!(moves_options(no_moves), kinds.to_vec(), "unnarrowed");
 }
 
 #[test]

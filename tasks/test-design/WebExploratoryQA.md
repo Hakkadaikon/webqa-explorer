@@ -317,7 +317,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-116 WebExploratoryQA.feature:692(探索の記憶と優先順位) [event] 「値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える」
       → 手法: 同値分割(blackbox-partition)、状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_remembered_after_the_page_loses_the_field` / issue: #62、#64
 - [x] T-117 WebExploratoryQA.feature:673(探索の記憶と優先順位) [event] 「入力欄に打ったあと Enter を押すと、画面が変わり、変わった先の画面が探索の記憶に加わる」
-      → 手法: 状態遷移テスト(blackbox-state)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `enter_is_offered_only_with_a_field_that_takes_a_value`、単体 `webqa-core::machine::actions` の `enter_stays_after_the_field_is_typed`、単体 `webqa-core::machine::actions` の `enter_needs_no_target`、契約 `webqa-browser/tests/contract.rs` の `enter_presses_only_into_a_focused_input_field` / issue: #70
+      → 手法: 状態遷移テスト(blackbox-state)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `enter_is_offered_only_with_a_field_that_takes_a_value`、単体 `webqa-core::machine::actions` の `enter_stays_after_the_field_is_typed`、単体 `webqa-core::machine::actions` の `enter_alone_does_not_narrow_to_the_moves`、単体 `webqa-core::machine::actions` の `enter_needs_no_target`、契約 `webqa-browser/tests/contract.rs` の `enter_presses_only_into_a_focused_input_field` / issue: #70
 - [x] T-118 WebExploratoryQA.feature:200(ガードレール) [unwanted] 「ページに禁止要素があれば、操作種別の選択肢に enter を含めない」
       → 手法: 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `enter_is_dropped_when_a_forbidden_element_is_on_the_page`、単体 `webqa-core::machine::actions` の `enter_goes_even_when_the_rules_offer_nothing_else` / issue: #70
 
@@ -445,7 +445,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-114 | state | 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) | `input_is_offered_only_for_a_field_with_a_value`、`input_does_nothing_without_a_field_or_a_value`、`input_stays_when_the_rules_offer_nothing_else`、`input_is_dropped_when_its_field_is_past_the_options` | #62、#63 | [x] | [ ] | 要 |
 | T-115 | unwanted | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `input_is_remembered_only_when_it_typed`、`input_that_does_nothing_is_recorded_and_run_continues` | #62、#64 | [x] | [ ] | 要 |
 | T-116 | event | 同値分割(blackbox-partition)、状態遷移テスト(blackbox-state) | `input_is_remembered_after_the_page_loses_the_field` | #62、#64 | [x] | [ ] | 要 |
-| T-117 | event | 状態遷移テスト(blackbox-state)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `enter_is_offered_only_with_a_field_that_takes_a_value`、`enter_stays_after_the_field_is_typed`、`enter_needs_no_target`、`enter_presses_only_into_a_focused_input_field` | #70 | [x] | [ ] | 要 |
+| T-117 | event | 状態遷移テスト(blackbox-state)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `enter_is_offered_only_with_a_field_that_takes_a_value`、`enter_stays_after_the_field_is_typed`、`enter_alone_does_not_narrow_to_the_moves`、`enter_needs_no_target`、`enter_presses_only_into_a_focused_input_field` | #70 | [x] | [ ] | 要 |
 | T-118 | unwanted | 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) | `enter_is_dropped_when_a_forbidden_element_is_on_the_page`、`enter_goes_even_when_the_rules_offer_nothing_else` | #70 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行

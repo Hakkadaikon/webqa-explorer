@@ -151,19 +151,19 @@ fn without_input(ops: Vec<Op>, types: bool) -> Vec<Op> {
     if types || rest.is_empty() { ops } else { rest }
 }
 
-/// Going back, scrolling and `enter`, with no element. When the rules have none of
-/// them, every operation kind stays, rather than a question with nothing to
-/// do.
+/// Going back and scrolling, and `enter` beside them, with no element. When
+/// the rules have no going back or scrolling, every operation kind stays,
+/// rather than a question with nothing to do.
 fn moves(ops: Vec<Op>) -> (Vec<Op>, Option<Vec<usize>>) {
     let moves: Vec<Op> = ops
         .iter()
         .copied()
         .filter(|op| MOVES.contains(op) || *op == Op::Enter)
         .collect();
-    if moves.is_empty() {
-        (ops, None)
-    } else {
+    if ops.iter().any(|op| MOVES.contains(op)) {
         (moves, Some(Vec::new()))
+    } else {
+        (ops, None)
     }
 }
 
