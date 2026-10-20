@@ -68,10 +68,11 @@ fn numbered(line: &str) -> Option<(usize, &str)> {
     (!reason.is_empty()).then_some((value(number.trim())?, reason))
 }
 
-/// The number written in half-width or full-width digits.
+/// The number written in half-width or full-width digits. One too large
+/// for `usize` stops at the largest, which no element has.
 fn value(number: &str) -> Option<usize> {
     let value = number.chars().try_fold(0_usize, |value, c| {
-        value.checked_mul(10)?.checked_add(digit(c)?)
+        Some(value.saturating_mul(10).saturating_add(digit(c)?))
     });
     value.filter(|_| !number.is_empty())
 }

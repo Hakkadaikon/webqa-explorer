@@ -108,3 +108,23 @@ fn hard_to_see_cut_to_the_first_three() {
         "a number not asked is an anomaly even past the cut"
     );
 }
+
+#[test]
+fn hard_to_see_numbers_are_read_by_value() {
+    let shot = shot();
+    let step = Step {
+        elements: 20,
+        ..step(Some(&shot))
+    };
+    let not_listed = Err(Unusable::NotAnOption(QuestionId::new(HARD_TO_SEE)));
+    let cases = [
+        ("02: x", Ok(Some(sights(&[(2, "x")])))),
+        ("１０: x", Ok(Some(sights(&[(10, "x")])))),
+        ("99999999999999999999: x", not_listed),
+    ];
+    for (text, want) in cases {
+        let answers = changed(full(true), &[(HARD_TO_SEE, Some(&[(text, NAN)]))]);
+        let got = read_step(&answers, &step).map(|r| r.hard_to_see);
+        assert_eq!(got, want, "{text:?}");
+    }
+}
