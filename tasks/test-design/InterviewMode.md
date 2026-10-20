@@ -286,7 +286,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-088 InterviewMode.feature:735(台帳の書式) [ubiquitous] 「要素を持たない課題は、画面と種類で番号を決める」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::issue` の `elementless_number_from_screen_and_kind`、単体 `webqa-core::interview::issue` の `mismatch_number_from_url_pattern_and_kind` / issue: #22、#33
 - [x] T-089 InterviewMode.feature:741(台帳の書式) [unwanted] 「スクリーンショットの名前は、課題の番号・試行の番号・ステップの番号から作り、パスの区切りを含めない」
-      → 手法: セキュリティテスト(nonfunctional-attributes)、エラー推測(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::screenshots` の `issue_screenshot_name_from_numbers_only`、単体 `webqa::store::screenshots` の `mismatch_screenshot_named_from_first_match` / issue: #30、#33
+      → 手法: セキュリティテスト(nonfunctional-attributes)、エラー推測(experience-checklist) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::screenshots` の `issue_screenshot_name_from_numbers_only`、単体 `webqa::interview::trials` の `mismatch_screenshot_named_from_first_match` / issue: #30、#33
 - [x] T-090 InterviewMode.feature:748(台帳の書式) [ubiquitous] 「台帳を読み戻すと、書いた課題の項目と選択がそのまま戻る」
       → 手法: プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `write_then_read_round_trips` / issue: #24、#33
 - [x] T-091 InterviewMode.feature:754(台帳の書式) [unwanted] 「判断モデルの自由な文に台帳の書式が入っていても、台帳の構造を崩さない」(Examples の各行を1ケースとする)
