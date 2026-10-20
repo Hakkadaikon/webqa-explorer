@@ -45,11 +45,14 @@ async fn input_leaves_other_elements_alone() {
     assert_eq!(after.screen, before.screen, "nothing typed or pressed");
 }
 
-/// A field and a button. Any Enter pressed on the page adds a link.
+/// A field, a text area, a check box and a button. Any Enter pressed on the
+/// page adds a link.
 const ENTER_PAGE: &str = r#"<!doctype html>
 <html lang="ja">
 <title>enter</title>
 <input aria-label="メールアドレス">
+<textarea aria-label="備考"></textarea>
+<input type="checkbox" aria-label="同意">
 <button onclick="this.textContent = '押された'">ボタン</button>
 <script>
 addEventListener('keydown', e => { if (e.key === 'Enter') {
@@ -87,19 +90,20 @@ async fn enters(browser: &mut PlaywrightBrowser) -> Res<Vec<String>> {
 #[tokio::test]
 async fn enter_presses_only_into_a_focused_input_field() {
     let mut browser = launch_enter().await.unwrap();
-    let body = enters(&mut browser).await.unwrap();
-    touch(&mut browser, "click", Some(id("button", "ボタン")))
-        .await
-        .unwrap();
-    let button = enters(&mut browser).await.unwrap();
-    let field = id("textbox", "メールアドレス");
-    touch(&mut browser, "input", Some(field)).await.unwrap();
-    let typed = enters(&mut browser).await.unwrap();
-    let added = vec!["追加済み".to_owned()];
-    let nothing: Vec<String> = Vec::new();
+    let mut links = vec![enters(&mut browser).await.unwrap()];
+    for (op, role, name) in [
+        ("click", "button", "ボタン"),
+        ("click", "checkbox", "同意"),
+        ("input", "textbox", "メールアドレス"),
+        ("input", "textbox", "備考"),
+    ] {
+        touch(&mut browser, op, Some(id(role, name))).await.unwrap();
+        links.push(enters(&mut browser).await.unwrap());
+    }
+    let added = |count: usize| vec!["追加済み".to_owned(); count];
     assert_eq!(
-        [body, button, typed],
-        [nothing.clone(), nothing, added],
-        "only the field took Enter"
+        links,
+        [added(0), added(0), added(0), added(1), added(2)],
+        "only the fields took Enter: the button and the check box did not"
     );
 }
