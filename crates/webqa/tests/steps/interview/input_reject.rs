@@ -10,9 +10,6 @@ use crate::world::InterviewWorld;
 /// The items of a persona document.
 const ITEMS: [&str; 5] = ["name", "profile", "it_literacy", "wants", "avoids"];
 
-/// What a configuration says of a number that is not above zero.
-const ZERO: &str = "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32";
-
 /// The persona document with every item of `persona`, but `omit` if given.
 pub fn persona_doc(persona: &Persona, omit: Option<&str>) -> String {
     let fields = [
@@ -41,46 +38,73 @@ fn persona_mistakes(scene: &Scene) -> Vec<String> {
     let missing = text.and_then(missing_item);
     let broken = text.is_some_and(|text| serde_json::from_str::<Value>(text).is_err());
     let lacks = missing.map(|item| format!("persona.{item} を書く"));
-    let unreadable = "persona を決まった形式で読めない: expected string scalar";
+    let unreadable = "persona を決まった形式で読めない: expected string scalar at line 1, column 7";
     let format = broken.then(|| unreadable.to_owned());
     let pattern = "purpose.screens の 1 番目の url の型が書式に合わない";
     let screens = scene.purpose_text.as_ref().map(|_| pattern.to_owned());
     [lacks, format, screens].into_iter().flatten().collect()
 }
 
-/// Whether `value` is above zero and at most one.
-fn in_unit(value: f64) -> bool {
-    value > 0.0 && value <= 1.0
-}
+/// A setting of the scene as a number, if it is set.
+type Setting = fn(&Scene) -> Option<f64>;
 
-/// The sentences for the mistakes of the numbers of the settings.
+/// The sentence for each item and value that the configuration rejects. The
+/// sentence of a number that is not above zero is the parser's, with the
+/// position of the number in the configuration.
+const SETTINGS: [(Setting, f64, &str); 9] = [
+    (
+        |scene| Some(f64::from(scene.trials)),
+        0.0,
+        "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32 at line 23, column 3",
+    ),
+    (
+        |scene| Some(scene.hesitation),
+        0.0,
+        "interview.hesitation_threshold は 0 より大きく 1 以下の値にする",
+    ),
+    (
+        |scene| Some(scene.hesitation),
+        1.5,
+        "interview.hesitation_threshold は 0 より大きく 1 以下の値にする",
+    ),
+    (
+        |scene| Some(scene.confidence),
+        0.0,
+        "interview.confidence_threshold は 0 より大きく 1 以下の値にする",
+    ),
+    (
+        |scene| Some(scene.confidence),
+        1.5,
+        "interview.confidence_threshold は 0 より大きく 1 以下の値にする",
+    ),
+    (
+        |scene| scene.interview_stuck.map(f64::from),
+        0.0,
+        "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32 at line 27, column 3",
+    ),
+    (
+        |scene| Some(f64::from(scene.trials)),
+        101.0,
+        "interview.trials は 1 以上 100 以下にする",
+    ),
+    (
+        |scene| Some(f64::from(scene.max_natural)),
+        0.0,
+        "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32 at line 26, column 3",
+    ),
+    (
+        |scene| scene.interview_requests.map(f64::from),
+        1.0,
+        "interview.requests_per_hour は 2 以上にする",
+    ),
+];
+
+/// The sentences for the settings of the scene that are in the table.
 fn setting_mistakes(scene: &Scene) -> Vec<String> {
-    let unit = "は 0 より大きく 1 以下の値にする";
-    [
-        (scene.trials == 0, ZERO.to_owned()),
-        (
-            scene.trials > 100,
-            "interview.trials は 1 以上 100 以下にする".to_owned(),
-        ),
-        (
-            !in_unit(scene.hesitation),
-            format!("interview.hesitation_threshold {unit}"),
-        ),
-        (
-            !in_unit(scene.confidence),
-            format!("interview.confidence_threshold {unit}"),
-        ),
-        (scene.interview_stuck == Some(0), ZERO.to_owned()),
-        (scene.max_natural == 0, ZERO.to_owned()),
-        (
-            scene.interview_requests == Some(1),
-            "interview.requests_per_hour は 2 以上にする".to_owned(),
-        ),
-    ]
-    .into_iter()
-    .filter(|(wrong, _)| *wrong)
-    .map(|(_, sentence)| sentence)
-    .collect()
+    let rows = SETTINGS.iter();
+    let hits = rows.filter(|(get, value, _)| get(scene) == Some(*value));
+    hits.map(|(_, _, sentence)| (*sentence).to_owned())
+        .collect()
 }
 
 /// The configuration was rejected with the sentence of the one mistake of
@@ -89,10 +113,9 @@ pub fn check_rejection(world: &InterviewWorld) {
     let scene = &world.scene;
     let rejected = world.ran().config_error.as_ref();
     let sentence = found(rejected, "the configuration was rejected");
-    // The position the parser found the mistake at is not part of the sentence.
-    let head = sentence.split(" at line ").next().unwrap_or_default();
     let mistakes = [persona_mistakes(scene), setting_mistakes(scene)].concat();
-    assert_eq!(mistakes, [head], "the sentence of the mistake");
+    assert_eq!(mistakes, [sentence.as_str()], "the sentence of the mistake");
+    assert_eq!(world.ran().launched, 0, "no browser was opened");
     let persona = &scene.persona;
     let singles = [
         &persona.name,

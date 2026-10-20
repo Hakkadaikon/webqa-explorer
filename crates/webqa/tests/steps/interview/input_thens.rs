@@ -79,7 +79,10 @@ async fn asked_once(world: &mut InterviewWorld) {
 #[then(expr = "URL の型 {string} のずれの問いは1回だけ聞かれている")]
 async fn asked_once_for(world: &mut InterviewWorld, pattern: String) {
     mismatch_asked_once(world).await;
-    drop(pattern);
+    let text = prompt(first_question(world, PURPOSE_MATCH));
+    let head = found(text.lines().next(), "the question has a first line");
+    let about = format!("URL の型 {pattern} の画面には、次の目的を書いた。");
+    assert_eq!(head, about, "the question is about the pattern");
 }
 
 #[then(expr = "その問いに渡した推測は {string} と {string} の2つである")]
@@ -118,6 +121,13 @@ async fn asked_only(world: &mut InterviewWorld, times: usize) {
     assert!(asks(world, NATURAL).is_empty(), "no naturalness question");
 }
 
+/// The first question of the first call that carries the question `id`.
+fn first_question<'a>(world: &'a InterviewWorld, id: &str) -> &'a Question {
+    let calls = asks(world, id);
+    let call = found(calls.first(), "the question was asked");
+    found(call.questions.first(), "the call has a question")
+}
+
 #[then(expr = "ずれの問いのあとに、その目的のずれの課題について自然さの問いが1回聞かれている")]
 async fn natural_after_mismatch(world: &mut InterviewWorld) {
     world.run().await;
@@ -130,4 +140,10 @@ async fn natural_after_mismatch(world: &mut InterviewWorld) {
     let natural = found(at(NATURAL), "the naturalness question was asked");
     assert_eq!(natural, mismatch + 1, "right after");
     assert_eq!(asks(world, NATURAL).len(), 1, "asked once");
+    let written = world.scene.purpose.screens.first();
+    let pattern = found(written, "a purpose is written").pattern.as_str();
+    let place = format!("画面: URL の型 {pattern}");
+    let text = prompt(first_question(world, NATURAL));
+    let about = text.lines().filter(|line| *line == place);
+    assert_eq!(about.count(), 1, "the question is about the mismatch issue");
 }

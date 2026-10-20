@@ -5,11 +5,12 @@ use std::iter;
 
 use cucumber::given;
 use webqa_core::config::purpose::{ScreenPurpose, UrlPattern};
-use webqa_core::interview::ask::SAME;
+use webqa_core::interview::ask::DIFFERENT;
+use webqa_core::interview::natural::YES;
 
 use super::{
-    GUESS, Visit, at, every_trial, journey, mismatch_answer, page, reset, same_answers, say, step,
-    unguessed,
+    GUESS, Visit, at, every_trial, journey, mismatch_answer, natural_answer, page, reset,
+    same_answers, say, step, unguessed,
 };
 use crate::scene::{Scene, found};
 use crate::world::InterviewWorld;
@@ -97,7 +98,10 @@ fn guesses_at_two_screens(
 
 #[given(expr = "判断モデルが、URL {string} の画面の目的を {string} と推測する")]
 fn guesses_at(world: &mut InterviewWorld, url: String, guess: String) {
-    every_trial(&mut world.scene, &[at(&url, &guess)], same_answers());
+    // A guess compared with a purpose that was not written would be found
+    // different, and would be an issue.
+    let compared = vec![mismatch_answer(DIFFERENT), natural_answer(YES)];
+    every_trial(&mut world.scene, &[at(&url, &guess)], compared);
     drop((url, guess));
 }
 
@@ -185,5 +189,10 @@ fn three_screens_reached(world: &mut InterviewWorld) {
     journey(scene, 0, &visits);
     journey(scene, 1, &[at("/", GUESS)]);
     journey(scene, 2, &[at("/", GUESS)]);
-    say(scene, [mismatch_answer(SAME), mismatch_answer(SAME)]);
+    // Both the questions that the cap allows find an issue, which would be
+    // asked about next if the cap allowed it.
+    say(
+        scene,
+        [mismatch_answer(DIFFERENT), mismatch_answer(DIFFERENT)],
+    );
 }

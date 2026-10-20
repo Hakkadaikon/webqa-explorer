@@ -1,7 +1,10 @@
 //! Steps of this Rule of the feature, and the scenarios that have them.
 
+#[path = "modes_through.rs"]
+mod through;
+
 use cucumber::{given, then, when};
-use serde_json::json;
+use serde_json::{Value, json};
 
 use crate::input::{others, page, reset, say, settle, step, step_calls, trial_ending};
 use crate::page::PageSpec;
@@ -58,6 +61,17 @@ fn clicks_what_goes_away(world: &mut InterviewWorld, clicked: String, gone: Stri
     drop((clicked, gone));
 }
 
+/// Why the log says the steps were rejected, in order.
+fn rejections(world: &InterviewWorld) -> Vec<Value> {
+    let lines = world.lines();
+    let rejected = lines
+        .iter()
+        .filter(|line| line.get("kind") == Some(&json!("rejected")));
+    rejected
+        .filter_map(|line| line.get("why").cloned())
+        .collect()
+}
+
 #[then(expr = "ブラウザで {string} を操作していない")]
 async fn did_not_operate(world: &mut InterviewWorld, name: String) {
     world.run().await;
@@ -69,6 +83,10 @@ async fn did_not_operate(world: &mut InterviewWorld, name: String) {
         .map(|(_, touch)| touch.target.as_ref().map(|target| target.name.clone()));
     let operated = targets.filter(|target| target.as_ref() == Some(&name));
     assert_eq!(operated.count(), 0, "the element was left alone");
+    // The element is forbidden, or it was gone when the step was to run.
+    let forbidden = world.scene.forbidden.contains(&name);
+    let why = if forbidden { "forbidden" } else { "missing" };
+    assert_eq!(rejections(world), [json!(why)], "why the step was stopped");
 }
 
 #[then(expr = "ブラウザで 「戻る」 を操作していない")]
@@ -78,6 +96,8 @@ async fn did_not_go_back(world: &mut InterviewWorld) {
     assert!(!ran.judge.asked.is_empty(), "the judge was asked");
     let backs = ran.touches.iter().filter(|(_, touch)| touch.op == "back");
     assert_eq!(backs.count(), 0, "the browser did not go back");
+    let why = [json!("low_confidence")];
+    assert_eq!(rejections(world), why, "why the step was stopped");
 }
 
 #[when(expr = "1回の試行で判断モデルを {int} 回呼び出す")]
@@ -114,21 +134,4 @@ async fn text_has_no_address(world: &mut InterviewWorld, address: String) {
     let shown = format!("1: link \"[[{EMAIL_RULE}]]\"");
     assert_eq!(first.screen, shown, "the address is hidden in the screen");
     assert!(!first.screen.contains(&address), "the address is not sent");
-}
-
-#[then(expr = "書いたファイルは、台帳、イベントログ、実行結果、スクリーンショットだけである")]
-async fn only_the_records_were_written(world: &mut InterviewWorld) {
-    world.run().await;
-    let store = &world.ran().store;
-    assert!(store.ledger.is_some(), "the ledger was written");
-    assert!(store.report.is_some(), "the report was written");
-    assert!(!store.lines.is_empty(), "the log was written");
-    assert!(store.memories.is_empty(), "no other file was kept");
-    assert!(store.aside.is_empty(), "no file was moved aside");
-}
-
-#[then(expr = "対象の Web アプリに、課題を直すための操作をしていない")]
-async fn did_not_fix_anything(world: &mut InterviewWorld) {
-    world.run().await;
-    assert_eq!(world.ran().touches, [], "the web app was not touched");
 }

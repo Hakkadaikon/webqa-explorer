@@ -69,8 +69,8 @@ async fn issue_shot(world: &mut InterviewWorld, first: usize, trial: usize, agai
     world.run().await;
     let ledger = ledger_of(world);
     let issue = &the_mismatch(&ledger).issue;
-    let shot = Shot { trial, step: again };
-    assert_eq!((trial, again), (1, first), "the shot is of the first trial");
+    let shot = Shot { trial, step: first };
+    assert_eq!(again, first, "the name is made of the step of the shot");
     assert_eq!(issue.shot, Some(shot), "the issue points at the step");
     let written: Vec<&str> = world
         .ran()
