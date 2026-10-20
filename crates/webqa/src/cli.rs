@@ -39,11 +39,11 @@ pub struct Cli {
 /// What the command line asks: a [`Command`], or looking at records.
 ///
 /// Watching and the ledger screen are not a [`Command`]: they go through no
-/// stage of starting, and those stages never see them.
+/// stage of starting (`start.rs`), and those stages never see them.
 #[derive(Debug, PartialEq, Eq, clap::Subcommand)]
 pub enum Sub {
-    /// A subcommand that goes through the stages of starting: `run`,
-    /// `explore`, `replay`, `interview` or `check-docs`.
+    /// A subcommand passed to `app::app`, which sorts it in `start::job`:
+    /// `run`, `explore`, `replay`, `interview` or `check-docs`.
     #[command(flatten)]
     Exec(Command),
     /// Follows the event log of a run in another process.
@@ -104,8 +104,8 @@ pub enum Command {
     Jobless(Jobless),
 }
 
-/// The subcommands that make no job: they do not go through the steps that
-/// start a run, though `interview` runs the core by its own steps.
+/// The subcommands for which `start::job` makes no [`Job`](start::Job):
+/// `interview` runs the core by its own steps.
 #[derive(Debug, PartialEq, Eq, clap::Subcommand)]
 pub enum Jobless {
     /// Interviews the target as a persona, trial after trial.
