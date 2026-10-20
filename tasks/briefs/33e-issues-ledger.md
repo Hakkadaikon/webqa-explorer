@@ -154,7 +154,7 @@
 | テスト | 期待値 |
 |---|---|
 | `cargo test -p webqa --test interview_acceptance` | 受け持つ28本(Examples の行を展開した数)と、ほかの単位の分がすべて通り、あいまいな手順の出力が無い |
-| `cargo test -p webqa --test acceptance` | 探索モードの196本がそのまま通る |
+| `cargo test -p webqa --test acceptance` | 探索モードの190本がそのまま通る |
 | `just fmt-check`、`just clippy`、`just metrics` | 通る |
 
 ## 親に決めてほしいこと

@@ -50,6 +50,8 @@
 
 名前は、Rule のファイルの `READY` に入れる。
 
+- 「探索モードと決め打ちシナリオの受け入れシナリオは、そのまま通る」は `--test acceptance`(CI の check)に任せ、`READY` に入れない。名前は `steps/interview/modes.rs` の `DELEGATED` に置き、33b はこのシナリオの手順を書かない。
+
 ## 書く手順の文言
 
 この Rule にだけ出る文言を書く。`{string}` は引用符の値、`{n}` は数(Examples の値に合わせて `{int}` か `{float}`)、`<p>` は Examples の列。共通の文言は 33a の `common.rs` にあるので書かない。
@@ -139,7 +141,7 @@
 | テスト | 期待値 |
 |---|---|
 | `cargo test -p webqa --test interview_acceptance` | 受け持つ24本(Examples の行を展開した数)と、ほかの単位の分がすべて通り、あいまいな手順の出力が無い |
-| `cargo test -p webqa --test acceptance` | 探索モードの196本がそのまま通る |
+| `cargo test -p webqa --test acceptance` | 探索モードの190本がそのまま通る |
 | `just fmt-check`、`just clippy`、`just metrics` | 通る |
 
 ## 親に決めてほしいこと
