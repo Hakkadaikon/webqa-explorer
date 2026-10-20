@@ -140,7 +140,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-015 InterviewMode.feature:194(試行) [state] 「初期化のコマンドを書かなければ、試行の前に何も実行しない」
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `no_reset_command_runs_nothing` / issue: #30、#33
 - [x] T-016 InterviewMode.feature:200(試行) [unwanted] 「初期化のコマンドが失敗したら、その試行をせずに実行を止めて終了コード3で終わる」(Examples の各行を1ケースとする)
-      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::reset` の `nonzero_or_timeout_is_failure`、単体 `webqa::interview::trials` の `reset_failure_writes_ledger_then_exits_three` / issue: #28、#30、#33
+      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::reset` の `nonzero_or_timeout_is_failure`、単体 `webqa::interview::trials` の `reset_failure_writes_ledger_then_exits_three`、単体 `webqa::interview::trials` の `failed_reset_before_any_trial_is_a_run_that_got_nowhere`、単体 `webqa::interview::trials` の `interrupt_stops_the_command_and_what_it_started` / issue: #28、#30、#33
 - [x] T-017 InterviewMode.feature:212(試行) [ubiquitous] 「初期化のコマンドはシェルを通さず、設定に書いた引数のまま実行する」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、契約 `webqa/tests/reset.rs` の `args_passed_verbatim_without_shell` / issue: #28、#33
 - [x] T-018 InterviewMode.feature:218(試行) [unwanted] 「初期化のコマンドに、判断モデルの API キーを渡さない」
@@ -354,7 +354,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-122 InterviewMode.feature:960(既存のモードとの関係) [unwanted] 「インタビューのモードでも、設定で指定した機密情報は判断モデルに送るテキストで伏せる」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask` の `screen_text_redacted_in_interview` / issue: #20、#33
 - [x] T-123 InterviewMode.feature:966(既存のモードとの関係) [ubiquitous] 「インタビューのモードは課題を直さず、台帳と実行結果のほかにファイルを書き換えない」
-      → 手法: 禁止仕様からの導出(blackbox-state)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `writes_only_ledger_events_report_screenshots` / issue: #30、#33
+      → 手法: 禁止仕様からの導出(blackbox-state)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `writes_only_ledger_events_report_screenshots`、単体 `webqa::interview::trials` の `detected_problem_screenshots_do_not_overwrite_across_trials` / issue: #30、#33
 - [x] T-124 InterviewMode.feature:92(ペルソナと目的の入力) [unwanted] 「画面ごとの目的の URL の型に合う画面に届いた試行が無ければ、ずれの問いを聞かない」
       → 手法: デシジョンテーブル(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask` の `no_mismatch_question_without_reaching_trial` / issue: #20、#33
 - [x] T-125 InterviewMode.feature:99(ペルソナと目的の入力) [boundary] 「その URL の型に合う画面に届いたのが打ち切りの試行だけなら、ずれの問いを聞かない」
@@ -411,7 +411,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-013 | event | テストダブル(test-doubles)、コントラクトテスト(levels-service) | `each_trial_opens_fresh_browser_with_storage_state`、`new_context_has_no_previous_storage` | #29、#30、#33 | [x] | [ ] | 要 |
 | T-014 | optional | テストダブル(test-doubles) | `reset_runs_before_each_browser_open` | #30、#33 | [x] | [ ] | 要 |
 | T-015 | state | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `no_reset_command_runs_nothing` | #30、#33 | [x] | [ ] | 要 |
-| T-016 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) | `nonzero_or_timeout_is_failure`、`reset_failure_writes_ledger_then_exits_three` | #28、#30、#33 | [x] | [ ] | 要 |
+| T-016 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) | `nonzero_or_timeout_is_failure`、`reset_failure_writes_ledger_then_exits_three`、`failed_reset_before_any_trial_is_a_run_that_got_nowhere`、`interrupt_stops_the_command_and_what_it_started` | #28、#30、#33 | [x] | [ ] | 要 |
 | T-017 | ubiquitous | セキュリティテスト(nonfunctional-attributes) | `args_passed_verbatim_without_shell` | #28、#33 | [x] | [ ] | 要 |
 | T-018 | unwanted | セキュリティテスト(nonfunctional-attributes) | `api_key_env_not_inherited` | #28、#33 | [x] | [ ] | 要 |
 | T-019 | unwanted | セキュリティテスト(nonfunctional-attributes) | `logged_output_is_redacted` | #28、#33 | [x] | [ ] | 要 |
@@ -518,7 +518,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-120 | unwanted | 同値分割(blackbox-partition)、回帰テスト(levels-operational) | `forbidden_by_keyword`、`back_confidence_boundary`、`missing_element_aborts` | #4、#33 | [x] | [ ] | 要 |
 | T-121 | unwanted | 境界値分析(blackbox-partition)、回帰テスト(levels-operational) | `budget_exhausted_finishes` | #12、#33 | [x] | [ ] | 要 |
 | T-122 | unwanted | セキュリティテスト(nonfunctional-attributes) | `screen_text_redacted_in_interview` | #20、#33 | [x] | [ ] | 要 |
-| T-123 | ubiquitous | 禁止仕様からの導出(blackbox-state)、テストダブル(test-doubles) | `writes_only_ledger_events_report_screenshots` | #30、#33 | [x] | [ ] | 要 |
+| T-123 | ubiquitous | 禁止仕様からの導出(blackbox-state)、テストダブル(test-doubles) | `writes_only_ledger_events_report_screenshots`、`detected_problem_screenshots_do_not_overwrite_across_trials` | #30、#33 | [x] | [ ] | 要 |
 | T-124 | unwanted | デシジョンテーブル(blackbox-partition)、テストダブル(test-doubles) | `no_mismatch_question_without_reaching_trial` | #20、#33 | [x] | [ ] | 要 |
 | T-125 | boundary | 境界値分析(blackbox-partition)、禁止仕様からの導出(blackbox-state) | `cut_trial_reach_does_not_trigger_mismatch_question` | #20、#33 | [x] | [ ] | 要 |
 | T-126 | unwanted | デシジョンテーブル(blackbox-partition) | `no_mismatch_question_without_usable_guess` | #20、#33 | [x] | [ ] | 要 |
