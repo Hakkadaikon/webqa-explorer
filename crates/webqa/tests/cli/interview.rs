@@ -2,12 +2,12 @@
 
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use webqa_core::interview::ledger::{Goal, Head, Ledger, read, write};
 use webqa_core::redact::Redactor;
 
-use super::case::{Case, arg, assert_refused};
+use super::case::{Case, arg, assert_refused, field};
 use super::exec;
 
 const DOCS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/docs/");
@@ -145,11 +145,23 @@ fn interviewed(case: &Case, extra: &[&str]) -> io::Result<()> {
     Ok(())
 }
 
+/// The latest run of `case`, whose report and first event both say the mode
+/// is interview.
+fn interview_run(case: &Case) -> io::Result<PathBuf> {
+    let run = exec::latest_run(&case.out())?;
+    let report = exec::report(&run)?;
+    assert_eq!(field(&report, "mode"), Some("interview"), "the report");
+    let first = exec::events(&run)?.into_iter().next();
+    let first = first.as_ref().and_then(|event| field(event, "mode"));
+    assert_eq!(first, Some("interview"), "the first event");
+    Ok(run)
+}
+
 #[test]
 fn interview_runs_and_writes_ledger() -> io::Result<()> {
     let case = Case::new("interview_runs")?;
     interviewed(&case, &[])?;
-    let path = exec::latest_run(&case.out())?.join("ledger.md");
+    let path = interview_run(&case)?.join("ledger.md");
     let text = fs::read_to_string(&path)?;
     assert_eq!(read(&text).map(|ledger| ledger.head.finished), Ok(2));
     // The ledger it wrote can be read back as the previous one.

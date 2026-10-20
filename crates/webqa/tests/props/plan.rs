@@ -57,7 +57,7 @@ pub fn plan(case: &Case, out: &Path) -> Fallible<Plan> {
             var("RESET_SLEEP", format!("0.{:03}", case.reset_ms)),
         ],
         withheld: Vec::new(),
-        mode: Mode::Scenario,
+        mode: Mode::Interview,
         started_at: None,
         detect: Detect::default(),
     })
