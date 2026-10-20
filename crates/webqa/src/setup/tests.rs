@@ -10,7 +10,7 @@ use webqa_core::config::validate::validate;
 
 use super::*;
 
-/// The YAML example of `docs/architecture.md`, copied as written there.
+/// The YAML example of `docs/arch/config.md`, copied as written there.
 pub(super) const EXAMPLE: &str = r##"target:
   url: https://app.example.test
   allowed_origins: ["https://app.example.test", "https://*.app.example.test"]

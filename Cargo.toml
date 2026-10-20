@@ -13,7 +13,7 @@ webqa-browser = { path = "crates/webqa-browser", version = "0.1.0" }
 webqa-core = { path = "crates/webqa-core", version = "0.1.0" }
 webqa-judge = { path = "crates/webqa-judge", version = "0.1.0" }
 webqa-tui = { path = "crates/webqa-tui", version = "0.1.0" }
-# External crates, checked on crates.io (docs/architecture.md). A crate
+# External crates, checked on crates.io (docs/arch/dependencies.md). A crate
 # adds `<name>.workspace = true` when it first uses one.
 base64 = "0.23.1"
 clap = "4.6.7"

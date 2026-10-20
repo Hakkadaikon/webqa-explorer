@@ -4,9 +4,9 @@ use std::mem::discriminant;
 
 use super::*;
 
-const ARCHITECTURE: &str = include_str!("../../../../../docs/architecture.md");
+const ARCHITECTURE: &str = include_str!("../../../../../docs/arch/config.md");
 
-/// The YAML example of `docs/architecture.md`, as written there.
+/// The YAML example of `docs/arch/config.md`, as written there.
 pub fn example() -> &'static str {
     let start = ARCHITECTURE.find("```yaml\ntarget:").unwrap() + "```yaml\n".len();
     let rest = &ARCHITECTURE[start..];

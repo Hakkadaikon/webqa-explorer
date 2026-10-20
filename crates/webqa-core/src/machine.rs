@@ -1,5 +1,5 @@
 //! The state machine of a run: a table of rows, each a condition and a
-//! transition, following `docs/architecture.md`.
+//! transition, following `docs/arch/core.md`.
 //!
 //! The core is pure. The run loop does the effects it returns and passes
 //! back what came of them with the time since the run started.
