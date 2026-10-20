@@ -15,6 +15,7 @@ use std::path::PathBuf;
 use clap::Parser;
 use tokio::runtime::{Builder, Runtime};
 use webqa_tui::keys::{RawMode, terminal};
+use webqa_tui::ledger::render::terminal_size;
 
 use crate::clock::RealClock;
 use crate::exit::CONFIG_ERROR;
@@ -263,6 +264,7 @@ fn screen(args: &LedgerArgs) -> u8 {
         &mut terminal(),
         io::stdout(),
         io::stderr(),
+        terminal_size,
     )
 }
 

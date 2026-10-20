@@ -8,7 +8,7 @@ use crossterm::terminal::{Clear, ClearType, size};
 use ratatui::backend::CrosstermBackend;
 use ratatui::{
     Frame, Terminal, TerminalOptions, Viewport,
-    widgets::{Block, Paragraph},
+    widgets::{Block, Paragraph, Wrap},
 };
 
 use crate::follow::area;
@@ -16,25 +16,40 @@ use crate::follow::area;
 use super::detail::{lines, row};
 use super::{Screen, notice_text};
 
-/// Draws `screen` over the whole frame.
+/// Draws `screen` over the whole frame. An open issue wraps its lines so
+/// that it reads in full; the list cannot scroll, so its rows are cut at
+/// the width.
 pub fn render(screen: &Screen, frame: &mut Frame) {
-    let (title, text) = screen.current().filter(|_| screen.open).map_or_else(
+    let open = screen.current().filter(|_| screen.open);
+    let (title, text) = open.map_or_else(
         || (list_title(screen), list(screen)),
         |entry| (entry.issue.number.to_string(), lines(entry)),
     );
     let view = Paragraph::new(text.join("\n")).block(Block::bordered().title(title));
+    let view = if open.is_some() {
+        view.wrap(Wrap { trim: false })
+    } else {
+        view
+    };
     frame.render_widget(view, frame.area());
 }
 
-/// Clears the screen and draws `screen` on it, as large as the terminal.
+/// The size of the terminal, if it has one.
+#[must_use]
+pub fn terminal_size() -> Option<(u16, u16)> {
+    size().ok()
+}
+
+/// Clears the screen and draws `screen` on it, `size` wide and high
+/// (columns, rows); 80×24 when it is not known.
 ///
 /// # Errors
 ///
 /// When `out` cannot be written.
-pub fn draw<W: Write>(out: &mut W, screen: &Screen) -> io::Result<()> {
+pub fn draw<W: Write>(out: &mut W, screen: &Screen, size: Option<(u16, u16)>) -> io::Result<()> {
     let mut frame = Vec::new();
     drop(queue!(frame, Clear(ClearType::All), MoveTo(0, 0)));
-    let viewport = Viewport::Fixed(area(size().ok()));
+    let viewport = Viewport::Fixed(area(size));
     let backend = CrosstermBackend::new(&mut frame);
     let options = TerminalOptions { viewport };
     let drawn = Terminal::with_options(backend, options)
@@ -63,47 +78,4 @@ fn list(screen: &Screen) -> Vec<String> {
 }
 
 #[cfg(test)]
-mod tests {
-    use ratatui::{Terminal, backend::TestBackend};
-    use webqa_core::interview::issue::Kind;
-
-    use super::*;
-    use crate::ledger::tests::sample::sample;
-    use crate::ledger::{Input, Notice};
-
-    fn drawn(screen: &Screen) -> String {
-        let mut terminal = Terminal::new(TestBackend::new(80, 6)).unwrap();
-        terminal.draw(|frame| render(screen, frame)).unwrap();
-        terminal.backend().to_string()
-    }
-
-    #[test]
-    fn draw_writes_the_list_to_the_stream() {
-        let mut out = Vec::new();
-        draw(&mut out, &Screen::new(sample().unwrap())).unwrap();
-        let text = String::from_utf8_lossy(&out);
-        assert!(text.contains("I-00000001"), "{text}");
-    }
-
-    #[test]
-    fn list_marks_selected_and_cursor_rows() {
-        let mut ledger = sample().unwrap();
-        ledger.entries[1].selected = true;
-        let text = drawn(&Screen::new(ledger));
-        assert!(text.contains("│> [ ] I-00000001 判断に迷う"), "{text}");
-        assert!(text.contains("│  [x] I-00000002 判断に迷う"), "{text}");
-        assert!(text.contains("│  [ ] I-00000003 視認性が悪い"), "{text}");
-    }
-
-    #[test]
-    fn empty_list_says_none_and_shows_notice() {
-        let screen = Screen::new(sample().unwrap())
-            .fold(Input::Filter(Some(Kind::Mismatch)))
-            .fold(Input::Open)
-            .fold(Input::ChangedOutside);
-        let text = drawn(&screen);
-        assert!(text.contains("台帳 (目的のずれ)"), "{text}");
-        assert!(text.contains("│なし"), "{text}");
-        assert!(text.contains(notice_text(Notice::ChangedOutside)), "{text}");
-    }
-}
+mod tests;

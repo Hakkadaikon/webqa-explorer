@@ -21,6 +21,8 @@ confusing=0.0
 [ "$mode" = broken ] && shown=0.9
 [ "$mode" = confusing ] && confusing=0.9
 flags='"error_shown":[{"option":"true","p":'$shown'}],"goal_reached":[{"option":"true","p":0.0}],"confusing_display":[{"option":"true","p":'$confusing'}]'
+# The questions an interview adds; the other modes do not ask them.
+flags=$flags',"hesitation":[{"option":"true","p":0.0}],"expectation":[{"option":"進む"}],"purpose_guess":[{"option":"確かめる"}]'
 
 while IFS= read -r line; do
 	printf 'asked\n' >>"$log"

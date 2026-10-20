@@ -32,7 +32,10 @@ fn the_screen_is_drawn_to_the_output() {
     let path = file_with("drawn", FIXTURE);
     let mut out = Vec::new();
     let keys = &mut script(vec![Key::Char('q')]);
-    assert_eq!(show(&path, || Ok(()), keys, &mut out, Vec::new()), 0);
+    assert_eq!(
+        show(&path, || Ok(()), keys, &mut out, Vec::new(), unknown),
+        0
+    );
     assert!(String::from_utf8_lossy(&out).contains("I-00000001"));
 }
 
@@ -40,7 +43,7 @@ fn the_screen_is_drawn_to_the_output() {
 fn keys_still_count_when_the_screen_cannot_be_drawn() {
     let path = file_with("closed", FIXTURE);
     let keys = &mut script(vec![Key::Char(' ')]);
-    assert_eq!(show(&path, || Ok(()), keys, Closed, Vec::new()), 0);
+    assert_eq!(show(&path, || Ok(()), keys, Closed, Vec::new(), unknown), 0);
     let text = fs::read_to_string(&path).unwrap();
     assert_eq!(ledger::read(&text).unwrap().selected(), vec![number(1)]);
 }
@@ -50,7 +53,14 @@ fn the_terminal_is_put_back_when_the_screen_closes() {
     let path = file_with("put-back", FIXTURE);
     let put_back = Cell::new(false);
     let keys = &mut script(vec![]);
-    show(&path, || Ok(Mark(&put_back)), keys, Vec::new(), Vec::new());
+    show(
+        &path,
+        || Ok(Mark(&put_back)),
+        keys,
+        Vec::new(),
+        Vec::new(),
+        unknown,
+    );
     assert!(put_back.get());
 }
 
@@ -66,8 +76,23 @@ fn the_terminal_is_put_back_when_the_keys_panic() {
             &mut keys,
             Vec::new(),
             Vec::new(),
+            unknown,
         )
     });
     assert!(catch_unwind(run).is_err());
     assert!(put_back.get());
+}
+
+#[test]
+fn the_screen_is_drawn_in_the_size_the_terminal_has() {
+    let path = file_with("size", FIXTURE);
+    let keys = &mut script(vec![Key::Enter, Key::Char('q')]);
+    let mut drawn = Vec::new();
+    let size = || Some((30, 24));
+    let code = show(&path, || Ok(()), keys, &mut drawn, Vec::new(), size);
+    let list = Screen::new(ledger::read(FIXTURE).unwrap());
+    let mut expected = Vec::new();
+    draw(&mut expected, &list, size()).unwrap();
+    draw(&mut expected, &list.fold(Input::Open), size()).unwrap();
+    assert_eq!((code, drawn), (0, expected));
 }

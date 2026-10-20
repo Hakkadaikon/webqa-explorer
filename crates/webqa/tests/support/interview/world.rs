@@ -1,6 +1,8 @@
 //! The state of an interview scenario: what the Given steps set up, and the
 //! one run a When or a Then asks for.
 
+use std::collections::BTreeMap;
+
 use serde_json::Value;
 use webqa::interview::trials::Ending;
 use webqa_core::effect::Touch;
@@ -25,6 +27,8 @@ pub struct InterviewWorld {
     pub ran: Option<Ran>,
     /// What the run before left, when the scenario runs again.
     pub before: Option<Ran>,
+    /// What a step hands to the steps after it, by name. Not given to the run.
+    pub kept: BTreeMap<&'static str, String>,
 }
 
 /// What one run left.

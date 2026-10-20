@@ -1,5 +1,6 @@
 //! Tests of the interview's questions in place of the core's.
 
+use std::future;
 use std::time::Duration;
 
 use webqa_core::config::persona::Persona;
@@ -8,6 +9,7 @@ use webqa_core::effect::{Effect, Outside};
 use webqa_core::interview::ask::{EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS, with_done};
 use webqa_core::judge::{Answers, JudgeError, Question, QuestionId};
 use webqa_core::judge::{Image, ImageFormat};
+use webqa_core::machine::{Facts, Heard};
 use webqa_core::ports::{Judge, Pending};
 use webqa_core::redact::Redacted;
 use webqa_core::screen::ScreenText;
@@ -21,6 +23,7 @@ use super::{Fakes, limited};
 
 mod images;
 mod kept;
+mod unusable;
 
 /// Records what it was asked and whether an image came with it, then
 /// answers from the script.
@@ -29,6 +32,8 @@ struct Spy {
     images: Vec<Image>,
     reads: bool,
     script: Scripted,
+    /// Answers every call with these, whatever was asked.
+    fixed: Option<Answers>,
 }
 
 impl Spy {
@@ -38,6 +43,15 @@ impl Spy {
             images: Vec::new(),
             reads,
             script,
+            fixed: None,
+        }
+    }
+
+    /// A judge that gives `answers` to every call.
+    fn giving(answers: Answers) -> Self {
+        Self {
+            fixed: Some(answers),
+            ..Self::new(false, Scripted::default())
         }
     }
 }
@@ -49,7 +63,10 @@ impl Judge for Spy {
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>> {
         self.asked.push(questions.to_vec());
-        self.script.ask(screen, questions)
+        match &self.fixed {
+            Some(fixed) => Box::pin(future::ready(Ok(fixed.clone()))),
+            None => self.script.ask(screen, questions),
+        }
     }
 
     fn reads_images(&self) -> bool {
@@ -118,6 +135,8 @@ struct Asked {
     steps: Vec<Taken>,
     /// The screenshots the browser took.
     shots: usize,
+    /// What the interview passed on to the core as the judge's answer.
+    reply: Result<Answers, JudgeError>,
 }
 
 /// Starts on the page, and the first effect the core asks for with the
@@ -148,7 +167,10 @@ async fn asked(mut judge: Spy, interview: Option<Interviewing>, fakes: &mut Fake
         panic!("the core asks the judge first");
     };
     let core = core.questions.clone();
-    perform(effect, &state, &mut ports).await.unwrap();
+    let facts = perform(effect, &state, &mut ports).await.unwrap();
+    let Facts::Outside(Heard::Answered(reply)) = facts else {
+        panic!("the judge answered");
+    };
     let steps = ports.take_steps();
     let shots = fakes.browser.shots;
     Asked {
@@ -156,6 +178,7 @@ async fn asked(mut judge: Spy, interview: Option<Interviewing>, fakes: &mut Fake
         judge,
         steps,
         shots,
+        reply,
     }
 }
 
