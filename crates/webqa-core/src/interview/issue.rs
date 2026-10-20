@@ -29,7 +29,7 @@ pub enum Kind {
     Hesitant,
     /// The judge listed an element as hard to see.
     Visibility,
-    /// A finished trial got stuck or ran out of budget.
+    /// A finished trial got stuck.
     Unreached,
     /// The judge said the guessed purposes differ from the written one.
     Mismatch,
@@ -129,7 +129,8 @@ pub enum Halt {
     GaveUp,
     /// Steps without progress reached the stuck threshold.
     NoProgress,
-    /// The decision budget ran out.
+    /// The decision budget ran out. Read back from a previous ledger; a
+    /// run no longer makes it.
     BudgetSpent,
 }
 

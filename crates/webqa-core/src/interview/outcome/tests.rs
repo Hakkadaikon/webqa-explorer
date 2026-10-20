@@ -80,7 +80,7 @@ fn stuck_answer_records_gave_up() {
 }
 
 /// Finishes that do not reach the purpose, with their outcomes.
-const UNREACHED: [(Finish, Outcome); 3] = [
+const UNREACHED: [(Finish, Outcome); 2] = [
     (
         Finish::Stuck(Stuck::NoProgress),
         Outcome::Finished(Ending::Stuck(Stuck::NoProgress)),
@@ -89,11 +89,10 @@ const UNREACHED: [(Finish, Outcome); 3] = [
         Finish::Stuck(Stuck::GaveUp),
         Outcome::Finished(Ending::Stuck(Stuck::GaveUp)),
     ),
-    (Finish::BudgetSpent, Outcome::Finished(Ending::BudgetSpent)),
 ];
 
 #[test]
-fn stuck_and_budget_count_as_unreached() {
+fn stuck_counts_as_unreached() {
     for aim in &aims() {
         let ended: Vec<Outcome> = UNREACHED
             .iter()
@@ -105,11 +104,27 @@ fn stuck_and_budget_count_as_unreached() {
             })
             .collect();
         let counted = Tally {
-            finished: 3,
-            unreached: 3,
+            finished: 2,
+            unreached: 2,
             cut: 0,
         };
         assert_eq!(tally(&ended), counted, "{aim:?}");
+    }
+}
+
+#[test]
+fn budget_spent_counts_in_n_but_not_as_unreached() {
+    for aim in &aims() {
+        let spent = outcome(aim, Ended::Finished(Finish::BudgetSpent));
+        assert_eq!(spent, Outcome::Finished(Ending::BudgetSpent), "{aim:?}");
+        assert_eq!(flags(spent), (true, false), "{aim:?}");
+        let stuck = outcome(aim, Ended::Finished(Finish::Stuck(Stuck::GaveUp)));
+        let counted = Tally {
+            finished: 2,
+            unreached: 1,
+            cut: 0,
+        };
+        assert_eq!(tally(&[spent, stuck]), counted, "{aim:?}");
     }
 }
 
@@ -140,7 +155,7 @@ fn goal_and_claim_not_unreached() {
     ended.push(Outcome::Finished(Ending::BudgetSpent));
     let counted = Tally {
         finished: 4,
-        unreached: 1,
+        unreached: 0,
         cut: 0,
     };
     assert_eq!(tally(&ended), counted);

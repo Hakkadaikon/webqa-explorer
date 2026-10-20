@@ -134,13 +134,12 @@ fn unreached(at: At<'_>) -> Option<Found> {
 }
 
 /// How a finished trial that did not reach the purpose stopped. `None`
-/// for the other finished trials.
+/// for the other finished trials, including one out of budget.
 const fn halt(ending: Ending) -> Option<Halt> {
     match ending {
         Ending::Stuck(Stuck::GaveUp) => Some(Halt::GaveUp),
         Ending::Stuck(Stuck::NoProgress) => Some(Halt::NoProgress),
-        Ending::BudgetSpent => Some(Halt::BudgetSpent),
-        Ending::Goal | Ending::Claimed(_) => None,
+        Ending::Goal | Ending::Claimed(_) | Ending::BudgetSpent => None,
     }
 }
 

@@ -213,6 +213,7 @@ CLIは1行書くたびにフラッシュする。
 試行の区切りは、`trial_started`と`trial_finished`の行で示す。
 試行の中のステップ番号は、試行ごとに1から数え直す。
 `ending`は、`goal_met`、`done`、`gave_up`、`no_progress`、`budget_spent`、`time_up`、`interrupted`のどれかである。
+`budget_spent`の試行は試行の数Nに入るが、目的に届かない課題は出さない。
 
 ```json
 {"seq":1,"elapsed_ms":0,"kind":"trial_started","trial":1}
