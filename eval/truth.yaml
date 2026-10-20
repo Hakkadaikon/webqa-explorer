@@ -11,12 +11,10 @@
 - id: next-or-go
   kind: hesitant
   path: /attendance.html
-  element: {role: button, name: 次へ}
-  note: 意味の違いが書かれていない「次へ」と「進む」のボタンが並ぶ
+  note: 意味の違いが書かれていない「次へ」と「進む」のボタンが並ぶ。迷いの要素は判断モデルが選んだ方になるので、要素は省いて画面で照らす
 - id: same-name-links
   kind: hesitant
   path: /search.html
-  element: {role: link, name: 詳しく}
   note: 同じ名前の「詳しく」のリンクが3つ並び、どの製品か名前から分からない
 - id: no-compare
   kind: unreached
