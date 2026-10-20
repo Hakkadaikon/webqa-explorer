@@ -1,8 +1,10 @@
 //! The questions of an interview step, and sending them to the judge.
 
+mod history;
 mod mismatch;
 mod persona;
 
+pub use history::{Past, RECENT, with_recent};
 pub use mismatch::{DIFFERENT, MismatchQuestion, SAME, Trial, Visit, mismatch_questions};
 pub use persona::preamble;
 

@@ -45,20 +45,23 @@ pub struct Interviewing {
     ops: Vec<Op>,
     reads_images: bool,
     trial: usize,
+    /// How many operations the run had done before the trial.
+    acts_from: usize,
     steps: Vec<Taken>,
 }
 
 impl Interviewing {
     /// The interview of `persona` in trial number `trial`, towards `goal`,
     /// offering the operation kinds `ops`. A judge that reads images gets a
-    /// screenshot with each question.
+    /// screenshot with each question. The judge is told the latest operations
+    /// from the `acts_from`th of the run on.
     #[must_use]
     pub const fn new(
         persona: Persona,
         goal: String,
         ops: Vec<Op>,
         reads_images: bool,
-        trial: usize,
+        (trial, acts_from): (usize, usize),
     ) -> Self {
         Self {
             persona,
@@ -66,6 +69,7 @@ impl Interviewing {
             ops,
             reads_images,
             trial,
+            acts_from,
             steps: Vec::new(),
         }
     }
@@ -74,6 +78,15 @@ impl Interviewing {
     #[must_use]
     pub const fn trial(&self) -> usize {
         self.trial
+    }
+
+    /// `screen` and the latest operations of this trial.
+    pub(super) fn told(
+        &self,
+        ports: &Ports<'_>,
+        screen: &Redacted<ScreenText>,
+    ) -> Redacted<ScreenText> {
+        ports.record.told(self.acts_from, screen)
     }
 
     /// The steps kept so far, which are no longer kept.
@@ -262,9 +275,8 @@ pub(super) async fn call(questions: Questions, state: &State, ports: &mut Ports<
             calls: vec![called],
         };
     };
-    let asked = interview
-        .ask(ports, &questions.screen, (state, extra))
-        .await;
+    let told = interview.told(ports, &questions.screen);
+    let asked = interview.ask(ports, &told, (state, extra)).await;
     ports.interview = Some(interview);
     asked
 }

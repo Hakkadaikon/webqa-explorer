@@ -36,13 +36,17 @@ struct Ran {
 }
 
 /// The judge clicks twice, then is done.
-fn clicks_then_done() -> Scripted {
-    let steps = ["click", "click", "done"];
-    steps.into_iter().fold(Scripted::default(), step)
+pub(super) fn clicks_then_done() -> Scripted {
+    judged(&["click", "click", "done"])
+}
+
+/// The judge's operations, one for each step.
+pub(super) fn judged(ops: &[&str]) -> Scripted {
+    ops.iter().copied().fold(Scripted::default(), step)
 }
 
 /// The fake ports with `judge` in place of the fake judge.
-fn ported<'a>(fakes: &'a mut Fakes, judge: &'a mut Spy) -> Ports<'a> {
+pub(super) fn ported<'a>(fakes: &'a mut Fakes, judge: &'a mut Spy) -> Ports<'a> {
     Ports::new(
         &mut fakes.browser,
         judge,

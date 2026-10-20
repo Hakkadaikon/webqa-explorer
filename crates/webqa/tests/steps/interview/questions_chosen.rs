@@ -49,7 +49,8 @@ async fn both_offered(world: &mut InterviewWorld, operated: String, fresh: Strin
     world.run().await;
     let asked = found(world.ran().judge.decision(1), "the second step asked");
     assert_eq!(options_of(asked, "target"), ["1", "2"], "both are offered");
-    let lines: Vec<&str> = asked.screen.lines().collect();
+    // The numbered elements come first; a blank line ends them.
+    let lines: Vec<&str> = asked.screen.lines().take_while(|l| !l.is_empty()).collect();
     let names = [
         format!(r#"1: link "{operated}""#),
         format!(r#"2: link "{fresh}""#),

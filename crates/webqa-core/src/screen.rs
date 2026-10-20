@@ -68,6 +68,11 @@ impl ScreenText {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    /// The text with `section` after a blank line.
+    pub(crate) fn followed_by(&self, section: &str) -> Self {
+        Self(format!("{}\n\n{section}", self.0))
+    }
 }
 
 /// Identifies a screen: the URL path and the set of (role, normalized name).

@@ -41,6 +41,7 @@ fn act(step: u64, op: &str, target: Option<ElementId>, cause: Cause, ms: [u64; 2
         p: if cause == Cause::Judge { 0.9 } else { 1.0 },
         cause,
         act: Duration::from_millis(act),
+        changed: false,
         settle: Duration::from_millis(settle),
     }
 }
