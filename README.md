@@ -1,5 +1,7 @@
 # webqa-explorer
 
+![マスコット: 虫眼鏡を持ち、画面を調べる魔導士](docs/images/webqa-logo.jpg)
+
 [![CI][ci-badge]][ci]
 [![codecov][codecov-badge]][codecov]
 [![coverage gate][coverage-badge]][coverage-gate]
