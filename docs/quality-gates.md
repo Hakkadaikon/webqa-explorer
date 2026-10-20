@@ -14,7 +14,7 @@ lintやカバレッジの除外の注釈も足さない。
 
 | 検査 | `just`のレシピ | コミット前 | CI |
 |---|---|---|---|
-| 整形 | `fmt-check` | 回る | 回る(PRでは対象のファイルを変えたときだけ。YAMLとTOMLは常に) |
+| 整形 | `fmt-check` | 回る | 回る(PRでは対象のファイルを変えたときだけ。`fmt-check-config`は常に) |
 | 静的解析 | `clippy` | 回る | 回る(PRでは対象のファイルを変えたときだけ) |
 | 複雑度 | `metrics` | 回る | 回る(PRでは対象のファイルを変えたときだけ) |
 | 文書とスペル | `docs-check` | 回る | 回る |
@@ -37,15 +37,16 @@ PRのCIで回し、落ちたPRはmainへマージしない。
 
 PRのCIは、変えたファイルで回すジョブを絞る。
 判定は`scripts/ci_changes.py`が行い、対象のファイルの一覧は同じファイルの`CODE`にある。
-対象は、Rustのコードと、テストやlint・整形の設定が読むファイルである。
-ワークフローも対象に入れ、CIを変えたPRでも`just check`と`deny`を回す。
+対象は、RustとPythonのコード、テストが読むファイル、lint・整形の設定、ワークフローである。
 対象のファイルを変えたPRでは、`just check`と`deny`を回す。
-それ以外のPRでは、`docs-check`と`config-check`と、YAMLとTOMLの整形の検査を回す。
+ワークフローを対象に入れるのは、CIを変えたPRでも`just check`を回すためである。
+それ以外のPRでは、`docs-check`と`config-check`と`fmt-check-config`を回す。
+`fmt-check-config`は、YAMLとTOMLの整形の検査である。
 mutationは、差分に`.rs`があるときだけ回す。
 変えた行しか書き換えないので、`.rs`が無ければ対象が無い。
 コミットメッセージの検査は、どのPRでも回す。
 mainへのpushでは、`just check`と`deny`を回す。
-差分が空のときは、念のため`just check`を回す。
+差分が空のときは、念のため`just check`と`deny`を回す。
 差分を読めないときは、判定のジョブが落ちてCIが赤になる。
 
 テストが新しいファイルを読むようにしたら、`CODE`の一覧にも足す。

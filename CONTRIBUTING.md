@@ -29,7 +29,7 @@ git worktreeで作業するときは、worktreeの中で`just worktree-tools`を
 ## CI
 
 PRを出すと、GitHub Actionsが検査を回す。
-コードかテストが読むファイルを変えたPRでは、`just check`を回す。
+対象のファイルを変えたPRでは、`just check`を回す。
 カバレッジ100%のテストは、`just check`で確かめる。
 同じ条件で、依存の監査も回す。
 `.rs`を変えたPRでは、変更した箇所にmutationテストを当てる。

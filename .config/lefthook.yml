@@ -1,5 +1,6 @@
 # Gates before each commit (installed by `just setup`). Tests with coverage,
-# mutation and dependency audits run in CI on each PR.
+# mutation and dependency audits run in CI, on the PRs that change what they
+# check (docs/quality-gates.md).
 # Of these, `just check` runs only tests with coverage locally.
 commit-msg:
   jobs:

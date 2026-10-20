@@ -2,8 +2,9 @@
 """Decide which CI jobs a pull request needs, from the paths it changes.
 
 Reads one changed path per line on stdin and prints GitHub outputs:
-    code=true   when the check job (lint, tests, coverage) must run
-    rust=true   when the mutation jobs must run
+    code=true   the check job runs (lint, tests, coverage, deny);
+                otherwise the docs job runs
+    rust=true   the mutation jobs run
 """
 
 import fnmatch
@@ -33,7 +34,7 @@ CODE = [
 
 def decide(paths):
     # An empty diff runs the check to be safe. A diff that cannot be read
-    # fails the job before this, through pipefail.
+    # also arrives here empty, but pipefail then fails the job.
     return {
         "code": not paths
         or any(fnmatch.fnmatchcase(p, g) for p in paths for g in CODE),
