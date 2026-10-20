@@ -79,12 +79,16 @@ fn interview_config_error_exits_two_before_opening() -> io::Result<()> {
 fn broken_previous_ledger_exits_two() -> io::Result<()> {
     let case = Case::new("broken_previous_ledger")?;
     let previous = case.dir.join("previous.md");
-    fs::write(&previous, "# 壊れた台帳\n\n課題の区切りが無い\n")?;
+    let text = ledger_of("佐藤さん", "注文する");
+    fs::write(
+        &previous,
+        text.replace("## 確かめられなかった課題", "## 課題の区切り"),
+    )?;
     refused(
         &case,
         &tail("persona.yaml", 2),
         Some(&previous),
-        "台帳の 1 行目が決まった書式でない\n",
+        "台帳の 14 行目が決まった書式でない\n",
     )
 }
 
@@ -130,17 +134,24 @@ fn check_reports_field_and_exits_two() -> io::Result<()> {
     Ok(())
 }
 
-#[test]
-fn interview_runs_and_writes_ledger() -> io::Result<()> {
-    let case = Case::new("interview_runs")?;
+/// Runs `interview` with two trials, and says it ended with exit code 0.
+fn interviewed(case: &Case, extra: &[&str]) -> io::Result<()> {
     let mut config = case.config("done");
     let tail = tail("persona.yaml", 2);
     config.tail = &tail;
-    config.max_duration = 60;
-    let output = case.run(&["interview"], &config, &[])?;
+    config.max_duration = 30;
+    let output = case.run(&["interview"], &config, extra)?;
     assert_eq!(exec::code(&output), Some(0), "{}", exec::stderr(&output));
-    let run = exec::latest_run(&case.out())?;
-    let text = fs::read_to_string(run.join("ledger.md"))?;
-    assert_eq!(read(&text).map(|ledger| ledger.head.finished), Ok(2));
     Ok(())
+}
+
+#[test]
+fn interview_runs_and_writes_ledger() -> io::Result<()> {
+    let case = Case::new("interview_runs")?;
+    interviewed(&case, &[])?;
+    let path = exec::latest_run(&case.out())?.join("ledger.md");
+    let text = fs::read_to_string(&path)?;
+    assert_eq!(read(&text).map(|ledger| ledger.head.finished), Ok(2));
+    // The ledger it wrote can be read back as the previous one.
+    interviewed(&case, &["--previous", &arg(&path)])
 }

@@ -58,3 +58,16 @@ fn documents_are_checked_for_their_form() {
         ))
     );
 }
+
+#[test]
+fn a_wrong_shape_is_said_without_the_text_of_the_document() {
+    let file = format!("{DOCS}persona-secret-avoids.yaml").into();
+    let said = checked(&CheckDocsArgs {
+        kind: DocKind::Persona,
+        file,
+    })
+    .err()
+    .map(Stop::into_parts);
+    let text = said.map(|(_, text)| text).unwrap_or_default();
+    assert!(!text.contains("秘密の文"), "{text}");
+}
