@@ -2,7 +2,7 @@
 
 use webqa_core::machine::Phase;
 
-use super::candidates::pages::{BUY, CART, CART_MARKS, SWAPPED, TOP, TOP_MARKS};
+use super::candidates::pages::{BUY, CART_MARKS, FORBIDDEN, TOP_MARKS};
 use super::candidates::{PRICING, STOP, TWO};
 use super::view::{Property, Transition, all, any, asks, implies, looks, sleeps};
 
@@ -18,12 +18,7 @@ pub static ACTING: [Property; 6] = [
     },
     Property {
         name: "enter is never pressed on a page with a forbidden button",
-        holds: |t| {
-            implies(
-                t.touches("enter"),
-                ![TOP, CART, SWAPPED].map(Some).contains(&t.last),
-            )
-        },
+        holds: |t| implies(t.touches("enter"), !FORBIDDEN.map(Some).contains(&t.last)),
     },
     Property {
         name: "an operation on an element comes only from confirming",

@@ -27,6 +27,9 @@ pub const MARKED: [usize; 4] = [TOP, SETTINGS, AWAY, CART];
 pub const TOP_MARKS: usize = 0;
 pub const CART_MARKS: usize = 3;
 
+/// The pages with the forbidden button.
+pub const FORBIDDEN: [usize; 3] = [TOP, CART, SWAPPED];
+
 /// The name of the forbidden button.
 pub const BUY: &str = "購入する";
 
