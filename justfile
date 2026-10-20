@@ -66,6 +66,10 @@ test-rust:
     fi
     cargo llvm-cov --workspace --fail-under-lines 100 --fail-under-regions 100 --fail-under-functions 100
 
+# Rust のカバレッジを lcov で書き出す(Codecov に送る。閾値は test-rust が見る)
+coverage-lcov:
+    cargo llvm-cov --workspace --lcov --output-path target/lcov.info
+
 # Python のテスト(行・分岐とも 100% 未満で失敗)
 test-py:
     cd scripts && COVERAGE_FILE=../target/.coverage uv run --no-project --with coverage==7.16.2 coverage run --branch -m unittest discover -p '*_test.py'
