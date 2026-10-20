@@ -140,7 +140,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-015 InterviewMode.feature:194(試行) [state] 「初期化のコマンドを書かなければ、試行の前に何も実行しない」
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `no_reset_command_runs_nothing` / issue: #30、#33
 - [x] T-016 InterviewMode.feature:200(試行) [unwanted] 「初期化のコマンドが失敗したら、その試行をせずに実行を止めて終了コード3で終わる」(Examples の各行を1ケースとする)
-      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::reset` の `nonzero_or_timeout_is_failure`、単体 `webqa::interview::trials` の `reset_failure_writes_ledger_then_exits_three`、単体 `webqa::interview::trials` の `failed_reset_before_any_trial_is_a_run_that_got_nowhere`、単体 `webqa::interview::trials` の `interrupt_stops_the_command_and_what_it_started` / issue: #28、#30、#33
+      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::reset` の `nonzero_or_timeout_is_failure`、単体 `webqa::interview::trials` の `reset_failure_writes_ledger_then_exits_three`、単体 `webqa::interview::trials` の `failed_reset_before_any_trial_is_a_run_that_got_nowhere` / issue: #28、#30、#33
 - [x] T-017 InterviewMode.feature:212(試行) [ubiquitous] 「初期化のコマンドはシェルを通さず、設定に書いた引数のまま実行する」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、契約 `webqa/tests/reset.rs` の `args_passed_verbatim_without_shell` / issue: #28、#33
 - [x] T-018 InterviewMode.feature:218(試行) [unwanted] 「初期化のコマンドに、判断モデルの API キーを渡さない」
@@ -188,7 +188,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-039 InterviewMode.feature:374(試行) [boundary] 「終えた試行が0回なら、課題を出さず、そのことを台帳に書く」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ledger` の `zero_finished_trials_has_no_issues` / issue: #24、#33
 - [x] T-040 InterviewMode.feature:380(試行) [event] 「実行中に中断したら、残りの試行をせず、終えた試行までの結果で台帳を書いて終わる」
-      → 手法: 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `abort_mid_trial_skips_rest`、性質 `webqa/tests/trials_props.rs` の `finished_plus_cut_equals_started`、性質 `webqa/tests/trials_props.rs` の `finished_trials_never_exceed_setting` / issue: #30、#33
+      → 手法: 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `abort_mid_trial_skips_rest`、単体 `webqa::interview::trials` の `interrupt_stops_the_command_and_what_it_started`、単体 `webqa::interview::trials` の `interrupt_during_reset_cuts`、性質 `webqa/tests/trials_props.rs` の `finished_plus_cut_equals_started`、性質 `webqa/tests/trials_props.rs` の `finished_trials_never_exceed_setting` / issue: #30、#33
 - [x] T-041 InterviewMode.feature:389(判断モデルへの問い) [state] 「インタビューのモードでは、画像を扱えると申告したアダプタに、アクセシビリティ情報のテキストとスクリーンショットを渡す」
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask` の `attaches_screenshot_when_judge_reads_images` / issue: #20、#33
 - [x] T-042 InterviewMode.feature:394(判断モデルへの問い) [state] 「探索モードと決め打ちシナリオでは、これまでどおりテキストだけを渡す」(Examples の各行を1ケースとする)
@@ -411,7 +411,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-013 | event | テストダブル(test-doubles)、コントラクトテスト(levels-service) | `each_trial_opens_fresh_browser_with_storage_state`、`new_context_has_no_previous_storage` | #29、#30、#33 | [x] | [ ] | 要 |
 | T-014 | optional | テストダブル(test-doubles) | `reset_runs_before_each_browser_open` | #30、#33 | [x] | [ ] | 要 |
 | T-015 | state | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `no_reset_command_runs_nothing` | #30、#33 | [x] | [ ] | 要 |
-| T-016 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) | `nonzero_or_timeout_is_failure`、`reset_failure_writes_ledger_then_exits_three`、`failed_reset_before_any_trial_is_a_run_that_got_nowhere`、`interrupt_stops_the_command_and_what_it_started` | #28、#30、#33 | [x] | [ ] | 要 |
+| T-016 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles)、時刻依存の封じ込め(flakiness-value) | `nonzero_or_timeout_is_failure`、`reset_failure_writes_ledger_then_exits_three`、`failed_reset_before_any_trial_is_a_run_that_got_nowhere` | #28、#30、#33 | [x] | [ ] | 要 |
 | T-017 | ubiquitous | セキュリティテスト(nonfunctional-attributes) | `args_passed_verbatim_without_shell` | #28、#33 | [x] | [ ] | 要 |
 | T-018 | unwanted | セキュリティテスト(nonfunctional-attributes) | `api_key_env_not_inherited` | #28、#33 | [x] | [ ] | 要 |
 | T-019 | unwanted | セキュリティテスト(nonfunctional-attributes) | `logged_output_is_redacted` | #28、#33 | [x] | [ ] | 要 |
@@ -435,7 +435,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-037 | state | 並行・競合の封じ込め(flakiness-concurrency)、時刻依存の封じ込め(flakiness-value)、プロパティベーステスト(generative-property) | `deadline_during_browser_start_cuts_without_waiting`、`nothing_starts_after_deadline` | #30、#33 | [x] | [ ] | 要 |
 | T-038 | unwanted | デシジョンテーブル(blackbox-partition)、プロパティベーステスト(generative-property) | `cut_trials_not_counted`、`finished_plus_cut_equals_started` | #21、#30、#33 | [x] | [ ] | 要 |
 | T-039 | boundary | 境界値分析(blackbox-partition) | `zero_finished_trials_has_no_issues` | #24、#33 | [x] | [ ] | 要 |
-| T-040 | event | 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) | `abort_mid_trial_skips_rest`、`finished_plus_cut_equals_started`、`finished_trials_never_exceed_setting` | #30、#33 | [x] | [ ] | 要 |
+| T-040 | event | 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) | `abort_mid_trial_skips_rest`、`interrupt_stops_the_command_and_what_it_started`、`interrupt_during_reset_cuts`、`finished_plus_cut_equals_started`、`finished_trials_never_exceed_setting` | #30、#33 | [x] | [ ] | 要 |
 | T-041 | state | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `attaches_screenshot_when_judge_reads_images` | #20、#33 | [x] | [ ] | — |
 | T-042 | state | 同値分割(blackbox-partition)、回帰テスト(levels-operational) | `other_modes_send_text_only` | #30、#33 | [x] | [ ] | — |
 | T-043 | ubiquitous | コントラクトテスト(levels-service)、API スキーマ検証(levels-service) | `image_field_shape_is_model_neutral`、`bridge_receives_image_field` | #19、#33 | [x] | [ ] | — |
