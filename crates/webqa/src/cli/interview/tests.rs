@@ -146,6 +146,12 @@ async fn the_previous_ledger_is_read_and_checked_before_the_trials() {
 }
 
 #[tokio::test]
+async fn a_browser_that_cannot_be_opened_says_why_and_fails() {
+    let opened = open("target: {}").await.err();
+    assert_eq!(opened, Some(BrowserError));
+}
+
+#[tokio::test]
 async fn the_head_of_the_previous_ledger_must_match_this_run() {
     let inferred = interview(Purpose::inferred());
     let said = |stop: Option<Stop>| stop.map(Stop::into_parts);

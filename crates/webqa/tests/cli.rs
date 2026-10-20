@@ -14,6 +14,8 @@ mod ledger;
 mod modes;
 #[path = "cli/site.rs"]
 mod site;
+#[path = "cli/stops.rs"]
+mod stops;
 
 use std::env::var;
 use std::fs;

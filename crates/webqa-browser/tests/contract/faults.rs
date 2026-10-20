@@ -56,8 +56,10 @@ async fn closed_page_fails_observe_and_touch() {
     let context = kept.lock().unwrap().take().unwrap();
     context.close().await.unwrap();
     assert_eq!(browser.observe().await.err(), Some(BrowserError), "observe");
-    let touched = touch(&mut browser, "back", None).await;
-    assert_eq!(touched, Err(BrowserError), "touch");
+    for op in ["back", "enter"] {
+        let touched = touch(&mut browser, op, None).await;
+        assert_eq!(touched, Err(BrowserError), "touch {op}");
+    }
 }
 
 #[tokio::test]

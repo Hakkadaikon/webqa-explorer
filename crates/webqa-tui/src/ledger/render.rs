@@ -34,11 +34,9 @@ pub fn render(screen: &Screen, frame: &mut Frame) {
     frame.render_widget(view, frame.area());
 }
 
-/// The size of the terminal, if it has one.
-#[must_use]
-pub fn terminal_size() -> Option<(u16, u16)> {
-    size().ok()
-}
+/// The size of the terminal, if it has one. A constant, not a function, as a
+/// real terminal's size cannot be fixed by a test.
+pub const TERMINAL_SIZE: fn() -> Option<(u16, u16)> = || size().ok();
 
 /// Clears the screen and draws `screen` on it, `size` wide and high
 /// (columns, rows); 80×24 when it is not known.

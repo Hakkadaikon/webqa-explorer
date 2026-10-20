@@ -109,7 +109,7 @@ fn a_list_row_is_cut_at_the_width() {
 /// for it neither fails nor gives a side of zero.
 #[test]
 fn the_terminal_size_is_known_or_not() {
-    let size = terminal_size();
+    let size = TERMINAL_SIZE();
     assert!(size.is_none_or(|(width, height)| width > 0 && height > 0));
 }
 
