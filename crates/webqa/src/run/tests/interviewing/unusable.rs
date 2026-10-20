@@ -86,3 +86,19 @@ async fn interview_passes_on_a_failure_of_the_core_questions_as_it_is() {
         "the answers reach the core, and the step is kept without a reply"
     );
 }
+
+#[tokio::test]
+async fn interview_passes_on_a_malformed_reply_when_hard_to_see_is_not_an_option() {
+    let mut said = complete();
+    let text = vec![("見えにくい".to_owned(), f64::NAN)];
+    said.table.insert(QuestionId::new(HARD_TO_SEE), text);
+    let mut fakes = Fakes::new();
+    let judge = Spy::giving(said);
+    let asked = asked(judge, Some(interviewing(&[Op::Click], true)), &mut fakes).await;
+    let kept = asked.steps.iter().map(|t| t.reply.is_none());
+    assert_eq!(
+        (asked.reply, kept.collect::<Vec<_>>()),
+        (Err(JudgeError::Malformed), vec![true]),
+        "the core reads an anomaly, and the step is kept without a reply"
+    );
+}
