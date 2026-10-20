@@ -90,9 +90,15 @@ const fn timed_out(error: &Error) -> bool {
     matches!(error, Error::Timeout(_) | Error::NavigationTimeout { .. })
 }
 
-/// True once the document has loaded. Waited for by the driver, which keeps
-/// the timeout even while a navigation is pending.
-const LOADED: &str = "document.readyState === 'complete'";
+/// True once the document has loaded and no modal says it is busy. Waited
+/// for by the driver, which keeps the timeout even while a navigation is
+/// pending.
+///
+/// A page that changes its route by script stays `complete` while its
+/// loading veil, a busy modal, covers every operation. Observed then, the
+/// screen would look like a paywall.
+const LOADED: &str = "document.readyState === 'complete' \
+    && document.querySelector('[role=dialog][aria-busy=true]') === null";
 
 /// Resolves at `load`, or after `ms` milliseconds.
 const IN_PAGE: &str = "ms => new Promise(done => { \

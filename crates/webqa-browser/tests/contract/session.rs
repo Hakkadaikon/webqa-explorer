@@ -16,12 +16,13 @@ pub type Res<T> = Result<T, Box<dyn Error>>;
 pub const ORIGIN: &str = "https://app.example.test";
 
 /// The fixture pages by path.
-const PAGES: [(&str, &str); 11] = [
+const PAGES: [(&str, &str); 12] = [
     ("/viewport", include_str!("../fixtures/pages/viewport.html")),
     ("/identity", include_str!("../fixtures/pages/identity.html")),
     ("/parse", include_str!("../fixtures/pages/parse.html")),
     ("/form", include_str!("../fixtures/pages/form.html")),
     ("/modal", include_str!("../fixtures/pages/modal.html")),
+    ("/loading", include_str!("../fixtures/pages/loading.html")),
     ("/overlay", include_str!("../fixtures/pages/overlay.html")),
     ("/scroll", include_str!("../fixtures/pages/scroll.html")),
     ("/ops", include_str!("../fixtures/pages/ops.html")),
