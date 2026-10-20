@@ -13,6 +13,8 @@ mod interruption;
 #[path = "support/page.rs"]
 mod page;
 
+#[path = "support/interview/bridge.rs"]
+mod bridge;
 #[path = "support/interview/checks.rs"]
 mod checks;
 #[path = "support/interview/judge.rs"]
@@ -21,8 +23,12 @@ mod judge;
 mod launch;
 #[path = "support/interview/ledger.rs"]
 mod ledger;
+#[path = "support/interview/clock.rs"]
+mod run_clock;
 #[path = "support/interview/scene.rs"]
 mod scene;
+#[path = "support/interview/start.rs"]
+mod start;
 #[path = "support/interview/world.rs"]
 mod world;
 

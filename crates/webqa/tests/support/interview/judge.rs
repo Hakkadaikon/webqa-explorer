@@ -37,8 +37,8 @@ pub struct Asked {
     pub screen: String,
     /// The questions sent.
     pub questions: Vec<Question>,
-    /// Whether a screenshot went with them.
-    pub image: bool,
+    /// The screenshot that went with them.
+    pub image: Option<Image>,
 }
 
 impl Asked {
@@ -69,6 +69,8 @@ pub struct SceneJudge {
     pub stalled: bool,
     /// Whether it says it reads images.
     pub images: bool,
+    /// How long each call takes, call by call. Later calls take `think`.
+    pub thinks: VecDeque<Duration>,
     gate: Arc<Notify>,
     clock: Arc<AtomicU64>,
     think_ms: u64,
@@ -87,6 +89,7 @@ impl SceneJudge {
             asked: Vec::new(),
             stalled: false,
             images: false,
+            thinks: VecDeque::new(),
             gate,
             clock,
             think_ms: millis(think),
@@ -98,14 +101,15 @@ impl SceneJudge {
         &mut self,
         screen: &Redacted<ScreenText>,
         questions: &[Question],
-        image: bool,
+        image: Option<&Image>,
     ) -> Pending<'_, Result<Answers, JudgeError>> {
         self.asked.push(Asked {
             screen: screen.as_inner().as_str().to_owned(),
             questions: questions.to_vec(),
-            image,
+            image: image.cloned(),
         });
-        self.clock.fetch_add(self.think_ms, Ordering::SeqCst);
+        let think = self.thinks.pop_front().map_or(self.think_ms, millis);
+        self.clock.fetch_add(think, Ordering::SeqCst);
         if let Some(reply) = self.replies.pop_front() {
             return Box::pin(future::ready(reply));
         }
@@ -121,7 +125,7 @@ impl Judge for SceneJudge {
         screen: &'a Redacted<ScreenText>,
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>> {
-        self.reply(screen, questions, false)
+        self.reply(screen, questions, None)
     }
 
     fn reads_images(&self) -> bool {
@@ -131,10 +135,10 @@ impl Judge for SceneJudge {
     fn ask_with_image<'a>(
         &'a mut self,
         screen: &'a Redacted<ScreenText>,
-        _image: &'a Image,
+        image: &'a Image,
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>> {
-        self.reply(screen, questions, true)
+        self.reply(screen, questions, Some(image))
     }
 }
 

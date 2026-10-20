@@ -1,9 +1,11 @@
 //! Checks of the base the interview scenarios stand on: the judge, the
 //! ledger reader and one whole run of the fakes.
 
+use std::num::NonZeroU32;
 use std::time::Duration;
 
 use webqa::interview::trials::{Ending, Stopped};
+use webqa_core::config::raw::Op;
 use webqa_core::ports::{Browser, Clock};
 
 use crate::fakes::{self, FakeBrowser, FakeClock, RecordingJudge};
@@ -17,6 +19,8 @@ mod config_checks;
 mod judge_checks;
 #[path = "checks_ledger.rs"]
 mod ledger_checks;
+#[path = "checks_ports.rs"]
+mod ports_checks;
 
 /// The origin of the scenes of the checks.
 const ORIGIN: &str = "https://shop.example.test";
@@ -30,7 +34,10 @@ async fn check_run() {
         trials: 2,
         ..Scene::default()
     };
-    let mut world = InterviewWorld { scene, ran: None };
+    let mut world = InterviewWorld {
+        scene,
+        ..InterviewWorld::default()
+    };
     world.run().await;
     let ran = world.ran();
     let ending = Some(Ending::Wrote {
@@ -83,6 +90,9 @@ async fn check_fakes() {
     let shown = PageSpec::button("保存");
     let shown = PageSpec::at("/").with(shown).build(ORIGIN);
     let plain = fakes::page(&shown.screen.url, &[("button", "保存")]);
+    let limit = NonZeroU32::MIN;
+    let rules = fakes::rules(&[Op::Click], [limit; 4], Vec::new());
+    assert_eq!(rules.ops, [Op::Click], "the rules of the loop's own tests");
     assert_eq!(
         (&plain.nodes, &plain.candidates, &plain.text),
         (&shown.nodes, &shown.candidates, &shown.text),
@@ -111,4 +121,5 @@ pub async fn check() {
     ledger_checks::check();
     check_run().await;
     config_checks::check().await;
+    ports_checks::check().await;
 }

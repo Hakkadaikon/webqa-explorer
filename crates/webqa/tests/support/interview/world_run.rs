@@ -1,78 +1,32 @@
 //! Runs a scene once, with fakes tied to one gate.
 
 use std::collections::VecDeque;
-use std::fmt::Display;
+use std::ffi::OsString;
 use std::iter;
-use std::path::Path;
 use std::sync::atomic::AtomicU64;
-use std::sync::{Arc, PoisonError};
+use std::sync::{Arc, Mutex, PoisonError};
 
 use tokio::sync::Notify;
 use webqa::exit;
 use webqa::interview::trials::{Ending, Plan, interview};
 use webqa::run::Detect;
-use webqa::setup;
-use webqa_core::config::interview::Interview;
-use webqa_core::config::purpose::Aim;
 use webqa_core::event::Mode;
-use webqa_core::interview::compare::check_previous;
-use webqa_core::interview::ledger::{self, Goal, Ledger};
+use webqa_core::ports::Judge;
 use webqa_core::redact::Redactor;
 
 use super::Ran;
-use crate::clock::SceneClock;
+use crate::bridge::{self, RunDir};
 use crate::fakes::{FakeBrowser, MemoryStore, VIEWPORT};
 use crate::interruption::SceneInterrupt;
 use crate::judge::SceneJudge;
 use crate::launch::SceneLaunch;
 use crate::page::PageSpec;
+use crate::run_clock::{GRACE, TrialClock};
 use crate::scene::{PAGES, Scene, found};
+use crate::start::{Started, start};
 
-/// The stages of starting, in the order of the CLI: the configuration
-/// with its documents, then the ledger before and whether its head is of
-/// this persona and purpose. The first failure stops the run with its
-/// sentence, which carries no text of the documents.
-fn start(scene: &Scene, url: &str) -> Result<(Interview, Option<Ledger>), String> {
-    let interview = configured(scene)?;
-    let previous = scene
-        .previous
-        .as_deref()
-        .map(|text| previous(text, &interview, url));
-    Ok((interview, previous.transpose()?))
-}
-
-/// The settings and the documents, read as the CLI reads them. A purpose
-/// set without its text stands for the document.
-fn configured(scene: &Scene) -> Result<Interview, String> {
-    let read = |path: &Path| scene.document(path);
-    let loaded = setup::load_interview(&scene.yaml(), &|_| None, &read);
-    let (_, mut interview) = loaded.map_err(sentence)?;
-    if scene.purpose_text.is_none() {
-        interview.purpose = scene.purpose.clone();
-    }
-    Ok(interview)
-}
-
-/// The ledger before, read and checked as the CLI does.
-fn previous(text: &str, interview: &Interview, url: &str) -> Result<Ledger, String> {
-    let ledger = ledger::read(text).map_err(sentence)?;
-    let goal = goal_of(&interview.purpose.aim);
-    let checked = check_previous(&ledger.head, &interview.persona.name, &goal, url);
-    checked.map(|()| ledger).map_err(sentence)
-}
-
-/// The purpose a ledger head is checked against, as the CLI has it.
-fn goal_of(aim: &Aim) -> Goal {
-    match aim {
-        Aim::Written(written) => Goal::Written(written.goal.clone()),
-        Aim::Inferred => Goal::Inferred(Vec::new()),
-    }
-}
-
-/// The sentence of an error.
-fn sentence(error: impl Display) -> String {
-    error.to_string()
-}
+/// The variable that names the file of the clock, for a reset script.
+const CLOCK_VAR: &str = "SCENE_CLOCK";
 
 /// One browser for each trial: the start page, the pages after it, then
 /// the last page again up to [`PAGES`].
@@ -94,19 +48,27 @@ fn browsers(scene: &Scene) -> VecDeque<FakeBrowser> {
         .collect()
 }
 
-/// The plan of the loop for `scene`.
-fn plan(scene: &Scene, started: (Interview, Option<Ledger>), redactor: &Redactor) -> Plan {
-    let url = scene.start.build(&scene.origin()).screen.url;
-    let (interview, previous) = started;
+/// The plan of the loop, as the CLI makes it from the setup.
+fn plan(started: Started, env: Vec<(OsString, OsString)>) -> Plan {
+    let Started {
+        setup,
+        interview,
+        previous,
+    } = started;
+    let withheld = setup
+        .judge
+        .api_key
+        .iter()
+        .map(|key| key.expose().to_owned());
     Plan {
         interview,
-        rules: scene.rules(),
-        start: redactor.url(&url),
+        max_duration: setup.rules.max_duration,
+        rules: setup.rules,
+        start: setup.target,
         viewport: VIEWPORT,
         previous,
-        max_duration: scene.max_duration,
-        env: scene.env.clone(),
-        withheld: scene.withheld.clone(),
+        env,
+        withheld: withheld.collect(),
         mode: Mode::Scenario,
         started_at: Some("2026-10-18T02:00:00Z".to_owned()),
         detect: Detect::default(),
@@ -117,44 +79,60 @@ fn plan(scene: &Scene, started: (Interview, Option<Ledger>), redactor: &Redactor
 /// interrupt once.
 struct Fakes {
     judge: SceneJudge,
-    clock: SceneClock,
+    bridge: Option<Box<dyn Judge>>,
+    clock: TrialClock,
     launch: SceneLaunch,
     interrupt: SceneInterrupt,
     store: MemoryStore,
+    gate: Arc<Notify>,
 }
 
 impl Fakes {
-    fn of(scene: &Scene) -> Self {
+    fn of(scene: &Scene, run: &RunDir) -> Self {
         let gate = Arc::new(Notify::new());
         let now = Arc::new(AtomicU64::new(0));
         let replies = scene.replies.clone();
         let mut judge = SceneJudge::new(replies, Arc::clone(&gate), Arc::clone(&now), scene.think);
         judge.images = scene.images;
+        judge.thinks.clone_from(&scene.thinks);
         Self {
             judge,
-            clock: SceneClock {
+            bridge: None,
+            clock: TrialClock {
                 now,
+                stall_sleep: scene.stall_sleep,
+                grace: scene.reset.as_ref().map(|_| GRACE),
+                file: Some(run.0.join("clock")),
                 gate: Arc::clone(&gate),
-                ..SceneClock::default()
+                ..TrialClock::default()
             },
             launch: SceneLaunch {
                 browsers: browsers(scene),
+                hangs_on: scene.hang_launch,
                 ..SceneLaunch::default()
             },
             interrupt: SceneInterrupt {
                 fire_on: scene.fire_on.clone(),
-                gate,
+                gate: Arc::clone(&gate),
                 ..SceneInterrupt::default()
             },
-            store: MemoryStore::default(),
+            store: MemoryStore {
+                memories: scene.memories.clone(),
+                ..MemoryStore::default()
+            },
+            gate,
         }
     }
 
-    /// Runs the loop with `plan`.
+    /// Runs the loop with `plan`, through the bridge if one was started.
     async fn conduct(&mut self, plan: &Plan, redactor: &Redactor) -> Ending {
+        let judge: &mut dyn Judge = match self.bridge.as_mut() {
+            Some(bridge) => bridge.as_mut(),
+            None => &mut self.judge,
+        };
         interview(
             &mut self.launch,
-            &mut self.judge,
+            judge,
             &mut self.clock,
             &mut self.store,
             redactor,
@@ -164,11 +142,7 @@ impl Fakes {
         .await
     }
 
-    fn into_ran(self, ending: Option<Ending>, config_error: Option<String>) -> Ran {
-        let touches = {
-            let all = self.launch.touches.lock();
-            all.unwrap_or_else(PoisonError::into_inner).clone()
-        };
+    fn into_ran(self, ending: Option<Ending>, config_error: Option<String>, run: &RunDir) -> Ran {
         Ran {
             code: ending
                 .as_ref()
@@ -176,7 +150,9 @@ impl Fakes {
             ending,
             config_error,
             judge: self.judge,
-            touches,
+            bridge: bridge::asked(&run.0),
+            touches: taken(&self.launch.touches),
+            openings: taken(&self.launch.openings),
             launched: self.launch.launched,
             store: self.store,
             clock: self.clock,
@@ -184,21 +160,53 @@ impl Fakes {
     }
 }
 
+/// What the browsers handed in.
+fn taken<T: Clone>(shared: &Mutex<Vec<T>>) -> Vec<T> {
+    let all = shared.lock().unwrap_or_else(PoisonError::into_inner);
+    all.clone()
+}
+
+/// The environment of the run: the scene's, and the file of the clock for
+/// a reset script.
+fn environment(scene: &Scene, run: &RunDir) -> Vec<(OsString, OsString)> {
+    let clock = (
+        OsString::from(CLOCK_VAR),
+        run.0.join("clock").into_os_string(),
+    );
+    scene.env.iter().cloned().chain(iter::once(clock)).collect()
+}
+
+impl Fakes {
+    /// Ties the fakes to what the stages of starting made: the storage
+    /// state, and the bridge if the scene has one.
+    async fn begin(&mut self, scene: &Scene, started: &Started, run: &RunDir) {
+        let setup = &started.setup;
+        self.launch
+            .storage_state
+            .clone_from(&setup.browser.storage_state);
+        if scene.bridge.is_some() {
+            bridge::write_answers(&run.0, &scene.replies);
+            let gate = Arc::clone(&self.gate);
+            self.bridge = Some(bridge::start(&setup.judge, gate).await);
+        }
+    }
+}
+
 /// Runs `scene` once, with fakes.
 pub async fn play(scene: &Scene) -> Ran {
-    let mut fakes = Fakes::of(scene);
+    let run = RunDir::new();
+    let mut fakes = Fakes::of(scene, &run);
     let redactor = found(
         Redactor::new(&scene.redact).ok(),
         "the redaction rules read",
     );
-    let url = scene.start.build(&scene.origin()).screen.url;
-    match start(scene, redactor.url(&url).as_inner()) {
+    let env = environment(scene, &run);
+    match start(scene, &env, &run.0) {
         Ok(started) => {
-            let ended = fakes
-                .conduct(&plan(scene, started, &redactor), &redactor)
-                .await;
-            fakes.into_ran(Some(ended), None)
+            fakes.begin(scene, &started, &run).await;
+            let ended = fakes.conduct(&plan(started, env), &redactor).await;
+            fakes.into_ran(Some(ended), None, &run)
         }
-        Err(error) => fakes.into_ran(None, Some(error)),
+        Err(error) => fakes.into_ran(None, Some(error), &run),
     }
 }

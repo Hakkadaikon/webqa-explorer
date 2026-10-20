@@ -100,7 +100,7 @@ async fn check_records() {
 
 /// Which calls had an image, and what screen they sent.
 fn check_marks(asked: &[Asked]) {
-    let images: Vec<bool> = asked.iter().map(|asked| asked.image).collect();
+    let images: Vec<bool> = asked.iter().map(|asked| asked.image.is_some()).collect();
     assert_eq!(images, [false, true], "which calls had an image");
     let shown = asked.iter().map(|a| a.screen.contains("保存"));
     assert_eq!(shown.collect::<Vec<_>>(), [true, true], "the screen text");

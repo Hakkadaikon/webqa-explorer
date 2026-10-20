@@ -1,6 +1,8 @@
 //! Checks of the stages of starting: the configuration and the ledger
 //! before stop the run as the CLI does.
 
+use webqa_core::config::interview::InterviewError;
+
 use super::ORIGIN;
 use crate::scene::Scene;
 use crate::world::InterviewWorld;
@@ -16,7 +18,10 @@ fn background() -> Scene {
 /// The sentence of the configuration error of `scene`, if any, after
 /// checking that nothing ran.
 async fn rejected(scene: Scene) -> Option<String> {
-    let mut world = InterviewWorld { scene, ran: None };
+    let mut world = InterviewWorld {
+        scene,
+        ..InterviewWorld::default()
+    };
     world.run().await;
     let ran = world.ran();
     if ran.config_error.is_some() {
@@ -51,6 +56,16 @@ async fn check_ranges() {
         let error = rejected(scene).await;
         assert!(error.is_some(), "out of range: {error:?}");
     }
+    let over = Scene {
+        trials: 101,
+        ..background()
+    };
+    let sentence = InterviewError::Trials.to_string();
+    assert_eq!(
+        rejected(over).await,
+        Some(sentence),
+        "the sentence of the setting"
+    );
     let plain = rejected(background()).await;
     assert_eq!(plain, None, "the background reads");
 }
@@ -60,7 +75,7 @@ async fn check_ranges() {
 async fn check_previous() {
     let mut first = InterviewWorld {
         scene: background(),
-        ran: None,
+        ..InterviewWorld::default()
     };
     first.run().await;
     let text = first.ran().store.ledger.clone();

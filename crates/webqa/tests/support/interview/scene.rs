@@ -1,29 +1,24 @@
 //! What the Given steps of an interview scenario set up. Nothing runs until
 //! a When or a Then needs it.
 
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::ffi::OsString;
 use std::future::Future;
-use std::num::{NonZeroU32, NonZeroU64};
-use std::path::Path;
+use std::num::NonZeroU64;
 use std::pin::Pin;
 use std::task::{Context, Poll, Waker};
 use std::time::Duration;
-use std::{io, iter};
 
-use serde::Serialize;
-use serde_json::json;
 use webqa_core::config::interview::Reset;
 use webqa_core::config::persona::Persona;
 use webqa_core::config::purpose::Purpose;
-use webqa_core::config::raw::Op;
-use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::judge::{Answers, JudgeError};
-use webqa_core::machine::Rules;
 use webqa_core::redact::Rule;
 
-use crate::fakes;
 use crate::ledger::Aliases;
+
+#[path = "scene_yaml.rs"]
+mod yaml;
 use crate::page::PageSpec;
 
 /// The name of the rule that hides e-mail addresses.
@@ -33,23 +28,6 @@ const EMAIL: &str = r"[\w.+-]+@[\w-]+\.[\w.]+";
 
 /// The directory of the scripts of the reset command.
 const SCRIPTS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/reset/");
-
-/// The operation kinds offered to the judge model: all of them.
-const OPS: [Op; 8] = [
-    Op::Click,
-    Op::Input,
-    Op::ScrollDown,
-    Op::ScrollUp,
-    Op::Back,
-    Op::Wait,
-    Op::Done,
-    Op::Stuck,
-];
-
-/// Where the configuration says the persona document is.
-pub const PERSONA_PATH: &str = "persona.yaml";
-/// Where the configuration says the purpose document is.
-pub const PURPOSE_PATH: &str = "purpose.yaml";
 
 /// How many pages a trial's browser shows at most: the last one stays.
 pub const PAGES: usize = 30;
@@ -65,12 +43,6 @@ pub fn found<T>(items: impl IntoIterator<Item = T>, what: &str) -> T {
 pub fn poll_once<F: Future + Unpin>(pending: &mut F) -> Poll<F::Output> {
     let mut cx = Context::from_waker(Waker::noop());
     Pin::new(pending).poll(&mut cx)
-}
-
-/// `n` as a limit. Zero fails the scenario: the configuration has already
-/// rejected it.
-pub fn limit(n: u32, name: &str) -> NonZeroU32 {
-    found(NonZeroU32::new(n), &format!("{name} is above zero"))
 }
 
 /// What the Given steps set up.
@@ -130,8 +102,24 @@ pub struct Scene {
     pub previous: Option<String>,
     /// The environment variables the reset command may get.
     pub env: Vec<(OsString, OsString)>,
-    /// The strings that must not reach the reset command.
-    pub withheld: Vec<String>,
+    /// The environment variable the judge's API key is read from.
+    pub api_key_env: Option<String>,
+    /// Whether the configuration names a storage state.
+    pub auth: bool,
+    /// The keywords of the forbidden elements.
+    pub forbidden: Vec<String>,
+    /// The bridge the judge runs through, declaring whether it reads
+    /// images. `None` is the scripted judge of the scene.
+    pub bridge: Option<bool>,
+    /// How long each call of the judge takes, call by call. Later calls
+    /// take `think`.
+    pub thinks: VecDeque<Duration>,
+    /// Whether a sleep of the run never ends.
+    pub stall_sleep: bool,
+    /// The trial whose browser never finishes opening, from 1.
+    pub hang_launch: Option<usize>,
+    /// The memory files by origin before the run.
+    pub memories: BTreeMap<String, String>,
     /// The trial a step means by "the trial", from 1.
     pub trial: usize,
     /// The numbers the examples of the feature stand for.
@@ -173,7 +161,14 @@ impl Default for Scene {
             fire_on: BTreeSet::new(),
             previous: None,
             env: Vec::new(),
-            withheld: Vec::new(),
+            api_key_env: None,
+            auth: false,
+            forbidden: Vec::new(),
+            bridge: None,
+            thinks: VecDeque::new(),
+            stall_sleep: false,
+            hang_launch: None,
+            memories: BTreeMap::new(),
             trial: 1,
             aliases: Aliases::default(),
         }
@@ -181,98 +176,6 @@ impl Default for Scene {
 }
 
 impl Scene {
-    /// The rules of the scene. An origin that cannot be read fails the
-    /// scenario.
-    pub fn rules(&self) -> Rules {
-        let parsed: Vec<_> = self
-            .origins
-            .iter()
-            .map(|origin| AllowedOrigin::parse(origin))
-            .collect();
-        assert!(
-            parsed.iter().all(Result::is_ok),
-            "the origins of the background read: {parsed:?}"
-        );
-        let limits = [
-            (self.freeze_threshold, "freeze_threshold"),
-            (self.stuck_threshold, "stuck_threshold"),
-            (self.max_decisions, "max_decisions"),
-            (self.requests_per_hour, "requests_per_hour"),
-        ]
-        .map(|(n, name)| limit(n, name));
-        Rules {
-            max_duration: self.max_duration,
-            ..fakes::rules(&OPS, limits, parsed.into_iter().flatten().collect())
-        }
-    }
-
-    /// The configuration the CLI would read: the background's origin, the
-    /// limits, and the `interview` section of the scene.
-    pub fn yaml(&self) -> String {
-        let url = json!(self.start.build(&self.origin()).screen.url.as_str());
-        let origins = json!(self.origins);
-        let base = format!(
-            "target:\n  url: {url}\n  allowed_origins: {origins}\n\
-             judge:\n  kind: command\n  command: [\"./judge\"]\n  timeout_secs: 30\n  \
-             pricing: {{ input_per_1k: 0.0, output_per_1k: 0.0 }}\n\
-             limits:\n  freeze_threshold: {}\n  stuck_threshold: {}\n  max_decisions: {}\n  \
-             requests_per_hour: {}\n  page_timeout_secs: 10\n  back_confidence: 0.7\n  \
-             error_confidence: 0.8\n\
-             guard:\n  forbidden: {{ keywords: [], selectors: [] }}\n  \
-             allowed: {{ selectors: [] }}\n  leave_paywall: back\n\
-             interview:\n  persona: {PERSONA_PATH}\n  trials: {}\n  hesitation_threshold: {:?}\n  \
-             confidence_threshold: {:?}\n  max_natural_questions: {}\n",
-            self.freeze_threshold,
-            self.stuck_threshold,
-            self.max_decisions,
-            self.requests_per_hour,
-            self.trials,
-            self.hesitation,
-            self.confidence,
-            self.max_natural,
-        );
-        let mut yaml = base;
-        yaml.push_str(&self.optional_yaml());
-        yaml
-    }
-
-    /// The lines of the `interview` section that the scene may leave out.
-    fn optional_yaml(&self) -> String {
-        let purpose = self.purpose_text.as_ref().map(|_| PURPOSE_PATH);
-        [
-            entry("purpose", purpose),
-            entry("stuck_threshold", self.interview_stuck),
-            entry("requests_per_hour", self.interview_requests),
-            entry("reset", self.reset.as_ref().map(reset_json)),
-        ]
-        .concat()
-    }
-
-    /// The document at `path`: the persona as text or as set, and the
-    /// purpose as text.
-    ///
-    /// # Errors
-    ///
-    /// Not found for any other path.
-    pub fn document(&self, path: &Path) -> io::Result<String> {
-        let persona = &self.persona;
-        let set = json!({
-            "name": persona.name,
-            "profile": persona.profile,
-            "it_literacy": persona.it_literacy,
-            "wants": persona.wants,
-            "avoids": persona.avoids,
-        });
-        let text = if path == Path::new(PERSONA_PATH) {
-            Some(self.persona_text.clone().unwrap_or_else(|| set.to_string()))
-        } else if path == Path::new(PURPOSE_PATH) {
-            self.purpose_text.clone()
-        } else {
-            None
-        };
-        text.ok_or_else(|| io::ErrorKind::NotFound.into())
-    }
-
     /// The first allowed origin, such as `https://shop.example.test`.
     pub fn origin(&self) -> String {
         let first = found(self.origins.first(), "the background names an origin");
@@ -293,16 +196,4 @@ impl Scene {
             timeout_secs: found(NonZeroU64::new(timeout_secs), "the timeout is above zero"),
         });
     }
-}
-
-/// The `reset` section of `reset`, in JSON, which YAML reads.
-fn reset_json(reset: &Reset) -> serde_json::Value {
-    let command: Vec<&String> = iter::once(&reset.program).chain(&reset.args).collect();
-    json!({ "command": command, "timeout_secs": reset.timeout_secs.get() })
-}
-
-/// The line `key: value` of the `interview` section, in JSON, which YAML
-/// reads. Nothing when there is no value.
-fn entry(key: &str, value: Option<impl Serialize>) -> String {
-    value.map_or_else(String::new, |value| format!("  {key}: {}\n", json!(value)))
 }
