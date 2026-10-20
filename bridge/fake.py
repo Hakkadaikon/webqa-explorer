@@ -27,6 +27,15 @@ SCORE = {
     "levels": ["わかりにくい", "ふつう", "わかりやすい"],
 }
 TEXT = {"kind": "text", "id": "expectation", "prompt": "何を期待したか"}
+# The first call of a step asks the purpose guess with the JEV kinds; what is
+# expected is asked alone afterwards, with the operation chosen in its text.
+GUESS = {"kind": "text", "id": "purpose_guess", "prompt": "何の画面か"}
+EXPECT = {
+    "kind": "text",
+    "id": "expectation",
+    "prompt": "あなたは次に『click』をする。対象: 1番「保存」。"
+    "この操作で何が起きると期待するか、1文で答える。",
+}
 
 # The answer 2 of tasks/jev-api.md, without what the bridge throws away.
 JEV_REPLY = {
