@@ -90,7 +90,8 @@ const fn timed_out(error: &Error) -> bool {
     matches!(error, Error::Timeout(_) | Error::NavigationTimeout { .. })
 }
 
-/// True once the document has loaded and no modal says it is busy. Waited
+/// True once the document has loaded and no modal that is shown says it is
+/// busy. A hidden one stays in some pages and is not waited for. Waited
 /// for by the driver, which keeps the timeout even while a navigation is
 /// pending.
 ///
@@ -98,7 +99,8 @@ const fn timed_out(error: &Error) -> bool {
 /// loading veil, a busy modal, covers every operation. Observed then, the
 /// screen would look like a paywall.
 const LOADED: &str = "document.readyState === 'complete' \
-    && document.querySelector('[role=dialog][aria-busy=true]') === null";
+    && [...document.querySelectorAll('[role=dialog][aria-busy=true]')] \
+        .every(veil => !veil.checkVisibility())";
 
 /// Resolves at `load`, or after `ms` milliseconds.
 const IN_PAGE: &str = "ms => new Promise(done => { \
@@ -153,6 +155,9 @@ impl PlaywrightBrowser {
 
     /// Waits in the page for the changes to stop. A failure, such as a
     /// document replaced meanwhile, ends the wait, as in `wait_in_page`.
+    // shortcut: the cap is the page's own setTimeout, so a page that replaces
+    // setTimeout or MutationObserver, or blocks the main thread, never ends the
+    // wait; add a limit on the Rust side when such a page turns up.
     async fn wait_quiet(&self) {
         let waited: playwright_rs::Result<serde_json::Value> = self
             .page

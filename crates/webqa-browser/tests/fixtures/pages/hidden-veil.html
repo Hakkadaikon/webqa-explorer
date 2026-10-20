@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ja">
+<title>hidden veil</title>
+<!-- A busy dialog that is not shown stays in the page. The click rewrites
+     the text at 800 ms, after the rest and before the page timeout (1 s). -->
+<div role="dialog" aria-busy="true" aria-label="読み込み中" style="display:none"></div>
+<button onclick="
+  const out = document.querySelector('#out');
+  setTimeout(() => { out.textContent = '結果'; }, 800);">検索</button>
+<button id="out">待機</button>
+</html>

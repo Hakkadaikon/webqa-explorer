@@ -4,6 +4,7 @@
 <button onclick="
   const out = document.querySelector('#out');
   out.textContent = '読み込み中';
-  setTimeout(() => { out.textContent = '結果'; }, 300);">検索</button>
+  setTimeout(() => { out.textContent = '途中'; }, 300);
+  setTimeout(() => { out.textContent = '結果'; }, 600);">検索</button>
 <button id="out">待機</button>
 </html>
