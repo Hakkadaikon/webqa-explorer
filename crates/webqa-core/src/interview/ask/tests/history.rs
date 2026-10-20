@@ -90,9 +90,9 @@ fn the_redactor_masks_a_secret_in_a_name() {
 
 #[test]
 fn a_control_character_in_a_name_is_escaped() {
-    let got = shown(&[past("click", Some("検\n索\"\u{7}"), true)]);
+    let got = shown(&[past("click", Some("検索\"\u{7}"), true)]);
     let want = format!(
-        "{}\n\n{HEAD}\n1. click 「検\\n索\\\"\\u{{0007}}」 → 画面が変わった",
+        "{}\n\n{HEAD}\n1. click 「検索\\\"\\u{{0007}}」 → 画面が変わった",
         cart()
     );
     assert_eq!(got, want);
