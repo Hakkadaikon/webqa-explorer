@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 # 名前: (Scenario の数, issue の欄が空でもよいか)
-LEDGERS = {"WebExploratoryQA": (121, False), "InterviewMode": (139, True)}
+LEDGERS = {"WebExploratoryQA": (122, False), "InterviewMode": (139, True)}
 NAME = sys.argv[1] if len(sys.argv) > 1 else "WebExploratoryQA"
 EXPECTED, ISSUE_OPTIONAL = LEDGERS[NAME]
 LEDGER = Path(f"tasks/test-design/{NAME}.md")
