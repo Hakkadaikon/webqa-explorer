@@ -2,9 +2,8 @@
 //! such.
 
 use cucumber::{given, then};
-use webqa_core::interview::issue::Kind;
 
-use super::{goal_at_start, says};
+use super::{goal_at_start, says, unreached_counts};
 use crate::questions::replies::{ledger_of, step};
 use crate::world::InterviewWorld;
 
@@ -29,22 +28,11 @@ fn ends_claimed(world: &mut InterviewWorld) {
     says(world, step("done", None, 0.0));
 }
 
-/// The numbers of finished trials and of those that did not reach the
-/// purpose, of each issue of the ledger about a purpose not reached.
-fn unreached(world: &InterviewWorld) -> Vec<(usize, usize)> {
-    let ledger = ledger_of(world);
-    let issues = ledger.entries.iter().map(|entry| &entry.issue);
-    let not_reached = issues.filter(|issue| issue.kind() == Kind::Unreached);
-    not_reached
-        .map(|issue| (issue.count.occurred, issue.count.finished))
-        .collect()
-}
-
 #[then(expr = "その試行は目的に届かない試行に数えられている")]
 async fn counted_unreached(world: &mut InterviewWorld) {
     world.run().await;
     assert_eq!(
-        unreached(world),
+        unreached_counts(world),
         [(3, 3)],
         "all three trials did not reach it"
     );
@@ -55,5 +43,9 @@ async fn not_counted_unreached(world: &mut InterviewWorld) {
     world.run().await;
     let ledger = ledger_of(world);
     assert_eq!(ledger.head.finished, 3, "the trials finished");
-    assert_eq!(unreached(world), [], "none is counted as not reaching it");
+    assert_eq!(
+        unreached_counts(world),
+        [],
+        "none is counted as not reaching it"
+    );
 }

@@ -22,6 +22,12 @@ fn wired() -> serde_json::Value {
     json!({ "media_type": "image/png", "data": "iVBORw==" })
 }
 
+/// The first request the bridge read carries the screenshot as wired.
+fn image_item_is_as_wired(world: &InterviewWorld) {
+    let request = found(world.ran().bridge.first(), "the bridge read a request");
+    assert_eq!(request.get("image"), Some(&wired()), "the item `image`");
+}
+
 /// The first call of the judge of the scene.
 fn first_call(ran: &Ran) -> &Asked {
     found(ran.judge.asked.first(), "the judge was asked")
@@ -31,18 +37,6 @@ fn first_call(ran: &Ran) -> &Asked {
 fn shot_of(asked: &Asked) -> Option<(ImageFormat, Vec<u8>)> {
     let shot = asked.image.as_ref();
     shot.map(|image| (image.format(), image.bytes().to_vec()))
-}
-
-/// Runs the scene, then once more with the judge declaring that it reads
-/// images, unless it did. A step with no Given of its own to say so reads
-/// the screenshot from the second run.
-async fn read_with_images(world: &mut InterviewWorld) {
-    world.run().await;
-    if !world.scene.images {
-        world.scene.images = true;
-        world.again();
-        world.run().await;
-    }
 }
 
 #[given(expr = "判断モデルのアダプタが、起動のときに画像を扱えると申告している")]
@@ -73,8 +67,7 @@ fn bridge_judge(world: &mut InterviewWorld) {
 #[then(expr = "外部コマンドに書いた問いの JSON に、画像を渡す項目がある")]
 async fn json_has_image(world: &mut InterviewWorld) {
     world.run().await;
-    let request = found(world.ran().bridge.first(), "the bridge read a request");
-    assert_eq!(request.get("image"), Some(&wired()), "the item `image`");
+    image_item_is_as_wired(world);
 }
 
 /// The kind of the judge is a setting, and only `command` starts: the form
@@ -91,8 +84,7 @@ async fn image_item_is_fixed(world: &mut InterviewWorld) {
     let error = other.err();
     let unknown = Some(StartError::UnknownKind("openai".to_owned()));
     assert_eq!(error, unknown, "no other kind starts");
-    let request = found(world.ran().bridge.first(), "the bridge read a request");
-    assert_eq!(request.get("image"), Some(&wired()), "the item `image`");
+    image_item_is_as_wired(world);
 }
 
 #[given(expr = "判断モデルとして 台本どおりに答えるスタブ を使う設定である")]
@@ -151,7 +143,7 @@ async fn bridge_declaration(world: &mut InterviewWorld) {
 
 #[then(expr = "判断モデルに渡したテキストではメールアドレスが伏せられている")]
 async fn text_hides_email(world: &mut InterviewWorld) {
-    read_with_images(world).await;
+    world.run().await;
     let scene = &world.scene;
     let page = scene.start.build(&scene.origin());
     let plain = screen_text(
@@ -167,7 +159,7 @@ async fn text_hides_email(world: &mut InterviewWorld) {
 
 #[then(expr = "判断モデルに渡したスクリーンショットは、画面をそのまま写したものである")]
 async fn screenshot_is_as_taken(world: &mut InterviewWorld) {
-    read_with_images(world).await;
+    world.run().await;
     let shot = Some((ImageFormat::Png, PNG.to_vec()));
     assert_eq!(shot_of(first_call(world.ran())), shot, "the screenshot");
 }

@@ -88,14 +88,6 @@ fn sent(asked: &Asked) -> Vec<(String, Kind)> {
 
 #[then(expr = "判断モデルに次の項目を1回の問い合わせで問うている")]
 async fn asks_items(world: &mut InterviewWorld, step: &Step) {
-    // The question of the elements hard to see is asked of a judge that
-    // reads images, and a page with elements has numbers to offer: the
-    // scene says both in this step, which no Given does.
-    world.run().await;
-    world.scene.images = true;
-    button(&mut world.scene, SAVE);
-    button(&mut world.scene, "削除");
-    world.again();
     world.run().await;
     let asked = first_call(world);
     assert_eq!(sent(asked), listed(step), "the questions of the one call");
@@ -118,7 +110,7 @@ async fn asks_items(world: &mut InterviewWorld, step: &Step) {
     );
     assert_eq!(
         options_of(asked, "target"),
-        ["1", "2"],
+        ["1"],
         "the numbers of the elements"
     );
 }

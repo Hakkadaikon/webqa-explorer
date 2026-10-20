@@ -39,6 +39,7 @@ async fn in_last_section(world: &mut InterviewWorld) {
     assert_eq!(section_of(world), Section::OffPersona, "the section");
     let number = world.scene.aliases.written("その課題");
     let (heading, issue) = (heading_at(world, OFF_PERSONA), issue_at(world, &number));
+    assert_ne!(issue, usize::MAX, "the issue is written");
     assert!(heading < issue, "the issue is under the last heading");
 }
 

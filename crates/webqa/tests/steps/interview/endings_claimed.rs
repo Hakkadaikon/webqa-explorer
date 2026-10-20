@@ -4,7 +4,7 @@ use cucumber::{then, when};
 use webqa_core::interview::issue::{Detail, Halt};
 use webqa_core::interview::ledger::Goal;
 
-use super::{endings, says};
+use super::{endings, says, unreached_counts};
 use crate::questions::replies::{ledger_of, step};
 use crate::world::InterviewWorld;
 
@@ -28,6 +28,11 @@ async fn trial_unverified(world: &mut InterviewWorld) {
         endings(world).get(trial),
         Some(&"done".to_owned()),
         "the ending"
+    );
+    assert_eq!(
+        unreached_counts(world),
+        [],
+        "not an end without the purpose"
     );
 }
 

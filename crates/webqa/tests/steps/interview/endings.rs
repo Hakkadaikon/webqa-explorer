@@ -3,9 +3,10 @@
 use serde_json::Value;
 use webqa_core::config::purpose::{Aim, Written};
 use webqa_core::config::raw::{DoneWhen, Element};
+use webqa_core::interview::issue::Kind;
 use webqa_core::judge::Answers;
 
-use crate::questions::replies::{SAVE, button, each_trial, natural_yes, reply};
+use crate::questions::replies::{SAVE, button, each_trial, ledger_of, natural_yes, reply};
 use crate::scene::Scene;
 use crate::world::InterviewWorld;
 
@@ -54,7 +55,6 @@ fn goal_at_start(scene: &mut Scene) {
 /// The judge says `answers` at the first step of every trial, and the
 /// issues the trials leave are natural.
 fn says(world: &mut InterviewWorld, answers: Answers) {
-    button(&mut world.scene, SAVE);
     each_trial(&mut world.scene, &[answers]);
     reply(&mut world.scene, natural_yes());
 }
@@ -71,4 +71,15 @@ fn endings(world: &InterviewWorld) -> Vec<String> {
         ending.unwrap_or_default().to_owned()
     };
     ended.map(ending).collect()
+}
+
+/// The numbers of the trials that finished and of those that did not reach
+/// the purpose, of each issue of the ledger about a purpose not reached.
+fn unreached_counts(world: &InterviewWorld) -> Vec<(usize, usize)> {
+    let ledger = ledger_of(world);
+    let issues = ledger.entries.iter().map(|entry| &entry.issue);
+    let not_reached = issues.filter(|issue| issue.kind() == Kind::Unreached);
+    not_reached
+        .map(|issue| (issue.count.occurred, issue.count.finished))
+        .collect()
 }

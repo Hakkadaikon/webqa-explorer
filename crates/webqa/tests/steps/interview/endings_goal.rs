@@ -57,7 +57,6 @@ async fn arrives_at(world: &mut InterviewWorld, name: String) {
 #[then(expr = "{string} は操作されていない")]
 async fn not_operated(world: &mut InterviewWorld, name: String) {
     world.run().await;
-    drop(name);
     let target = ElementId {
         role: "button".to_owned(),
         name: "次へ".to_owned(),
@@ -69,6 +68,13 @@ async fn not_operated(world: &mut InterviewWorld, name: String) {
         confidence: 0.9,
     };
     let touches: Vec<&Touch> = world.ran().touches.iter().map(|(_, touch)| touch).collect();
+    let operated = touches.iter().any(|touch| {
+        touch
+            .target
+            .as_ref()
+            .is_some_and(|target| target.name == name)
+    });
+    assert!(!operated, "{name} was not operated");
     assert_eq!(
         touches,
         [&next, &next, &next],
