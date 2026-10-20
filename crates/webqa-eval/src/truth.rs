@@ -33,6 +33,17 @@ impl From<Kind> for KindId {
     }
 }
 
+impl From<KindId> for Kind {
+    fn from(id: KindId) -> Self {
+        match id {
+            KindId::Hesitant => Self::Hesitant,
+            KindId::Visibility => Self::Visibility,
+            KindId::Unreached => Self::Unreached,
+            KindId::Mismatch => Self::Mismatch,
+        }
+    }
+}
+
 /// An element, by its role and name.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]

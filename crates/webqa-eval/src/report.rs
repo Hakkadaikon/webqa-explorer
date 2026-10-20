@@ -7,7 +7,9 @@ use std::fmt::Write as _;
 
 use crate::found::Found;
 use crate::score::{Score, float, score};
-use crate::truth::{KindId, Label, Plant};
+use webqa_core::interview::issue::Kind;
+
+use crate::truth::{KindId, Label, Plant, Verdict};
 
 const KINDS: [KindId; 4] = [
     KindId::Visibility,
@@ -17,7 +19,7 @@ const KINDS: [KindId; 4] = [
 ];
 
 /// A table of recall and precision for each kind and the total, then the
-/// plants no run found and the issues without a plant or a label.
+/// plants no run found and the issues that hit no plant, with the ruling.
 ///
 /// It starts with the number of runs. A cell is the mean over the runs,
 /// with the sample standard deviation when there are two values or more.
@@ -31,15 +33,15 @@ pub fn report(runs: &[Vec<Found>], plants: &[Plant], labels: &[Label]) -> String
         runs.len()
     );
     for kind in KINDS.map(Some).into_iter().chain([None]) {
-        let name = kind.map_or("全体", name);
+        let name = kind.map_or("全体", label);
         text.push_str(&row(name, &rows(kind)));
     }
     let all = rows(None);
     let _ = write!(
         text,
-        "\n## 見つからなかった仕込み\n\n{}\n## 未判定の課題\n\n{}",
+        "\n## 見つからなかった仕込み\n\n{}\n## 仕込みに当たらなかった課題\n\n{}",
         lines(&missed(plants, &all)),
-        lines(&unlabeled(&all)),
+        lines(&others(&all)),
     );
     text
 }
@@ -55,13 +57,8 @@ fn scores(
         .collect()
 }
 
-const fn name(kind: KindId) -> &'static str {
-    match kind {
-        KindId::Visibility => "視認性が悪い",
-        KindId::Hesitant => "判断に迷う",
-        KindId::Unreached => "目的に届かない",
-        KindId::Mismatch => "目的のずれ",
-    }
+fn label(kind: KindId) -> &'static str {
+    Kind::from(kind).label()
 }
 
 fn row(name: &str, scores: &[Score]) -> String {
@@ -75,14 +72,17 @@ fn row(name: &str, scores: &[Score]) -> String {
 }
 
 fn cell(values: &[f64]) -> String {
+    if values.is_empty() {
+        return "-".to_owned();
+    }
     let n = float(values.len());
     let mean = values.iter().sum::<f64>() / n;
     let spread =
         (values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / (n - 1.0).max(1.0)).sqrt();
-    match (values.is_empty(), values.len() > 1) {
-        (true, _) => "-".to_owned(),
-        (false, false) => format!("{mean:.2}"),
-        (false, true) => format!("{mean:.2} ± {spread:.2}"),
+    if values.len() > 1 {
+        format!("{mean:.2} ± {spread:.2}")
+    } else {
+        format!("{mean:.2}")
     }
 }
 
@@ -95,39 +95,50 @@ fn missed(plants: &[Plant], scores: &[Score]) -> Vec<String> {
         .collect()
 }
 
-/// The unlabeled issues over the runs, each with how often it came and the
-/// number of its first issue, in the order they first came.
-fn unlabeled(scores: &[Score]) -> Vec<String> {
-    let mut tally: Vec<(&Found, usize)> = vec![];
-    scores
+/// The issues that hit no plant over the runs, each with how often it came,
+/// the number of its first issue and the ruling on it, in the order they
+/// first came.
+fn others(scores: &[Score]) -> Vec<String> {
+    let all: Vec<&Ruled> = scores.iter().flat_map(|s| &s.others).collect();
+    distinct(&all)
         .iter()
-        .flat_map(|s| &s.unlabeled)
-        .for_each(|found| count_in(&mut tally, found));
-    tally
-        .iter()
-        .map(|(found, count)| describe(found, *count))
+        .map(|(found, verdict)| {
+            let count = all.iter().filter(|(other, _)| same(other, found)).count();
+            describe(found, *verdict, count)
+        })
         .collect()
 }
 
-fn count_in<'a>(tally: &mut Vec<(&'a Found, usize)>, found: &'a Found) {
-    match tally.iter_mut().find(|(seen, _)| same(seen, found)) {
-        Some((_, count)) => *count += 1,
-        None => tally.push((found, 1)),
-    }
+/// An issue with the ruling on it, if any.
+type Ruled = (Found, Option<Verdict>);
+
+/// The first of each issue, in order.
+fn distinct<'a>(all: &[&'a Ruled]) -> Vec<&'a Ruled> {
+    all.iter().fold(Vec::new(), |mut firsts, item| {
+        if !firsts.iter().any(|first| same(&first.0, &item.0)) {
+            firsts.push(item);
+        }
+        firsts
+    })
 }
 
 fn same(a: &Found, b: &Found) -> bool {
     (a.kind, &a.path, &a.element) == (b.kind, &b.path, &b.element)
 }
 
-fn describe(found: &Found, count: usize) -> String {
+fn describe(found: &Found, verdict: Option<Verdict>, count: usize) -> String {
     let element = found
         .element
         .as_ref()
         .map_or_else(String::new, |e| format!(" {} {}", e.role, e.name));
+    let ruling = match verdict {
+        Some(Verdict::Real) => "本当に使いにくい",
+        Some(Verdict::False) => "誤り",
+        None => "未判定",
+    };
     format!(
-        "{} {}{element} {count}件 {}",
-        name(found.kind),
+        "{} {}{element} {count}件 {} {ruling}",
+        label(found.kind),
         found.path,
         found.number
     )

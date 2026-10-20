@@ -1,5 +1,5 @@
 use super::*;
-use crate::truth::Element;
+use crate::truth::{Element, Verdict};
 
 fn plants() -> Vec<Plant> {
     vec![
@@ -66,9 +66,9 @@ fn reports_each_kind_and_the_total_with_what_was_missed() {
 
 - b
 
-## 未判定の課題
+## 仕込みに当たらなかった課題
 
-- 判断に迷う / 2件 I-00000002
+- 判断に迷う / 2件 I-00000002 未判定
 "
         )
     );
@@ -107,7 +107,7 @@ fn nothing_missed_and_nothing_unlabeled_say_so() {
     assert_eq!(
         text.split_once("## 見つからなかった仕込み")
             .map(|(_, rest)| rest),
-        Some("\n\n- なし\n\n## 未判定の課題\n\n- なし\n")
+        Some("\n\n- なし\n\n## 仕込みに当たらなかった課題\n\n- なし\n")
     );
 }
 
@@ -116,8 +116,11 @@ fn unlabeled_issues_count_over_the_runs_with_their_elements() {
     let runs = [vec![visibility()], vec![visibility()], vec![hesitant()]];
     let text = report(&runs, &[], &[]);
     assert_eq!(
-        text.split_once("## 未判定の課題").map(|(_, rest)| rest),
-        Some("\n\n- 視認性が悪い /p link 料金 2件 I-00000001\n- 判断に迷う / 1件 I-00000002\n")
+        text.split_once("## 仕込みに当たらなかった課題")
+            .map(|(_, rest)| rest),
+        Some(
+            "\n\n- 視認性が悪い /p link 料金 2件 I-00000001 未判定\n- 判断に迷う / 1件 I-00000002 未判定\n"
+        )
     );
 }
 
@@ -132,7 +135,7 @@ fn a_plant_found_in_one_run_is_not_missed() {
     let text = report(&[vec![visibility()], vec![]], &plants(), &[]);
     assert_eq!(
         text.split_once("## 見つからなかった仕込み")
-            .and_then(|(_, rest)| rest.split_once("## 未判定の課題"))
+            .and_then(|(_, rest)| rest.split_once("## 仕込みに当たらなかった課題"))
             .map(|(missed, _)| missed),
         Some("\n\n- b\n\n")
     );
@@ -153,12 +156,12 @@ fn unlabeled_issues_differing_in_path_or_element_count_apart() {
     let runs = [vec![visibility(), other_path, other_element]];
     assert_eq!(
         report(&runs, &[], &[])
-            .split_once("## 未判定の課題")
+            .split_once("## 仕込みに当たらなかった課題")
             .map(|(_, rest)| rest),
         Some(
-            "\n\n- 視認性が悪い /p link 料金 1件 I-00000001\n\
-- 視認性が悪い /q link 料金 1件 I-00000003\n\
-- 視認性が悪い /p 1件 I-00000004\n"
+            "\n\n- 視認性が悪い /p link 料金 1件 I-00000001 未判定\n\
+- 視認性が悪い /q link 料金 1件 I-00000003 未判定\n\
+- 視認性が悪い /p 1件 I-00000004 未判定\n"
         )
     );
 }
@@ -172,5 +175,29 @@ fn a_cell_with_one_value_has_no_spread_even_over_many_runs() {
             .lines()
             .find(|line| line.starts_with("| 判断に迷う")),
         Some("| 判断に迷う | - | 0.00 | - |")
+    );
+}
+
+#[test]
+fn issues_with_a_ruling_are_listed_with_it() {
+    let rule = |kind, verdict| Label {
+        kind,
+        path: None,
+        element: None,
+        verdict,
+    };
+    let labels = [
+        rule(KindId::Visibility, Verdict::False),
+        rule(KindId::Hesitant, Verdict::Real),
+    ];
+    let runs = [vec![visibility(), hesitant()]];
+    assert_eq!(
+        report(&runs, &[], &labels)
+            .split_once("## 仕込みに当たらなかった課題")
+            .map(|(_, rest)| rest),
+        Some(
+            "\n\n- 視認性が悪い /p link 料金 1件 I-00000001 誤り\n\
+- 判断に迷う / 1件 I-00000002 本当に使いにくい\n"
+        )
     );
 }

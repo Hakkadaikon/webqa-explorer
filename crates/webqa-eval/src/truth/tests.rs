@@ -106,3 +106,18 @@ fn rejects_an_unknown_field_in_a_label_or_an_element() {
         (true, true, true)
     );
 }
+
+#[test]
+fn core_kinds_follow_the_kind_ids() {
+    let ids = [
+        KindId::Hesitant,
+        KindId::Visibility,
+        KindId::Unreached,
+        KindId::Mismatch,
+    ];
+    assert_eq!(ids.map(|id| KindId::from(Kind::from(id))), ids);
+    assert_eq!(
+        ids.map(|id| Kind::from(id).label()),
+        ["判断に迷う", "視認性が悪い", "目的に届かない", "目的のずれ"]
+    );
+}

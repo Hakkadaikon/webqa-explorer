@@ -5,7 +5,7 @@
 mod tests;
 
 use crate::found::Found;
-use crate::truth::{KindId, Label, Plant, Verdict};
+use crate::truth::{Element, KindId, Label, Plant, Verdict};
 
 /// What a run found, against the answer key.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -24,17 +24,26 @@ pub struct Score {
     pub real: usize,
     /// The issues a human labeled as a mistake.
     pub wrong: usize,
-    /// The issues that hit no plant and have no label.
-    pub unlabeled: Vec<Found>,
+    /// The issues that hit no plant, each with the ruling on it if any.
+    pub others: Vec<(Found, Option<Verdict>)>,
 }
 
 /// Whether `found` is the issue `plant` planted: the same kind, and the
 /// same path and element when the plant has them.
 #[must_use]
 pub fn hits(plant: &Plant, found: &Found) -> bool {
-    plant.kind == found.kind
-        && agrees(plant.path.as_ref(), Some(&found.path))
-        && agrees(plant.element.as_ref(), found.element.as_ref())
+    fits(
+        plant.kind,
+        plant.path.as_ref(),
+        plant.element.as_ref(),
+        found,
+    )
+}
+
+/// Whether `found` is of `kind`, and has the `path` and `element` when
+/// they are given. A `None` agrees with anything.
+fn fits(kind: KindId, path: Option<&String>, element: Option<&Element>, found: &Found) -> bool {
+    kind == found.kind && agrees(path, Some(&found.path)) && agrees(element, found.element.as_ref())
 }
 
 /// Counts `found` against `plants` and `labels`. With a `kind`, only that
@@ -45,7 +54,7 @@ pub fn score(plants: &[Plant], labels: &[Label], found: &[Found], kind: Option<K
     let found = only(found, kind);
     let (hit, rest) = split(&found, hit_issue(&plants));
     let (found_plants, missed_plants) = split(&plants, found_plant(&found));
-    let (real, wrong, unlabeled) = judge(labels, &rest);
+    let (real, wrong, others) = judge(labels, &rest);
     Score {
         plants: plants.len(),
         found_plants: ids(&found_plants),
@@ -54,7 +63,7 @@ pub fn score(plants: &[Plant], labels: &[Label], found: &[Found], kind: Option<K
         hit_issues: hit.len(),
         real,
         wrong,
-        unlabeled,
+        others,
     }
 }
 
@@ -92,16 +101,15 @@ fn split<'a, T>(items: &[&'a T], test: impl Fn(&T) -> bool) -> (Vec<&'a T>, Vec<
     items.iter().partition(|item| test(item))
 }
 
-/// The issues rulings count as real and as mistakes, and the issues
-/// without a ruling.
-fn judge(labels: &[Label], rest: &[&Found]) -> (usize, usize, Vec<Found>) {
-    let (ruled, unlabeled) = split(rest, |f| verdict(labels, f).is_some());
-    let real = ruled
+/// The issues rulings count as real and as mistakes, and all the issues
+/// with the ruling on each.
+fn judge(labels: &[Label], rest: &[&Found]) -> (usize, usize, Vec<(Found, Option<Verdict>)>) {
+    let others: Vec<_> = rest
         .iter()
-        .filter(|f| verdict(labels, f) == Some(Verdict::Real))
-        .count();
-    let unlabeled = unlabeled.into_iter().cloned().collect();
-    (real, ruled.len() - real, unlabeled)
+        .map(|found| ((*found).clone(), verdict(labels, found)))
+        .collect();
+    let count = |want| others.iter().filter(|(_, v)| *v == Some(want)).count();
+    (count(Verdict::Real), count(Verdict::False), others)
 }
 
 impl Score {
@@ -117,14 +125,12 @@ impl Score {
         ratio(self.hit_issues, self.issues)
     }
 
-    /// Issues that hit a plant or are real, over the issues without a
-    /// label that hit no plant. `None` when none is left.
+    /// Issues that hit a plant or are real, over the issues without the
+    /// ones that hit no plant and have no ruling. `None` when none is left.
     #[must_use]
     pub fn labeled_precision(&self) -> Option<f64> {
-        ratio(
-            self.hit_issues + self.real,
-            self.issues - self.unlabeled.len(),
-        )
+        let unlabeled = self.others.iter().filter(|(_, v)| v.is_none()).count();
+        ratio(self.hit_issues + self.real, self.issues - unlabeled)
     }
 }
 
@@ -135,14 +141,8 @@ fn ids(plants: &[&Plant]) -> Vec<String> {
 fn verdict(labels: &[Label], found: &Found) -> Option<Verdict> {
     labels
         .iter()
-        .find(|label| rules(label, found))
+        .find(|l| fits(l.kind, l.path.as_ref(), l.element.as_ref(), found))
         .map(|label| label.verdict)
-}
-
-fn rules(label: &Label, found: &Found) -> bool {
-    label.kind == found.kind
-        && agrees(label.path.as_ref(), Some(&found.path))
-        && agrees(label.element.as_ref(), found.element.as_ref())
 }
 
 /// A wanted value of `None` agrees with anything.

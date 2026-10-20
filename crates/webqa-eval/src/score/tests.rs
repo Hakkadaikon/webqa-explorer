@@ -1,5 +1,6 @@
 use super::*;
 use crate::truth::{Element, Label, Plant, Verdict};
+use std::slice::from_ref;
 
 fn plant(id: &str, kind: KindId, path: Option<&str>, element: Option<(&str, &str)>) -> Plant {
     Plant {
@@ -65,20 +66,23 @@ fn scene() -> Score {
 }
 
 #[test]
-fn counts_hits_misses_labels_and_unlabeled() {
+fn counts_hits_misses_labels_and_the_issues_left() {
     let s = scene();
     assert_eq!(
         (s.plants, s.found_plants, s.missed_plants),
         (2, vec!["a".to_owned()], vec!["b".to_owned()])
     );
     assert_eq!(
-        (s.issues, s.hit_issues, s.real, s.wrong, s.unlabeled),
+        (s.issues, s.hit_issues, s.real, s.wrong, s.others),
         (
             4,
             2,
             1,
             0,
-            vec![issue(KindId::Visibility, "/q", Some(("link", "x")))]
+            vec![
+                (issue(KindId::Hesitant, "/", None), Some(Verdict::Real)),
+                (issue(KindId::Visibility, "/q", Some(("link", "x"))), None)
+            ]
         )
     );
 }
@@ -158,8 +162,8 @@ fn a_label_rules_on_kind_path_and_element() {
         issue(KindId::Visibility, "/p", None),
     ];
     assert_eq!(
-        issues.map(|f| rules(&l, &f)),
-        [true, false, false, false, false]
+        issues.map(|f| verdict(from_ref(&l), &f)),
+        [Some(Verdict::Real), None, None, None, None]
     );
 }
 
