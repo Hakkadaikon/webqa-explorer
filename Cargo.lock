@@ -3537,6 +3537,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "webqa-eval"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "serde",
+ "serde-saphyr",
+ "thiserror 2.0.21",
+ "url",
+ "webqa-core",
+]
+
+[[package]]
 name = "webqa-judge"
 version = "0.1.0"
 dependencies = [
