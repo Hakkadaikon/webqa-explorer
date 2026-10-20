@@ -28,9 +28,13 @@ git worktreeで作業するときは、worktreeの中で`just worktree-tools`を
 
 ## CI
 
-PRを出すと、GitHub Actionsが`just check`を回す。カバレッジ100%のテストはここで確かめる。
-それに加えて、依存の監査、PR内のコミットメッセージの検査を行う。
-変更した箇所にはmutationテストも当てる。
+PRを出すと、GitHub Actionsが検査を回す。
+コードかテストが読むファイルを変えたPRでは、`just check`を回す。
+同じ条件で、依存の監査も回す。
+カバレッジ100%のテストはここで確かめる。
+`.rs`を変えたPRでは、変更した箇所にmutationテストを当てる。
+PR内のコミットメッセージの検査は、どのPRでも回す。
+回す条件は[`docs/quality-gates.md`](docs/quality-gates.md#どこで回るか)にある。
 各検査の基準と、落ちたときの直し方は[`docs/quality-gates.md`](docs/quality-gates.md)にまとめた。
 
 Claude Codeで開発するときの役割分担は[`docs/agents.md`](docs/agents.md)にまとめた。

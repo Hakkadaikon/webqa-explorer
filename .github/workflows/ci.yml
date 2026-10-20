@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   # A pull request runs the heavy jobs only when it changes what they test.
-  # A push to main runs everything.
+  # A push to main runs check and deny; commit-msg and mutation run on PRs.
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -26,12 +26,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - id: paths
+        shell: bash
         env:
           EVENT: ${{ github.event_name }}
           BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           if [ "$EVENT" = pull_request ]; then
-            git diff --name-only "$BASE"...HEAD | python3 scripts/ci_changes.py >> "$GITHUB_OUTPUT"
+            git -c core.quotePath=false diff --no-renames --name-only "$BASE"...HEAD |
+              python3 scripts/ci_changes.py >> "$GITHUB_OUTPUT"
           else
             printf 'code=true\nrust=true\n' >> "$GITHUB_OUTPUT"
           fi
@@ -66,6 +68,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install tools
         run: |
           sh scripts/install-aqua.sh
@@ -76,6 +80,10 @@ jobs:
           echo "$GITHUB_WORKSPACE/.config/npm/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Documents, spelling and config
         run: just docs-check config-check
+      - name: YAML and TOML format
+        run: |
+          yamlfmt -conf .config/yamlfmt.yaml -lint .
+          taplo fmt --check --config .config/taplo.toml
   commit-msg:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -83,6 +91,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Install tools
         run: |
           sh scripts/install-aqua.sh
