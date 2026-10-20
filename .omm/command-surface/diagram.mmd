@@ -1,0 +1,19 @@
+graph TD
+    webqa["webqa\ncrates/webqa/src/cli.rs"]:::entry
+    run["run\n--config --out"]
+    explore["explore\n--config --out"]
+    replay["replay\nreport --config --out"]
+    interview["interview\n--config --out --previous"]
+    check-docs["check-docs\npersona|purpose file"]
+    watch["watch\ndir"]
+    run-session["Run Session\ncrates/webqa/src/run/session.rs"]
+    webqa -->|"シナリオのモード"| run
+    webqa -->|"探索のモード"| explore
+    webqa -->|"レポートの答えで再実行"| replay
+    webqa -->|"ペルソナの試行"| interview
+    webqa -->|"文書の形の検査"| check-docs
+    webqa -->|"別の実行を追う"| watch
+    run -->|"起動の手順のあと"| run-session
+    explore -->|"起動の手順のあと"| run-session
+    replay -->|"起動の手順のあと"| run-session
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e

@@ -1,0 +1,24 @@
+graph LR
+    webqa["webqa\ncrates/webqa/"]:::entry
+    webqa-core["webqa-core\ncrates/webqa-core/"]
+    webqa-browser["webqa-browser\ncrates/webqa-browser/"]
+    webqa-judge["webqa-judge\ncrates/webqa-judge/"]
+    webqa-tui["webqa-tui\ncrates/webqa-tui/"]
+    judge-bridge["Judge Bridge\nbridge/"]
+    chromium["Chromium\nPlaywright"]:::external
+    judge-model["Judge Model\nVercel AI Gateway"]:::external
+    output-dir["Output Directory\n.webqa/"]:::store
+    webqa -->|"状態機械を回し、ポートを渡す"| webqa-core
+    webqa -->|"Browserの実装を起動する"| webqa-browser
+    webqa -->|"Judgeの実装を起動する"| webqa-judge
+    webqa -->|"watchで画面を描く"| webqa-tui
+    webqa-browser -->|"Browserポートを実装する"| webqa-core
+    webqa-judge -->|"Judgeポートを実装する"| webqa-core
+    webqa-tui -->|"イベントログの型を読む"| webqa-core
+    webqa-browser -->|"playwright-rsで操作する"| chromium
+    webqa-judge -->|"標準入出力のJSON行"| judge-bridge
+    judge-bridge -->|"HTTPSで問い合わせる"| judge-model
+    webqa -->|"FileStoreとして書く"| output-dir
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef external fill:#585b70,stroke:#585b70,color:#cdd6f4
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e

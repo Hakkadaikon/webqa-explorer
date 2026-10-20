@@ -1,0 +1,32 @@
+created: 2026-10-20T01:03:47.018Z
+updated: 2026-10-20T01:21:19.009Z
+update_count: 9
+last_field: diagram
+git_commit: 4faa69f
+git_branch: docs-arch
+children:
+  - ask-judge
+  - guardrails
+  - observe
+  - record
+  - redact
+  - touch
+prev_diagram: |
+  graph LR
+      observe["Observe\nwebqa-browser/src/page.rs"]:::entry
+      redact["Redact\nwebqa/src/run/perform.rs"]
+      ask-judge["Ask Judge\nwebqa-judge/src/command.rs"]
+      guardrails["Guardrails\nwebqa-core/src/machine/guards.rs"]
+      touch["Touch\nwebqa-browser/src/ops.rs"]
+      record["Record\nwebqa/src/store/"]:::store
+      observe -->|"伏せ字の前の画面"| redact
+      observe -->|"伏せ字の前の判定の材料"| guardrails
+      redact -->|"伏せ字済みの画面と質問"| ask-judge
+      ask-judge -->|"答えから作った提案"| guardrails
+      guardrails -->|"通った提案"| touch
+      touch -->|"操作のあとの画面"| observe
+      redact -->|"伏せ字済みのイベント行"| record
+      ask-judge -->|"呼び出しと所見"| record
+      touch -->|"操作と所要時間"| record
+      classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+      classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e

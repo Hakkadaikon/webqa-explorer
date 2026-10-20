@@ -1,0 +1,19 @@
+graph LR
+    cli["CLI\nsrc/cli.rs, src/cli/"]:::entry
+    setup["Setup\nsrc/setup.rs"]
+    run-loop["Run Loop\nsrc/run.rs, src/run/"]
+    interview-trials["Interview Trials\nsrc/interview.rs, src/interview/"]
+    replay-judge["Replay Judge\nsrc/replay.rs"]
+    watch["Watch\nsrc/watch.rs"]
+    file-store["File Store\nsrc/store.rs, src/store/"]:::store
+    real-clock["Real Clock\nsrc/clock.rs"]
+    cli -->|"設定を読んで部品にする"| setup
+    cli -->|"run、explore、replayを始める"| run-loop
+    cli -->|"interviewを始める"| interview-trials
+    cli -->|"レポートから判断モデルを作る"| replay-judge
+    cli -->|"watchを始める"| watch
+    interview-trials -->|"試行ごとに中核を回す"| run-loop
+    run-loop -->|"Storeポート"| file-store
+    run-loop -->|"Clockポート"| real-clock
+    classDef entry fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+    classDef store fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
