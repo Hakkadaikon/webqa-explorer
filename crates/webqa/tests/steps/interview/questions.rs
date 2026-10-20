@@ -6,6 +6,8 @@ mod asked;
 mod chosen;
 #[path = "questions_expect.rs"]
 mod expect;
+#[path = "questions_history.rs"]
+mod history;
 #[path = "questions_images.rs"]
 mod images;
 #[path = "questions_modes.rs"]
@@ -34,4 +36,5 @@ pub const READY: &[&str] = &[
     "足した問いの答えが範囲の外なら、応答の異常として扱う",
     "操作の対象は候補を絞らず、表示領域の操作可能要素から判断モデルに選ばせる",
     "インタビューのモードでは、操作種別の選択肢に done を入れる",
+    "判断モデルへの画面の文に、直近の操作(最大5回)と画面が変わったかが入る",
 ];

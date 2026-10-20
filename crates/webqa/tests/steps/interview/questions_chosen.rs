@@ -7,6 +7,7 @@ use webqa_core::interview::clue::Clue;
 use webqa_core::interview::issue::Detail;
 use webqa_core::screen::ElementId;
 
+use super::history::HEAD;
 use super::replies::{
     entry_of, first_call, ledger_of, natural_yes, one_issue, options_of, reply, step,
 };
@@ -49,7 +50,10 @@ async fn both_offered(world: &mut InterviewWorld, operated: String, fresh: Strin
     world.run().await;
     let asked = found(world.ran().judge.decision(1), "the second step asked");
     assert_eq!(options_of(asked, "target"), ["1", "2"], "both are offered");
-    let lines: Vec<&str> = asked.screen.lines().collect();
+    // The elements come first; the section of recent operations, if any,
+    // is after them.
+    let (elements, _) = asked.screen.split_once(HEAD).unwrap_or((&asked.screen, ""));
+    let lines: Vec<&str> = elements.lines().collect();
     let names = [
         format!(r#"1: link "{operated}""#),
         format!(r#"2: link "{fresh}""#),

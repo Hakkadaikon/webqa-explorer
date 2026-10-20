@@ -22,6 +22,7 @@ use super::events::stage;
 use super::{Fakes, limited};
 
 mod forbidden;
+mod history;
 mod images;
 mod kept;
 mod second;
@@ -32,6 +33,8 @@ mod unusable;
 /// answers from the script.
 struct Spy {
     asked: Vec<Vec<Question>>,
+    /// The screen text of each call.
+    screens: Vec<String>,
     images: Vec<Image>,
     reads: bool,
     script: Scripted,
@@ -45,6 +48,7 @@ impl Spy {
     fn new(reads: bool, script: Scripted) -> Self {
         Self {
             asked: Vec::new(),
+            screens: Vec::new(),
             images: Vec::new(),
             reads,
             script,
@@ -69,6 +73,7 @@ impl Judge for Spy {
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>> {
         self.asked.push(questions.to_vec());
+        self.screens.push(screen.as_inner().as_str().to_owned());
         let fixed = self.later.as_ref().filter(|_| questions.len() == 1);
         match fixed.or(self.fixed.as_ref()) {
             Some(fixed) => Box::pin(future::ready(Ok(fixed.clone()))),
@@ -121,7 +126,7 @@ fn persona() -> Persona {
 /// The interview of the persona towards the goal of the stage.
 fn interviewing(ops: &[Op], reads_images: bool) -> Interviewing {
     let goal = "経費を申請する".to_owned();
-    Interviewing::new(persona(), goal, with_done(ops), reads_images, 1)
+    Interviewing::new(persona(), goal, with_done(ops), reads_images, 1, 0)
 }
 
 /// The rules of a scenario of one stage, with `ops`.

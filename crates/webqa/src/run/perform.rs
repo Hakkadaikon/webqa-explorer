@@ -105,6 +105,7 @@ async fn touched(touch: &Touch, state: &State, ports: &mut Ports<'_>) -> Result<
         target: touch.target.clone(),
         p: probability(touch, cause),
         cause,
+        changed,
         act: timings.0,
         settle: timings.1,
     });
