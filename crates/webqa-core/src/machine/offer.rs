@@ -103,8 +103,17 @@ fn with_enter(state: &State, ops: Vec<Op>, explore: bool) -> Vec<Op> {
 
 /// Whether `enter` may be offered on the latest page.
 fn enter_allowed(state: &State, explore: bool) -> bool {
-    let last = &state.last;
-    forbidden_indices(&state.rules, last).is_empty() && (!explore || shows_value_field(state))
+    no_forbidden_shown(state) && value_field_when_exploring(state, explore)
+}
+
+/// Whether no forbidden element is on the latest page.
+fn no_forbidden_shown(state: &State) -> bool {
+    forbidden_indices(&state.rules, &state.last).is_empty()
+}
+
+/// Whether the mode asks no field, or a field shown takes a value.
+fn value_field_when_exploring(state: &State, explore: bool) -> bool {
+    !explore || shows_value_field(state)
 }
 
 /// Whether a field shown takes a value.
