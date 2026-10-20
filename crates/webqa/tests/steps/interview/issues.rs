@@ -21,12 +21,7 @@ mod sight;
 mod trail;
 use script::{Step, entries, finished, journey, kinds, screen};
 
-/// The scenarios of this Rule that have their steps and pass. Two more have
-/// their steps, and wait for the product: with a bridge that reads no
-/// images no screenshot is taken though the ledger says where it is
-/// ("橋渡しが画像を扱えないと申告したら、問い合わせにスクリーンショットを含めない"),
-/// and an answer without the elements hard to see is no anomaly
-/// ("橋渡しが画像を扱えると申告したのに見えにくい要素の答えが無ければ、応答の異常として扱う").
+/// The scenarios of this Rule that have their steps.
 pub const READY: &[&str] = &[
     "迷いの度合いが閾値以上なら、判断に迷う課題の手がかりにする",
     "確信度が閾値に届かない操作を選んだら、判断に迷う課題の手がかりにする",
@@ -37,7 +32,9 @@ pub const READY: &[&str] = &[
     "判断モデルが見えにくい要素を挙げたら、視認性が悪い課題として記録する",
     "判断モデルが見えにくい要素を挙げなければ、視認性が悪い課題は出さない",
     "橋渡しが画像を扱えないと申告したら、視認性が悪い課題を出さず、そのことを台帳に書く",
+    "橋渡しが画像を扱えないと申告したら、問い合わせにスクリーンショットを含めない",
     "橋渡しが画像を扱えないと申告したら、見えにくい要素の答えが無くても応答の異常にしない",
+    "橋渡しが画像を扱えると申告したのに見えにくい要素の答えが無ければ、応答の異常として扱う",
 ];
 
 /// The option the judge gave to `id` first, with its probability.
