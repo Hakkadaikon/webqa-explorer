@@ -92,14 +92,13 @@ fn explored(state: &State, elements: usize) -> Offer {
 /// Without `enter` when a forbidden element is on the page, since Enter
 /// can send a form. In explore mode, also when no element shown takes a
 /// value: the field typed is no candidate any more, so it is the elements
-/// shown that count. When the rules have nothing else, `enter` stays.
+/// shown that count. Unlike `input`, it goes even when it is the only kind
+/// the rules have: Enter would get around the forbidden element.
 fn with_enter(state: &State, ops: Vec<Op>, explore: bool) -> Vec<Op> {
-    let rest: Vec<Op> = ops.iter().copied().filter(|&op| op != Op::Enter).collect();
-    if enter_allowed(state, explore) || rest.is_empty() {
-        ops
-    } else {
-        rest
-    }
+    let allowed = enter_allowed(state, explore);
+    ops.into_iter()
+        .filter(|&op| allowed || op != Op::Enter)
+        .collect()
 }
 
 /// Whether `enter` may be offered on the latest page.

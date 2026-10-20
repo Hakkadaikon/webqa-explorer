@@ -118,12 +118,16 @@ fn enter_needs_no_target() {
 }
 
 #[test]
-fn enter_stays_when_the_rules_offer_nothing_else() {
+fn enter_goes_even_when_the_rules_offer_nothing_else() {
     let risky = with(fielded(), inside("button", "購入する"));
     let only = Rules {
         ops: vec![Op::Enter],
-        ..valued(&[])
+        ..valued(&["メール"])
     };
     let asked = started(only, &risky);
-    assert_eq!(options(asked.effect())[0], ["enter"], "no empty question");
+    assert_eq!(
+        options(asked.effect())[0],
+        Vec::<String>::new(),
+        "the forbidden element wins"
+    );
 }
