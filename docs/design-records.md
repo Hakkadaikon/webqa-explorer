@@ -34,7 +34,7 @@ hymmeのloop-engineeringの手順に沿って、次の順に進める。
 
 作業の引き継ぎの起点は`tasks/loopeng/HANDOFF.md`である。
 ほかのファイルは次のとおり。
-探索モードと決め打ちのシナリオモードの記録は、ファイル名の頭が`WebExploratoryQA`になる。
+探索モードと決め打ちシナリオモードの記録は、ファイル名の頭が`WebExploratoryQA`になる。
 インタビューのモードの記録は、`InterviewMode.extract.md`と`InterviewMode.feature`の2つである。
 
 | ファイル | 工程 | 内容 |
@@ -69,7 +69,7 @@ TLCは反例を出さなかったので、反例から作ったシナリオは�
 
 | ファイル | 対象 |
 |---|---|
-| `WebExploratoryQA.md` | 探索モードと決め打ちのシナリオモードの受け入れシナリオ |
+| `WebExploratoryQA.md` | 探索モードと決め打ちシナリオモードの受け入れシナリオ |
 | `InterviewMode.md` | インタビューのモードの受け入れシナリオ |
 | `metrics-script.md` | `scripts/metrics.py` |
 | `commit-msg.md` | `scripts/commit_msg.py` |

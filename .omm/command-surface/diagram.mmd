@@ -7,9 +7,9 @@ graph TD
     check-docs["check-docs\npersona|purpose file"]
     watch["watch\ndir"]
     run-session["Run Session\ncrates/webqa/src/run/session.rs"]
-    webqa -->|"シナリオのモード"| run
-    webqa -->|"探索のモード"| explore
-    webqa -->|"レポートの答えで再実行"| replay
+    webqa -->|"決め打ちシナリオモード"| run
+    webqa -->|"探索モード"| explore
+    webqa -->|"実行結果の答えで再実行"| replay
     webqa -->|"ペルソナの試行"| interview
     webqa -->|"文書の形の検査"| check-docs
     webqa -->|"別の実行を追う"| watch

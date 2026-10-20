@@ -12,7 +12,7 @@ webqaは、Webサービスの探索的テストエージェントである。
 1. 判断と状態遷移は、副作用を持たない純粋な中核に集める。
 2. ブラウザ、判断モデル、ファイル、時計は、中核の外の薄いアダプタに置く。
 3. 中核の状態遷移は、TLA+の仕様のアクションから対応表でたどれるようにする。
-4. 機能はすべてCLIで満たし、TUIはイベントログを読んで表示するだけにする。
+4. 機能はすべてCLIで満たし、実行を見るTUI(`watch`の画面)は、イベントログを読んで表示するだけにする。
 
 品質ゲートは関数ごとに厳しい。
 そのため、分岐の多い処理は中核の小さな関数に分け、表やtraitで場合分けする。
@@ -82,7 +82,7 @@ playwright-rs、tokio、ratatuiも`webqa-core`に入れない。
 禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終わる。
 詳しくは[explore-mode.md](explore-mode.md)にある。
 
-決め打ちシナリオのモード(`webqa run`)は、設定に書いた段階を順にたどる。
+決め打ちシナリオモード(`webqa run`)は、設定に書いた段階を順にたどる。
 各段階のゴールはdone_whenで書き、満たしたら次の段階へ進む。
 最後の段階のdone_whenを満たしたら、ゴール達成で終わる。
 詳しくは[scenario-mode.md](scenario-mode.md)にある。
@@ -152,7 +152,7 @@ tasks/               設計検討の記録
 | [core.md](core.md) | 中核の状態機械 |
 | [code-style.md](code-style.md) | 品質ゲートの下での書き方 |
 | [explore-mode.md](explore-mode.md) | 探索モード |
-| [scenario-mode.md](scenario-mode.md) | 決め打ちシナリオのモード |
+| [scenario-mode.md](scenario-mode.md) | 決め打ちシナリオモード |
 | [interview-mode.md](interview-mode.md) | インタビューのモード |
 | [safety.md](safety.md) | ガードレール、負荷制御と判断予算、機密情報の扱い |
 | [judge.md](judge.md) | 判断モデルの抽象、アダプタ、橋渡し、再実行 |

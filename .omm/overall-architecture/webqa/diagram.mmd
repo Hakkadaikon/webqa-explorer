@@ -10,7 +10,7 @@ graph LR
     cli -->|"設定を読んで部品にする"| setup
     cli -->|"run、explore、replayを始める"| run-loop
     cli -->|"interviewを始める"| interview-trials
-    cli -->|"レポートから判断モデルを作る"| replay-judge
+    cli -->|"実行結果から判断モデルを作る"| replay-judge
     cli -->|"watchを始める"| watch
     interview-trials -->|"試行ごとに中核を回す"| run-loop
     run-loop -->|"Storeポート"| file-store

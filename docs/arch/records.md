@@ -67,7 +67,7 @@
 
 | 項目 | 中身 |
 |---|---|
-| `schema` | 形式の版。今は1 |
+| `schema` | 形式の版。1 |
 | `mode` | 実行のモード。`explore`、`scenario`、`interview`のどれか |
 | `started_at` | 開始の時刻。UTCで秒まで |
 | `target` | 開始のURL |

@@ -93,7 +93,7 @@ YAMLはserde-saphyrで読む。
 
 | 項目 | 必須か | 中身 |
 |---|---|---|
-| `judge.kind` | 必須 | アダプタの名前。今は`command`だけ |
+| `judge.kind` | 必須 | アダプタの名前。`command`だけがある |
 | `judge.command` | `command`で必須 | 橋渡しのコマンドと引数の配列 |
 | `judge.api_key` | 任意 | APIキーを持つ環境変数。`{ env: 変数名 }`の形で書く |
 | `judge.timeout_secs` | 必須 | 答えを待つ秒数。1以上 |
@@ -177,7 +177,7 @@ APIキーの場所には`[[APIキー]]`を書く。
 書ける名前は次の9つである。
 `click`、`input`、`scroll_down`、`scroll_up`、`back`、`enter`、`wait`、`done`、`stuck`。
 省けば9つすべてを使い、空の一覧は設定エラーにする。
-操作種別の中身は[探索モード](explore-mode.md)と[決め打ちシナリオのモード](scenario-mode.md)にある。
+操作種別の中身は[探索モード](explore-mode.md)と[決め打ちシナリオモード](scenario-mode.md)にある。
 
 ### scenario
 
@@ -185,7 +185,7 @@ APIキーの場所には`[[APIキー]]`を書く。
 各段階は、名前`name`、判断モデルに渡すゴール`goal`、段階を終える条件`done_when`を持つ。
 `done_when`には、`url`、`element`、`text`を書ける。
 `scenario.stages`が空なら、どのモードでも設定エラーにする。
-段階の進め方は[決め打ちシナリオのモード](scenario-mode.md)にある。
+段階の進め方は[決め打ちシナリオモード](scenario-mode.md)にある。
 
 ### interview
 
@@ -253,6 +253,6 @@ TLSの検証を無効にする項目は作らない。
 | 探索で要素を操作できない | 探索モードでは ops に click か input を1つ以上書く |
 | 決め打ちシナリオで`ops`が`enter`だけ | 決め打ちシナリオでは ops に enter のほかの操作種別を1つ以上書く |
 | 課金画面の離脱操作が対象を要する | guard.leave_paywall は back、scroll_down、scroll_up、wait、reload、return のどれかにする |
-| `judge.kind`がアダプタの表に無い名前 | 判断モデルの種類が表に無い |
+| `judge.kind`がアダプタの表に無い名前 | 判断モデルの種類 `<名前>` は無い |
 | 橋渡しのコマンドが無い | judge.command に橋渡しのコマンドを書く |
 | `.env`を読めない | 作業ディレクトリの .env を読めない |
