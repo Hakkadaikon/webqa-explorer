@@ -32,13 +32,14 @@ fn fold_tracks_step_elapsed_and_finish() {
     );
 }
 
-const COUNTED: [&str; 10] = [
+const COUNTED: [&str; 11] = [
     r#"{"seq":1,"elapsed_ms":1,"step":1,"kind":"asked","input_tokens":100,"output_tokens":7,"think_ms":5}"#,
-    r#"{"seq":2,"elapsed_ms":2,"step":1,"kind":"decided","op":"back","target":null,"p":0.5}"#,
-    r#"{"seq":3,"elapsed_ms":3,"step":1,"kind":"rejected","why":"low_confidence"}"#,
-    r#"{"seq":4,"elapsed_ms":4,"step":2,"kind":"anomaly","cause":"malformed"}"#,
-    r#"{"seq":5,"elapsed_ms":5,"step":3,"kind":"recovered","op":"back","cause":"frozen"}"#,
-    r#"{"seq":6,"elapsed_ms":6,"step":3,"kind":"executed","changed":false,"accesses":2}"#,
+    r#"{"seq":2,"elapsed_ms":2,"step":1,"kind":"rejected","why":"low_confidence"}"#,
+    r#"{"seq":3,"elapsed_ms":3,"step":2,"kind":"decided","op":"click","target":null,"p":0.5}"#,
+    r#"{"seq":4,"elapsed_ms":4,"step":2,"kind":"executed","changed":true,"accesses":1}"#,
+    r#"{"seq":5,"elapsed_ms":5,"step":3,"kind":"anomaly","cause":"malformed"}"#,
+    r#"{"seq":5,"elapsed_ms":5,"step":4,"kind":"recovered","op":"back","cause":"frozen"}"#,
+    r#"{"seq":6,"elapsed_ms":6,"step":4,"kind":"executed","changed":false,"accesses":2}"#,
     r#"{"seq":7,"elapsed_ms":7,"step":3,"kind":"issue","issue":"console_error","class":"reference","evidence":null,"label":null,"p":null}"#,
     r#"{"seq":8,"elapsed_ms":8,"kind":"trial_started","trial":2}"#,
     r#"{"seq":9,"elapsed_ms":9,"kind":"trial_finished","trial":2,"ending":"gave_up"}"#,
@@ -52,12 +53,12 @@ fn fold_counts_what_happened() {
         state.counts,
         Counts {
             decided: 1,
-            changed: 0,
+            changed: 1,
             rejected: 1,
             anomalies: 1,
             recovered: 1,
             issues: 1,
-            accesses: 2,
+            accesses: 3,
             input_tokens: 100,
             output_tokens: 7,
         }
@@ -85,22 +86,31 @@ fn each_operation_keeps_what_came_of_it() {
     assert_eq!(
         said,
         [
-            ("back (0.50)", Outcome::Rejected(Rejection::LowConfidence)),
+            ("提案", Outcome::Rejected(Rejection::LowConfidence)),
+            ("click (0.50)", Outcome::Changed),
             ("回復 back", Outcome::Unchanged),
         ]
     );
 }
 
 #[test]
-fn a_settled_operation_is_not_settled_again() {
+fn a_stopped_proposal_is_not_settled_by_the_next_run() {
     let state = folded(&[
         COUNTED[1],
-        COUNTED[2],
         r#"{"seq":3,"elapsed_ms":3,"step":1,"kind":"executed","changed":true,"accesses":0}"#,
     ]);
     assert_eq!(
         state.recent.iter().map(|r| r.outcome).collect::<Vec<_>>(),
         [Outcome::Rejected(Rejection::LowConfidence)]
+    );
+}
+
+#[test]
+fn an_operation_left_unsettled_stays_pending() {
+    let state = folded(&[COUNTED[2], COUNTED[2]]);
+    assert_eq!(
+        state.recent.iter().map(|r| r.outcome).collect::<Vec<_>>(),
+        [Outcome::Pending, Outcome::Pending]
     );
 }
 

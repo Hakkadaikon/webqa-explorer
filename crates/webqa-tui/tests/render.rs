@@ -46,7 +46,7 @@ const STOPPED: [&str; 6] = [
     r#"{"seq":1,"elapsed_ms":10,"kind":"trial_started","trial":1}"#,
     r#"{"seq":2,"elapsed_ms":900,"step":1,"kind":"decided","op":"click","target":"資料請求","p":0.8}"#,
     r#"{"seq":3,"elapsed_ms":2100,"step":1,"kind":"executed","changed":true,"accesses":3}"#,
-    r#"{"seq":4,"elapsed_ms":3000,"step":2,"kind":"decided","op":"back","target":null,"p":0.59}"#,
+    r#"{"seq":4,"elapsed_ms":3000,"step":2,"kind":"asked","input_tokens":7107,"output_tokens":672,"think_ms":900}"#,
     r#"{"seq":5,"elapsed_ms":3100,"step":2,"kind":"rejected","why":"low_confidence"}"#,
 ];
 

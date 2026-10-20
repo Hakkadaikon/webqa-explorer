@@ -62,17 +62,72 @@ impl Counts {
     fn add(self, event: &Event) -> Self {
         let (input, output) = tokens(event);
         Self {
-            decided: self.decided + u64::from(matches!(event, Event::Decided { .. })),
-            changed: self.changed
-                + u64::from(matches!(event, Event::Executed { changed: true, .. })),
-            rejected: self.rejected + u64::from(matches!(event, Event::Rejected { .. })),
-            anomalies: self.anomalies + u64::from(matches!(event, Event::Anomaly { .. })),
-            recovered: self.recovered + u64::from(matches!(event, Event::Recovered { .. })),
-            issues: self.issues + u64::from(matches!(event, Event::Issue { .. })),
+            decided: self.decided + decided_count(event),
+            changed: self.changed + changed(event),
+            rejected: self.rejected + rejected_count(event),
+            anomalies: self.anomalies + anomaly(event),
+            recovered: self.recovered + recovered_count(event),
+            issues: self.issues + issue(event),
             accesses: self.accesses + accesses(event),
             input_tokens: self.input_tokens + input,
             output_tokens: self.output_tokens + output,
         }
+    }
+}
+
+const fn decided_count(event: &Event) -> u64 {
+    if let Event::Decided { .. } = event {
+        1
+    } else {
+        0
+    }
+}
+
+const fn changed(event: &Event) -> u64 {
+    if let Event::Executed { changed: true, .. } = event {
+        1
+    } else {
+        0
+    }
+}
+
+const fn rejected_count(event: &Event) -> u64 {
+    if let Event::Rejected { .. } = event {
+        1
+    } else {
+        0
+    }
+}
+
+const fn anomaly(event: &Event) -> u64 {
+    if let Event::Anomaly { .. } = event {
+        1
+    } else {
+        0
+    }
+}
+
+const fn recovered_count(event: &Event) -> u64 {
+    if let Event::Recovered { .. } = event {
+        1
+    } else {
+        0
+    }
+}
+
+const fn issue(event: &Event) -> u64 {
+    if let Event::Issue { .. } = event {
+        1
+    } else {
+        0
+    }
+}
+
+const fn trial_finished(event: &Event) -> usize {
+    if let Event::TrialFinished { .. } = event {
+        1
+    } else {
+        0
     }
 }
 
@@ -109,8 +164,7 @@ impl State {
             step: line.step.or(self.step),
             elapsed_ms: line.elapsed_ms.max(self.elapsed_ms),
             trial: trial(event).or(self.trial),
-            trials_ended: self.trials_ended
-                + usize::from(matches!(event, Event::TrialFinished { .. })),
+            trials_ended: self.trials_ended + trial_finished(event),
             stage: stage(event).or(self.stage),
             counts: self.counts.add(event),
             recent: recent(self.recent, line),
@@ -172,13 +226,15 @@ const fn tokens(event: &Event) -> (u64, u64) {
     }
 }
 
-/// The latest operations after `line`: it settles the last one or starts
-/// a new one, and the oldest beyond [`RECENT`] are dropped.
+/// The latest operations after `line`: it settles the last one, or adds
+/// the one it starts or the proposal it stops, and the oldest beyond
+/// [`RECENT`] are dropped. A stopped proposal comes without the operation:
+/// the log has no `decided` line for it.
 fn recent(mut list: Vec<Recent>, line: &Line) -> Vec<Recent> {
     let pending = list
         .last_mut()
         .filter(|last| last.outcome == Outcome::Pending);
-    if let Some((last, outcome)) = pending.zip(outcome(&line.event)) {
+    if let Some((last, outcome)) = pending.zip(executed(&line.event)) {
         last.outcome = outcome;
     }
     list.extend(started(line));
@@ -186,39 +242,39 @@ fn recent(mut list: Vec<Recent>, line: &Line) -> Vec<Recent> {
     list.split_off(over)
 }
 
-fn outcome(event: &Event) -> Option<Outcome> {
-    let changed = |changed| {
-        if changed {
-            Outcome::Changed
-        } else {
-            Outcome::Unchanged
-        }
-    };
-    rejected(event).or_else(|| executed(event).map(changed))
-}
-
-const fn rejected(event: &Event) -> Option<Outcome> {
-    if let Event::Rejected { why } = event {
-        Some(Outcome::Rejected(*why))
-    } else {
-        None
-    }
-}
-
-const fn executed(event: &Event) -> Option<bool> {
-    if let Event::Executed { changed, .. } = event {
-        Some(*changed)
-    } else {
-        None
+/// What the browser's run of an operation came to.
+const fn executed(event: &Event) -> Option<Outcome> {
+    match event {
+        Event::Executed { changed: true, .. } => Some(Outcome::Changed),
+        Event::Executed { changed: false, .. } => Some(Outcome::Unchanged),
+        Event::RunStarted { .. }
+        | Event::MemoryReset { .. }
+        | Event::Asked { .. }
+        | Event::Decided { .. }
+        | Event::Recovered { .. }
+        | Event::Rejected { .. }
+        | Event::Anomaly { .. }
+        | Event::Issue { .. }
+        | Event::Skipped { .. }
+        | Event::StageAdvanced { .. }
+        | Event::Waited { .. }
+        | Event::TrialStarted { .. }
+        | Event::TrialFinished { .. }
+        | Event::RunFinished { .. } => None,
     }
 }
 
 fn started(line: &Line) -> Option<Recent> {
-    let act = decided(&line.event).or_else(|| recovered(&line.event))?;
+    let event = &line.event;
+    let pending = |act| (act, Outcome::Pending);
+    let (act, outcome) = decided(event)
+        .or_else(|| recovered(event))
+        .map(pending)
+        .or_else(|| stopped(event))?;
     Some(Recent {
         step: line.step,
         act,
-        outcome: Outcome::Pending,
+        outcome,
     })
 }
 
@@ -234,6 +290,14 @@ fn decided(event: &Event) -> Option<String> {
 fn recovered(event: &Event) -> Option<String> {
     if let Event::Recovered { op, .. } = event {
         Some(format!("回復 {op}"))
+    } else {
+        None
+    }
+}
+
+fn stopped(event: &Event) -> Option<(String, Outcome)> {
+    if let Event::Rejected { why } = event {
+        Some(("提案".to_owned(), Outcome::Rejected(*why)))
     } else {
         None
     }
