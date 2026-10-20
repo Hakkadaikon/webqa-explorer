@@ -31,6 +31,8 @@ const OPENED: &str = "opened.md";
 const EDITED: &str = "edited.md";
 /// What the screen drew.
 const SCREEN: &str = "screen.txt";
+/// The columns and rows of the terminal the screen is drawn on.
+const SIZE: (u16, u16) = (80, 24);
 /// The key the directory is stashed under.
 const DIR: &str = "TUI_DIR";
 
@@ -117,7 +119,14 @@ pub fn type_keys(world: &mut InterviewWorld, keys: Vec<Key>) {
         started: false,
     };
     let (mut out, mut err) = (Vec::new(), Vec::new());
-    let code = show(&dir.join(LEDGER), || Ok(()), &mut typed, &mut out, &mut err);
+    let code = show(
+        &dir.join(LEDGER),
+        || Ok(()),
+        &mut typed,
+        &mut out,
+        &mut err,
+        || Some(SIZE),
+    );
     assert_eq!((code, err), (0, Vec::new()), "the screen ended well");
     write(&dir.join(SCREEN), &String::from_utf8_lossy(&out));
 }
