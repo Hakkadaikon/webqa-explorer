@@ -9,8 +9,9 @@ use crate::event::Mode;
 /// # Errors
 ///
 /// [`ConfigError::NoStages`] when running a scripted scenario with no
-/// `scenario` written, and [`ConfigError::ExploreNeedsElementOp`] when
-/// exploring with no operation kind that acts on an element.
+/// `scenario` written, [`ConfigError::ScenarioNeedsOpBesidesEnter`] when its
+/// only operation kind is `enter`, and [`ConfigError::ExploreNeedsElementOp`]
+/// when exploring with no operation kind that acts on an element.
 pub fn check_mode(config: &Config, mode: Mode) -> Result<(), ConfigError> {
     match mode {
         Mode::Scenario => scenario_ready(config),
@@ -19,12 +20,16 @@ pub fn check_mode(config: &Config, mode: Mode) -> Result<(), ConfigError> {
 }
 
 /// A scripted scenario needs its stages. An empty list is already rejected
-/// while loading.
-const fn scenario_ready(config: &Config) -> Result<(), ConfigError> {
-    if config.scenario.is_some() {
-        Ok(())
-    } else {
+/// while loading. It also needs a kind besides `enter`: the default
+/// forbidden keywords are never empty, and with a forbidden element on the
+/// page `enter` goes, which would leave a question with nothing to do.
+fn scenario_ready(config: &Config) -> Result<(), ConfigError> {
+    if config.scenario.is_none() {
         Err(ConfigError::NoStages)
+    } else if only_enter(&config.ops) {
+        Err(ConfigError::ScenarioNeedsOpBesidesEnter)
+    } else {
+        Ok(())
     }
 }
 
@@ -36,6 +41,12 @@ fn explore_ready(config: &Config) -> Result<(), ConfigError> {
     } else {
         Err(ConfigError::ExploreNeedsElementOp)
     }
+}
+
+/// Whether `enter` is the only operation kind. An empty list is rejected
+/// while loading.
+fn only_enter(ops: &[Op]) -> bool {
+    ops.contains(&Op::Enter) && ops.iter().all(|&op| op == Op::Enter)
 }
 
 /// Whether the operation acts on an element of the page.

@@ -123,8 +123,9 @@ fn enter_needs_no_target() {
     assert_eq!(counts(after.state()), counts(&state), "the memory is kept");
 }
 
+/// No configuration gets here: an `enter` only `ops` is rejected in both kinds of run.
 #[test]
-fn enter_goes_even_when_the_rules_offer_nothing_else() {
+fn enter_is_dropped_even_when_it_is_the_only_kind() {
     let risky = with(fielded(), inside("button", "購入する"));
     let only = Rules {
         ops: vec![Op::Enter],

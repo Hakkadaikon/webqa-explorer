@@ -98,3 +98,25 @@ fn scenario_mode_needs_stages() {
         assert_eq!(outcome(&example, mode), Ok(()), "example {mode:?}");
     }
 }
+
+#[test]
+fn scenario_mode_needs_a_kind_besides_enter() {
+    let want = Err("決め打ちシナリオでは ops に enter のほかの操作種別を1つ以上書く".to_owned());
+    assert_eq!(
+        Err(ConfigError::ScenarioNeedsOpBesidesEnter.to_string()),
+        want,
+        "message"
+    );
+    for ops in ["[enter]", "[enter, enter]"] {
+        let config = with_ops(ops);
+        assert_eq!(outcome(&config, Mode::Scenario), want, "{ops} scenario");
+        assert_eq!(
+            outcome(&config, Mode::Explore),
+            needs_element_op(),
+            "{ops} explore"
+        );
+    }
+    for ops in ["[enter, click]", "[enter, back]"] {
+        assert_eq!(outcome(&with_ops(ops), Mode::Scenario), Ok(()), "{ops}");
+    }
+}
