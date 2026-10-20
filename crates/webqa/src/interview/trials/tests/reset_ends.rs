@@ -33,20 +33,21 @@ async fn reset_failure_writes_ledger_then_exits_three() {
     let mut world = World::resetting(3, "reset_failure_writes_ledger", "counts.sh", &allow);
     let (ending, _) = Watching::run(&mut world).await;
     let ledger = world.ledger().map(|ledger| ledger.head);
+    let report = world.store.report.unwrap();
     assert_eq!(
         (
             ending,
             ledger,
             world.launch.launched,
-            world.store.report.is_some()
+            report["reason"].clone()
         ),
         (
             Ending::ResetFailed(ResetError::Exit(1)),
             Some(head(1)),
             1,
-            true
+            serde_json::json!("reported_done")
         ),
-        "the ledger of the first trial, and no second one"
+        "the ledger of the first trial, and the reason of that trial"
     );
 }
 

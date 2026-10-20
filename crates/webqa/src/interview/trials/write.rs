@@ -125,8 +125,7 @@ async fn put(closing: Closing<'_>, ledger: &Ledger, stopped: Stopped) -> Result<
     write_shots(&mut *closing.store, closing.trials, ledger).await?;
     let text = write(ledger, closing.redactor);
     closing.store.write_ledger(&text).await?;
-    let last = closing.trials.last().map(|trial| trial.reason);
-    let why = reason(stopped, closing.reset_failed, last);
+    let why = reason_of(&closing, stopped);
     let confirmed = conclude(closing, why).await?;
     Ok(Closed::Wrote { confirmed })
 }
@@ -159,15 +158,23 @@ async fn conclude(closing: Closing<'_>, reason: ExitReason) -> Result<bool, RunE
     Ok(kept.record.confirmed())
 }
 
-/// What the report says of a run that stopped because the reset command
-/// failed: the run got nowhere. No reason of the core is nearer, as none
-/// is a failure.
+/// Why the report says the run of `closing` ended after it stopped for
+/// `stopped`.
+fn reason_of(closing: &Closing<'_>, stopped: Stopped) -> ExitReason {
+    let last = closing.trials.last().map(|trial| trial.reason);
+    let nowhere = closing.reset_failed && closing.trials.is_empty();
+    reason(stopped, nowhere, last)
+}
+
+/// What the report says of a run whose reset command failed before any
+/// trial: the run got nowhere. No reason of the core is nearer, as none is a
+/// failure. A failure after a trial leaves the reason of the last trial.
 const RESET_FAILED: ExitReason = ExitReason::Stuck(StuckKind::NoProgress);
 
-/// Why the report says the run ended: the reset command's failure, the time
-/// limit, the interruption, or the last trial's end.
-fn reason(stopped: Stopped, reset_failed: bool, last: Option<ExitReason>) -> ExitReason {
-    match (reset_failed, stopped) {
+/// Why the report says the run ended: the reset command's failure before any
+/// trial, the time limit, the interruption, or the last trial's end.
+fn reason(stopped: Stopped, nowhere: bool, last: Option<ExitReason>) -> ExitReason {
+    match (nowhere, stopped) {
         (true, _) => RESET_FAILED,
         (false, Stopped::TimeUp) => ExitReason::TimeExceeded,
         (false, Stopped::Interrupted) => ExitReason::UserAborted,
