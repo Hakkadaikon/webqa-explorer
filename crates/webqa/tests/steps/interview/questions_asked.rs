@@ -21,7 +21,7 @@ const ITEMS: [(&str, &str, Kind); 8] = [
     ("次に何をするかで迷った度合い", "hesitation", Kind::Truth),
     ("何を期待してその操作を選んだか", "expectation", Kind::Text),
     (
-        "見えにくい、目立たない、読みにくい要素",
+        "目的に関わる要素のうち、特に目立って見えにくいもの",
         "hard_to_see",
         Kind::Text,
     ),
