@@ -10,6 +10,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
+use tokio::task::yield_now;
 use webqa_core::judge::{Answers, JudgeError, Question};
 use webqa_core::ports::{Clock, Judge, Pending};
 use webqa_core::redact::Redacted;
@@ -112,11 +113,19 @@ impl Judge for Thinking {
     }
 }
 
-/// `run`, or a failure of the test when it does not end: a loop that stops
-/// waiting on anything yields, so the limit of `stuck` can pass.
-pub(super) async fn watched<T: Send>(run: impl Future<Output = T>) -> T {
+/// `run`, or a failure of the test when it takes more than a few seconds,
+/// which no run of the fakes does. A loop that stops waiting on anything
+/// yields, so the check gets its turn.
+pub(super) async fn watched<T>(run: impl Future<Output = T>) -> T {
+    let limit = Limit::of(Duration::from_secs(5));
+    let overdue = async {
+        loop {
+            assert!(!limit.passed(), "the run did not end");
+            yield_now().await;
+        }
+    };
     tokio::select! {
         done = run => done,
-        never = stuck::<T>() => never,
+        never = overdue => never,
     }
 }

@@ -74,7 +74,7 @@ impl Watching {
             now: Duration::ZERO,
             at_sleep: Vec::new(),
         };
-        let ending = interview(
+        let ending = watched(interview(
             &mut world.launch,
             &mut world.judge,
             &mut clock,
@@ -82,7 +82,7 @@ impl Watching {
             &world.redactor,
             interrupt,
             &world.plan,
-        )
+        ))
         .await;
         (ending, clock)
     }
@@ -158,7 +158,7 @@ async fn reset_across_deadline(
         wakes,
         slept: false,
     };
-    let ending = interview(
+    let ending = watched(interview(
         &mut world.launch,
         &mut world.judge,
         &mut clock,
@@ -166,7 +166,7 @@ async fn reset_across_deadline(
         &world.redactor,
         &mut Never,
         &world.plan,
-    )
+    ))
     .await;
     let reason = world
         .store
