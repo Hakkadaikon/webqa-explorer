@@ -13,6 +13,7 @@ import sys
 import time
 import uuid
 
+import claude_cli
 from gateway import Budget, Failure, dump, post
 
 JEV_URL = "https://ai-gateway.vercel.sh/typesafe/v1/systemone"
@@ -41,7 +42,9 @@ MAX_TIMEOUT = 3600
 def parse_args(argv):
     parser = argparse.ArgumentParser(prog="jev.py")
     parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--text-model")
+    text = parser.add_mutually_exclusive_group()
+    text.add_argument("--text-model")
+    text.add_argument("--text-claude")
     parser.add_argument("--timeout", type=seconds, default=30.0)
     return parser.parse_args(argv)
 
@@ -115,12 +118,17 @@ def ask_jev(request, opts, budget):
     return answers, (usage["input_tokens"], usage["output_tokens"])
 
 
+def text_image(request, question):
+    """The screenshot, which goes only with the hard-to-see question."""
+    return request.get("image") if question["id"] == HARD_TO_SEE else None
+
+
 def text_content(request, question):
-    """The user message; the screenshot goes only with the hard-to-see question."""
-    text = f"{question['prompt']}\n\n画面:\n{request['screen']}"
-    if question["id"] != HARD_TO_SEE or not has_image(request):
+    """The user message of the gateway's language model."""
+    text = question_text(request, question)
+    image = text_image(request, question)
+    if image is None:
         return text
-    image = request["image"]
     url = f"data:{image['media_type']};base64,{image['data']}"
     return [
         {"type": "text", "text": text},
@@ -128,11 +136,28 @@ def text_content(request, question):
     ]
 
 
+def question_text(request, question):
+    return f"{question['prompt']}\n\n画面:\n{request['screen']}"
+
+
 def text_system(question):
     return HARD_TO_SEE_SYSTEM if question["id"] == HARD_TO_SEE else TEXT_SYSTEM
 
 
+def ask_claude(request, question, opts, budget):
+    text, used = claude_cli.ask(
+        question_text(request, question),
+        text_image(request, question),
+        opts.text_claude,
+        text_system(question),
+        budget,
+    )
+    return {question["id"]: [{"option": text.strip()}]}, used
+
+
 def ask_text(request, question, opts, budget):
+    if opts.text_claude:
+        return ask_claude(request, question, opts, budget)
     if not opts.text_model:
         raise Failure("no text model")
     body = {
