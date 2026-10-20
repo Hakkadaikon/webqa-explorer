@@ -17,7 +17,7 @@
       events.jsonl          イベントログ
       report.json           実行結果
       ledger.md             インタビューの台帳(インタビューのモードだけ)
-      screenshots/          問題を見つけたときのスクリーンショット
+      screenshots/          問題を見つけたときと、台帳の課題のスクリーンショット
 ```
 
 記憶のファイル名の`<オリジン>`は、オリジンをURLエンコードした文字列である。
@@ -211,7 +211,7 @@ CLIは1行書くたびにフラッシュする。
 
 ```json
 {"seq":1,"elapsed_ms":0,"kind":"trial_started","trial":1}
-{"seq":9,"elapsed_ms":84000,"step":4,"kind":"trial_finished","trial":1,"ending":"done"}
+{"seq":9,"elapsed_ms":84000,"kind":"trial_finished","trial":1,"ending":"done"}
 ```
 
 ## watchの画面

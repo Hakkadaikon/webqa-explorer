@@ -17,7 +17,7 @@ use webqa_core::redact::Redactor;
 use webqa_core::screen::Viewport;
 use webqa_judge::table::{self, StartError};
 
-use super::{Command, Other, RunArgs};
+use super::{Command, Jobless, RunArgs};
 use crate::clock::{RealClock, Wall};
 use crate::exit::{CONFIG_ERROR, RUNTIME_ERROR};
 use crate::replay::{Replay, ReplayError};
@@ -84,12 +84,12 @@ pub struct Job {
     pub out: PathBuf,
 }
 
-/// The job of a subcommand that runs the core, or else the subcommand.
+/// The job of a subcommand that makes one, or else the subcommand.
 ///
 /// # Errors
 ///
-/// [`Other`] for `interview` and `check-docs`.
-pub fn job(command: Command) -> Result<Job, Other> {
+/// [`Jobless`] for `interview` and `check-docs`.
+pub fn job(command: Command) -> Result<Job, Jobless> {
     match command {
         Command::Run(args) => Ok(with(Source::Scenario, args)),
         Command::Explore(args) => Ok(with(Source::Explore, args)),
@@ -98,7 +98,7 @@ pub fn job(command: Command) -> Result<Job, Other> {
             config: args.config,
             out: args.out,
         }),
-        Command::Other(other) => Err(other),
+        Command::Jobless(other) => Err(other),
     }
 }
 

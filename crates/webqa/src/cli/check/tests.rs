@@ -4,7 +4,7 @@ use clap::Parser;
 use clap::error::ErrorKind;
 
 use super::*;
-use crate::cli::{Cli, Command, DocKind, Other, Sub};
+use crate::cli::{Cli, Command, DocKind, Jobless, Sub};
 
 fn read(args: &[&str]) -> Result<Cli, ErrorKind> {
     Cli::try_parse_from(args).map_err(|e| e.kind())
@@ -16,7 +16,7 @@ const DOCS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/docs/");
 fn check_docs_arguments_are_read() {
     let read_ok = |args: &[&str]| read(args).map(|cli| cli.command);
     let docs = |kind| {
-        Sub::Exec(Command::Other(Other::CheckDocs(CheckDocsArgs {
+        Sub::Exec(Command::Jobless(Jobless::CheckDocs(CheckDocsArgs {
             kind,
             file: "a".into(),
         })))

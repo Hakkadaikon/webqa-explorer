@@ -10,7 +10,7 @@ use webqa_core::redact::Redactor;
 
 use super::Command;
 use super::start::{self, Job, Stop};
-use super::{Other, check, interview};
+use super::{Jobless, check, interview};
 use crate::clock::{RealClock, Wall};
 use crate::exit;
 use crate::interrupt::CtrlC;
@@ -51,8 +51,8 @@ struct Parts {
 pub async fn app(command: Command) -> Done {
     match start::job(command) {
         Ok(job) => run(&job).await,
-        Err(Other::Interview(args)) => interview::app(args).await,
-        Err(Other::CheckDocs(args)) => check::app(&args),
+        Err(Jobless::Interview(args)) => interview::app(args).await,
+        Err(Jobless::CheckDocs(args)) => check::app(&args),
     }
 }
 

@@ -36,13 +36,14 @@ pub struct Cli {
     pub command: Sub,
 }
 
-/// What the command line asks: a run, or looking at records.
+/// What the command line asks: a [`Command`], or looking at records.
 ///
-/// Watching and the ledger screen are not a [`Command`]: they start no run,
-/// and the stages of starting never see them.
+/// Watching and the ledger screen are not a [`Command`]: they go through no
+/// stage of starting, and those stages never see them.
 #[derive(Debug, PartialEq, Eq, clap::Subcommand)]
 pub enum Sub {
-    /// A run: `run`, `explore` or `replay`.
+    /// A subcommand that goes through the stages of starting: `run`,
+    /// `explore`, `replay`, `interview` or `check-docs`.
     #[command(flatten)]
     Exec(Command),
     /// Follows the event log of a run in another process.
@@ -98,14 +99,15 @@ pub enum Command {
     Explore(RunArgs),
     /// Runs again the operations of a report.
     Replay(ReplayArgs),
-    /// The subcommands that do not run the core.
+    /// The subcommands that make no [`Job`](start::Job).
     #[command(flatten)]
-    Other(Other),
+    Jobless(Jobless),
 }
 
-/// The subcommands that do not run the core.
+/// The subcommands that make no job: they do not go through the steps that
+/// start a run, though `interview` runs the core by its own steps.
 #[derive(Debug, PartialEq, Eq, clap::Subcommand)]
-pub enum Other {
+pub enum Jobless {
     /// Interviews the target as a persona, trial after trial.
     Interview(InterviewArgs),
     /// Checks the form of a persona or purpose document.

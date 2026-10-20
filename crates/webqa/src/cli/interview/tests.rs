@@ -17,7 +17,7 @@ use webqa_core::ports::StoreError;
 use webqa_core::redact::Redactor;
 
 use super::*;
-use crate::cli::{Cli, Command, InterviewArgs, Other, Sub};
+use crate::cli::{Cli, Command, InterviewArgs, Jobless, Sub};
 use crate::interview::reset::ResetError;
 use crate::run::RunError;
 
@@ -29,7 +29,7 @@ fn read(args: &[&str]) -> Result<Cli, ErrorKind> {
 fn interview_arguments_are_read() {
     let read_ok = |args: &[&str]| read(args).map(|cli| cli.command);
     let args = |out: &str, previous: Option<&str>| {
-        Sub::Exec(Command::Other(Other::Interview(InterviewArgs {
+        Sub::Exec(Command::Jobless(Jobless::Interview(InterviewArgs {
             config: "a".into(),
             out: out.into(),
             previous: previous.map(Into::into),
