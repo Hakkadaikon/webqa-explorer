@@ -156,11 +156,21 @@ eval runs="3":
     target/debug/webqa-eval serve eval/site > "$out/url" &
     server=$!
     trap 'kill "$server"' EXIT
-    while [ ! -s "$out/url" ]; do sleep 0.1; done
+    trap 'exit 1' INT TERM
+    while [ ! -s "$out/url" ]; do
+        kill -0 "$server" 2>/dev/null || { echo "webqa-eval serve が URL を出さずに終わった" >&2; exit 1; }
+        sleep 0.1
+    done
     sed "s#__URL__#$(cat "$out/url")#" eval/config.yaml > "$out/config.yaml"
     i=1
     while [ "$i" -le {{ runs }} ]; do
-        WEBQA_SEARCH=勤怠管理 target/debug/webqa interview --config "$out/config.yaml" --out "$out/run-$i" || true
+        code=0
+        WEBQA_SEARCH=勤怠管理 target/debug/webqa interview --config "$out/config.yaml" --out "$out/run-$i" || code=$?
+        if [ "$code" -gt 1 ]; then
+            echo "$i 回目の webqa interview が終了コード $code で止まった" >&2
+            exit "$code"
+        fi
         i=$((i + 1))
     done
-    target/debug/webqa-eval score --truth eval/truth.yaml --labels eval/labels.yaml "$out"/run-*/runs/*/ledger.md | tee "$out/report.md"
+    target/debug/webqa-eval score --truth eval/truth.yaml --labels eval/labels.yaml "$out"/run-*/runs/*/ledger.md > "$out/report.md"
+    cat "$out/report.md"
