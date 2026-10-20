@@ -54,6 +54,9 @@ pub enum ConfigError {
     /// Exploring with no operation kind that acts on an element.
     #[error("探索モードでは ops に click か input を1つ以上書く")]
     ExploreNeedsElementOp,
+    /// A scripted scenario whose only operation kind is `enter`.
+    #[error("決め打ちシナリオでは ops に enter のほかの操作種別を1つ以上書く")]
+    ScenarioNeedsOpBesidesEnter,
     /// `guard.leave_paywall` names no operation that leaves without a target.
     #[error(
         "guard.leave_paywall は back、scroll_down、scroll_up、wait、reload、return のどれかにする"

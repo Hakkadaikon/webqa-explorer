@@ -120,3 +120,22 @@ async fn new_screen(world: &mut QaWorld, screen: String) {
         "the click leads to it"
     );
 }
+
+#[when(expr = "入力欄 {string} に打ったあと enter を実行し、ページ全体の操作可能要素が変わる")]
+async fn enter_changes(world: &mut QaWorld, name: String) {
+    let start = world.scene.start.clone();
+    let changed = PageSpec::at(&start.path).with(button("通知"));
+    world.scene.after.extend([start, changed]);
+    let typing = Reply::op("input", 0.9).on(name);
+    world
+        .scene
+        .replies
+        .extend([typing, Reply::op("enter", 0.9)]);
+    world.run().await;
+}
+
+#[then(expr = "探索の記憶に変わった先の画面が加わっている")]
+async fn enter_new_screen(world: &mut QaWorld) {
+    world.run().await;
+    assert_eq!(screen_count(world), 2, "the page is a new screen");
+}

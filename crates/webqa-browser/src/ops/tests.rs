@@ -61,6 +61,7 @@ fn ops_table_names() {
             "scroll_down",
             "scroll_up",
             "back",
+            "enter",
             "wait",
             "reload",
             "return"
@@ -83,7 +84,7 @@ fn leave_ops_are_untargeted_rows() {
     let untargeted: BTreeSet<&str> = OPS
         .iter()
         .map(|row| row.name)
-        .filter(|name| !["click", "input"].contains(name))
+        .filter(|name| !["click", "input", "enter"].contains(name))
         .collect();
     assert_eq!(
         LEAVE_OPS.into_iter().collect::<BTreeSet<&str>>(),

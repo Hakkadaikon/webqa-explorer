@@ -21,12 +21,13 @@ use crate::page::PageSpec;
 use crate::store::Hold;
 
 /// The operation kinds offered to the judge model: all of them.
-const OPS: [Op; 8] = [
+const OPS: [Op; 9] = [
     Op::Click,
     Op::Input,
     Op::ScrollDown,
     Op::ScrollUp,
     Op::Back,
+    Op::Enter,
     Op::Wait,
     Op::Done,
     Op::Stuck,

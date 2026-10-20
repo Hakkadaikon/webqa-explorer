@@ -30,7 +30,7 @@ pub struct Row {
 /// Every operation the browser knows. `reload` and `return` both open the
 /// start URL again: the core asks for `return` to come back to the allowed
 /// domain and for `reload` to recover a frozen page.
-pub static OPS: [Row; 8] = [
+pub static OPS: [Row; 9] = [
     Row {
         name: "click",
         run: click,
@@ -50,6 +50,10 @@ pub static OPS: [Row; 8] = [
     Row {
         name: "back",
         run: back,
+    },
+    Row {
+        name: "enter",
+        run: enter,
     },
     Row {
         name: "wait",
@@ -204,6 +208,27 @@ fn scroll_up<'a>(b: &'a PlaywrightBrowser, _: Option<&'a ElementId>) -> Done<'a>
 
 fn back<'a>(b: &'a PlaywrightBrowser, _: Option<&'a ElementId>) -> Done<'a> {
     Box::pin(async move { b.page.go_back(None).await.map(drop) })
+}
+
+/// True when the focus is on what `fillable` calls an input field.
+/// shortcut: written apart from `fillable`, so a change to one must be made to the other by hand.
+const FIELD_FOCUSED: &str = "() => { const e = document.activeElement; \
+    if (!e) return false; \
+    if (e.isContentEditable || ['TEXTAREA', 'SELECT'].includes(e.tagName)) return true; \
+    return e.tagName === 'INPUT' && \
+        ['text', 'search', 'email', 'url', 'tel', 'number', 'password'].includes(e.type); }";
+
+/// Presses Enter where the focus is, if that is an input field. Anywhere
+/// else, such as on a button that Enter would click, nothing is pressed.
+fn enter<'a>(b: &'a PlaywrightBrowser, _: Option<&'a ElementId>) -> Done<'a> {
+    Box::pin(async move {
+        let focused: bool = b.page.evaluate(FIELD_FOCUSED, None::<&()>).await?;
+        if focused {
+            b.page.keyboard().press("Enter", None).await
+        } else {
+            Ok(())
+        }
+    })
 }
 
 /// Waiting is the core's and the clock's: the browser does nothing.

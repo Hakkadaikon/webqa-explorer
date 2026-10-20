@@ -38,12 +38,13 @@ pub use stages::{
 };
 
 /// Every operation kind, in the order of the table.
-pub const ALL_OPS: [Op; 8] = [
+pub const ALL_OPS: [Op; 9] = [
     Op::Click,
     Op::Input,
     Op::ScrollDown,
     Op::ScrollUp,
     Op::Back,
+    Op::Enter,
     Op::Wait,
     Op::Done,
     Op::Stuck,
