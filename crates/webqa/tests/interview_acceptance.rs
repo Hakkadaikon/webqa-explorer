@@ -1,7 +1,8 @@
 //! The acceptance scenarios of the interview mode, run with fake ports.
 //!
-//! A scenario runs only when its name is in the `READY` of a steps file;
-//! the others come with later issues. The scenarios of the exploring mode
+//! A scenario runs when its name is in the `READY` of a steps file, and
+//! is left to another test when it is in `DELEGATED`; every scenario of
+//! the feature is in one of the two. The scenarios of the exploring mode
 //! are in `acceptance.rs`, with a world of their own.
 
 #[path = "support/clock.rs"]
