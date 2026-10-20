@@ -160,6 +160,7 @@ impl Course<'_> {
             kept: &mut self.kept,
             trials: &self.trials,
             plan: self.plan,
+            reset_failed: failed.is_some(),
         };
         let closed = guard(records(closing, stopped), &mut *self.interrupt, allowance);
         match closed.await {

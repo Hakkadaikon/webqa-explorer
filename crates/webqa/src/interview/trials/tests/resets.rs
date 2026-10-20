@@ -113,29 +113,6 @@ async fn no_reset_command_runs_nothing() {
 }
 
 #[tokio::test]
-async fn reset_failure_writes_ledger_then_exits_three() {
-    let allow = [var("RESET_ALLOW", "1")];
-    let mut world = World::resetting(3, "reset_failure_writes_ledger", "counts.sh", &allow);
-    let (ending, _) = Watching::run(&mut world).await;
-    let ledger = world.ledger().map(|ledger| ledger.head);
-    assert_eq!(
-        (
-            ending,
-            ledger,
-            world.launch.launched,
-            world.store.report.is_some()
-        ),
-        (
-            Ending::ResetFailed(ResetError::Exit(1)),
-            Some(head(1)),
-            1,
-            true
-        ),
-        "the ledger of the first trial, and no second one"
-    );
-}
-
-#[tokio::test]
 async fn reset_accesses_not_counted() {
     let mut plain = World::tight(2);
     plain.run().await;
@@ -252,27 +229,5 @@ async fn interrupt_during_reset_cuts() {
         (ending, world.launch.launched),
         (interrupted, 0),
         "the command was dropped and nothing started"
-    );
-}
-
-#[tokio::test]
-async fn reset_child_env_withholds_api_key() {
-    let key = "value-of-the-judge-key";
-    let env = [
-        var("COPY_OF_KEY", format!("Bearer {key}")),
-        var("KEEP", "kept"),
-    ];
-    let mut world = World::resetting(1, "reset_child_env", "record.sh", &env);
-    world.plan.withheld = vec![key.to_owned()];
-    Watching::run(&mut world).await;
-    let seen = fs::read_to_string(world.out().with_extension("env")).unwrap();
-    assert_eq!(
-        (
-            seen.contains(key),
-            seen.contains("COPY_OF_KEY"),
-            seen.contains("KEEP=\"kept\"")
-        ),
-        (false, false, true),
-        "the variable with the key is left out and the others are passed"
     );
 }

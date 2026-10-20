@@ -29,6 +29,7 @@ mod groups;
 mod opening;
 mod purposes;
 mod records;
+mod reset_ends;
 mod resets;
 mod shots;
 mod stubs;
