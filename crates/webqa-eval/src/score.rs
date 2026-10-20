@@ -150,7 +150,11 @@ fn agrees<T: PartialEq>(want: Option<&T>, got: Option<&T>) -> bool {
     want.is_none_or(|want| got == Some(want))
 }
 
+/// A count as a float. Counts past `u32::MAX` do not occur.
+pub(crate) fn float(count: usize) -> f64 {
+    f64::from(u32::try_from(count).unwrap_or(u32::MAX))
+}
+
 fn ratio(part: usize, whole: usize) -> Option<f64> {
-    let count = |n: usize| f64::from(u32::try_from(n).unwrap_or(u32::MAX));
-    (whole > 0).then(|| count(part) / count(whole))
+    (whole > 0).then(|| float(part) / float(whole))
 }
