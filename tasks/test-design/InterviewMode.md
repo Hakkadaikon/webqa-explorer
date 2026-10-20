@@ -4,7 +4,7 @@
 走査アンカー: 受け入れ条件(`tasks/loopeng/InterviewMode.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
 転記元の版: コミット 7e4329b の `tasks/loopeng/InterviewMode.feature` に、見えにくい要素の問いを最大3つに絞り、答えの書き方の揺れを読むことに直した決定(T-132、T-133 を足し、題名は変えず、行番号を合わせた)と、issue #33 の決定(操作種別を9種と書き、画像が要る2本のシナリオに画像を扱えるという申告の前提を足し、課題を直さないシナリオに正常に終わる場面の前提を足し、1冊の台帳にまとめるシナリオに目的を達成する前提を足し、窓待ちの制限時間を50分にし、台帳の書式の2本に課題が2件出る場面の前提を足した)と、issue #78 の決定(判断予算切れを目的に届かない試行から外し、T-060 の Examples を1行にし、T-134 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
-転記元の sha256: a68cd4572993a4af7d9bf6f399b41ad5d05afb04770527e140a891722727eeb8
+転記元の sha256: 101d270f14c4d6f14aed9436b593b0a6f4ef85df64fcc1444d73d9b9635b6061
 feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py InterviewMode` は、この値と実物の feature の sha256 が違えば失敗する。
 抽出台帳は `tasks/loopeng/InterviewMode.extract.md`、設計は `docs/superpowers/specs/2026-10-18-interview-mode-design.md` にある。
 
@@ -227,7 +227,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `written_purpose_done_is_unverified_not_goal` / issue: #21、#33
 - [x] T-059 InterviewMode.feature:525(試行の終わり方) [event] 「判断モデルが stuck を返したら、ペルソナが諦めたものとして行き詰まりで試行を終える」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `stuck_answer_records_gave_up` / issue: #21、#33
-- [x] T-060 InterviewMode.feature:530(試行の終わり方) [event] 「打ち切りでない試行のうち、ゴール達成と申告による終了のほかで終わった試行は、目的に届かない試行に数える」(判断予算切れは #78 で外した。Examples の各行を1ケースとする)
+- [x] T-060 InterviewMode.feature:530(試行の終わり方) [event] 「打ち切りでない試行のうち、ゴール達成と申告による終了と判断予算切れのほかで終わった試行は、目的に届かない試行に数える」(判断予算切れは #78 で外した。Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `stuck_counts_as_unreached` / issue: #21、#33、#78
 - [x] T-061 InterviewMode.feature:539(試行の終わり方) [unwanted] 「ゴール達成や申告による終了で終わった試行は、目的に届かない試行に数えない」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::outcome` の `goal_and_claim_not_unreached` / issue: #21、#33
@@ -602,8 +602,8 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py InterviewMode
-feature の sha256: a68cd4572993a4af7d9bf6f399b41ad5d05afb04770527e140a891722727eeb8
-台帳の sha256:     a68cd4572993a4af7d9bf6f399b41ad5d05afb04770527e140a891722727eeb8
+feature の sha256: 101d270f14c4d6f14aed9436b593b0a6f4ef85df64fcc1444d73d9b9635b6061
+台帳の sha256:     101d270f14c4d6f14aed9436b593b0a6f4ef85df64fcc1444d73d9b9635b6061
 `- [ ]` の行: 0
 台帳の T-ID 行: 133(期待 133)
 欠番: なし
