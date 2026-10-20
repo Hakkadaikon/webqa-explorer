@@ -3,8 +3,12 @@
 
 use webqa_core::interview::ask::preamble;
 
+use std::iter;
+
+use super::unmoved::ported;
 use super::unusable::complete;
 use super::*;
+use crate::run::tests::{Never, page};
 
 /// The question the second call asks about clicking element `target`.
 pub(super) fn expecting_click(target: &str) -> Question {
@@ -91,5 +95,59 @@ async fn missing_expectation_is_unreadable_after_two_calls() {
         (asked.judge.asked.len(), asked.reply),
         (2, Err(unreadable(EXPECTATION))),
         "the second call came back without it"
+    );
+}
+
+/// A judge that answers the first call and fails the second.
+fn failing_second(failure: JudgeError) -> Spy {
+    let mut judge = Spy::giving(complete());
+    judge.later = Some(Err(failure));
+    judge
+}
+
+#[tokio::test]
+async fn failed_second_call_reaches_the_core_as_it_failed() {
+    let cases = [JudgeError::Timeout, JudgeError::Api, JudgeError::Bridge];
+    for failure in cases {
+        let mut fakes = Fakes::new();
+        let judge = failing_second(failure.clone());
+        let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+        let kept: Vec<_> = asked
+            .steps
+            .iter()
+            .map(|taken| taken.reply.is_none())
+            .collect();
+        assert_eq!(
+            (asked.judge.asked.len(), asked.reply, kept),
+            (2, Err(failure.clone()), vec![true]),
+            "{failure:?}: not read as an unusable answer, and no reply kept"
+        );
+    }
+}
+
+/// The step of each call the run kept, and the lines of the log that say the
+/// judge was asked, of a run whose second call always fails.
+async fn run_with_failing_second() -> (Vec<u64>, usize) {
+    let mut fakes = Fakes::new();
+    fakes.browser.pages = iter::repeat_n(page("/"), 40).collect();
+    let mut judge = failing_second(JudgeError::Timeout);
+    let interview = interviewing(&[Op::Click], false);
+    let mut ports = ported(&mut fakes, &mut judge).interviewing(interview);
+    let mut never = Never;
+    let rules = scenario(&[Op::Click]);
+    let _ = explore(&mut ports, &mut never, rules, Memory::default()).await;
+    let steps = ports.record().calls.iter().map(|c| c.step).collect();
+    (
+        steps,
+        fakes.kinds().iter().filter(|k| *k == "asked").count(),
+    )
+}
+
+#[tokio::test]
+async fn both_calls_are_kept_when_the_second_failed() {
+    assert_eq!(
+        run_with_failing_second().await,
+        (vec![1, 1, 2, 2, 3, 3, 4, 4, 5, 5], 10),
+        "two calls for each step, though the second always failed"
     );
 }

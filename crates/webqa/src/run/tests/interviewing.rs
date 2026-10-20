@@ -40,8 +40,8 @@ struct Spy {
     script: Scripted,
     /// Answers every call with these, whatever was asked.
     fixed: Option<Answers>,
-    /// Answers the calls that ask one question with these instead.
-    later: Option<Answers>,
+    /// Answers the calls that ask one question with this instead.
+    later: Option<Result<Answers, JudgeError>>,
 }
 
 impl Spy {
@@ -74,9 +74,9 @@ impl Judge for Spy {
     ) -> Pending<'a, Result<Answers, JudgeError>> {
         self.asked.push(questions.to_vec());
         self.screens.push(screen.as_inner().as_str().to_owned());
-        let fixed = self.later.as_ref().filter(|_| questions.len() == 1);
-        match fixed.or(self.fixed.as_ref()) {
-            Some(fixed) => Box::pin(future::ready(Ok(fixed.clone()))),
+        let fixed = self.later.clone().filter(|_| questions.len() == 1);
+        match fixed.or_else(|| self.fixed.clone().map(Ok)) {
+            Some(fixed) => Box::pin(future::ready(fixed)),
             None => self.script.ask(screen, questions),
         }
     }

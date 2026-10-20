@@ -105,7 +105,7 @@ fn straying() -> Spy {
     again.table.insert(QuestionId::operation(), scroll);
     again.table.remove(&QuestionId::target());
     let mut judge = Spy::giving(complete());
-    judge.later = Some(again);
+    judge.later = Some(Ok(again));
     judge
 }
 
