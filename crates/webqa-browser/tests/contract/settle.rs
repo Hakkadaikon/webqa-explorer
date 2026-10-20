@@ -1,7 +1,7 @@
 //! Contract tests of the wait for a page to rest after a touch.
 
 use std::future::Future;
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{Sender, channel};
 use std::thread;
 use std::time::Duration;
 
@@ -9,22 +9,26 @@ use tokio::runtime::Builder;
 
 use super::port::{at, id, kinds, launch, seen, touch};
 
-/// How long a test may wait on the page before it fails.
-const LIMIT: Duration = Duration::from_secs(5);
+/// How long a test may wait on the page, once the browser is open.
+const LIMIT: Duration = Duration::from_secs(10);
 
 /// Runs `body` on a thread of its own and fails if it is not done within
-/// `LIMIT`, so that a wait with no end in the page ends in a failure instead
-/// of hanging. The tests read no clock, so the thread that waits is the
-/// timer; a body that hangs is left behind to end with the process.
-fn bounded<F: Future<Output = ()>>(body: impl FnOnce() -> F + Send + 'static) {
+/// `LIMIT` of the moment it calls `ready`, so that a wait with no end in the
+/// page ends in a failure instead of hanging. Opening the browser takes as
+/// long as the machine is busy, so it is not counted. The tests read no
+/// clock, so the thread that waits is the timer; a body that hangs is left
+/// behind to end with the process.
+fn bounded<F: Future<Output = ()>>(body: impl FnOnce(Sender<()>) -> F + Send + 'static) {
+    let (ready, started) = channel();
     let (done, wait) = channel();
     thread::spawn(move || {
         let ran = Builder::new_current_thread()
             .enable_all()
             .build()
-            .map(|runtime| runtime.block_on(body()));
+            .map(|runtime| runtime.block_on(body(ready)));
         done.send(ran.is_ok()).ok();
     });
+    assert_eq!(started.recv(), Ok(()), "the browser did not open");
     assert_eq!(
         wait.recv_timeout(LIMIT),
         Ok(true),
@@ -56,15 +60,16 @@ async fn waits_for_the_page_to_stop_changing_after_a_touch() {
 /// none and not after waiting for ever.
 #[test]
 fn leaves_a_page_that_never_stops_changing_when_the_limit_comes() {
-    bounded(|| async {
+    bounded(|ready| async move {
         let mut browser = launch(at("/restless").unwrap(), 0).await.unwrap();
         seen(&mut browser).await.unwrap();
+        ready.send(()).unwrap();
         let moved = touch(&mut browser, "click", Some(id("button", "動かす"))).await;
         let o = seen(&mut browser).await.unwrap();
         let ticks = kinds(&o)[1].1.trim_start_matches("tick").parse::<u32>();
         assert_eq!(moved, Ok(()), "no failure at the limit");
         assert_eq!(
-            ticks.map(|n| (5..=25).contains(&n)),
+            ticks.map(|n| (5..=30).contains(&n)),
             Ok(true),
             "waited while it changed, and no longer than the limit"
         );

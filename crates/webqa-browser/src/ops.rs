@@ -100,7 +100,7 @@ const fn timed_out(error: &Error) -> bool {
 /// screen would look like a paywall.
 const LOADED: &str = "document.readyState === 'complete' \
     && [...document.querySelectorAll('[role=dialog][aria-busy=true]')] \
-        .every(veil => !veil.checkVisibility())";
+        .every(veil => !veil.checkVisibility({ visibilityProperty: true, opacityProperty: true }))";
 
 /// Resolves at `load`, or after `ms` milliseconds.
 const IN_PAGE: &str = "ms => new Promise(done => { \
