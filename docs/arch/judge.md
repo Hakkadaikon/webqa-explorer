@@ -273,9 +273,13 @@ JEVの問いは、今までどおりGatewayのJEVへ送る。
 作業ディレクトリは、問いごとに作る空の一時ディレクトリにする。
 2.1.304で、利用者のCLAUDE.mdの指示が答えに届かないことを確かめた。
 `claude`に渡す環境変数は、ログインと通信と文字の扱いに要るものだけにする。
-`HOME`、`PATH`、`ANTHROPIC_`と`CLAUDE_`と`LC_`と`XDG_`で始まるもの、プロキシの変数などである。
+一覧は`bridge/claude_cli.py`の`PASSED`、`PASSED_PREFIXES`、`PROXIES`にある。
+`ANTHROPIC_`、`CLAUDE_`、`LC_`、`XDG_`で始まる変数は、名前ごと渡す。
 Gatewayのキーは、`WEBQA_JUDGE_API_KEY`にも、設定の`api_key`が指す元の変数にも入っている。
-どちらの名前も、`claude`には渡らない。
+`WEBQA_JUDGE_API_KEY`は`claude`に渡らない。
+元の変数も、上の接頭辞で始まらなければ渡らない。
+`claude`はツールを持たないので、渡った変数をモデルが読む手段は無い。
+AWSやGoogle Cloudの認証の変数は渡さないので、BedrockやVertex AIを通す`claude`には使えない。
 `claude`は、利用者がClaude Codeでログインした認証か、`ANTHROPIC_API_KEY`で呼ぶ。
 `--bare`は使わない。
 キーチェーンを読まなくなり、ログインの認証が使えなくなるためである。

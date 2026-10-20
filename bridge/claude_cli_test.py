@@ -115,6 +115,8 @@ class ClaudeTextTest(unittest.TestCase):
             "CLAUDE_CONFIG_DIR": "/c",
             "LC_ALL": "C.UTF-8",
             "https_proxy": "http://proxy",
+            "NODE_EXTRA_CA_CERTS": "/ca.pem",
+            "AWS_SECRET_ACCESS_KEY": "aws",
         }
         asked(request([TEXT]), run, env=env)
         kwargs = run.calls[0][1]
@@ -127,6 +129,7 @@ class ClaudeTextTest(unittest.TestCase):
                 "CLAUDE_CONFIG_DIR": "/c",
                 "LC_ALL": "C.UTF-8",
                 "https_proxy": "http://proxy",
+                "NODE_EXTRA_CA_CERTS": "/ca.pem",
             },
         )
         self.assertEqual(run.seen, [], "nothing to read where claude starts")

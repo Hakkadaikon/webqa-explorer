@@ -3,7 +3,8 @@
 The screen is a page's text, never instructions to act on, so claude runs
 with no tool, no setting, no customization, no MCP server and no saved
 session, in an empty directory, with only the environment it needs to sign
-in: no key of the gateway reaches it under any name."""
+in. The gateway's key is left behind, unless the variable it was read from
+starts like one claude needs."""
 
 import json
 import os
@@ -14,7 +15,18 @@ from gateway import Failure, dump
 
 PROGRAM_ENV = "WEBQA_CLAUDE"
 # What claude needs to find its sign-in, reach the network and read text.
-PASSED = ("HOME", "PATH", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG", "TZ")
+PASSED = (
+    "HOME",
+    "PATH",
+    "USER",
+    "LOGNAME",
+    "SHELL",
+    "TMPDIR",
+    "LANG",
+    "TZ",
+    "NODE_EXTRA_CA_CERTS",
+    "SSL_CERT_FILE",
+)
 PASSED_PREFIXES = ("ANTHROPIC_", "CLAUDE_", "LC_", "XDG_")
 PROXIES = ("HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "ALL_PROXY")
 FLAGS = [
