@@ -13,9 +13,8 @@ use webqa_core::interview::ask::{
     expectation_question, questions, send,
 };
 use webqa_core::issue::probe_questions;
-use webqa_core::judge::{Answers, Image, JudgeError, Question, Unusable};
+use webqa_core::judge::{Answers, Image, JudgeError, Question, QuestionId, Unusable};
 use webqa_core::machine::{State, chosen};
-
 use webqa_core::redact::Redacted;
 use webqa_core::screen::{Screen, ScreenText, Viewport};
 
@@ -201,14 +200,16 @@ async fn expect(
     })
 }
 
-/// `answers`, or [`JudgeError::Unreadable`] when they hold no expectation
-/// that can be used.
-fn readable(answers: Answers) -> Result<Answers, JudgeError> {
-    read_expectation(&answers)
-        .map(|_| answers)
-        .map_err(|_| JudgeError::Unreadable {
-            question: EXPECTATION.to_owned(),
-        })
+/// The expectation of `answers` and nothing else, so the second call cannot
+/// change what the first chose; or [`JudgeError::Unreadable`] when there is
+/// no expectation that can be used.
+fn readable(mut answers: Answers) -> Result<Answers, JudgeError> {
+    let id = QuestionId::new(EXPECTATION);
+    read_expectation(&answers).map_err(|_| JudgeError::Unreadable {
+        question: EXPECTATION.to_owned(),
+    })?;
+    answers.table.retain(|asked, _| *asked == id);
+    Ok(answers)
 }
 
 /// The answers of both calls for the core. The second call is only made

@@ -37,6 +37,8 @@ struct Spy {
     script: Scripted,
     /// Answers every call with these, whatever was asked.
     fixed: Option<Answers>,
+    /// Answers the calls that ask one question with these instead.
+    later: Option<Answers>,
 }
 
 impl Spy {
@@ -47,6 +49,7 @@ impl Spy {
             reads,
             script,
             fixed: None,
+            later: None,
         }
     }
 
@@ -66,7 +69,8 @@ impl Judge for Spy {
         questions: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>> {
         self.asked.push(questions.to_vec());
-        match &self.fixed {
+        let fixed = self.later.as_ref().filter(|_| questions.len() == 1);
+        match fixed.or(self.fixed.as_ref()) {
             Some(fixed) => Box::pin(future::ready(Ok(fixed.clone()))),
             None => self.script.ask(screen, questions),
         }

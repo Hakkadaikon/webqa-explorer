@@ -4,6 +4,7 @@
 use std::iter;
 
 use super::second::expecting_click;
+use super::unusable::complete;
 use super::*;
 use crate::run::tests::{Never, page};
 
@@ -90,4 +91,34 @@ async fn each_call_is_logged_and_recorded_in_order() {
         (vec![1, 1, 2, 2, 3], 5),
         "two calls for each click and one for the done, all of the step's number"
     );
+}
+
+/// A judge that clicks, and whose calls with one question also say the
+/// operation is `scroll_down`.
+fn straying() -> Spy {
+    let mut again = complete();
+    let scroll = vec![("scroll_down".to_owned(), 0.9)];
+    again.table.insert(QuestionId::operation(), scroll);
+    again.table.remove(&QuestionId::target());
+    let mut judge = Spy::giving(complete());
+    judge.later = Some(again);
+    judge
+}
+
+#[tokio::test]
+async fn second_call_cannot_change_the_operation() {
+    let mut fakes = Fakes::new();
+    fakes.browser.pages = iter::repeat_n(page("/"), 40).collect();
+    let mut judge = straying();
+    let interview = interviewing(&[Op::Click], false);
+    let mut ports = ported(&mut fakes, &mut judge).interviewing(interview);
+    let rules = scenario(&[Op::Click, Op::ScrollDown]);
+    let mut never = Never;
+    let run = explore(&mut ports, &mut never, rules, Memory::default());
+    run.await.unwrap();
+    // The core reloads by itself when the page stays; the judge's are clicks.
+    let ops = fakes.browser.touches.iter().map(|touch| touch.op.as_str());
+    let mut judged: Vec<&str> = ops.filter(|op| *op != "reload").collect();
+    judged.dedup();
+    assert_eq!(judged, ["click"], "the operation of the first call");
 }
