@@ -1,5 +1,25 @@
 # webqa-explorer
 
+[![CI][ci-badge]][ci]
+[![codecov][codecov-badge]][codecov]
+[![coverage gate][coverage-badge]][coverage-gate]
+[![mutation][mutation-badge]][mutation-gate]
+[![MSRV][rust-badge]][rust-version]
+[![license][license-badge]][license]
+
+[ci-badge]: https://github.com/Hakkadaikon/webqa-explorer/actions/workflows/ci.yml/badge.svg?branch=main
+[ci]: https://github.com/Hakkadaikon/webqa-explorer/actions/workflows/ci.yml
+[codecov-badge]: https://codecov.io/gh/Hakkadaikon/webqa-explorer/branch/main/graph/badge.svg
+[codecov]: https://codecov.io/gh/Hakkadaikon/webqa-explorer
+[coverage-badge]: https://img.shields.io/badge/coverage%20gate-100%25-brightgreen
+[mutation-badge]: https://img.shields.io/badge/mutation-cargo--mutants-blue
+[coverage-gate]: docs/quality-gates.md#テストとカバレッジ
+[mutation-gate]: docs/quality-gates.md#mutation
+[rust-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FHakkadaikon%2Fwebqa-explorer%2Fmain%2FCargo.toml&query=%24.workspace.package%5B%27rust-version%27%5D&label=MSRV&logo=rust&color=orange
+[rust-version]: Cargo.toml
+[license-badge]: https://img.shields.io/github/license/Hakkadaikon/webqa-explorer
+[license]: LICENSE
+
 webqa-explorerは、Webサービスの探索的テストエージェントである。
 判断モデルに画面のアクセシビリティ情報を渡し、返ってきた操作をブラウザで実行する。
 これを繰り返して画面を自律的に探索し、不具合や表示の違和感、アクセシビリティ上の問題を見つける。
