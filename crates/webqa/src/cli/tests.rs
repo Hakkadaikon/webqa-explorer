@@ -48,6 +48,12 @@ fn arguments_are_read() {
             dir: ".webqa/runs/r1".into()
         }))
     );
+    assert_eq!(
+        read_ok(&["webqa", "ledger", "out/ledger.md"]),
+        Ok(Sub::Ledger(LedgerArgs {
+            path: "out/ledger.md".into()
+        }))
+    );
 }
 
 #[test]
@@ -56,6 +62,10 @@ fn bad_arguments_are_errors() {
     assert_eq!(read(&limit), Err(ErrorKind::UnknownArgument));
     assert_eq!(
         read(&["webqa", "watch"]),
+        Err(ErrorKind::MissingRequiredArgument)
+    );
+    assert_eq!(
+        read(&["webqa", "ledger"]),
         Err(ErrorKind::MissingRequiredArgument)
     );
     assert_eq!(read(&["webqa", "tail"]), Err(ErrorKind::InvalidSubcommand));
@@ -116,9 +126,19 @@ fn subcommands_become_jobs() {
     );
     assert_eq!(
         job(&["webqa", "watch", "d"]),
-        Some(Err(WatchArgs { dir: "d".into() })),
+        Some(Err(Viewing::Watch(WatchArgs { dir: "d".into() }))),
         "watching starts no run"
     );
+}
+
+#[test]
+fn the_ledger_screen_starts_no_run() {
+    let cli = Cli::try_parse_from(["webqa", "ledger", "l.md"]).ok();
+    let split = cli.map(|cli| cli.command.split().map(|c| start::job(c).ok()));
+    let screen = Viewing::Ledger(LedgerArgs {
+        path: "l.md".into(),
+    });
+    assert_eq!(split, Some(Err(screen)));
 }
 
 #[test]
