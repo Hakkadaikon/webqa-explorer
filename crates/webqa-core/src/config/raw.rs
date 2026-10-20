@@ -109,7 +109,8 @@ pub struct Limits {
     pub freeze_threshold: NonZeroU32,
     /// Steps without progress that count as stuck.
     pub stuck_threshold: NonZeroU32,
-    /// The most judge calls in a run.
+    /// The most decision steps in a run. The interview mode calls the judge
+    /// up to twice in one step.
     pub max_decisions: NonZeroU32,
     /// The most operations in an hour.
     pub requests_per_hour: NonZeroU32,

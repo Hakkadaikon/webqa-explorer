@@ -17,7 +17,8 @@ pub struct Reply {
     pub verdict: Verdict,
     /// How hesitant the persona was, in `[0, 1]`.
     pub hesitation: f64,
-    /// What the persona expected, as the judge wrote it.
+    /// What the persona expected, as the judge wrote it. Empty when the
+    /// step did no operation, so the question was not asked.
     pub expectation: String,
     /// The elements hard to see. `None` when no image was sent, so the
     /// question was not asked.
