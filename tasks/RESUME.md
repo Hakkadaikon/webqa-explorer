@@ -17,6 +17,8 @@
 | `webqa ledger` | 終わった実行の台帳を開いて課題を選ぶ TUI |
 | 文書 | `docs/architecture.md` を `docs/arch/` の14本に分け、README を概要にし、`.omm/` に図を置いた |
 
+diff-review は3回目(26c2457)で6観点とも must 0。残りは、26c2457..HEAD の差分を diff-review で確かめ、証跡を書いて PR を出すこと。
+
 PR の前にすること: diff-review を6観点(design、test、security、docs、spec、fresh-eyes)で must 0 まで回し、証跡 `tasks/diff-review/evidence.md` を書く(フックが検査する)。PR の本文には、c18ac7d に旧設計書の削除が混ざり、85bb5a3 までビルドが通らないことと、55aaf51 に文書の直し(records.md と .omm/command-surface)が混ざり、38d2572 のメッセージがそれを指していることを書く。
 
 ### 残りの課題
