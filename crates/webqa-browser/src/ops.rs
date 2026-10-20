@@ -211,6 +211,7 @@ fn back<'a>(b: &'a PlaywrightBrowser, _: Option<&'a ElementId>) -> Done<'a> {
 }
 
 /// True when the focus is on what `fillable` calls an input field.
+/// shortcut: written apart from `fillable`, so a change to one must be made to the other by hand.
 const FIELD_FOCUSED: &str = "() => { const e = document.activeElement; \
     if (!e) return false; \
     if (e.isContentEditable || ['TEXTAREA', 'SELECT'].includes(e.tagName)) return true; \

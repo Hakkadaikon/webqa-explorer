@@ -144,7 +144,7 @@ Finished in 06s at (2026-10-18 18:57:55)
 # 2026-10-20: ASSUME Operations に "enter" を足したあとの回し直し(issue #70)
 # TLC2 Version 2026.10.15.145915 (rev: 932d35e)。cfg は3つとも変えていない。
 # SANY とApalacheの型検査(tla_lint.sh)はこの環境に無いので回していない。TLC が構文を読んだ。
-# 変更前の spec(git の HEAD)と変更後を、同じ版の TLC で回して並べた。
+# 下は生の出力でなく、各回の結果の行を抜き出した要約。
 $ cd tasks/loopeng && tlc -workers 2 -deadlock -config WebExploratoryQA.cfg WebExploratoryQA.tla
 Model checking completed. No error has been found.
 776380 states generated, 232571 distinct states found, 0 states left on queue.
@@ -157,4 +157,3 @@ $ cd tasks/loopeng && tlc -workers 2 -deadlock -config WebExploratoryQA.empty.cf
 Model checking completed. No error has been found.
 50698 states generated, 18825 distinct states found, 0 states left on queue.
 The depth of the complete state graph search is 16.
-# 結果: 変更前と同じ(違反なし、状態数も同じ)。2026-10-18 の回し(上)の数字とも一致する。
