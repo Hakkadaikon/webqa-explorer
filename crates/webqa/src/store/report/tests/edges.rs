@@ -1,6 +1,7 @@
 //! Tests of the edges of the report: the input key, the usage and the cost.
 
-use serde_json::json;
+use serde_json::{Value, json};
+use webqa_core::judge::JudgeError;
 use webqa_core::machine::Cause;
 
 use super::*;
@@ -109,4 +110,30 @@ fn issue_without_screenshot_leaves_the_field_out() {
         ),
         "only the issue with a screenshot names it"
     );
+}
+
+fn failed(error: JudgeError) -> Call {
+    Call {
+        step: 1,
+        reply: Err(error),
+        think: Duration::from_millis(5),
+    }
+}
+
+#[test]
+fn failed_call_names_its_cause_and_the_question_apart() {
+    let unreadable = JudgeError::Unreadable {
+        question: "hard_to_see".to_owned(),
+    };
+    let cases = [
+        (unreadable, json!("malformed"), json!("hard_to_see")),
+        (JudgeError::Timeout, json!("timeout"), Value::Null),
+    ];
+    for (error, cause, question) in cases {
+        let section = sections::calls_section(&[failed(error.clone())]);
+        let fields = (&section[0]["error"], &section[0]["question"]);
+        assert_eq!(fields, (&cause, &question), "{error:?}");
+    }
+    let answered = sections::calls_section(&record().calls[..1]);
+    assert_eq!(answered[0]["question"], Value::Null, "an answered call");
 }

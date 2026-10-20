@@ -201,6 +201,28 @@ pub enum JudgeError {
     Bridge,
 }
 
+impl JudgeError {
+    /// The kind of failure, as the logs write it. An unusable answer to an
+    /// added question is `malformed`; [`Self::question`] names the question.
+    #[must_use]
+    pub fn cause(&self) -> serde_json::Value {
+        if self.question().is_some() {
+            return serde_json::json!("malformed");
+        }
+        serde_json::json!(self)
+    }
+
+    /// The id of the question whose answer could not be used, if that is the
+    /// failure.
+    #[must_use]
+    pub fn question(&self) -> Option<&str> {
+        let Self::Unreadable { question } = self else {
+            return None;
+        };
+        Some(question)
+    }
+}
+
 /// The two questions of a step: the kind of operation among `ops`, and the
 /// element by its number among the `elements` lines of the screen text.
 #[must_use]

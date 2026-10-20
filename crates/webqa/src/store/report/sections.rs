@@ -67,14 +67,25 @@ fn millis(duration: Duration) -> u64 {
 }
 
 fn call(call: &Call) -> Value {
-    let (answers, error, usage) = match &call.reply {
-        Ok(answers) => (json!(answers.table), Value::Null, usage(answers)),
-        Err(error) => (Value::Null, json!(error), Value::Null),
+    let (answers, error, question, usage) = match &call.reply {
+        Ok(answers) => (
+            json!(answers.table),
+            Value::Null,
+            Value::Null,
+            usage(answers),
+        ),
+        Err(error) => (
+            Value::Null,
+            error.cause(),
+            json!(error.question()),
+            Value::Null,
+        ),
     };
     json!({
         "step": call.step,
         "think_ms": millis(call.think),
         "error": error,
+        "question": question,
         "answers": answers,
         "usage": usage,
     })

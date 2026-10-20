@@ -8,7 +8,6 @@ use serde_json::Value;
 
 use crate::explore::MemoryFileError;
 use crate::issue::{Issue, IssueClass, IssueKind};
-use crate::judge::JudgeError;
 use crate::machine::{Anomaly, Cause, ExitReason, Rejection, StuckKind};
 
 /// One line of the event log.
@@ -231,10 +230,9 @@ impl Event {
     #[must_use]
     pub fn anomaly(anomaly: &Anomaly) -> Self {
         let named = match anomaly {
-            Anomaly::Judge(JudgeError::Unreadable { question }) => {
-                serde_json::json!({ "cause": "malformed", "question": question })
+            Anomaly::Judge(error) => {
+                serde_json::json!({ "cause": error.cause(), "question": error.question() })
             }
-            Anomaly::Judge(error) => serde_json::json!({ "cause": error }),
             Anomaly::Unusable(unusable) => serde_json::to_value(unusable).unwrap_or_default(),
         };
         let fields: AnomalyFields = serde_json::from_value(named).unwrap_or_default();

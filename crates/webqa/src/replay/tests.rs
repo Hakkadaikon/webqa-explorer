@@ -1,6 +1,8 @@
 //! Tests of the judge that replays a report.
 
 use serde_json::{Value, json};
+use std::time::Duration;
+
 use url::Url;
 use webqa_core::judge::QuestionId;
 use webqa_core::machine::ExitReason;
@@ -8,6 +10,7 @@ use webqa_core::redact::{Redacted, Redactor};
 use webqa_core::screen::{Screen, ScreenText, Viewport, screen_text};
 
 use super::*;
+use crate::record::Call;
 use crate::store::report::build;
 use crate::store::report::tests::{first_answers, meta, record, report, start_memory};
 
@@ -100,4 +103,29 @@ fn from_report_reads_start_memory() {
         (Some(start_memory()), None),
         "an old report has none"
     );
+}
+
+#[tokio::test]
+async fn replay_of_an_unreadable_answer_stays_unreadable() {
+    let unreadable = JudgeError::Unreadable {
+        question: "hard_to_see".to_owned(),
+    };
+    let mut record = record();
+    record.calls = vec![Call {
+        step: 1,
+        reply: Err(unreadable.clone()),
+        think: Duration::from_millis(5),
+    }];
+    let text = build(
+        &record,
+        ExitReason::BudgetExceeded,
+        &meta(),
+        &start_memory(),
+        &Redactor::default(),
+    )
+    .into_inner()
+    .to_string();
+    let (_, mut replay, _) = Replay::from_report(&text).unwrap();
+    let screen = screen();
+    assert_eq!(replay.ask(&screen, &[]).await, Err(unreadable));
 }
