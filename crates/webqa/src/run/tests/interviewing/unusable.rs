@@ -23,6 +23,13 @@ pub(super) fn complete() -> Answers {
     said
 }
 
+/// The error for an unusable answer to the added question `id`.
+fn unreadable(id: &str) -> JudgeError {
+    JudgeError::Unreadable {
+        question: id.to_owned(),
+    }
+}
+
 /// Asks with the judge giving `answers`, and says what the interview passed
 /// on and kept: the reply, and for each step whether it has no reply.
 async fn passed(answers: Answers) -> (Result<Answers, JudgeError>, Vec<(u64, bool)>) {
@@ -53,7 +60,7 @@ async fn interview_passes_on_a_malformed_reply_when_an_added_answer_is_missing()
     let (reply, kept) = passed(said).await;
     assert_eq!(
         (reply, kept),
-        (Err(JudgeError::Malformed), vec![(1, true)]),
+        (Err(unreadable(EXPECTATION)), vec![(1, true)]),
         "the core reads an anomaly, and the step is kept without a reply"
     );
 }
@@ -66,7 +73,7 @@ async fn interview_passes_on_a_malformed_reply_when_an_added_answer_is_out_of_ra
     let (reply, kept) = passed(said).await;
     assert_eq!(
         (reply, kept),
-        (Err(JudgeError::Malformed), vec![(1, true)]),
+        (Err(unreadable(HESITATION)), vec![(1, true)]),
         "the core reads an anomaly, and the step is kept without a reply"
     );
 }
@@ -90,7 +97,7 @@ async fn interview_passes_on_a_failure_of_the_core_questions_as_it_is() {
 #[tokio::test]
 async fn interview_passes_on_a_malformed_reply_when_hard_to_see_is_not_an_option() {
     let mut said = complete();
-    let text = vec![("見えにくい".to_owned(), f64::NAN)];
+    let text = vec![("99: 見えにくい".to_owned(), f64::NAN)];
     said.table.insert(QuestionId::new(HARD_TO_SEE), text);
     let mut fakes = Fakes::new();
     let judge = Spy::giving(said);
@@ -98,7 +105,7 @@ async fn interview_passes_on_a_malformed_reply_when_hard_to_see_is_not_an_option
     let kept = asked.steps.iter().map(|t| (t.step, t.reply.is_none()));
     assert_eq!(
         (asked.reply, kept.collect::<Vec<_>>()),
-        (Err(JudgeError::Malformed), vec![(1, true)]),
+        (Err(unreadable(HARD_TO_SEE)), vec![(1, true)]),
         "the core reads an anomaly, and the step is kept without a reply"
     );
 }

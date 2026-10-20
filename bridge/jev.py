@@ -23,12 +23,16 @@ VERSION = 2
 FORMATS = {"image/png": "png", "image/jpeg": "jpeg"}
 JEV_KINDS = ("noul", "choice", "score")
 HARD_TO_SEE = "hard_to_see"
-TEXT_SYSTEM = (
+TEXT_BASE = (
     "あなたは、問いに答えるだけの回答器である。"
     "答えだけを返し、Markdown、見出し、前置き、独白、説明は書かない。"
     "問いが求める形を守る。"
-    "1文と言われたら1文だけ、「番号: 理由」の行の並びと言われたら、"
-    "1行に1つその形で書く。何も無いときは、空の文字列を返す。"
+)
+TEXT_SYSTEM = TEXT_BASE + "1文と言われたら、必ず1文だけを返す。空の文字列は返さない。"
+# Only this question may come back empty; the core reads the lines as they are.
+HARD_TO_SEE_SYSTEM = TEXT_BASE + (
+    "半角の「番号: 理由」の行だけを、1行に1つ書く。"
+    "記号や前置きは付けない。何も無いときは、空の文字列を返す。"
 )
 # The socket timeout overflows past about 1e9 seconds on some platforms.
 MAX_TIMEOUT = 3600
@@ -124,13 +128,17 @@ def text_content(request, question):
     ]
 
 
+def text_system(question):
+    return HARD_TO_SEE_SYSTEM if question["id"] == HARD_TO_SEE else TEXT_SYSTEM
+
+
 def ask_text(request, question, opts, budget):
     if not opts.text_model:
         raise Failure("no text model")
     body = {
         "model": opts.text_model,
         "messages": [
-            {"role": "system", "content": TEXT_SYSTEM},
+            {"role": "system", "content": text_system(question)},
             {"role": "user", "content": text_content(request, question)},
         ],
     }

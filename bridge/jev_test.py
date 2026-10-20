@@ -144,6 +144,24 @@ class TextTest(unittest.TestCase):
         for rule in ("答えだけ", "Markdown", "見出し", "前置き", "独白", "空"):
             self.assertIn(rule, system["content"])
 
+    def test_only_hard_to_see_may_come_back_empty(self):
+        http = FakeHttp(CHAT_REPLY, CHAT_REPLY)
+        hard = {**TEXT, "id": "hard_to_see", "prompt": "見えにくい要素"}
+        ask(request([TEXT, hard]), http, options(text_model="m"))
+        sentence = http.body(0)["messages"][0]["content"]
+        lines = http.body(1)["messages"][0]["content"]
+        self.assertEqual(sentence, jev.TEXT_SYSTEM)
+        self.assertEqual(lines, jev.HARD_TO_SEE_SYSTEM)
+        self.assertIn("必ず1文", sentence)
+        self.assertNotIn("空の文字列を返す", sentence)
+        for rule in (
+            "半角",
+            "番号: 理由",
+            "記号や前置きは付けない",
+            "空の文字列を返す",
+        ):
+            self.assertIn(rule, lines)
+
     def test_hard_to_see_carries_the_screenshot(self):
         http = FakeHttp(CHAT_REPLY, CHAT_REPLY)
         image = {"media_type": "image/png", "data": "iVBORw=="}

@@ -85,7 +85,7 @@ impl Interviewing {
     /// and kept. The caller gets them as they are, so a failure of the
     /// core's own questions reads as it does in the other modes; an answer
     /// to an added question that cannot be used comes back as
-    /// [`JudgeError::Malformed`], so the core does nothing with it.
+    /// [`JudgeError::Unreadable`], so the core does nothing with it.
     pub(super) async fn ask(
         &mut self,
         (browser, judge): (&mut dyn Browser, &mut dyn Judge),
@@ -122,24 +122,24 @@ impl Interviewing {
 /// The ids of the questions the interview adds to the core's.
 const ADDED: [&str; 4] = [HESITATION, EXPECTATION, HARD_TO_SEE, PURPOSE_GUESS];
 
-/// `reply`, or [`JudgeError::Malformed`] when `read` failed on an answer to
+/// `reply`, or [`JudgeError::Unreadable`] when `read` failed on an answer to
 /// an added question.
 fn unless_added_failed(
     reply: Result<Answers, JudgeError>,
     read: Option<&Result<Reply, Unusable>>,
 ) -> Result<Answers, JudgeError> {
     let failed = read.and_then(|read| read.as_ref().err());
-    if failed.is_some_and(is_added) {
-        Err(JudgeError::Malformed)
-    } else {
-        reply
-    }
+    failed.and_then(added).map_or(reply, |question| {
+        Err(JudgeError::Unreadable {
+            question: question.to_owned(),
+        })
+    })
 }
 
-/// Whether the problem is with an answer to an added question.
-fn is_added(unusable: &Unusable) -> bool {
+/// The id of the added question the problem is with, if it is one.
+fn added(unusable: &Unusable) -> Option<&str> {
     let (Unusable::Missing(id) | Unusable::NotAnOption(id) | Unusable::OutOfRange(id)) = unusable;
-    ADDED.contains(&id.as_str())
+    ADDED.contains(&id.as_str()).then(|| id.as_str())
 }
 
 /// Asks the judge: the interview's questions when the ports interview,

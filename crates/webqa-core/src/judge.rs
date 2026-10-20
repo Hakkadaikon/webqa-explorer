@@ -189,6 +189,13 @@ pub enum JudgeError {
     /// The answer could not be read.
     #[error("判断モデルの答えの形式が崩れている")]
     Malformed,
+    /// The answer to a question the interview added could not be used. Names
+    /// the question, which holds no page string.
+    #[error("判断モデルの答えの {question} が使えない")]
+    Unreadable {
+        /// The id of the question.
+        question: String,
+    },
     /// The bridge command could not be written to or read from.
     #[error("橋渡しのコマンドとやりとりできない")]
     Bridge,
