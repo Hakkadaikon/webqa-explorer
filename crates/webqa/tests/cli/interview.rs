@@ -10,7 +10,7 @@ use webqa_core::redact::Redactor;
 use super::case::{Case, arg, assert_refused, field};
 use super::exec;
 
-const DOCS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/docs/");
+pub const DOCS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/docs/");
 
 /// The configuration of an interview of `trials` trials, with the persona
 /// document `persona`.
@@ -135,7 +135,7 @@ fn check_reports_field_and_exits_two() -> io::Result<()> {
 }
 
 /// Runs `interview` with two trials, and says it ended with exit code 0.
-fn interviewed(case: &Case, extra: &[&str]) -> io::Result<()> {
+pub fn interviewed(case: &Case, extra: &[&str]) -> io::Result<()> {
     let mut config = case.config("done");
     let tail = tail("persona.yaml", 2);
     config.tail = &tail;
@@ -147,7 +147,7 @@ fn interviewed(case: &Case, extra: &[&str]) -> io::Result<()> {
 
 /// The latest run of `case`, whose report and first event both say the mode
 /// is interview.
-fn interview_run(case: &Case) -> io::Result<PathBuf> {
+pub fn interview_run(case: &Case) -> io::Result<PathBuf> {
     let run = exec::latest_run(&case.out())?;
     let report = exec::report(&run)?;
     assert_eq!(field(&report, "mode"), Some("interview"), "the report");

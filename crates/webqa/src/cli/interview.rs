@@ -8,6 +8,7 @@ use std::path::Path;
 
 use tokio::fs as async_fs;
 use webqa_browser::PlaywrightBrowser;
+use webqa_core::config::Secret;
 use webqa_core::config::interview::Interview;
 use webqa_core::config::purpose::Aim;
 use webqa_core::event::Mode;
@@ -82,11 +83,7 @@ async fn launch(
 
 /// What the loop needs besides its ports.
 fn plan(setup: Setup, interview: Interview, previous: Option<Ledger>, started_at: String) -> Plan {
-    let withheld = setup
-        .judge
-        .api_key
-        .iter()
-        .map(|key| key.expose().to_owned());
+    let withheld = setup.judge.api_key.iter().map(Secret::expose);
     Plan {
         interview,
         max_duration: setup.rules.max_duration,
@@ -94,7 +91,7 @@ fn plan(setup: Setup, interview: Interview, previous: Option<Ledger>, started_at
         start: setup.target,
         previous,
         env: vars_os().collect(),
-        withheld: withheld.collect(),
+        withheld: withheld.map(str::to_owned).collect(),
         mode: Mode::Interview,
         started_at: Some(started_at),
         detect: Detect {
@@ -217,6 +214,11 @@ async fn open(yaml: &str) -> Result<Box<dyn Browser>, BrowserError> {
 
 async fn opened(yaml: &str) -> Result<Box<dyn Browser>, Stop> {
     let (setup, _) = start::interview_setup(yaml)?;
-    let browser: PlaywrightBrowser = start::browser(setup.browser, setup.redactor).await?;
-    Ok(Box::new(browser))
+    start::browser(setup.browser, setup.redactor)
+        .await
+        .map(boxed)
+}
+
+fn boxed(browser: PlaywrightBrowser) -> Box<dyn Browser> {
+    Box::new(browser)
 }
