@@ -145,3 +145,22 @@ check-serial:
 
 # CI で回す全部の検査
 ci: check deny
+
+# インタビューのモードを仕込みのサイトで回して採点する(本物の判断モデルを使う。本体の checkout の直下で回す)
+eval runs="3":
+    #!/bin/sh
+    set -eu
+    cargo build -q -p webqa -p webqa-eval
+    out="target/eval/$(date +%Y%m%dT%H%M%S)"
+    mkdir -p "$out"
+    target/debug/webqa-eval serve eval/site > "$out/url" &
+    server=$!
+    trap 'kill "$server"' EXIT
+    while [ ! -s "$out/url" ]; do sleep 0.1; done
+    sed "s#__URL__#$(cat "$out/url")#" eval/config.yaml > "$out/config.yaml"
+    i=1
+    while [ "$i" -le {{ runs }} ]; do
+        WEBQA_SEARCH=勤怠管理 target/debug/webqa interview --config "$out/config.yaml" --out "$out/run-$i" || true
+        i=$((i + 1))
+    done
+    target/debug/webqa-eval score --truth eval/truth.yaml --labels eval/labels.yaml "$out"/run-*/runs/*/ledger.md | tee "$out/report.md"

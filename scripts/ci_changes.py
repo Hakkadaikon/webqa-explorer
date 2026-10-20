@@ -22,6 +22,7 @@ CODE = [
     "scripts/*",
     "bridge/*",
     "share/*",
+    "eval/*",
     ".github/workflows/*",
     "Cargo.toml",
     "Cargo.lock",
