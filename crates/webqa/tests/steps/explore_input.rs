@@ -12,6 +12,7 @@ use crate::world::QaWorld;
 /// The scenarios that have their steps.
 pub const READY: &[&str] = &[
     "探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める",
+    "ページに禁止要素があれば、操作種別の選択肢に enter を含めない",
     "何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない",
     "値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える",
 ];
@@ -47,6 +48,13 @@ async fn input_offered(world: &mut QaWorld, offered: String) {
     world.run().await;
     let has = operation_options(world).contains(&"input".to_owned());
     assert_eq!(has, offered == "含む", "input among the options");
+}
+
+#[then(expr = "判断モデルに問い合わせた操作種別の選択肢に enter は含まれない")]
+async fn enter_not_offered(world: &mut QaWorld) {
+    world.run().await;
+    let has = operation_options(world).contains(&"enter".to_owned());
+    assert!(!has, "no enter among the options");
 }
 
 #[then(expr = "原因 {word} の skipped が記録されている")]
