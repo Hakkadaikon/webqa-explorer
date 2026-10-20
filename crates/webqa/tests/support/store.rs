@@ -106,6 +106,10 @@ impl Store for SceneStore {
         })
     }
 
+    fn write_ledger<'a>(&'a mut self, text: &'a str) -> Pending<'a, Result<(), StoreError>> {
+        self.inner.write_ledger(text)
+    }
+
     fn write_report<'a>(
         &'a mut self,
         report: &'a Redacted<Value>,
@@ -145,6 +149,7 @@ async fn check_passes_through() {
     let mut store = SceneStore::default();
     store.write_event(&value).await.ok();
     store.write_report(&value).await.ok();
+    store.write_ledger("# ledger\n").await.ok();
     store.write_memory("o", &value).await.ok();
     let image = Image::new(ImageFormat::Png, vec![1]);
     store.write_screenshot("a.png", &image).await.ok();

@@ -5,14 +5,14 @@ use std::time::Duration;
 
 use webqa_core::effect::{Effect, Outside, PageEffect, Questions, Touch};
 use webqa_core::event::Event;
-use webqa_core::issue::{answered_issues, probe_questions};
+use webqa_core::issue::answered_issues;
 use webqa_core::machine::{Cause, Facts, Heard, Material, Seen, State, Whole};
 use webqa_core::ports::Observation;
 use webqa_core::redact::{Redacted, Redactor};
 use webqa_core::screen::{self, Screen};
 
 use super::detect::{note_issues, observed_issues};
-use super::{Ports, RunError, log};
+use super::{Ports, RunError, interviewing, log};
 use crate::record::{Act, Call};
 
 /// The name of the operation that types into an input field.
@@ -25,14 +25,14 @@ pub(super) async fn perform(
     ports: &mut Ports<'_>,
 ) -> Result<Facts, RunError> {
     match effect {
-        Effect::Outside(outside) => beyond(outside, ports).await.map(Facts::Outside),
+        Effect::Outside(outside) => beyond(outside, state, ports).await.map(Facts::Outside),
         Effect::Page(page) => on_page(page, state, ports).await.map(page_facts),
     }
 }
 
-async fn beyond(outside: Outside, ports: &mut Ports<'_>) -> Result<Heard, RunError> {
+async fn beyond(outside: Outside, state: &State, ports: &mut Ports<'_>) -> Result<Heard, RunError> {
     match outside {
-        Outside::Ask(questions) => ask(questions, ports).await,
+        Outside::Ask(questions) => ask(questions, state, ports).await,
         Outside::Sleep(wake) => {
             ports.log(log::waited(wake.at)).await?;
             ports.clock.sleep_until(wake.at).await;
@@ -43,12 +43,14 @@ async fn beyond(outside: Outside, ports: &mut Ports<'_>) -> Result<Heard, RunErr
 
 /// Asks the judge, the semantic findings after the core's questions, and
 /// records the call and the issues its answers show.
-async fn ask(questions: Questions, ports: &mut Ports<'_>) -> Result<Heard, RunError> {
+async fn ask(
+    questions: Questions,
+    state: &State,
+    ports: &mut Ports<'_>,
+) -> Result<Heard, RunError> {
     ports.step += 1;
-    let mut asking = questions.questions;
-    asking.extend(probe_questions(&ports.detect.probes));
     let started = ports.clock.elapsed();
-    let reply = ports.judge.ask(&questions.screen, &asking).await;
+    let reply = interviewing::call(questions, state, ports).await;
     let think = ports.clock.elapsed().saturating_sub(started);
     ports.log(log::asked(&reply, think)).await?;
     ports.record.calls.push(Call {

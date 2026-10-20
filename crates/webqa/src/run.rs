@@ -3,7 +3,9 @@
 mod detect;
 #[cfg(test)]
 #[path = "../tests/support/fakes.rs"]
-mod fakes;
+pub(crate) mod fakes;
+mod interviewing;
+mod journal;
 mod log;
 mod notes;
 mod perform;
@@ -14,15 +16,19 @@ mod tests;
 use std::collections::BTreeSet;
 
 use webqa_core::effect::Effect;
-use webqa_core::event::{Event, Line};
+use webqa_core::event::Event;
 use webqa_core::explore::Memory;
 use webqa_core::issue::Probe;
 use webqa_core::machine::{self, Outcome, Rules, State, Step};
 use webqa_core::ports::{Browser, BrowserError, Clock, Judge, Store, StoreError};
 use webqa_core::redact::Redactor;
+use webqa_core::window::RequestWindow;
 
 use crate::interrupt::Interrupt;
 use crate::record::Record;
+
+pub use interviewing::{Interviewing, Taken};
+pub use journal::Journal;
 
 /// Why the run stopped before an outcome.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
@@ -61,18 +67,29 @@ pub struct Ports<'a> {
     clock: &'a mut dyn Clock,
     store: &'a mut dyn Store,
     redactor: &'a Redactor,
-    /// The number of the next line of the log.
-    seq: u64,
+    /// The number of the next line of the log, and whether a write failed.
+    journal: Journal,
     /// The current step: 0 until the first question or core operation.
     step: u64,
     detect: Detect,
     record: Record,
     /// The names of the screenshots written.
     shots: BTreeSet<String>,
-    /// Whether a write failed: `log` and the screenshots write nothing after
-    /// that. A write through `store()` neither sees it nor sets it; its
-    /// caller stops.
-    failed: bool,
+    /// The interview's questions in place of the core's: `None` for the
+    /// other modes.
+    interview: Option<Interviewing>,
+}
+
+/// What a run keeps from one browser to the next: the log's counters, what
+/// the run did and the screenshots written.
+#[derive(Debug, Default)]
+pub struct Kept {
+    /// The log's counters.
+    pub journal: Journal,
+    /// What the run did so far.
+    pub record: Record,
+    /// The names of the screenshots written.
+    pub shots: BTreeSet<String>,
 }
 
 impl<'a> Ports<'a> {
@@ -91,12 +108,51 @@ impl<'a> Ports<'a> {
             clock,
             store,
             redactor,
-            seq: 0,
+            journal: Journal::default(),
             step: 0,
             detect: Detect::default(),
             record: Record::default(),
             shots: BTreeSet::new(),
-            failed: false,
+            interview: None,
+        }
+    }
+
+    /// The same ports, asking the interview's questions in place of the
+    /// core's.
+    #[must_use]
+    pub fn interviewing(self, interview: Interviewing) -> Self {
+        Self {
+            interview: Some(interview),
+            ..self
+        }
+    }
+
+    /// The steps of the interview that asked the judge, which are no longer
+    /// kept. Empty outside the interview.
+    pub fn take_steps(&mut self) -> Vec<Taken> {
+        let interview = self.interview.as_mut();
+        interview.map(Interviewing::take).unwrap_or_default()
+    }
+
+    /// The same ports, going on from what an earlier run with another
+    /// browser kept.
+    #[must_use]
+    pub fn resumed(self, kept: Kept) -> Self {
+        Self {
+            journal: kept.journal,
+            record: kept.record,
+            shots: kept.shots,
+            ..self
+        }
+    }
+
+    /// What the next browser's ports keep going from.
+    #[must_use]
+    pub fn into_kept(self) -> Kept {
+        Kept {
+            journal: self.journal,
+            record: self.record,
+            shots: self.shots,
         }
     }
 
@@ -129,28 +185,17 @@ impl<'a> Ports<'a> {
     ///
     /// [`RunError::Store`] when the line cannot be written.
     pub async fn log(&mut self, event: Event) -> Result<(), RunError> {
-        if self.failed {
-            return Err(StoreError.into());
-        }
-        let line = Line {
-            seq: self.seq,
-            elapsed_ms: log::millis(self.clock.elapsed()),
-            step: Some(self.step).filter(|&step| step > 0),
-            event,
-        };
-        self.seq += 1;
-        // Every field of a line serializes to JSON, so this never falls back.
-        let line = self
-            .redactor
-            .json(serde_json::to_value(&line).unwrap_or_default());
-        let written = self.store.write_event(&line).await;
-        self.kept(written)
+        let step = Some(self.step).filter(|&step| step > 0);
+        let elapsed = self.clock.elapsed();
+        let store = &mut *self.store;
+        self.journal
+            .write(step, event, elapsed, store, self.redactor)
+            .await
     }
 
     /// `written`, remembering a failure so that nothing is written after it.
     pub(super) fn kept(&mut self, written: Result<(), StoreError>) -> Result<(), RunError> {
-        self.failed |= written.is_err();
-        written.map_err(RunError::Store)
+        self.journal.kept(written)
     }
 }
 
@@ -166,8 +211,24 @@ pub async fn explore(
     rules: Rules,
     memory: Memory,
 ) -> Result<Outcome, RunError> {
+    let window = RequestWindow::new(rules.requests_per_hour);
+    explore_in(ports, interrupt, rules, memory, window).await
+}
+
+/// As [`explore`], with the core's window `window` instead of a new one.
+///
+/// # Errors
+///
+/// As [`explore`].
+pub async fn explore_in(
+    ports: &mut Ports<'_>,
+    interrupt: &mut dyn Interrupt,
+    rules: Rules,
+    memory: Memory,
+    window: RequestWindow,
+) -> Result<Outcome, RunError> {
     let seen = perform::observe(ports).await?;
-    let start = machine::start(seen, rules, memory, ports.clock.elapsed());
+    let start = machine::start_in(seen, rules, memory, window, ports.clock.elapsed());
     notes::after((0, 0), &start, ports).await?;
     run(start, ports, interrupt).await
 }

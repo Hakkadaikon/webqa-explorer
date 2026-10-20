@@ -16,6 +16,8 @@ mod offer;
 mod ops;
 mod proposal;
 mod rules;
+#[cfg(test)]
+mod start_tests;
 mod state;
 #[cfg(test)]
 pub(crate) mod testing;
@@ -31,6 +33,7 @@ use crate::explore::Memory;
 use crate::judge::{Answers, JudgeError};
 use crate::redact::Redacted;
 use crate::screen::{Screen, Viewport};
+use crate::window::RequestWindow;
 use actions::{Action, MISMATCH, Next, Now};
 
 pub use material::Material;
@@ -123,7 +126,20 @@ static TABLE: [&[Action]; 3] = [&actions::ENDED, &waiting::ROWS, &actions::ROWS]
 /// Starts a run on the first observation, with the memory read from the store.
 #[must_use]
 pub fn start(seen: Seen, rules: Rules, memory: Memory, now: Duration) -> Step {
-    let state = State::observed(rules, seen, memory);
+    let window = RequestWindow::new(rules.requests_per_hour);
+    start_in(seen, rules, memory, window, now)
+}
+
+/// As [`start`], with the core's window `window` instead of a new one.
+#[must_use]
+pub fn start_in(
+    seen: Seen,
+    rules: Rules,
+    memory: Memory,
+    window: RequestWindow,
+    now: Duration,
+) -> Step {
+    let state = State::observed(rules, seen, memory).with_window(window);
     let facts = Facts::Outside(Heard::Woke);
     settle(state, &Now { facts, at: now })
 }

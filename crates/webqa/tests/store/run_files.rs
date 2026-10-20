@@ -73,6 +73,24 @@ async fn report_and_screenshot_files() {
 }
 
 #[tokio::test]
+async fn ledger_replaces_the_file() {
+    let out = out("ledger_replaces_the_file").unwrap();
+    let mut store = FileStore::create(&out, "run-1").await.unwrap();
+    store.write_ledger("# first\n").await.unwrap();
+    store.write_ledger("# second\n").await.unwrap();
+    let run = store.run_dir();
+    let left = (
+        fs::read_to_string(run.join("ledger.md")).unwrap(),
+        files(run).unwrap(),
+    );
+    assert_eq!(
+        left,
+        ("# second\n".to_owned(), vec!["ledger.md".to_owned()]),
+        "the last text, and no temporary file"
+    );
+}
+
+#[tokio::test]
 async fn run_dir_must_be_new() {
     let out = out("run_dir_must_be_new").unwrap();
     FileStore::create(&out, "run-1").await.unwrap();

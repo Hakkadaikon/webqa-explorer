@@ -942,6 +942,16 @@ scenario:
 各行の時刻が要るときは、TUIが開始時刻と経過時間から求める。
 CLIは1行書くたびにフラッシュする。
 
+インタビューのモードは、1回の実行のイベントを1つの`events.jsonl`に書く。
+試行の区切りは、次の2種類の行で示す。
+`ending`は、`goal_met`、`done`、`gave_up`、`no_progress`、`budget_spent`、`time_up`、`interrupted`のどれかである。
+試行の中のステップ番号は、試行ごとに1から数え直す。
+
+```json
+{"seq":1,"elapsed_ms":0,"kind":"trial_started","trial":1}
+{"seq":9,"elapsed_ms":84000,"step":4,"kind":"trial_finished","trial":1,"ending":"done"}
+```
+
 TUIは、`webqa watch <実行のディレクトリ>`で起動する。
 注入した時計で200ミリ秒ごとに、読む、描く、待つを繰り返す。
 前回読んだ位置から先だけを読み、改行で終わっていない最後の行は次回に回す。
@@ -1243,7 +1253,7 @@ binだけのcrateの中身は`tests/`から使えないためである。
 
 ## 外部crate
 
-crates.ioで実在と最新版を確かめた(2026-10-18)。
+crates.ioで実在と最新版を確かめた(2026-10-18。proptestは2026-10-20)。
 
 | crate | 版 | 使う場所 | 用途 |
 |---|---|---|---|
@@ -1264,6 +1274,7 @@ crates.ioで実在と最新版を確かめた(2026-10-18)。
 | jiff | 0.2.38 | webqa | 開始時刻の表記 |
 | cucumber | 0.23.0 | webqa(dev) | 受け入れシナリオ |
 | insta | 1.49.0 | dev | ゴールデンテスト |
+| proptest | 1.12.0 | webqa(dev) | 試行の外のループの性質テスト |
 
 reqwest 0.13.5は、HTTPで直結するアダプタを足すときに入れる。
 
