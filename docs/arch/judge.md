@@ -273,7 +273,9 @@ Gatewayへの送信、時間の予算、送り直し、リダイレクトの扱�
 そのため、`--timeout`は`judge.timeout_secs`より短くする。
 
 `--model`が`typesafe-ai/jev-1.13.0`か`typesafe-ai/jev-1.14.0`のときだけ、画像を読めると申告する。
-画像を添えた問いでは、要求に`TypeSafe-Danger-Zone-Images: true`のヘッダを付ける。
+JEVへの問いに画像を添えるときは、
+要求に`TypeSafe-Danger-Zone-Images: true`のヘッダを付ける。
+言語モデルへの自由文の問いには付けない。
 
 APIキーは、環境変数`WEBQA_JUDGE_API_KEY`から読む。
 値があれば`Authorization`のヘッダに載せ、無ければ認証のヘッダを付けない。
