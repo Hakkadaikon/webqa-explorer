@@ -4,7 +4,7 @@
 [![codecov][codecov-badge]][codecov]
 [![coverage gate][coverage-badge]][coverage-gate]
 [![mutation][mutation-badge]][mutation-gate]
-[![rust][rust-badge]][rust-version]
+[![MSRV][rust-badge]][rust-version]
 [![license][license-badge]][license]
 
 [ci-badge]: https://github.com/Hakkadaikon/webqa-explorer/actions/workflows/ci.yml/badge.svg?branch=main
@@ -15,7 +15,7 @@
 [mutation-badge]: https://img.shields.io/badge/mutation-cargo--mutants-blue
 [coverage-gate]: docs/quality-gates.md#テストとカバレッジ
 [mutation-gate]: docs/quality-gates.md#mutation
-[rust-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FHakkadaikon%2Fwebqa-explorer%2Fmain%2FCargo.toml&query=%24.workspace.package%5B%27rust-version%27%5D&label=rust&logo=rust&color=orange
+[rust-badge]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FHakkadaikon%2Fwebqa-explorer%2Fmain%2FCargo.toml&query=%24.workspace.package%5B%27rust-version%27%5D&label=MSRV&logo=rust&color=orange
 [rust-version]: Cargo.toml
 [license-badge]: https://img.shields.io/github/license/Hakkadaikon/webqa-explorer
 [license]: LICENSE
