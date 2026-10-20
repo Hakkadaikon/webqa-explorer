@@ -4,6 +4,7 @@ pub mod follow;
 pub mod keys;
 pub mod ledger;
 pub mod ledger_file;
+pub mod style;
 pub mod tail;
 pub mod view;
 

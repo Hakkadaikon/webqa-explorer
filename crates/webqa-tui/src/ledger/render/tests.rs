@@ -134,3 +134,5 @@ fn empty_list_says_none_and_shows_notice() {
     assert!(text.contains("│なし"), "{text}");
     assert!(text.contains(notice_text(Notice::ChangedOutside)), "{text}");
 }
+
+mod looks;
