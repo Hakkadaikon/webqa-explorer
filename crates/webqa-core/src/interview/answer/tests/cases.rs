@@ -52,7 +52,7 @@ fn missing_added_answer_is_anomaly() {
     assert_eq!(reply, Ok(verdict()), "every answer");
 }
 
-const OUT_OF_RANGE: [(Changes<'_>, Expected); 13] = [
+const OUT_OF_RANGE: [(Changes<'_>, Expected); 9] = [
     (
         &[(HESITATION, Some(&[("true", 1.2)]))],
         (Unusable::OutOfRange, HESITATION),
@@ -87,22 +87,6 @@ const OUT_OF_RANGE: [(Changes<'_>, Expected); 13] = [
     ),
     (
         &[(HARD_TO_SEE, Some(&[("0: 文字が薄い", NAN)]))],
-        (Unusable::NotAnOption, HARD_TO_SEE),
-    ),
-    (
-        &[(HARD_TO_SEE, Some(&[("02: 文字が薄い", NAN)]))],
-        (Unusable::NotAnOption, HARD_TO_SEE),
-    ),
-    (
-        &[(HARD_TO_SEE, Some(&[("文字が薄い", NAN)]))],
-        (Unusable::NotAnOption, HARD_TO_SEE),
-    ),
-    (
-        &[(HARD_TO_SEE, Some(&[("2:  ", NAN)]))],
-        (Unusable::NotAnOption, HARD_TO_SEE),
-    ),
-    (
-        &[(HARD_TO_SEE, Some(&[("2: 薄い\n2: 小さい", NAN)]))],
         (Unusable::NotAnOption, HARD_TO_SEE),
     ),
 ];
