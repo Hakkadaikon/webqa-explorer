@@ -87,6 +87,16 @@ fn ready() -> Vec<&'static str> {
     .concat()
 }
 
+/// How many scenarios the feature has: its Scenario and Scenario Outline
+/// headings, Outline rows not counted.
+fn scenarios_in_feature() -> usize {
+    let headed = |line: &&str| {
+        let line = line.trim_start();
+        line.starts_with("Scenario:") || line.starts_with("Scenario Outline:")
+    };
+    FEATURE.lines().filter(headed).count()
+}
+
 /// How many scenarios of the feature are called `name`.
 fn scenarios_named(name: &str) -> usize {
     let headings = [
@@ -109,6 +119,11 @@ fn check_ready(names: &[&str]) {
     }
     let distinct: BTreeSet<&&str> = all.iter().collect();
     assert_eq!(distinct.len(), all.len(), "no two files claim a scenario");
+    assert_eq!(
+        all.len(),
+        scenarios_in_feature(),
+        "every scenario is run here or left to another test"
+    );
 }
 
 #[tokio::main(flavor = "current_thread")]

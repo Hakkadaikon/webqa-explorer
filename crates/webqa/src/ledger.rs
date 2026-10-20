@@ -17,14 +17,19 @@ use crate::exit::{CONFIG_ERROR, RUNTIME_ERROR};
 const NO_TERMINAL: &str = "端末が無いので台帳の画面を開けない";
 
 /// Opens the ledger at `path` and runs the screen until the user leaves;
-/// the exit code. `enter` takes the terminal and gives what puts it back
-/// when dropped. A ledger that cannot be opened is checked first.
+/// the exit code.
+///
+/// `enter` takes the terminal and gives what puts it back when dropped.
+/// `size` gives the terminal's columns and rows each time the screen is
+/// drawn, or `None` when they are not known. A ledger that cannot be
+/// opened is checked first.
 pub fn show<G>(
     path: &Path,
     enter: impl FnOnce() -> io::Result<G>,
     keys: &mut dyn Keys,
     mut out: impl Write,
     mut err: impl Write,
+    size: impl Fn() -> Option<(u16, u16)>,
 ) -> u8 {
     let (mut file, ledger) = match LedgerFile::open(path) {
         Ok(opened) => opened,
@@ -37,7 +42,7 @@ pub fn show<G>(
         drop(writeln!(err, "{NO_TERMINAL}"));
         return RUNTIME_ERROR;
     };
-    browse(&mut file, Screen::new(ledger), keys, &mut out);
+    browse(&mut file, Screen::new(ledger), keys, &mut out, &size);
     drop(terminal);
     0
 }
@@ -49,9 +54,10 @@ fn browse(
     mut screen: Screen,
     keys: &mut dyn Keys,
     out: &mut impl Write,
+    size: &impl Fn() -> Option<(u16, u16)>,
 ) -> Screen {
     loop {
-        drop(draw(out, &screen));
+        drop(draw(out, &screen, size()));
         let asked = keys.next().map_or(Command::Quit, command);
         if asked == Command::Quit {
             return screen;

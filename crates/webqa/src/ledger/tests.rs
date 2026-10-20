@@ -28,6 +28,11 @@ fn file_with(name: &str, text: &str) -> PathBuf {
     path
 }
 
+/// The terminal size, not known.
+fn unknown() -> Option<(u16, u16)> {
+    None
+}
+
 fn number(n: u8) -> Number {
     Number::parse(&format!("I-0000000{n}")).unwrap()
 }
@@ -48,12 +53,20 @@ fn browsed(path: &Path, keys: Vec<Key>) -> Screen {
         Screen::new(ledger),
         &mut script(keys),
         &mut Vec::new(),
+        &unknown,
     )
 }
 
 fn shown(path: &Path, keys: Vec<Key>) -> (u8, String) {
     let mut err = Vec::new();
-    let code = show(path, || Ok(()), &mut script(keys), Vec::new(), &mut err);
+    let code = show(
+        path,
+        || Ok(()),
+        &mut script(keys),
+        Vec::new(),
+        &mut err,
+        unknown,
+    );
     (code, String::from_utf8(err).unwrap())
 }
 
@@ -83,7 +96,13 @@ fn an_edit_outside_is_told_and_not_overwritten() {
         key
     };
     let (mut file, ledger) = open(&path);
-    let screen = browse(&mut file, Screen::new(ledger), &mut keys, &mut Vec::new());
+    let screen = browse(
+        &mut file,
+        Screen::new(ledger),
+        &mut keys,
+        &mut Vec::new(),
+        &unknown,
+    );
     assert_eq!(screen.notice, Some(Notice::ChangedOutside));
     assert_eq!(
         fs::read_to_string(&path).unwrap(),
@@ -102,6 +121,7 @@ fn a_vanished_file_is_told_as_a_failed_write() {
         Screen::new(ledger),
         &mut script(keys),
         &mut Vec::new(),
+        &unknown,
     );
     assert_eq!(screen.notice, Some(Notice::WriteFailed));
 }
@@ -160,7 +180,7 @@ fn a_ledger_that_cannot_be_opened_exits_two_even_without_a_terminal() {
         let mut err = Vec::new();
         let no_terminal = || Err::<(), _>(io::Error::from(ErrorKind::Unsupported));
         let keys = &mut script(vec![]);
-        let code = show(&path, no_terminal, keys, Vec::new(), &mut err);
+        let code = show(&path, no_terminal, keys, Vec::new(), &mut err, unknown);
         assert_eq!(code, 2);
         assert_eq!(String::from_utf8(err).unwrap(), format!("{error}\n"));
     }
@@ -177,6 +197,7 @@ fn without_a_terminal_the_screen_does_not_open() {
         &mut script(vec![]),
         Vec::new(),
         &mut err,
+        unknown,
     );
     assert_eq!(code, 3);
     assert_eq!(String::from_utf8(err).unwrap(), format!("{NO_TERMINAL}\n"));
