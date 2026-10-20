@@ -4,9 +4,10 @@
 mod tests;
 
 use std::io::{self, Write};
+use std::iter;
 use std::path::Path;
 
-use webqa_tui::keys::{Command, Keys, command};
+use webqa_tui::keys::{Command, Keys, RawMode, command};
 use webqa_tui::ledger::render::draw;
 use webqa_tui::ledger::{Input, Screen};
 use webqa_tui::ledger_file::{FileError, LedgerFile};
@@ -23,13 +24,13 @@ const NO_TERMINAL: &str = "端末が無いので台帳の画面を開けない";
 /// `size` gives the terminal's columns and rows each time the screen is
 /// drawn, or `None` when they are not known. A ledger that cannot be
 /// opened is checked first.
-pub fn show<G>(
+pub fn show(
     path: &Path,
-    enter: impl FnOnce() -> io::Result<G>,
+    enter: &dyn Fn() -> io::Result<RawMode>,
     keys: &mut dyn Keys,
-    mut out: impl Write,
-    mut err: impl Write,
-    size: impl Fn() -> Option<(u16, u16)>,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+    size: &dyn Fn() -> Option<(u16, u16)>,
 ) -> u8 {
     let (mut file, ledger) = match LedgerFile::open(path) {
         Ok(opened) => opened,
@@ -42,7 +43,7 @@ pub fn show<G>(
         drop(writeln!(err, "{NO_TERMINAL}"));
         return RUNTIME_ERROR;
     };
-    browse(&mut file, Screen::new(ledger), keys, &mut out, &size);
+    browse(&mut file, Screen::new(ledger), keys, out, size);
     drop(terminal);
     0
 }
@@ -53,17 +54,16 @@ fn browse(
     file: &mut LedgerFile,
     mut screen: Screen,
     keys: &mut dyn Keys,
-    out: &mut impl Write,
-    size: &impl Fn() -> Option<(u16, u16)>,
+    mut out: &mut dyn Write,
+    size: &dyn Fn() -> Option<(u16, u16)>,
 ) -> Screen {
-    loop {
-        drop(draw(out, &screen, size()));
-        let asked = keys.next().map_or(Command::Quit, command);
-        if asked == Command::Quit {
-            return screen;
-        }
+    drop(draw(&mut out, &screen, size()));
+    let asked = iter::from_fn(|| keys.next().map(command));
+    for asked in asked.take_while(|asked| *asked != Command::Quit) {
         screen = answered(file, screen, asked);
+        drop(draw(&mut out, &screen, size()));
     }
+    screen
 }
 
 /// `screen` after `asked`.

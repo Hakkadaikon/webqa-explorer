@@ -1,5 +1,7 @@
 //! Tests of the keys.
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use crossterm::event::{KeyEvent, KeyEventState};
 
 use super::*;
@@ -90,5 +92,12 @@ fn events_become_keys_and_a_failed_read_ends_the_input() {
 
 #[test]
 fn raw_mode_is_put_back_by_dropping() {
+    static PUT_BACK: AtomicUsize = AtomicUsize::new(0);
+    fn put_back() -> io::Result<()> {
+        PUT_BACK.fetch_add(1, Ordering::SeqCst);
+        Err(io::Error::from(ErrorKind::Other))
+    }
+    drop(RawMode(put_back));
+    assert_eq!(PUT_BACK.load(Ordering::SeqCst), 1);
     drop(RawMode::from(()));
 }

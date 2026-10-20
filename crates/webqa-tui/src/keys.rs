@@ -137,9 +137,9 @@ pub fn terminal() -> impl Keys {
     events(event::read)
 }
 
-/// The terminal in raw mode; put back when dropped.
+/// The terminal in raw mode; put back when dropped, by the function it holds.
 #[derive(Debug)]
-pub struct RawMode;
+pub struct RawMode(pub fn() -> io::Result<()>);
 
 impl RawMode {
     // No branch on purpose: a test cannot reach a real terminal, so the
@@ -163,13 +163,13 @@ impl RawMode {
 
 impl From<()> for RawMode {
     fn from((): ()) -> Self {
-        Self
+        Self(disable_raw_mode)
     }
 }
 
 impl Drop for RawMode {
     fn drop(&mut self) {
-        drop(disable_raw_mode());
+        drop((self.0)());
     }
 }
 

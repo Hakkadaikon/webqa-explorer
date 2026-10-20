@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use webqa::ledger::show;
 use webqa_core::interview::issue::Number;
 use webqa_core::interview::ledger::Ledger;
-use webqa_tui::keys::{Key, Keys};
+use webqa_tui::keys::{Key, Keys, RawMode};
 
 use super::frame::frame_of;
 use crate::ledger::read_back;
@@ -121,11 +121,11 @@ pub fn type_keys(world: &mut InterviewWorld, keys: Vec<Key>) {
     let (mut out, mut err) = (Vec::new(), Vec::new());
     let code = show(
         &dir.join(LEDGER),
-        || Ok(()),
+        &|| Ok(RawMode(|| Ok(()))),
         &mut typed,
         &mut out,
         &mut err,
-        || Some(SIZE),
+        &|| Some(SIZE),
     );
     assert_eq!((code, err), (0, Vec::new()), "the screen ended well");
     write(&dir.join(SCREEN), &String::from_utf8_lossy(&out));

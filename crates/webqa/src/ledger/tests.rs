@@ -2,19 +2,20 @@
 
 use std::env::temp_dir;
 use std::fs;
-use std::io::ErrorKind;
+use std::io::{self, ErrorKind};
 use std::path::PathBuf;
 use std::process::id;
 
 use webqa_core::interview::issue::{Kind, Number};
 use webqa_core::interview::ledger::{self, Ledger};
-use webqa_tui::keys::Key;
+use webqa_tui::keys::{Key, RawMode};
 use webqa_tui::ledger::Notice;
 use webqa_tui::ledger_file::FileError;
 
 use super::*;
 
 mod screen;
+mod start;
 
 const FIXTURE: &str = include_str!("../../tests/fixtures/ledger.txt");
 
@@ -29,6 +30,9 @@ fn file_with(name: &str, text: &str) -> PathBuf {
 }
 
 /// The terminal size, not known.
+/// A terminal that needs nothing put back.
+const NO_GUARD: &dyn Fn() -> io::Result<RawMode> = &|| Ok(RawMode(|| Ok(())));
+
 fn unknown() -> Option<(u16, u16)> {
     None
 }
@@ -61,11 +65,11 @@ fn shown(path: &Path, keys: Vec<Key>) -> (u8, String) {
     let mut err = Vec::new();
     let code = show(
         path,
-        || Ok(()),
+        NO_GUARD,
         &mut script(keys),
-        Vec::new(),
+        &mut Vec::new(),
         &mut err,
-        unknown,
+        &unknown,
     );
     (code, String::from_utf8(err).unwrap())
 }
@@ -165,40 +169,4 @@ fn toggling_with_nothing_shown_writes_nothing() {
     let keys = vec![Key::Char('4'), Key::Char(' ')];
     assert_eq!(browsed(&path, keys).notice, None);
     assert_eq!(fs::read_to_string(&path).unwrap(), FIXTURE);
-}
-
-#[test]
-fn a_ledger_that_cannot_be_opened_exits_two_even_without_a_terminal() {
-    let missing = temp_dir().join(format!("webqa-ledger-missing-{}", id()));
-    let broken = file_with("broken", "台帳ではない");
-    let not_a_ledger = ledger::read("台帳ではない").unwrap_err();
-    let cases = [
-        (missing, FileError::Io(ErrorKind::NotFound)),
-        (broken, FileError::Ledger(not_a_ledger)),
-    ];
-    for (path, error) in cases {
-        let mut err = Vec::new();
-        let no_terminal = || Err::<(), _>(io::Error::from(ErrorKind::Unsupported));
-        let keys = &mut script(vec![]);
-        let code = show(&path, no_terminal, keys, Vec::new(), &mut err, unknown);
-        assert_eq!(code, 2);
-        assert_eq!(String::from_utf8(err).unwrap(), format!("{error}\n"));
-    }
-}
-
-#[test]
-fn without_a_terminal_the_screen_does_not_open() {
-    let path = file_with("no-terminal", FIXTURE);
-    let mut err = Vec::new();
-    let no_terminal = || Err::<(), _>(io::Error::from(ErrorKind::Unsupported));
-    let code = show(
-        &path,
-        no_terminal,
-        &mut script(vec![]),
-        Vec::new(),
-        &mut err,
-        unknown,
-    );
-    assert_eq!(code, 3);
-    assert_eq!(String::from_utf8(err).unwrap(), format!("{NO_TERMINAL}\n"));
 }
