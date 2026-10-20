@@ -25,7 +25,7 @@ fn click_without_elements(world: &mut QaWorld) {
         .push_back(Reply::op("click", 0.9).on_number(1));
 }
 
-#[given(expr = "判断モデルの応答が 8種のどれでもない操作種別 {string} である")]
+#[given(expr = "判断モデルの応答が 9種のどれでもない操作種別 {string} である")]
 fn unknown_operation(world: &mut QaWorld, op: String) {
     with_button(world, Reply::op(op, 0.9));
 }
