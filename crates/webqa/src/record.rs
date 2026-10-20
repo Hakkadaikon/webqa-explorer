@@ -6,11 +6,11 @@ mod tests;
 
 use std::time::Duration;
 
-use webqa_core::interview::ask::{Past, with_recent};
+use webqa_core::interview::ask::{Past, recent_section, with_section};
 use webqa_core::issue::{Issue, has_confirmed};
 use webqa_core::judge::{Answers, JudgeError, Usage};
 use webqa_core::machine::Cause;
-use webqa_core::redact::Redacted;
+use webqa_core::redact::{Redacted, Redactor};
 use webqa_core::screen::{ElementId, ScreenText};
 
 /// What a run did, for the report.
@@ -78,10 +78,18 @@ impl Record {
             .fold(Usage::default(), |total, answers| add(total, answers.usage))
     }
 
-    /// `screen` and the latest operations from the `from`th on.
+    /// `screen` and the latest operations from the `from`th on, the section
+    /// passed through `redactor`.
     #[must_use]
-    pub fn told(&self, from: usize, screen: &Redacted<ScreenText>) -> Redacted<ScreenText> {
-        with_recent(screen, &self.past(from))
+    pub fn told(
+        &self,
+        from: usize,
+        screen: &Redacted<ScreenText>,
+        redactor: &Redactor,
+    ) -> Redacted<ScreenText> {
+        let section = recent_section(&self.past(from));
+        let with = |text: String| with_section(screen, &redactor.text(&text));
+        section.map_or_else(|| screen.clone(), with)
     }
 
     fn past(&self, from: usize) -> Vec<Past> {

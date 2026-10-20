@@ -156,7 +156,7 @@ fn quote(s: &str) -> String {
 }
 
 /// Escapes `\`, `"`, control characters and line separators.
-fn escaped(s: &str) -> String {
+pub(crate) fn escaped(s: &str) -> String {
     s.chars().map(escape).collect()
 }
 

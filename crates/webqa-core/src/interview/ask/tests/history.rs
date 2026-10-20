@@ -1,7 +1,7 @@
 //! Tests of the recent operations added to the screen text.
 
 use super::*;
-use crate::screen::{ElementId, element_ids};
+use crate::screen::ElementId;
 
 const HEAD: &str = "直近の操作";
 
@@ -18,9 +18,15 @@ fn past(op: &str, name: Option<&str>, changed: bool) -> Past {
     }
 }
 
-fn shown(past: &[Past]) -> String {
-    let text = with_recent(&cart_text(), past);
+/// The screen text the judge gets, the section passed through `redactor`.
+fn told(redactor: &Redactor, past: &[Past]) -> String {
+    let with = |section: String| with_section(&cart_text(), &redactor.text(&section));
+    let text = recent_section(past).map_or_else(cart_text, with);
     text.as_inner().as_str().to_owned()
+}
+
+fn shown(past: &[Past]) -> String {
+    told(&Redactor::default(), past)
 }
 
 fn cart() -> String {
@@ -71,19 +77,22 @@ fn the_sixth_operation_drops_the_oldest() {
 }
 
 #[test]
-fn a_secret_in_a_name_stays_masked() {
+fn the_redactor_masks_a_secret_in_a_name() {
     let rule = Rule::literal("メールアドレス", "test@example.test");
     let redactor = Redactor::new(&[rule]).unwrap();
-    let elements = vec![element("text", "test@example.test", Some(IN))];
-    let target = element_ids(&redactor.screen(screen(elements))).remove(0);
-    let done = Past {
-        op: "click".to_owned(),
-        target: Some(target),
-        changed: true,
-    };
-    let got = shown(&[done]);
+    let got = told(&redactor, &[past("click", Some("test@example.test"), true)]);
     let want = format!(
         "{}\n\n{HEAD}\n1. click 「[[メールアドレス]]」 → 画面が変わった",
+        cart()
+    );
+    assert_eq!(got, want);
+}
+
+#[test]
+fn a_control_character_in_a_name_is_escaped() {
+    let got = shown(&[past("click", Some("検\n索\"\u{7}"), true)]);
+    let want = format!(
+        "{}\n\n{HEAD}\n1. click 「検\\n索\\\"\\u{{0007}}」 → 画面が変わった",
         cart()
     );
     assert_eq!(got, want);

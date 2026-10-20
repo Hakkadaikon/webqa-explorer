@@ -61,7 +61,8 @@ impl Interviewing {
         goal: String,
         ops: Vec<Op>,
         reads_images: bool,
-        (trial, acts_from): (usize, usize),
+        trial: usize,
+        acts_from: usize,
     ) -> Self {
         Self {
             persona,
@@ -86,7 +87,7 @@ impl Interviewing {
         ports: &Ports<'_>,
         screen: &Redacted<ScreenText>,
     ) -> Redacted<ScreenText> {
-        ports.record.told(self.acts_from, screen)
+        ports.record.told(self.acts_from, screen, ports.redactor)
     }
 
     /// The steps kept so far, which are no longer kept.

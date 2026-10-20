@@ -126,7 +126,7 @@ fn persona() -> Persona {
 /// The interview of the persona towards the goal of the stage.
 fn interviewing(ops: &[Op], reads_images: bool) -> Interviewing {
     let goal = "経費を申請する".to_owned();
-    Interviewing::new(persona(), goal, with_done(ops), reads_images, (1, 0))
+    Interviewing::new(persona(), goal, with_done(ops), reads_images, 1, 0)
 }
 
 /// The rules of a scenario of one stage, with `ops`.

@@ -1,7 +1,7 @@
 //! The recent operations of a trial, added once to the screen text.
 
 use crate::redact::Redacted;
-use crate::screen::{ElementId, ScreenText};
+use crate::screen::{ElementId, ScreenText, escaped};
 
 /// How many of the latest operations the judge is told.
 pub const RECENT: usize = 5;
@@ -17,14 +17,13 @@ pub struct Past {
     pub changed: bool,
 }
 
-/// `screen` followed by the latest [`RECENT`] of `past`, oldest first, one
-/// line each. `screen` as it is when `past` is empty. The values typed and
-/// the text of the page are not in a line.
+/// The section of the latest [`RECENT`] of `past`; none when it is empty.
+///
+/// Oldest first, one line each. The values typed and the text of the page
+/// are not in a line. It is not redacted yet: pass it through the redactor
+/// before [`with_section`].
 #[must_use]
-pub fn with_recent(screen: &Redacted<ScreenText>, past: &[Past]) -> Redacted<ScreenText> {
-    if past.is_empty() {
-        return screen.clone();
-    }
+pub fn recent_section(past: &[Past]) -> Option<String> {
     let from = past.len().saturating_sub(RECENT);
     let lines: Vec<String> = past
         .iter()
@@ -32,15 +31,23 @@ pub fn with_recent(screen: &Redacted<ScreenText>, past: &[Past]) -> Redacted<Scr
         .zip(1..)
         .map(|(done, n)| line(n, done))
         .collect();
-    let section = format!("直近の操作\n{}", lines.join("\n"));
-    screen.map(|text| text.followed_by(&section))
+    (!lines.is_empty()).then(|| format!("直近の操作\n{}", lines.join("\n")))
+}
+
+/// `screen` followed by `section`.
+#[must_use]
+pub fn with_section(
+    screen: &Redacted<ScreenText>,
+    section: &Redacted<String>,
+) -> Redacted<ScreenText> {
+    screen.map(|text| text.followed_by(section.as_inner()))
 }
 
 fn line(n: usize, done: &Past) -> String {
-    let target = done
-        .target
-        .as_ref()
-        .map_or_else(|| "なし".to_owned(), |id| format!("「{}」", id.name));
+    let target = done.target.as_ref().map_or_else(
+        || "なし".to_owned(),
+        |id| format!("「{}」", escaped(&id.name)),
+    );
     let result = if done.changed {
         "画面が変わった"
     } else {
