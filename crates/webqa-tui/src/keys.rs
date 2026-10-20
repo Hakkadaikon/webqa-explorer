@@ -16,6 +16,10 @@ pub enum Key {
     Up,
     /// The down arrow.
     Down,
+    /// The left arrow.
+    Left,
+    /// The right arrow.
+    Right,
     /// Enter.
     Enter,
     /// Escape.
@@ -54,13 +58,17 @@ impl<F: FnMut() -> Option<Key>> Keys for F {
 }
 
 /// What each key asks, apart from the ones that are no command.
-static BINDINGS: [(Key, Command); 14] = [
+static BINDINGS: [(Key, Command); 18] = [
     (Key::Up, Command::Fold(Input::Up)),
     (Key::Char('k'), Command::Fold(Input::Up)),
     (Key::Down, Command::Fold(Input::Down)),
     (Key::Char('j'), Command::Fold(Input::Down)),
     (Key::Enter, Command::Fold(Input::Open)),
+    (Key::Right, Command::Fold(Input::Open)),
+    (Key::Char('l'), Command::Fold(Input::Open)),
     (Key::Esc, Command::Fold(Input::Close)),
+    (Key::Left, Command::Fold(Input::Close)),
+    (Key::Char('h'), Command::Fold(Input::Close)),
     (Key::Char(' '), Command::Toggle),
     (
         Key::Char('1'),
@@ -84,9 +92,11 @@ static BINDINGS: [(Key, Command); 14] = [
 ];
 
 /// The keys that are not characters.
-const NAMED: [(KeyCode, Key); 4] = [
+const NAMED: [(KeyCode, Key); 6] = [
     (KeyCode::Up, Key::Up),
     (KeyCode::Down, Key::Down),
+    (KeyCode::Left, Key::Left),
+    (KeyCode::Right, Key::Right),
     (KeyCode::Enter, Key::Enter),
     (KeyCode::Esc, Key::Esc),
 ];
