@@ -70,3 +70,19 @@ async fn interview_passes_on_a_malformed_reply_when_an_added_answer_is_out_of_ra
         "the core reads an anomaly, and the step is kept without a reply"
     );
 }
+
+#[tokio::test]
+async fn interview_passes_on_a_failure_of_the_core_questions_as_it_is() {
+    let mut said = complete();
+    said.table.remove(&QuestionId::operation());
+    let (reply, kept) = passed(said).await;
+    // The core reads the failure and records its cause and question.
+    let ids = |answers: Answers| answers.table.into_keys().collect::<Vec<_>>();
+    let mut left = complete();
+    left.table.remove(&QuestionId::operation());
+    assert_eq!(
+        (reply.map(ids), kept),
+        (Ok(ids(left)), vec![(1, true)]),
+        "the answers reach the core, and the step is kept without a reply"
+    );
+}
