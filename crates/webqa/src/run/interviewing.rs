@@ -101,6 +101,10 @@ impl Interviewing {
         asking.extend(extra);
         let reply = send(judge, screen, image.as_ref(), &asking).await;
         let read = reply.as_ref().ok().and_then(|a| read_step(a, &asked).ok());
+        // An answer to an added question that cannot be used is a reply the
+        // core cannot use either: it reads an anomaly, and does nothing.
+        let reply =
+            reply.and_then(|answers| read.as_ref().map(|_| answers).ok_or(JudgeError::Malformed));
         self.steps.push(Taken {
             step,
             screen: last.screen.clone(),
