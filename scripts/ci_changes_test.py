@@ -18,8 +18,13 @@ class Decide(unittest.TestCase):
             {"code": False, "rust": False},
         )
 
-    def test_nothing_changed_needs_neither(self):
-        self.assertEqual(ci_changes.decide([]), {"code": False, "rust": False})
+    def test_no_paths_runs_the_check_to_be_safe(self):
+        self.assertEqual(ci_changes.decide([]), {"code": True, "rust": False})
+
+    def test_rust_outside_the_code_needs_only_mutation(self):
+        self.assertEqual(
+            ci_changes.decide(["docs/example.rs"]), {"code": False, "rust": True}
+        )
 
     def test_rust_source_needs_both(self):
         self.assertEqual(
@@ -42,6 +47,9 @@ class Decide(unittest.TestCase):
             "docs/arch/config.md",
             "tasks/loopeng/InterviewMode.feature",
             ".github/workflows/ci.yml",
+            "skills/writing-persona-purpose/SKILL.md",
+            ".claude/skills",
+            ".agents/skills",
         ]:
             with self.subTest(path=path):
                 self.assertEqual(

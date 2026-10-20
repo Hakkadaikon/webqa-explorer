@@ -9,9 +9,13 @@ Reads one changed path per line on stdin and prints GitHub outputs:
 import fnmatch
 import sys
 
-# The tests read some files outside crates/, so those count as code too.
+# Files that the tests or the check job read, also outside crates/. A change
+# to the workflows runs everything too, so that a CI change tests itself.
 CODE = [
     "crates/*",
+    "skills/*",
+    ".claude/*",
+    ".agents/*",
     ".cargo/*",
     ".config/*",
     "scripts/*",
@@ -28,8 +32,10 @@ CODE = [
 
 
 def decide(paths):
+    # No paths means the diff could not be read, so run the check to be safe.
     return {
-        "code": any(fnmatch.fnmatchcase(p, g) for p in paths for g in CODE),
+        "code": not paths
+        or any(fnmatch.fnmatchcase(p, g) for p in paths for g in CODE),
         # cargo mutants --in-diff mutates only changed .rs lines.
         "rust": any(p.endswith(".rs") for p in paths),
     }
