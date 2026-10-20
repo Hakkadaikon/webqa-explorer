@@ -99,7 +99,7 @@ fn plan(trials: u32) -> Plan {
         max_duration: None,
         env: Vec::new(),
         withheld: Vec::new(),
-        mode: Mode::Scenario,
+        mode: Mode::Interview,
         started_at: None,
         detect: Detect::default(),
     }

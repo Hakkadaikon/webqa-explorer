@@ -33,6 +33,8 @@ pub enum Mode {
     Explore,
     /// Following a scenario.
     Scenario,
+    /// Interviewing: trials of one purpose, run with the rules of a scenario.
+    Interview,
 }
 
 impl Mode {
@@ -42,6 +44,7 @@ impl Mode {
         match self {
             Self::Explore => "explore",
             Self::Scenario => "scenario",
+            Self::Interview => "interview",
         }
     }
 }

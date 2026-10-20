@@ -45,7 +45,9 @@ pub(super) fn waiting(state: &State, now: Duration) -> Waiting {
 /// explore mode.
 fn goal(state: &State) -> Goal {
     match state.rules.mode {
-        Mode::Scenario => stage::goal(&state.rules.stages, state.stage, state.last.whole.page()),
+        Mode::Scenario | Mode::Interview => {
+            stage::goal(&state.rules.stages, state.stage, state.last.whole.page())
+        }
         Mode::Explore => explore_goal(state.budget.used(), reachable(state)),
     }
 }

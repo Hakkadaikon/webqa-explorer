@@ -43,7 +43,12 @@ const ENDINGS: [(TrialEnding, &str); 7] = [
 
 #[test]
 fn mode_name_matches_the_log() {
-    for (mode, name) in [(Mode::Explore, "explore"), (Mode::Scenario, "scenario")] {
+    let names = [
+        (Mode::Explore, "explore"),
+        (Mode::Scenario, "scenario"),
+        (Mode::Interview, "interview"),
+    ];
+    for (mode, name) in names {
         assert_eq!(
             mode.as_str(),
             name,

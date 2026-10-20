@@ -14,7 +14,7 @@ use crate::event::Mode;
 /// when exploring with no operation kind that acts on an element.
 pub fn check_mode(config: &Config, mode: Mode) -> Result<(), ConfigError> {
     match mode {
-        Mode::Scenario => scenario_ready(config),
+        Mode::Scenario | Mode::Interview => scenario_ready(config),
         Mode::Explore => explore_ready(config),
     }
 }

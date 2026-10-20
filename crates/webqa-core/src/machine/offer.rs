@@ -50,7 +50,7 @@ pub(super) fn offer(state: &State) -> Offer {
     let last = &state.last;
     let elements = visible(last.screen.as_inner(), last.viewport).len();
     match state.rules.mode {
-        Mode::Scenario => Offer {
+        Mode::Scenario | Mode::Interview => Offer {
             ops: with_enter(state, kinds(&state.rules).collect(), false),
             elements,
             numbers: None,
