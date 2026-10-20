@@ -18,7 +18,7 @@ async fn interview_sends_screenshot_to_a_judge_that_reads_images() {
 }
 
 #[tokio::test]
-async fn interview_sends_no_screenshot_to_a_judge_that_does_not_read_images() {
+async fn interview_keeps_but_does_not_send_a_screenshot_for_a_judge_that_does_not_read_images() {
     let mut fakes = Fakes::new();
     let judge = Spy::new(false, answers(false));
     let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
@@ -28,8 +28,8 @@ async fn interview_sends_no_screenshot_to_a_judge_that_does_not_read_images() {
             asked.shots,
             asked.steps[0].image.is_some()
         ),
-        (0, 0, false),
-        "no screenshot was taken or sent"
+        (0, 1, true),
+        "the screenshot was taken and kept, and not sent"
     );
 }
 

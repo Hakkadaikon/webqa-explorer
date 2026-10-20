@@ -8,7 +8,7 @@ use webqa_core::config::raw::Op;
 use webqa_core::effect::Questions;
 use webqa_core::interview::answer::{Reply, read_step};
 use webqa_core::interview::ask::{
-    EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS, Step, elements, questions, send,
+    EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS, Step, attached, elements, questions, send,
 };
 use webqa_core::issue::probe_questions;
 use webqa_core::judge::{Answers, Image, JudgeError, Question, Unusable};
@@ -94,17 +94,17 @@ impl Interviewing {
         extra: Vec<Question>,
     ) -> Result<Answers, JudgeError> {
         let last = state.last();
-        let image = self.shot(browser).await;
+        let image = browser.screenshot().await.ok();
         let asked = Step {
             persona: &self.persona,
             goal: &self.goal,
             ops: &self.ops,
             elements: elements(&last.screen, last.viewport),
-            image: image.as_ref(),
+            image: attached(self.reads_images, image.as_ref()),
         };
         let mut asking = questions(&asked);
         asking.extend(extra);
-        let reply = send(judge, screen, image.as_ref(), &asking).await;
+        let reply = send(judge, screen, asked.image, &asking).await;
         let read = reply.as_ref().ok().map(|a| read_step(a, &asked));
         let reply = unless_added_failed(reply, read.as_ref());
         self.steps.push(Taken {
@@ -115,15 +115,6 @@ impl Interviewing {
             image,
         });
         reply
-    }
-
-    /// A screenshot, when the judge reads images and the browser can take one.
-    async fn shot(&self, browser: &mut dyn Browser) -> Option<Image> {
-        if self.reads_images {
-            browser.screenshot().await.ok()
-        } else {
-            None
-        }
     }
 }
 
