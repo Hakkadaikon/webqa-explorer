@@ -33,7 +33,10 @@ pub enum Mode {
     Explore,
     /// Following a scenario.
     Scenario,
-    /// Interviewing: trials of one purpose, run with the rules of a scenario.
+    /// Interviewing: trials of one purpose. It is a kind of record: the core
+    /// runs the trials as a `Scenario`, so the arms of the core that look at
+    /// the mode (`config/mode.rs`, `machine/offer.rs`, `machine/waiting.rs`)
+    /// never get it.
     Interview,
 }
 

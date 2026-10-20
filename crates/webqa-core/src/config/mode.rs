@@ -6,6 +6,9 @@ use crate::event::Mode;
 
 /// Checks the configuration against the kind of run.
 ///
+/// An interview is checked as an exploration: its trials take their stage
+/// from the purpose, so it needs no `scenario`.
+///
 /// # Errors
 ///
 /// [`ConfigError::NoStages`] when running a scripted scenario with no
@@ -14,8 +17,8 @@ use crate::event::Mode;
 /// when exploring with no operation kind that acts on an element.
 pub fn check_mode(config: &Config, mode: Mode) -> Result<(), ConfigError> {
     match mode {
-        Mode::Scenario | Mode::Interview => scenario_ready(config),
-        Mode::Explore => explore_ready(config),
+        Mode::Scenario => scenario_ready(config),
+        Mode::Explore | Mode::Interview => explore_ready(config),
     }
 }
 

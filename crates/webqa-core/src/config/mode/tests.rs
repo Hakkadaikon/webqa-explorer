@@ -73,6 +73,18 @@ fn accepts_element_ops_in_both_modes() {
 }
 
 #[test]
+fn interview_mode_is_checked_as_exploration() {
+    let without = validated(&example()[..example().find("scenario:").unwrap()]);
+    assert_eq!(outcome(&without, Mode::Interview), Ok(()), "no stages");
+    let config = with_ops("[done]");
+    assert_eq!(
+        outcome(&config, Mode::Interview),
+        needs_element_op(),
+        "no element op"
+    );
+}
+
+#[test]
 fn explore_check_with_empty_ops() {
     let mut config = with_ops("[click]");
     config.ops = Vec::new();
