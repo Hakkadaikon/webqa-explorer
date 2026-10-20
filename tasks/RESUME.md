@@ -56,7 +56,7 @@ integ4 の PR を出す前に: diff-review を6観点(design、test、security�
 - ディスクが一度埋まって全部止まった(置き場の溜めすぎ)。空きを見張り、15GB を切ったら担当を起こさない。main に入った worktree は `git worktree remove --force` で片づける(先に `git status --porcelain` で変更が無いことを確かめる)。`rm -rf` は権限で止められる。
 - メモリは 16GB。重いビルドは同時に3本まで。swap は `sysctl vm.swapusage` で見る。
 - コミットメッセージの各行は72桁以内(全角は2桁)。`;` や `| head` の後ろで git commit しない(git-guard が止める)。worktree の作成が失敗したら、そのあとのコマンドが別の場所で動かないよう `&&` でつなぐ。
-- 本体の checkout のローカルの `main` は、誤って `issue-30` を取り込んで `origin/main` とずれている(#30 の最後の docs のコミットまで進んでいる)。reset は保護ブランチの検査で止まるので、利用者が手で `git reset --hard origin/main` する。作業は worktree で行うので影響は無い。
+- 本体の checkout のローカルの `main` は、利用者が `git reset --hard origin/main` で戻した(2026-10-20)。
 
 ## 以前の引き継ぎ(2026-10-18)
 
