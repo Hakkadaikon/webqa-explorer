@@ -19,18 +19,20 @@ const KINDS: [KindId; 4] = [
 /// A table of recall and precision for each kind and the total, then the
 /// plants no run found and the issues without a plant or a label.
 ///
-/// A cell is the mean over the runs, with the sample standard deviation
-/// when there are two runs or more. A run without a denominator is left
-/// out of the mean; a cell without any is `-`.
+/// It starts with the number of runs. A cell is the mean over the runs,
+/// with the sample standard deviation when there are two values or more.
+/// A run without a denominator is left out of the mean; a cell without
+/// any is `-`.
 #[must_use]
 pub fn report(runs: &[Vec<Found>], plants: &[Plant], labels: &[Label]) -> String {
     let rows = |kind: Option<KindId>| scores(runs, plants, labels, kind);
-    let mut text = String::from(
-        "| 種類 | 再現率 | 厳しい適合率 | 人の判断を引いた適合率 |\n|---|---|---|---|\n",
+    let mut text = format!(
+        "採点した回: {}\n\n| 種類 | 再現率 | 厳しい適合率 | 人の判断を引いた適合率 |\n|---|---|---|---|\n",
+        runs.len()
     );
     for kind in KINDS.map(Some).into_iter().chain([None]) {
         let name = kind.map_or("全体", name);
-        text.push_str(&row(name, &rows(kind), runs.len()));
+        text.push_str(&row(name, &rows(kind)));
     }
     let all = rows(None);
     let _ = write!(
@@ -62,23 +64,22 @@ const fn name(kind: KindId) -> &'static str {
     }
 }
 
-fn row(name: &str, scores: &[Score], runs: usize) -> String {
+fn row(name: &str, scores: &[Score]) -> String {
     let ratios: [fn(&Score) -> Option<f64>; 3] = [
         Score::recall,
         Score::strict_precision,
         Score::labeled_precision,
     ];
-    let cells =
-        ratios.map(|ratio| cell(&scores.iter().filter_map(ratio).collect::<Vec<_>>(), runs));
+    let cells = ratios.map(|ratio| cell(&scores.iter().filter_map(ratio).collect::<Vec<_>>()));
     format!("| {name} | {} |\n", cells.join(" | "))
 }
 
-fn cell(values: &[f64], runs: usize) -> String {
+fn cell(values: &[f64]) -> String {
     let n = float(values.len());
     let mean = values.iter().sum::<f64>() / n;
     let spread =
         (values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / (n - 1.0).max(1.0)).sqrt();
-    match (values.is_empty(), runs > 1) {
+    match (values.is_empty(), values.len() > 1) {
         (true, _) => "-".to_owned(),
         (false, false) => format!("{mean:.2}"),
         (false, true) => format!("{mean:.2} ± {spread:.2}"),
@@ -94,8 +95,8 @@ fn missed(plants: &[Plant], scores: &[Score]) -> Vec<String> {
         .collect()
 }
 
-/// The unlabeled issues over the runs, each with how often it came, in the
-/// order they first came.
+/// The unlabeled issues over the runs, each with how often it came and the
+/// number of its first issue, in the order they first came.
 fn unlabeled(scores: &[Score]) -> Vec<String> {
     let mut tally: Vec<(&Found, usize)> = vec![];
     scores
@@ -124,7 +125,12 @@ fn describe(found: &Found, count: usize) -> String {
         .element
         .as_ref()
         .map_or_else(String::new, |e| format!(" {} {}", e.role, e.name));
-    format!("{} {}{element} {count}回", name(found.kind), found.path)
+    format!(
+        "{} {}{element} {count}件 {}",
+        name(found.kind),
+        found.path,
+        found.number
+    )
 }
 
 /// A bullet list, or `- なし`, closed by a blank line.
