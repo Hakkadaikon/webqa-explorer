@@ -26,7 +26,7 @@ pub const PURPOSE_MATCH: &str = "purpose_match";
 
 const HESITATION_PROMPT: &str = "次に何をするかで迷ったか";
 const EXPECTATION_PROMPT: &str = "選んだ操作で何が起きると期待したかを、1文で書く";
-const HARD_TO_SEE_PROMPT: &str = "スクリーンショットを見て、見えにくい、目立たない、読みにくいと感じた要素を、1行に1つ「番号: 理由」の形で書く。番号は画面の一覧の番号。無ければ何も書かない";
+const HARD_TO_SEE_PROMPT: &str = "スクリーンショットを見て、あなたの目的に関わる要素のうち、特に目立って見えにくいものを、最大3つ、1行に1つ「番号: 理由」の形で書く。理由は、文字の大きさ、色の薄さ、隠れているなど、見た目に限る。番号は画面の一覧の番号。無ければ何も書かない";
 const PURPOSE_GUESS_PROMPT: &str =
     "この画面は、利用者に何をしてもらうための画面だと思うかを、1文で書く";
 

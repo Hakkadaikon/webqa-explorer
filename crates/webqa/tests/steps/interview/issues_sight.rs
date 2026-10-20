@@ -22,7 +22,7 @@ fn list() -> Vec<PageSpec> {
 }
 
 #[given(
-    expr = "判断モデルが、スクリーンショットを見て、ボタン {string} を目立たない要素として挙げる"
+    expr = "判断モデルが、スクリーンショットを見て、ボタン {string} を見えにくい要素として挙げる"
 )]
 fn lists_hard_to_see(world: &mut InterviewWorld, name: String) {
     assert_eq!(name, BUTTONS[1], "the button of the second line");
@@ -30,6 +30,17 @@ fn lists_hard_to_see(world: &mut InterviewWorld, name: String) {
     let scene = &mut world.scene;
     scene.images = true;
     let step = Step::click(1).seeing("2: 背景に近い色で目立たない");
+    journey(scene, &list(), &[step, Step::of("done")]);
+}
+
+#[given(expr = "判断モデルが、スクリーンショットを見て、見えにくい要素を {string} と書いて答える")]
+fn writes_hard_to_see(world: &mut InterviewWorld, text: String) {
+    let scene = &mut world.scene;
+    scene.images = true;
+    // The table of the feature holds a line break as the two characters.
+    let lines = text.replace("\\n", "\n");
+    drop(text);
+    let step = Step::click(1).seeing(&lines);
     journey(scene, &list(), &[step, Step::of("done")]);
 }
 

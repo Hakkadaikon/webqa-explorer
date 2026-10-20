@@ -111,7 +111,10 @@ const fn kind(error: &JudgeError) -> &'static str {
     match error {
         JudgeError::Api => "api",
         JudgeError::Timeout => "timeout",
-        JudgeError::Exhausted | JudgeError::Malformed | JudgeError::Bridge => "malformed",
+        JudgeError::Exhausted
+        | JudgeError::Malformed
+        | JudgeError::Unreadable { .. }
+        | JudgeError::Bridge => "malformed",
     }
 }
 

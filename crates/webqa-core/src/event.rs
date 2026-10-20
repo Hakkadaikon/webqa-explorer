@@ -230,7 +230,9 @@ impl Event {
     #[must_use]
     pub fn anomaly(anomaly: &Anomaly) -> Self {
         let named = match anomaly {
-            Anomaly::Judge(error) => serde_json::json!({ "cause": error }),
+            Anomaly::Judge(error) => {
+                serde_json::json!({ "cause": error.cause(), "question": error.question() })
+            }
             Anomaly::Unusable(unusable) => serde_json::to_value(unusable).unwrap_or_default(),
         };
         let fields: AnomalyFields = serde_json::from_value(named).unwrap_or_default();
