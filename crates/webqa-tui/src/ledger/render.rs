@@ -71,16 +71,13 @@ const OPEN_KEYS: [(&str, &str); 4] = [
 ];
 
 /// The color of each kind of issue.
-const KIND_COLORS: [(Kind, Color); 4] = [
-    (Kind::Hesitant, Color::Yellow),
-    (Kind::Visibility, Color::Magenta),
-    (Kind::Unreached, Color::Red),
-    (Kind::Mismatch, Color::Blue),
-];
-
-fn kind_color(kind: Kind) -> Color {
-    let found = KIND_COLORS.iter().find(|(of, _)| *of == kind);
-    found.map_or(Color::Reset, |(_, color)| *color)
+const fn kind_color(kind: Kind) -> Color {
+    match kind {
+        Kind::Hesitant => Color::Yellow,
+        Kind::Visibility => Color::Magenta,
+        Kind::Unreached => Color::Red,
+        Kind::Mismatch => Color::Blue,
+    }
 }
 
 /// The size of the terminal, if it has one. A constant, not a function, as a
@@ -109,7 +106,7 @@ fn list_title(screen: &Screen) -> String {
     let kind = screen.filter.map(|kind| format!(" ({})", kind.label()));
     let selected = screen.ledger.entries.iter().filter(|entry| entry.selected);
     format!(
-        "台帳{} {}件 選択{}件",
+        "台帳{} {}件 選択{}件(全体)",
         kind.unwrap_or_default(),
         screen.shown().len(),
         selected.count()
@@ -117,11 +114,11 @@ fn list_title(screen: &Screen) -> String {
 }
 
 fn list(screen: &Screen) -> List<'static> {
-    let row = |(at, entry): (usize, &Entry)| {
+    let styled = |(at, entry): (usize, &Entry)| {
         let color = kind_color(entry.issue.kind());
         Line::styled(row(entry, at == screen.cursor), Style::new().fg(color))
     };
-    let mut rows: Vec<Line> = screen.shown().into_iter().enumerate().map(row).collect();
+    let mut rows: Vec<Line> = screen.shown().into_iter().enumerate().map(styled).collect();
     if rows.is_empty() {
         rows.push(Line::from("なし"));
     }

@@ -74,7 +74,7 @@ fn the_title_counts_the_shown_and_the_selected() {
     let mut ledger = sample().unwrap();
     ledger.entries[2].selected = true;
     let screen = Screen::new(ledger).fold(Input::Filter(Some(Kind::Hesitant)));
-    assert!(drawn(&screen).contains("台帳 (判断に迷う) 2件 選択1件"));
+    assert!(drawn(&screen).contains("台帳 (判断に迷う) 2件 選択1件(全体)"));
 }
 
 #[test]
@@ -93,8 +93,15 @@ fn the_keys_follow_what_is_shown() {
 }
 
 #[test]
-fn the_notice_is_red_under_the_list() {
+fn the_notice_is_red_above_the_keys() {
     let screen = Screen::new(sample().unwrap()).fold(Input::WriteFailed);
     let style = style_at(&screen, notice_text(Notice::WriteFailed));
     assert_eq!(style.fg, Some(Color::Red));
+    let text = drawn(&screen);
+    let rows: Vec<&str> = text.lines().collect();
+    let at = |said: &str| rows.iter().position(|row| row.contains(said));
+    assert_eq!(
+        at(notice_text(Notice::WriteFailed)).map(|row| row + 1),
+        at("q  終わる")
+    );
 }

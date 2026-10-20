@@ -23,17 +23,20 @@ pub fn render(state: &State, frame: &mut Frame) {
     ])
     .areas(frame.area());
     frame.render_widget(Paragraph::new(header(state)), head);
-    let [left, right] = panes(body);
-    let progress = Paragraph::new(progress(state)).block(framed("進み具合"));
+    let rows = progress(state);
+    let [left, right] = panes(body, rows.len());
+    let progress = Paragraph::new(rows).block(framed("進み具合"));
     frame.render_widget(progress, left);
     let latest = List::new(state.recent.iter().rev().map(recent_line));
     frame.render_widget(latest.block(framed("直近の操作")), right);
     frame.render_widget(Paragraph::new(hints(&[("Ctrl-C", "閉じる")])), keys);
 }
 
-fn panes(body: Rect) -> [Rect; 2] {
+/// The two panes; stacked, the progress takes its `rows` and its frame.
+fn panes(body: Rect, rows: usize) -> [Rect; 2] {
+    let high = u16::try_from(rows).unwrap_or(u16::MAX).saturating_add(2);
     let layout = if body.width < NARROW {
-        Layout::vertical([Constraint::Length(13), Constraint::Min(3)])
+        Layout::vertical([Constraint::Length(high), Constraint::Min(3)])
     } else {
         Layout::horizontal([Constraint::Length(34), Constraint::Min(20)])
     };
@@ -111,17 +114,13 @@ fn outcome(outcome: Outcome) -> (String, Color) {
     }
 }
 
-/// The reasons of stopping, as said.
-const REJECTIONS: [(Rejection, &str); 4] = [
-    (Rejection::Forbidden, "禁止"),
-    (Rejection::LowConfidence, "確信が低い"),
-    (Rejection::Missing, "要素が無い"),
-    (Rejection::Replaced, "別の要素"),
-];
-
-fn rejection(why: Rejection) -> &'static str {
-    let found = REJECTIONS.iter().find(|(of, _)| *of == why);
-    found.map_or("-", |(_, said)| *said)
+const fn rejection(why: Rejection) -> &'static str {
+    match why {
+        Rejection::Forbidden => "禁止",
+        Rejection::LowConfidence => "確信が低い",
+        Rejection::Missing => "要素が無い",
+        Rejection::Replaced => "別の要素",
+    }
 }
 
 #[cfg(test)]
