@@ -458,7 +458,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-119 | optional | 同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`input_secret_reads_explicit_true`、`inputs_marked_not_secret_make_no_rule`、`redactor_keeps_not_secret_values_and_hides_the_rest` | #76 | [x] | [ ] | 要 |
 | T-120 | ubiquitous | セキュリティテスト(nonfunctional-attributes)、同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`redactor_keeps_not_secret_values_and_hides_the_rest` | #76 | [x] | [ ] | 要 |
 | T-121 | unwanted | セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) | `literal_api_key_rejected_without_value` | #76 | [x] | [ ] | 要 |
-| T-122 | unwanted | セキュリティテスト(nonfunctional-attributes) | `event_lines_match_documented_jsonl` | #76 | [x] | [ ] | 要 |
+| T-122 | unwanted | セキュリティテスト(nonfunctional-attributes) | `event_lines_match_documented_jsonl`(型に値の項目が無い。受け入れが確かめる) | #76 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
