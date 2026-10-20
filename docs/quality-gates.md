@@ -19,11 +19,11 @@ lintやカバレッジの除外の注釈も足さない。
 | 複雑度 | `metrics` | 回る | 回る |
 | 文書とスペル | `docs-check` | 回る | 回る |
 | 設定とスクリプト | `config-check` | 回る | 回る |
-| テストとカバレッジ | `test` | 回らない | 回る |
+| テストとカバレッジ | `test` | 回らない | 回る(PRではコードを変えたときだけ) |
 | 秘密情報と絶対パス | `secrets-staged` | 回る | 回らない |
 | コミットメッセージ | `commit-msg` | 回る | PRで回る |
 | 依存の監査 | `deny` | 回らない | 回る |
-| mutation | `mutants` | 回らない | PRの変更箇所で回る |
+| mutation | `mutants` | 回らない | PRで`.rs`を変えたとき、変更箇所で回る |
 | カバレッジの書き出し(Codecovへ送るのはワークフロー) | `coverage-lcov` | 回らない | mainへのマージと手動の実行で回る |
 
 コミット前の検査はlefthookが走らせる。
@@ -34,6 +34,17 @@ lintやカバレッジの除外の注釈も足さない。
 PRのCIで回し、落ちたPRはmainへマージしない。
 手で回すときは`just check`を使い、テストも含めて回る。
 秘密情報とコミットメッセージの検査は、`just check`に入っていない。
+
+PRのCIは、変えたファイルで回すジョブを絞る。
+判定は`scripts/ci_changes.py`が行う。
+`just check`と`deny`は、Rustのコードか、テストが読むファイルを変えたときだけ回す。
+テストが読むファイルは、設定、スクリプト、橋渡し、`share/`、`docs/arch/config.md`、
+`tasks/loopeng/`のfeature、ワークフローである。
+それ以外の変更では、`docs-check`と`config-check`だけを回す。
+mutationは、差分に`.rs`があるときだけ回す。
+変えた行しか書き換えないので、`.rs`が無ければ対象が無い。
+mainへのpushでは、全部を回す。
+テストが新しいファイルを読むようにしたら、`scripts/ci_changes.py`の一覧にも足す。
 
 カバレッジの送信は、`.github/workflows/codecov.yml`がRustのカバレッジをCodecovへ送る。
 mainへのマージのたびに回り、Actionsの画面から枝を選んで手で回せる。
