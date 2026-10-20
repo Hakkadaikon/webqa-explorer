@@ -5,7 +5,7 @@ use cucumber::{given, then};
 use super::replies::{CALM, SAVE, button, each_trial, step};
 use crate::world::InterviewWorld;
 
-const HEAD: &str = "\n\n直近の操作\n";
+pub(super) const HEAD: &str = "\n\n直近の操作\n";
 
 #[given(expr = "判断モデルが、scroll_down を選んだあとに click を5回選び、そのあと done を選ぶ")]
 fn scrolls_then_clicks(world: &mut InterviewWorld) {
@@ -53,15 +53,17 @@ async fn one_line(world: &mut InterviewWorld, nth: usize, line: String) {
 }
 
 #[then(
-    expr = "{int}ステップ目の画面の文の直近の操作は、{string} から始まる5行で、scroll_down は含まれない"
+    expr = "{int}ステップ目の画面の文の直近の操作は、1から3行目と5行目が click 「保存」、4行目が中核の reload で、どれも画面は変わらなかった5行である"
 )]
-async fn five_lines(world: &mut InterviewWorld, nth: usize, first: String) {
+async fn five_lines(world: &mut InterviewWorld, nth: usize) {
     world.run().await;
-    let lines = lines_at(world, 2 * (nth - 1));
-    assert_eq!(lines.first(), Some(&first), "the oldest left");
-    assert_eq!(lines.len(), 5, "five lines");
-    assert!(
-        !lines.iter().any(|line| line.contains("scroll_down")),
-        "dropped"
-    );
+    let click = "click 「保存」 → 画面は変わらなかった";
+    let reload = "reload なし → 画面は変わらなかった";
+    let ops = [click, click, click, reload, click];
+    let want: Vec<String> = ops
+        .iter()
+        .zip(1..)
+        .map(|(op, n)| format!("{n}. {op}"))
+        .collect();
+    assert_eq!(lines_at(world, 2 * (nth - 1)), want, "the oldest left");
 }

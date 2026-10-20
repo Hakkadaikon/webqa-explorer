@@ -4,7 +4,7 @@
 走査アンカー: 受け入れ条件(`tasks/loopeng/InterviewMode.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
 転記元の版: コミット d74fc90(ブランチ fix-budget)の `tasks/loopeng/InterviewMode.feature` に、見えにくい要素の問いを最大3つに絞り、答えの書き方の揺れを読むことに直した決定(T-132、T-133 を足し、題名は変えず、行番号を合わせた)と、issue #33 の決定(操作種別を9種と書き、画像が要る2本のシナリオに画像を扱えるという申告の前提を足し、課題を直さないシナリオに正常に終わる場面の前提を足し、1冊の台帳にまとめるシナリオに目的を達成する前提を足し、窓待ちの制限時間を50分にし、台帳の書式の2本に課題が2件出る場面の前提を足した)と、issue #78 の決定(判断予算切れを目的に届かない試行から外し、T-060 の Examples を1行にし、T-060 の題名に判断予算切れを足し、T-134 を足し、行番号を合わせた)と、issue #79 の決定(期待の問いを、中核が選んだ操作と要素を問いの文に入れて2回目の問い合わせで問う。T-135〜T-137 を足し、T-048 の題名と表から期待を外し、T-051 の期待の例を T-137 に分け、目的に届かない課題のシナリオから最後のステップの期待を外した)と、issue #77 の決定(判断モデルに送る画面の文に、直近の操作の節を1回だけ足す。T-138 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
-転記元の sha256: 1cba7dbe1ad139b399e1df7a12f321f7a79ea0c44a5ef5fa63011570820d2f39
+転記元の sha256: eb3e2088f947a417a0e445e1c13633524649b487009fd5fbd0f88847d149f267
 feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py InterviewMode` は、この値と実物の feature の sha256 が違えば失敗する。
 抽出台帳は `tasks/loopeng/InterviewMode.extract.md`、設計は `docs/superpowers/specs/2026-10-18-interview-mode-design.md` にある。
 
@@ -384,7 +384,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-137 InterviewMode.feature:495(判断モデルへの問い) [unwanted] 「期待の問いの答えが欠けていたら、応答の異常として扱う」
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run::tests::interviewing::second` の `missing_expectation_is_unreadable_after_two_calls`、単体 `webqa-core::interview::answer` の `expectation_alone_is_read_as_written` / issue: #79
 - [x] T-138 InterviewMode.feature:524(判断モデルへの問い) [boundary] 「判断モデルへの画面の文に、直近の操作(最大5回)と画面が変わったかが入る」
-      → 手法: 境界値分析(blackbox-partition)、同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask::history` の `no_operation_adds_no_section`、単体 `webqa-core::interview::ask::history` の `one_operation_is_one_line_after_the_screen_text`、単体 `webqa-core::interview::ask::history` の `an_operation_without_target_and_without_change`、単体 `webqa-core::interview::ask::history` の `five_operations_are_all_kept_oldest_first`、単体 `webqa-core::interview::ask::history` の `the_sixth_operation_drops_the_oldest`、単体 `webqa-core::interview::ask::history` の `a_secret_in_a_name_stays_masked`、単体 `webqa::run::tests::interviewing::history` の `the_first_step_has_no_recent_operations`、単体 `webqa::run::tests::interviewing::history` の `later_calls_are_told_the_operations_so_far`、単体 `webqa::run::tests::interviewing::history` の `an_earlier_trial_is_not_told_to_the_next`、単体 `webqa::run::tests::acts` の `act_keeps_the_judge_probability_and_the_target` / issue: #77
+      → 手法: 境界値分析(blackbox-partition)、同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::interview::ask::history` の `no_operation_adds_no_section`、単体 `webqa-core::interview::ask::history` の `one_operation_is_one_line_after_the_screen_text`、単体 `webqa-core::interview::ask::history` の `an_operation_without_target_and_without_change`、単体 `webqa-core::interview::ask::history` の `five_operations_are_all_kept_oldest_first`、単体 `webqa-core::interview::ask::history` の `the_sixth_operation_drops_the_oldest`、単体 `webqa-core::interview::ask::history` の `the_redactor_masks_a_secret_in_a_name`、単体 `webqa-core::interview::ask::history` の `a_control_character_in_a_name_is_escaped`、単体 `webqa::run::tests::interviewing::history` の `later_calls_are_told_the_operations_so_far`、単体 `webqa::run::tests::interviewing::history` の `an_earlier_trial_is_not_told_to_the_next`、単体 `webqa::run::tests::interviewing::history` の `a_page_that_changed_is_told_as_changed`、単体 `webqa::record` の `told_passes_the_section_through_the_redactor`、単体 `webqa::record` の `told_starts_at_the_operation_given`、単体 `webqa::run::tests::acts` の `act_keeps_the_judge_probability_and_the_target` / issue: #77
 
 ## 試行の外のループの性質テスト
 
@@ -547,7 +547,7 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-135 | event | 同値分割(blackbox-partition)、ゴールデンテスト(oracle-past-output)、テストダブル(test-doubles) | `expectation_question_names_the_operation_and_the_element`、`an_operation_on_an_element_names_it`、`the_element_passed_over_for_being_unmoved_is_the_one_named`、`expectation_prompt_snapshot`、`second_call_asks_only_the_expectation_of_the_chosen_operation`、`second_call_names_the_element_the_core_picked`、`second_call_cannot_change_the_operation`、`each_call_is_logged_and_recorded_in_order` | #79 | [x] | [ ] | — |
 | T-136 | unwanted | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `nothing_is_chosen_when_the_core_carries_out_nothing`、`expectation_is_empty_when_it_was_not_asked`、`an_empty_expectation_leaves_no_parentheses`、`second_call_is_not_made_when_no_operation_is_carried_out` | #79 | [x] | [ ] | 要 |
 | T-137 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) | `missing_expectation_is_unreadable_after_two_calls`、`expectation_alone_is_read_as_written` | #79 | [x] | [ ] | 要 |
-| T-138 | boundary | 境界値分析(blackbox-partition)、同値分割(blackbox-partition)、テストダブル(test-doubles) | `no_operation_adds_no_section`、`one_operation_is_one_line_after_the_screen_text`、`an_operation_without_target_and_without_change`、`five_operations_are_all_kept_oldest_first`、`the_sixth_operation_drops_the_oldest`、`a_secret_in_a_name_stays_masked`、`the_first_step_has_no_recent_operations`、`later_calls_are_told_the_operations_so_far`、`an_earlier_trial_is_not_told_to_the_next`、`act_keeps_the_judge_probability_and_the_target` | #77 | [x] | [ ] | — |
+| T-138 | boundary | 境界値分析(blackbox-partition)、同値分割(blackbox-partition)、テストダブル(test-doubles) | `no_operation_adds_no_section`、`one_operation_is_one_line_after_the_screen_text`、`an_operation_without_target_and_without_change`、`five_operations_are_all_kept_oldest_first`、`the_sixth_operation_drops_the_oldest`、`the_redactor_masks_a_secret_in_a_name`、`a_control_character_in_a_name_is_escaped`、`later_calls_are_told_the_operations_so_far`、`an_earlier_trial_is_not_told_to_the_next`、`a_page_that_changed_is_told_as_changed`、`told_passes_the_section_through_the_redactor`、`told_starts_at_the_operation_given`、`act_keeps_the_judge_probability_and_the_target` | #77 | [x] | [ ] | — |
 
 ## 対応する unwanted 行
 
@@ -615,8 +615,8 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py InterviewMode
-feature の sha256: 1cba7dbe1ad139b399e1df7a12f321f7a79ea0c44a5ef5fa63011570820d2f39
-台帳の sha256:     1cba7dbe1ad139b399e1df7a12f321f7a79ea0c44a5ef5fa63011570820d2f39
+feature の sha256: eb3e2088f947a417a0e445e1c13633524649b487009fd5fbd0f88847d149f267
+台帳の sha256:     eb3e2088f947a417a0e445e1c13633524649b487009fd5fbd0f88847d149f267
 `- [ ]` の行: 0
 台帳の T-ID 行: 138(期待 138)
 欠番: なし
@@ -712,8 +712,8 @@ NG 9 件
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py InterviewMode
-feature の sha256: 1cba7dbe1ad139b399e1df7a12f321f7a79ea0c44a5ef5fa63011570820d2f39
-台帳の sha256:     1cba7dbe1ad139b399e1df7a12f321f7a79ea0c44a5ef5fa63011570820d2f39
+feature の sha256: eb3e2088f947a417a0e445e1c13633524649b487009fd5fbd0f88847d149f267
+台帳の sha256:     eb3e2088f947a417a0e445e1c13633524649b487009fd5fbd0f88847d149f267
 NG feature の sha256 が台帳の値と違う
 NG T-001: issue の欄が空か形が違う: '14'
 NG T-001: マトリクスのissueが本文と違う: '' / '14'
