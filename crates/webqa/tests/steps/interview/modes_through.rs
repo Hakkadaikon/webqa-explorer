@@ -1,37 +1,43 @@
 //! The steps of the run that goes through: what it wrote, and what it did
 //! to the web app.
 
-use cucumber::then;
+use cucumber::{given, then};
 use webqa::interview::trials::{Ending, Stopped};
 use webqa::store::screenshots::issue_name;
 use webqa_core::interview::natural::YES;
 
-use crate::input::{at, journey_sure_of, natural_answer, reset, say};
+use crate::input::{natural_answer, reset, say, step};
+use crate::page::PageSpec;
 use crate::scene::found;
 use crate::world::InterviewWorld;
 
-/// Runs the scene of a run that goes through, in place of the scene the When
-/// ran: every trial clicks, unsure of it, and says done on the next page, so
-/// that an issue is found and the run ends on its own. Once.
-async fn goes_through(world: &mut InterviewWorld) {
-    if world.before.is_none() {
-        world.again();
-        let scene = &mut world.scene;
-        scene.images = true;
-        reset(scene);
-        let visits = [at("/", "目的を果たす"), at("/next", "目的を果たす")];
-        let trials = usize::try_from(scene.trials).unwrap_or(0);
-        for trial in 0..trials {
-            journey_sure_of(scene, trial, &visits, 0.4);
-        }
-        say(scene, [natural_answer(YES)]);
+#[given(
+    expr = "どの試行でも、判断モデルが最初の画面で {string} を確信度 {float} で選び、次の画面で目的を果たしたと答え、判断に迷う課題が1つ出る"
+)]
+fn every_trial_goes_through(world: &mut InterviewWorld, link: String, confidence: f64) {
+    let scene = &mut world.scene;
+    // The screenshot of the issue comes from the image sent with the question.
+    scene.images = true;
+    reset(scene);
+    scene.start = PageSpec::at("/").with(PageSpec::link(&link));
+    // The first page again, seen just before the click, and the next page.
+    let next = PageSpec::at("/next").with(PageSpec::link(&link));
+    let trials = found(usize::try_from(scene.trials).ok(), "the trials count");
+    scene.after = vec![vec![scene.start.clone(), next]; trials];
+    let guess = Some("目的を果たす");
+    for _ in 0..trials {
+        say(
+            scene,
+            [step("click", confidence, guess), step("done", 0.9, guess)],
+        );
     }
-    world.run().await;
+    say(scene, [natural_answer(YES)]);
+    drop(link);
 }
 
 #[then(expr = "書いたファイルは、台帳、イベントログ、実行結果、スクリーンショットだけである")]
 async fn only_the_records_were_written(world: &mut InterviewWorld) {
-    goes_through(world).await;
+    world.run().await;
     let store = &world.ran().store;
     let ledger = found(world.ledger(), "the ledger was written");
     let issue = found(ledger.entries.first(), "an issue was found")
@@ -59,8 +65,12 @@ fn operations(world: &InterviewWorld) -> Vec<(usize, String, Option<String>)> {
 
 /// What the judge decided: each trial clicks the link of its first page.
 fn decisions(world: &InterviewWorld) -> Vec<(usize, String, Option<String>)> {
-    let trials = usize::try_from(world.scene.trials).unwrap_or(0);
-    let click = |trial| (trial, "click".to_owned(), Some("次へ /".to_owned()));
+    let trials = found(usize::try_from(world.scene.trials).ok(), "the trials count");
+    let link = found(
+        world.scene.start.elements.first(),
+        "the start page has a link",
+    );
+    let click = |trial| (trial, "click".to_owned(), Some(link.name.clone()));
     (1..=trials).map(click).collect()
 }
 
@@ -75,7 +85,7 @@ fn operations_after_the_trials(world: &InterviewWorld) -> usize {
 
 #[then(expr = "対象の Web アプリに、課題を直すための操作をしていない")]
 async fn did_not_fix_anything(world: &mut InterviewWorld) {
-    goes_through(world).await;
+    world.run().await;
     let ending = Ending::Wrote {
         stopped: Stopped::Completed,
         confirmed: false,

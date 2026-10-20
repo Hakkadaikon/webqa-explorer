@@ -4,7 +4,7 @@
 走査アンカー: 受け入れ条件(`tasks/loopeng/InterviewMode.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
 転記元の版: コミット 7e4329b の `tasks/loopeng/InterviewMode.feature`。出典欄の行番号はこの版の行を指す。
-転記元の sha256: 25361d4757080d38068d37b4191a881bf52641cbdcea2a92270af532ee7d46da
+転記元の sha256: f4b80b4d3d52faa4cfcc2ad9e2561328ebf0bf29c27ee9c0852fda163d6706e5
 feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py InterviewMode` は、この値と実物の feature の sha256 が違えば失敗する。
 抽出台帳は `tasks/loopeng/InterviewMode.extract.md`、設計は `docs/superpowers/specs/2026-10-18-interview-mode-design.md` にある。
 
@@ -592,8 +592,8 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py InterviewMode
-feature の sha256: 25361d4757080d38068d37b4191a881bf52641cbdcea2a92270af532ee7d46da
-台帳の sha256:     25361d4757080d38068d37b4191a881bf52641cbdcea2a92270af532ee7d46da
+feature の sha256: f4b80b4d3d52faa4cfcc2ad9e2561328ebf0bf29c27ee9c0852fda163d6706e5
+台帳の sha256:     f4b80b4d3d52faa4cfcc2ad9e2561328ebf0bf29c27ee9c0852fda163d6706e5
 `- [ ]` の行: 0
 台帳の T-ID 行: 131(期待 131)
 欠番: なし
@@ -689,7 +689,7 @@ NG 9 件
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py InterviewMode
-feature の sha256: 25361d4757080d38068d37b4191a881bf52641cbdcea2a92270af532ee7d46da
+feature の sha256: f4b80b4d3d52faa4cfcc2ad9e2561328ebf0bf29c27ee9c0852fda163d6706e5
 台帳の sha256:     05361d4757080d38068d37b4191a881bf52641cbdcea2a92270af532ee7d46da
 NG feature の sha256 が台帳の値と違う
 NG T-001: issue の欄が空か形が違う: '14'

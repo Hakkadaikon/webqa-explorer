@@ -1,6 +1,8 @@
 //! What the configuration rejects: the persona document, and the sentence
 //! of each mistake of a scene.
 
+use std::path::Path;
+
 use serde_json::{Map, Value, json};
 use webqa_core::config::persona::Persona;
 
@@ -38,6 +40,7 @@ fn persona_mistakes(scene: &Scene) -> Vec<String> {
     let missing = text.and_then(missing_item);
     let broken = text.is_some_and(|text| serde_json::from_str::<Value>(text).is_err());
     let lacks = missing.map(|item| format!("persona.{item} を書く"));
+    // Column 7 is where the `[` of the broken `name: [...` opens (`broken_persona`).
     let unreadable = "persona を決まった形式で読めない: expected string scalar at line 1, column 7";
     let format = broken.then(|| unreadable.to_owned());
     let pattern = "purpose.screens の 1 番目の url の型が書式に合わない";
@@ -48,62 +51,94 @@ fn persona_mistakes(scene: &Scene) -> Vec<String> {
 /// A setting of the scene as a number, if it is set.
 type Setting = fn(&Scene) -> Option<f64>;
 
-/// The sentence for each item and value that the configuration rejects. The
-/// sentence of a number that is not above zero is the parser's, with the
-/// position of the number in the configuration.
-const SETTINGS: [(Setting, f64, &str); 9] = [
+/// What the parser says of a number that is not above zero. The position of
+/// the number follows.
+const ZERO: &str = "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32";
+
+/// For each item and value that the configuration rejects: the setting, the
+/// value, the key the parser reports the position of, and the sentence
+/// without the position.
+const SETTINGS: [(Setting, f64, Option<&str>, &str); 9] = [
     (
         |scene| Some(f64::from(scene.trials)),
         0.0,
-        "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32 at line 23, column 3",
+        Some("trials"),
+        ZERO,
     ),
     (
         |scene| Some(scene.hesitation),
         0.0,
+        None,
         "interview.hesitation_threshold は 0 より大きく 1 以下の値にする",
     ),
     (
         |scene| Some(scene.hesitation),
         1.5,
+        None,
         "interview.hesitation_threshold は 0 より大きく 1 以下の値にする",
     ),
     (
         |scene| Some(scene.confidence),
         0.0,
+        None,
         "interview.confidence_threshold は 0 より大きく 1 以下の値にする",
     ),
     (
         |scene| Some(scene.confidence),
         1.5,
+        None,
         "interview.confidence_threshold は 0 より大きく 1 以下の値にする",
     ),
     (
         |scene| scene.interview_stuck.map(f64::from),
         0.0,
-        "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32 at line 27, column 3",
+        Some("stuck_threshold"),
+        ZERO,
     ),
     (
         |scene| Some(f64::from(scene.trials)),
         101.0,
+        None,
         "interview.trials は 1 以上 100 以下にする",
     ),
     (
         |scene| Some(f64::from(scene.max_natural)),
         0.0,
-        "設定の YAML を読めない: invalid value: integer `0`, expected a nonzero u32 at line 26, column 3",
+        Some("max_natural_questions"),
+        ZERO,
     ),
     (
         |scene| scene.interview_requests.map(f64::from),
         1.0,
+        None,
         "interview.requests_per_hour は 2 以上にする",
     ),
 ];
 
+/// The line of `key` in the `interview` section of `yaml`, from 1.
+fn line_of(yaml: &str, key: &str) -> Option<usize> {
+    let at = format!("  {key}:");
+    let lines = yaml.lines().zip(1..);
+    let mut section = lines.skip_while(|(line, _)| *line != "interview:");
+    section
+        .find(|(line, _)| line.starts_with(&at))
+        .map(|(_, number)| number)
+}
+
+/// The sentence of a row, with the position of its key in the configuration
+/// of the scene.
+fn sentence_of(scene: &Scene, key: Option<&str>, sentence: &str) -> String {
+    let yaml = scene.yaml(Path::new(""));
+    let number = key.and_then(|key| line_of(&yaml, key));
+    let position = number.map(|number| format!(" at line {number}, column 3"));
+    format!("{sentence}{}", position.unwrap_or_default())
+}
+
 /// The sentences for the settings of the scene that are in the table.
 fn setting_mistakes(scene: &Scene) -> Vec<String> {
     let rows = SETTINGS.iter();
-    let hits = rows.filter(|(get, value, _)| get(scene) == Some(*value));
-    hits.map(|(_, _, sentence)| (*sentence).to_owned())
+    let hits = rows.filter(|(get, value, _, _)| get(scene) == Some(*value));
+    hits.map(|(_, _, key, sentence)| sentence_of(scene, *key, sentence))
         .collect()
 }
 

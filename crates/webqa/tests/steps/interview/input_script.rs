@@ -90,15 +90,12 @@ fn shown_after(first: &PageSpec, rest: &[PageSpec]) -> Vec<PageSpec> {
     iter::once(first.clone()).chain(twice).collect()
 }
 
-/// What the judge says at each of `visits`: it clicks, with the confidence
-/// `p`, at every page but the last, where it says done.
-fn said_at(visits: &[Visit], p: f64) -> Vec<Answers> {
+/// What the judge says at each of `visits`: it clicks at every page but the
+/// last, where it says done.
+fn said_at(visits: &[Visit]) -> Vec<Answers> {
     let clicks = iter::repeat_n("click", visits.len().saturating_sub(1));
     let ops = clicks.chain(iter::once("done"));
-    let said = |((_, guess), op): (&Visit, &str)| {
-        let sure = if op == "click" { p } else { 0.9 };
-        step(op, sure, guess.as_deref())
-    };
+    let said = |((_, guess), op): (&Visit, &str)| step(op, 0.9, guess.as_deref());
     visits.iter().zip(ops).map(said).collect()
 }
 
@@ -106,11 +103,6 @@ fn said_at(visits: &[Visit], p: f64) -> Vec<Answers> {
 /// judge says there. Trials are given in order, and each starts on the
 /// first page of the first one.
 pub fn journey(scene: &mut Scene, trial: usize, visits: &[Visit]) {
-    journey_sure_of(scene, trial, visits, 0.9);
-}
-
-/// As [`journey`], with the judge clicking with the confidence `p`.
-pub fn journey_sure_of(scene: &mut Scene, trial: usize, visits: &[Visit], p: f64) {
     let pages: Vec<PageSpec> = visits.iter().map(|(path, _)| page(path)).collect();
     let (first, rest) = found(pages.split_first(), "a trial visits a page");
     if trial == 0 {
@@ -119,7 +111,7 @@ pub fn journey_sure_of(scene: &mut Scene, trial: usize, visits: &[Visit], p: f64
     assert_eq!(first.path, scene.start.path, "every trial starts alike");
     assert_eq!(scene.after.len(), trial, "the trials are given in order");
     scene.after.push(shown_after(first, rest));
-    say(scene, said_at(visits, p));
+    say(scene, said_at(visits));
 }
 
 /// Every trial of the scene visits `visits`, and the judge answers
