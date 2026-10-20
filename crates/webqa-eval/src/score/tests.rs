@@ -126,3 +126,57 @@ fn nothing_to_count_gives_none() {
         (None, None, None)
     );
 }
+
+fn label(
+    kind: KindId,
+    path: Option<&str>,
+    element: Option<(&str, &str)>,
+    verdict: Verdict,
+) -> Label {
+    let Plant { path, element, .. } = plant("", kind, path, element);
+    Label {
+        kind,
+        path,
+        element,
+        verdict,
+    }
+}
+
+#[test]
+fn a_label_rules_on_kind_path_and_element() {
+    let l = label(
+        KindId::Visibility,
+        Some("/p"),
+        Some(("link", "料金")),
+        Verdict::Real,
+    );
+    let issues = [
+        issue(KindId::Visibility, "/p", Some(("link", "料金"))),
+        issue(KindId::Hesitant, "/p", Some(("link", "料金"))),
+        issue(KindId::Visibility, "/q", Some(("link", "料金"))),
+        issue(KindId::Visibility, "/p", Some(("link", "別"))),
+        issue(KindId::Visibility, "/p", None),
+    ];
+    assert_eq!(
+        issues.map(|f| rules(&l, &f)),
+        [true, false, false, false, false]
+    );
+}
+
+#[test]
+fn the_first_label_that_fits_wins() {
+    let issues = [issue(KindId::Hesitant, "/", None)];
+    let real = label(KindId::Hesitant, None, None, Verdict::Real);
+    let wrong = label(KindId::Hesitant, Some("/"), None, Verdict::False);
+    let first_real = score(&[], &[real.clone(), wrong.clone()], &issues, None);
+    let first_wrong = score(&[], &[wrong, real], &issues, None);
+    assert_eq!(
+        (
+            first_real.real,
+            first_real.wrong,
+            first_wrong.real,
+            first_wrong.wrong
+        ),
+        (1, 0, 0, 1)
+    );
+}
