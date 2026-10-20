@@ -116,7 +116,11 @@
 
 ### 判断モデルの答えの記録
 
-`calls`には、判断モデルを呼ぶたびに1つずつ書く。
+`calls`には、判断モデルを呼ぶたびに1つずつ、呼んだ順に書く。
+インタビューのモードは、操作を行うステップで2回呼ぶ(1回目は期待を除いた問い、2回目は期待の問い)。
+その2件は同じ`step`を持つので、`calls`の数はステップの数より多くなりうる。
+2回目の答えが使えなかったときは、`error`を`malformed`、`question`を`expectation`にして書く。
+`webqa replay`は`calls`を書いた順に返すので、2回目も同じ順で再生される。
 
 | 項目 | 中身 |
 |---|---|
@@ -188,7 +192,7 @@ CLIは1行書くたびにフラッシュする。
 |---|---|
 | `run_started` | 実行の開始。`schema`、`mode`、`started_at` |
 | `memory_reset` | 探索の記憶のファイルが使えず、空の記憶から始めた。`cause`に理由 |
-| `asked` | 判断モデルに1回問いを送った。`input_tokens`、`output_tokens`、`think_ms` |
+| `asked` | 判断モデルに1回問いを送った。呼び出しごとに1行書くので、インタビューのモードでは1つのステップに2行出ることがある。`input_tokens`、`output_tokens`、`think_ms` |
 | `decided` | 判断モデルが操作を選んだ。`op`、`target`、`p` |
 | `recovered` | 中核が自分で操作した。`op`と、操作の理由の`cause` |
 | `executed` | ブラウザが操作した。画面が変わったかの`changed`と、ネットワークへのアクセスの数`accesses` |
