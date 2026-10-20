@@ -85,6 +85,7 @@ E2Eテストのフレームワークでは、人が操作の手順と期待値�
 | [`docs/quality-gates.md`](docs/quality-gates.md) | 品質ゲートの基準と、落ちたときの直し方 |
 | [`docs/commit-messages.md`](docs/commit-messages.md) | コミットメッセージの規約 |
 | [`docs/agents.md`](docs/agents.md) | Claude Codeの親セッションとサブエージェントの役割分担 |
+| [`share/skills/writing-persona-purpose/SKILL.md`](share/skills/writing-persona-purpose/SKILL.md) | ペルソナと目的をAIに書かせる手引き(配布用) |
 | [`docs/design-records.md`](docs/design-records.md) | `tasks/`にある設計検討の記録の読み方 |
 
 ## ライセンス
