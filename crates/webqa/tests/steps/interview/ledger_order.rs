@@ -7,7 +7,7 @@ use webqa_core::interview::natural::Section;
 use webqa_core::screen::ScreenId;
 
 use super::text::{self, blocks};
-use super::{NEXT, hesitation_number, home, sampled, unreached_number};
+use super::{NEXT, hesitation_number, home, unreached_number};
 use crate::issues::script::{Step, entries, trials};
 use crate::scene::found;
 use crate::world::InterviewWorld;
@@ -33,7 +33,7 @@ const FIELDS: [&str; 14] = [
 
 #[then(expr = "各課題に、画面の要素の手がかりが書かれている")]
 async fn has_clues(world: &mut InterviewWorld) {
-    sampled(world).await;
+    world.run().await;
     let screen = ScreenId {
         path: "/".to_owned(),
         elements: [("button".to_owned(), NEXT.to_owned())].into(),
@@ -67,7 +67,7 @@ async fn has_clues(world: &mut InterviewWorld) {
 
 #[then(expr = "各課題に、ソースファイルの名前や行番号の項目は無い")]
 async fn has_no_source(world: &mut InterviewWorld) {
-    sampled(world).await;
+    world.run().await;
     let all = blocks(&text::text(world));
     assert_eq!(all.len(), 2, "both issues");
     for block in &all {

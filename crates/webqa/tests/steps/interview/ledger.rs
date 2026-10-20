@@ -4,7 +4,7 @@
 use cucumber::{given, then};
 use webqa_core::interview::issue::{Kind, Number};
 
-use crate::issues::script::{Step, entries, journey};
+use crate::issues::script::{Step, journey};
 use crate::ledger::number_of;
 use crate::page::PageSpec;
 use crate::scene::Scene;
@@ -131,16 +131,4 @@ async fn first_line_is_instruction(world: &mut InterviewWorld) {
     let mut expected = [hesitation_line(hesitation_number(), "進む"), unreached];
     expected.sort();
     assert_eq!(firsts, expected, "the first line of each issue");
-}
-
-/// The ledger of a scene with issues. The When of a scenario without a
-/// Given ran a scene with nothing in it, which has no issue to check; so
-/// then the scene is run again with the sample of two issues.
-async fn sampled(world: &mut InterviewWorld) {
-    world.run().await;
-    if entries(world).is_empty() {
-        world.again();
-        two_issues(&mut world.scene);
-        world.run().await;
-    }
 }

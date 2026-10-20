@@ -41,6 +41,7 @@ fn between(world: &mut InterviewWorld, first: String, second: String) {
 fn moves_in_order(world: &mut InterviewWorld, a: String, b: String, c: String, d: String) {
     let order = ["商品一覧", "商品詳細", "商品一覧", "商品詳細"];
     assert_eq!([a, b, c, d], order, "the screens of the four steps");
+    // Not in the feature: at 1 any step without progress ends the trial, so a trial that goes on shows none was counted.
     world.scene.stuck_threshold = 1;
 }
 

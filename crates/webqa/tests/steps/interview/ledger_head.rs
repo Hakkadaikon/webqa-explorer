@@ -7,7 +7,7 @@ use webqa_core::interview::issue::Kind;
 use webqa_core::interview::ledger::{Goal, Head};
 
 use super::text;
-use super::{NEXT, home, one_issue, sampled};
+use super::{NEXT, home, one_issue};
 use crate::issues::script::{Step, entries, journey, ledger};
 use crate::scene::EMAIL_RULE;
 use crate::world::InterviewWorld;
@@ -34,10 +34,9 @@ async fn address_hidden(world: &mut InterviewWorld, address: String) {
     assert!(text.contains(&masked), "the name stands in its place");
 }
 
-/// The ledger of the scene with two issues, run on its own if the scenario
-/// gave none.
+/// The head of the ledger of the run.
 async fn head_of(world: &mut InterviewWorld) -> Head {
-    sampled(world).await;
+    world.run().await;
     ledger(world).head
 }
 
