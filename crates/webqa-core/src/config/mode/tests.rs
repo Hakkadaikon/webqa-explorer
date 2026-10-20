@@ -93,6 +93,13 @@ fn scenario_mode_needs_stages() {
         "scenario without stages"
     );
     assert_eq!(outcome(&without, Mode::Explore), Ok(()), "explore");
+    let mut enter_only = without;
+    enter_only.ops = vec![Op::Enter];
+    assert_eq!(
+        outcome(&enter_only, Mode::Scenario),
+        Err(ConfigError::NoStages.to_string()),
+        "no stages first"
+    );
     let example = validated(example());
     for mode in BOTH {
         assert_eq!(outcome(&example, mode), Ok(()), "example {mode:?}");

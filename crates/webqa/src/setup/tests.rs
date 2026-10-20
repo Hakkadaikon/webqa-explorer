@@ -181,6 +181,12 @@ fn cases() -> Vec<Case> {
         config_case(frozen, Mode::Explore, ALL_ENV, &yaml_error),
         config_case(no_scenario, Mode::Scenario, ALL_ENV, &ConfigError::NoStages),
         config_case(ops_done(), Mode::Explore, ALL_ENV, explore_ops),
+        config_case(
+            changed("scenario:", "ops: [enter]\nscenario:"),
+            Mode::Scenario,
+            ALL_ENV,
+            &ConfigError::ScenarioNeedsOpBesidesEnter,
+        ),
         bad_pattern(),
         Case {
             read: UNREADABLE,

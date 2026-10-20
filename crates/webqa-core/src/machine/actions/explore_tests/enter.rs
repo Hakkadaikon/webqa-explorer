@@ -124,6 +124,7 @@ fn enter_needs_no_target() {
 }
 
 /// No configuration gets here: an `enter` only `ops` is rejected in both kinds of run.
+/// The empty question is not wanted; this only shows the forbidden element wins.
 #[test]
 fn enter_is_dropped_even_when_it_is_the_only_kind() {
     let risky = with(fielded(), inside("button", "購入する"));
