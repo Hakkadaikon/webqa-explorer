@@ -65,8 +65,8 @@ async fn budget_resets_per_trial() {
     let decisions = world.picked(&["asked"]).len();
     assert_eq!(
         (decisions, world.ledger().map(|l| l.head)),
-        (2, Some(head(2))),
-        "each trial spent its own decision"
+        (4, Some(head(2))),
+        "each trial spent its own decision, which took two calls"
     );
 }
 
@@ -147,7 +147,7 @@ pub(super) async fn slow_run(world: &mut World, script: Scripted) -> Ending {
 #[tokio::test]
 async fn deadline_measured_from_run_start() {
     let mut world = world(3, 100, &[]);
-    let ops = [trial_ops(1, "done"), trial_ops(1, "done")].concat();
+    let ops = [trial_ops(0, "done"), trial_ops(1, "done")].concat();
     let ending = slow_run(&mut world, script(&ops)).await;
     let finished = world.picked(&["trial_finished"]);
     let timed_out = Ending::Wrote {

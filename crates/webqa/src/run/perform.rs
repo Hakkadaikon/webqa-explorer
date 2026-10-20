@@ -12,6 +12,7 @@ use webqa_core::redact::{Redacted, Redactor};
 use webqa_core::screen::{self, Screen};
 
 use super::detect::{note_issues, observed_issues};
+use super::interviewing::Called;
 use super::{Ports, RunError, interviewing, log};
 use crate::record::{Act, Call};
 
@@ -49,15 +50,9 @@ async fn ask(
     ports: &mut Ports<'_>,
 ) -> Result<Heard, RunError> {
     ports.step += 1;
-    let started = ports.clock.elapsed();
-    let reply = interviewing::call(questions, state, ports).await;
-    let think = ports.clock.elapsed().saturating_sub(started);
-    ports.log(log::asked(&reply, think)).await?;
-    ports.record.calls.push(Call {
-        step: ports.step,
-        reply: reply.clone(),
-        think,
-    });
+    let asked = interviewing::call(questions, state, ports).await;
+    keep_calls(asked.calls, ports).await?;
+    let reply = asked.reply;
     let detect = &ports.detect;
     let issues = reply.as_ref().map_or_else(
         |_| Vec::new(),
@@ -65,6 +60,16 @@ async fn ask(
     );
     note_issues(ports, issues).await?;
     Ok(Heard::Answered(reply))
+}
+
+/// Logs and records each call of the step, in the order they were made.
+async fn keep_calls(calls: Vec<Called>, ports: &mut Ports<'_>) -> Result<(), RunError> {
+    for Called { reply, think } in calls {
+        ports.log(log::asked(&reply, think)).await?;
+        let step = ports.step;
+        ports.record.calls.push(Call { step, reply, think });
+    }
+    Ok(())
 }
 
 async fn on_page(page: PageEffect, state: &State, ports: &mut Ports<'_>) -> Result<Seen, RunError> {

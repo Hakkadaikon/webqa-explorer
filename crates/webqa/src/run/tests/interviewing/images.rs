@@ -12,8 +12,8 @@ async fn interview_sends_screenshot_to_a_judge_that_reads_images() {
     let hard = hard.filter(|q| q.id().as_str() == HARD_TO_SEE).count();
     assert_eq!(
         (asked.judge.images, asked.shots, hard),
-        (vec![png], 1, 1),
-        "one screenshot, and the question about what is hard to see"
+        (vec![png.clone(), png], 1, 1),
+        "one screenshot taken and sent with both calls, and the question about what is hard to see"
     );
 }
 
@@ -45,7 +45,7 @@ async fn interview_asks_without_image_when_the_screenshot_fails() {
             asked.judge.asked.len(),
             asked.shots
         ),
-        (0, 1, 1),
-        "asked as text after the screenshot failed"
+        (0, 2, 1),
+        "both calls asked as text after the screenshot failed"
     );
 }

@@ -24,6 +24,8 @@ use super::{Fakes, limited};
 mod forbidden;
 mod images;
 mod kept;
+mod second;
+mod unmoved;
 mod unusable;
 
 /// Records what it was asked and whether an image came with it, then

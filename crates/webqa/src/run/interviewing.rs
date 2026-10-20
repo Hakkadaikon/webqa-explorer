@@ -1,19 +1,21 @@
 //! The interview's questions in place of the core's, and what the run
 //! keeps of each step for the ledger.
 
-use std::mem;
+use std::time::Duration;
+use std::{iter, mem, slice};
 
 use webqa_core::config::persona::Persona;
 use webqa_core::config::raw::Op;
 use webqa_core::effect::Questions;
-use webqa_core::interview::answer::{Reply, read_step};
+use webqa_core::interview::answer::{Reply, read_expectation, read_step, read_without_expectation};
 use webqa_core::interview::ask::{
-    EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS, Step, attached, elements, questions, send,
+    EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS, Step, attached, elements,
+    expectation_question, questions, send,
 };
 use webqa_core::issue::probe_questions;
 use webqa_core::judge::{Answers, Image, JudgeError, Question, Unusable};
-use webqa_core::machine::State;
-use webqa_core::ports::{Browser, Judge};
+use webqa_core::machine::{State, chosen};
+
 use webqa_core::redact::Redacted;
 use webqa_core::screen::{Screen, ScreenText, Viewport};
 
@@ -81,21 +83,22 @@ impl Interviewing {
     }
 
     /// Asks `judge` the interview's questions, then `extra`, about the
-    /// latest page of `state`, at step number `step`. The answers are read
-    /// and kept. The caller gets them as they are, so a failure of the
-    /// core's own questions reads as it does in the other modes; an answer
-    /// to an added question that cannot be used comes back as
+    /// latest page of `state`, at step number `step`. When the core will
+    /// carry out an operation on the answers, asks what the persona expects
+    /// of that operation in a second call. The answers are read and kept.
+    /// The core gets the answers of both calls as they are, so a failure of
+    /// its own questions reads as it does in the other modes; an answer to
+    /// an added question that cannot be used comes back as
     /// [`JudgeError::Unreadable`], so the core does nothing with it.
     pub(super) async fn ask(
         &mut self,
-        (browser, judge): (&mut dyn Browser, &mut dyn Judge),
+        ports: &mut Ports<'_>,
         screen: &Redacted<ScreenText>,
-        state: &State,
-        step: u64,
-        extra: Vec<Question>,
-    ) -> Result<Answers, JudgeError> {
+        (state, extra): (&State, Vec<Question>),
+    ) -> Asked {
         let last = state.last();
-        let image = browser.screenshot().await.ok();
+        let step = ports.step;
+        let image = ports.browser.screenshot().await.ok();
         let asked = Step {
             persona: &self.persona,
             goal: &self.goal,
@@ -103,24 +106,125 @@ impl Interviewing {
             elements: elements(&last.screen, last.viewport),
             image: attached(self.reads_images, image.as_ref()),
         };
-        let mut asking = questions(&asked);
-        asking.extend(extra);
-        let reply = send(judge, screen, asked.image, &asking).await;
-        let read = reply.as_ref().ok().map(|a| read_step(a, &asked));
-        let reply = unless_added_failed(reply, read.as_ref());
+        let first = first_call(ports, screen, &asked, extra).await;
+        let second = expect(ports, screen, (&asked, state), &first.reply).await;
+        let reply = join(first.reply.clone(), second.as_ref());
         self.steps.push(Taken {
             step,
             screen: last.screen.clone(),
             viewport: last.viewport,
-            reply: read.and_then(Result::ok),
+            reply: kept(&reply, second.is_some(), &asked),
             image,
         });
-        reply
+        Asked {
+            calls: iter::once(first).chain(second).collect(),
+            reply,
+        }
     }
 }
 
-/// The ids of the questions the interview adds to the core's.
-const ADDED: [&str; 4] = [HESITATION, EXPECTATION, HARD_TO_SEE, PURPOSE_GUESS];
+/// The first call: the interview's questions, then `extra`. An answer to
+/// an added question that cannot be used makes the reply
+/// [`JudgeError::Unreadable`].
+async fn first_call(
+    ports: &mut Ports<'_>,
+    screen: &Redacted<ScreenText>,
+    asked: &Step<'_>,
+    extra: Vec<Question>,
+) -> Called {
+    let mut asking = questions(asked);
+    asking.extend(extra);
+    let started = ports.clock.elapsed();
+    let reply = send(&mut *ports.judge, screen, asked.image, &asking).await;
+    let called = Called::since(started, reply, ports);
+    let read = called.reply.as_ref().ok();
+    let read = read.map(|answers| read_without_expectation(answers, asked));
+    Called {
+        reply: unless_added_failed(called.reply, read.as_ref()),
+        think: called.think,
+    }
+}
+
+/// What the interview keeps of the reply: the answers read, where the
+/// expectation was asked when `expected`.
+fn kept(reply: &Result<Answers, JudgeError>, expected: bool, asked: &Step<'_>) -> Option<Reply> {
+    let read: fn(&Answers, &Step<'_>) -> Result<Reply, Unusable> = if expected {
+        read_step
+    } else {
+        read_without_expectation
+    };
+    read(reply.as_ref().ok()?, asked).ok()
+}
+
+/// A call to the judge and how long it took.
+#[derive(Debug)]
+pub(super) struct Called {
+    pub(super) reply: Result<Answers, JudgeError>,
+    pub(super) think: Duration,
+}
+
+/// The calls made for one question of the core, in order, and what the
+/// core gets as the judge's reply.
+#[derive(Debug)]
+pub(super) struct Asked {
+    pub(super) calls: Vec<Called>,
+    pub(super) reply: Result<Answers, JudgeError>,
+}
+
+impl Called {
+    /// The call made at `started` that was answered with `reply`, now.
+    fn since(started: Duration, reply: Result<Answers, JudgeError>, ports: &Ports<'_>) -> Self {
+        Self {
+            reply,
+            think: ports.clock.elapsed().saturating_sub(started),
+        }
+    }
+}
+
+/// The second call, asking what the persona expects of the operation the
+/// core will carry out on `first`. `None` when it carries out none. An
+/// answer that cannot be used is [`JudgeError::Unreadable`].
+async fn expect(
+    ports: &mut Ports<'_>,
+    screen: &Redacted<ScreenText>,
+    (asked, state): (&Step<'_>, &State),
+    first: &Result<Answers, JudgeError>,
+) -> Option<Called> {
+    let question = expectation_question(asked, &chosen(first, state)?);
+    let asking = slice::from_ref(&question);
+    let started = ports.clock.elapsed();
+    let reply = send(&mut *ports.judge, screen, asked.image, asking).await;
+    let called = Called::since(started, reply, ports);
+    Some(Called {
+        reply: called.reply.and_then(readable),
+        think: called.think,
+    })
+}
+
+/// `answers`, or [`JudgeError::Unreadable`] when they hold no expectation
+/// that can be used.
+fn readable(answers: Answers) -> Result<Answers, JudgeError> {
+    read_expectation(&answers)
+        .map(|_| answers)
+        .map_err(|_| JudgeError::Unreadable {
+            question: EXPECTATION.to_owned(),
+        })
+}
+
+/// The answers of both calls for the core. The second call is only made
+/// when the first answered.
+fn join(
+    first: Result<Answers, JudgeError>,
+    second: Option<&Called>,
+) -> Result<Answers, JudgeError> {
+    let Some(second) = second else {
+        return first;
+    };
+    first.and_then(|first| second.reply.clone().map(|later| first.joined(later)))
+}
+
+/// The ids of the questions the first call adds to the core's.
+const ADDED: [&str; 3] = [HESITATION, HARD_TO_SEE, PURPOSE_GUESS];
 
 /// `reply`, or [`JudgeError::Unreadable`] when `read` failed on an answer to
 /// an added question.
@@ -144,22 +248,22 @@ fn added(unusable: &Unusable) -> Option<&str> {
 
 /// Asks the judge: the interview's questions when the ports interview,
 /// otherwise the core's, then the semantic findings.
-pub(super) async fn call(
-    questions: Questions,
-    state: &State,
-    ports: &mut Ports<'_>,
-) -> Result<Answers, JudgeError> {
+pub(super) async fn call(questions: Questions, state: &State, ports: &mut Ports<'_>) -> Asked {
     let extra = probe_questions(&ports.detect.probes);
     let Some(mut interview) = ports.interview.take() else {
         let mut asking = questions.questions;
         asking.extend(extra);
-        return ports.judge.ask(&questions.screen, &asking).await;
+        let started = ports.clock.elapsed();
+        let reply = ports.judge.ask(&questions.screen, &asking).await;
+        let called = Called::since(started, reply, ports);
+        return Asked {
+            reply: called.reply.clone(),
+            calls: vec![called],
+        };
     };
-    let (browser, judge) = (&mut *ports.browser, &mut *ports.judge);
-    let step = ports.step;
-    let reply = interview
-        .ask((browser, judge), &questions.screen, state, step, extra)
+    let asked = interview
+        .ask(ports, &questions.screen, (state, extra))
         .await;
     ports.interview = Some(interview);
-    reply
+    asked
 }
