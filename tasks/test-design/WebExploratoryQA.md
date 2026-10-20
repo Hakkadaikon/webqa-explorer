@@ -321,7 +321,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-118 WebExploratoryQA.feature:200(ガードレール) [unwanted] 「ページに禁止要素があれば、操作種別の選択肢に enter を含めない」
       → 手法: 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `enter_is_dropped_when_a_forbidden_element_is_on_the_page`、単体 `webqa-core::machine::actions` の `enter_is_dropped_even_when_it_is_the_only_kind`、単体 `webqa-core::config::mode` の `scenario_mode_needs_a_kind_besides_enter` / issue: #70
 - [x] T-119 WebExploratoryQA.feature:829(設定と外部境界) [optional] 「secret を false にした入力の値は、判断モデルに送る画面状態で伏せない」
-      → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `input_secret_defaults_to_true_and_reads_false`、単体 `webqa::setup::redact` の `inputs_marked_not_secret_make_no_rule` / issue: #5
+      → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `input_secret_defaults_to_true_and_reads_false`、単体 `webqa-core::config::raw` の `input_secret_reads_explicit_true`、単体 `webqa::setup::redact` の `inputs_marked_not_secret_make_no_rule`、単体 `webqa::setup::redact` の `redactor_keeps_not_secret_values_and_hides_the_rest` / issue: #76
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
@@ -449,7 +449,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-116 | event | 同値分割(blackbox-partition)、状態遷移テスト(blackbox-state) | `input_is_remembered_after_the_page_loses_the_field` | #62、#64 | [x] | [ ] | 要 |
 | T-117 | event | 状態遷移テスト(blackbox-state)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `enter_is_offered_only_with_a_field_that_takes_a_value`、`enter_stays_after_the_field_is_typed`、`enter_alone_does_not_narrow_to_the_moves`、`enter_needs_no_target`、`enter_presses_only_into_a_focused_input_field` | #70 | [x] | [ ] | 要 |
 | T-118 | unwanted | 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) | `enter_is_dropped_when_a_forbidden_element_is_on_the_page`、`enter_is_dropped_even_when_it_is_the_only_kind`、`scenario_mode_needs_a_kind_besides_enter` | #70 | [x] | [ ] | 要 |
-| T-119 | optional | 同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`inputs_marked_not_secret_make_no_rule` | #5 | [x] | [ ] | 要 |
+| T-119 | optional | 同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`input_secret_reads_explicit_true`、`inputs_marked_not_secret_make_no_rule`、`redactor_keeps_not_secret_values_and_hides_the_rest` | #76 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 

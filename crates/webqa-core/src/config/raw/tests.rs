@@ -112,11 +112,12 @@ fn rejects_unknown_fields_in_nested_forms() {
 
 /// Every `api_key` but `{ env: <name> }`, including a mapping that names
 /// the key itself.
-const NOT_ENV_REF: [&str; 4] = [
+const NOT_ENV_REF: [&str; 5] = [
     "\"sk-test-123456\"",
     "{ sk-test-123456 }",
     "{ env: [sk-test-123456] }",
     "{ env: JEV_API_KEY, tls_verify: false }",
+    "{ env: JEV_API_KEY, secret: false }",
 ];
 
 #[test]
@@ -149,21 +150,19 @@ fn assert_hides_key(err: &ConfigError) {
 }
 
 #[test]
+fn input_secret_reads_explicit_true() {
+    let yes = changed("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, secret: true }");
+    assert!(
+        parse(&yes).unwrap().inputs["メールアドレス"].secret,
+        "secret: true"
+    );
+}
+
+#[test]
 fn input_secret_defaults_to_true_and_reads_false() {
     let raw = parse(example()).unwrap();
     assert!(raw.inputs["メールアドレス"].secret, "secret by default");
     let open = changed("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, secret: false }");
     let raw = parse(&open).unwrap();
     assert!(!raw.inputs["メールアドレス"].secret, "secret: false");
-}
-
-#[test]
-fn api_key_rejects_secret() {
-    let yaml = changed(
-        "api_key: { env: JEV_API_KEY }",
-        "api_key: { env: JEV_API_KEY, secret: false }",
-    );
-    let err = parse(&yaml).unwrap_err();
-    let want = discriminant(&ConfigError::LiteralApiKey);
-    assert_eq!(discriminant(&err), want, "{err:?}");
 }
