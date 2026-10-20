@@ -103,6 +103,7 @@ Background の3つの Given も、33a が書く。
 - 壊れたときに止まり続けるテストを書かない。`tokio::time` はこのクレートで禁止なので、待つなら std の `recv_timeout` か `tests/support/stuck.rs` を使う。止まり続けるテストは、CI の mutation の待ち時間切れになる。
 - `READY` の名前の数え方は、`Scenario:` と `Scenario Outline:` の両方を数える(#14 の 14h で直した)。
 - `READY` に入れ忘れたシナリオは、黙って走らない。33f の最後に、`READY` の名前の数が feature の見出しの数と一致することを確かめる(親に決めてほしいこと3)。
+- 「探索モードと決め打ちシナリオの受け入れシナリオは、そのまま通る」は `--test acceptance`(CI の check)に任せ、`READY` に入れない。名前は `steps/interview/modes.rs` の `DELEGATED` に置き、網羅の数は `READY` と `DELEGATED` を合わせて131本と数える。
 - シナリオを通すために Then の確かめを緩めない。Given の場面を feature と違うものにしない。まとめてのレビューで、何も確かめずに通るシナリオを must として探す。
 - 課題の番号は `I-` と16進8桁で、画面・要素・種類から計算する。feature の例の番号(`I-0001` など)は、手順の中で実際の番号に読み替える(`handover-14-30.md` の #33 の節)。
 - 台帳の課題の1行目は `- [ ] I-XXXXXXXX 指示の文`。「1行目は直す指示の文」の確かめは、番号より後を指示の文として読む。

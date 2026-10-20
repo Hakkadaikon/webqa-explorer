@@ -17,7 +17,7 @@
 - `crates/webqa/tests/support/interview/`(新規。世界、場面、偽物の判断モデルとブラウザの組み立て、台帳の読み取り)
 - `crates/webqa/tests/steps/interview/common.rs`(新規。Background と共通の手順)
 - `crates/webqa/tests/steps/interview/` の Rule ごとの空のファイル(新規。`READY` だけを置く。下の表)
-- `crates/webqa/tests/fixtures/bridge/`(新規。場面の橋渡しの台本)と `crates/webqa/tests/fixtures/reset/clock.sh`(新規。場面の時計を進める初期化の台本)
+- `crates/webqa/tests/fixtures/bridge/`(新規。場面の橋渡しの台本)と `crates/webqa/tests/fixtures/reset/runs.sh`(新規。回ごとに場面の時計を進め、決めた回から終わらない初期化の台本)
 - `crates/webqa/Cargo.toml`(`[[test]]` に `interview_acceptance` を `harness = false` で足す。cucumber の `main` を走らせるため)
 
 触らないもの: `crates/webqa/tests/acceptance.rs`、`crates/webqa/tests/support/` と `steps/` の既存のファイル(読み込むのはよい)、`crates/` の下の製品のコード。製品のコードに足りない口があれば NEEDS_CONTEXT で返す。

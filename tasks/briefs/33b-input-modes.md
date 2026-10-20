@@ -50,6 +50,8 @@
 
 名前は、Rule のファイルの `READY` に入れる。
 
+- 「探索モードと決め打ちシナリオの受け入れシナリオは、そのまま通る」は `--test acceptance`(CI の check)に任せ、`READY` に入れない。名前は `steps/interview/modes.rs` の `DELEGATED` に置き、33b はこのシナリオの手順を書かない。
+
 ## 書く手順の文言
 
 この Rule にだけ出る文言を書く。`{string}` は引用符の値、`{n}` は数(Examples の値に合わせて `{int}` か `{float}`)、`<p>` は Examples の列。共通の文言は 33a の `common.rs` にあるので書かない。

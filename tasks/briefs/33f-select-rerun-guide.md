@@ -139,7 +139,7 @@
 - 課題を選ぶことと TUI は、`webqa_tui::ledger::Screen` に入力を畳み込み、`ledger_file` で書き戻した台帳を読み戻して確かめる。キーを読む繰り返しは範囲の外(#27 の決定)なので、入力の値を手順で直接渡す。
 - 再実行と照らし合わせは、前回の台帳を場面に置き、`webqa_core::interview::compare::compare` と、前回の台帳の頭の確かめ(`check_previous`、合わなければ設定エラーで終了コード2)を確かめる。
 - 手引きと形式の検査は、形式の検査を `webqa::cli::check::app`(`check-docs`)で呼び、終了コードと誤りの項目の名前を確かめる。文書は `crates/webqa/tests/fixtures/docs/` を使う。手引きの3本は、#32 の `share/skills/` の手引きを読む。#32 が入っていなければ、この3本は後から足す。
-- 最後に、`READY` の名前の数が feature の見出しの数(131)と一致することを確かめる assert を、`interview_acceptance.rs` の土台の確かめに足す(`33-plan.md` の親に決めてほしいこと3)。
+- 最後に、`READY` と `DELEGATED`(`steps/interview/modes.rs`。`--test acceptance` に任せたシナリオ)の名前の数が feature の見出しの数(131)と一致することを確かめる assert を、`interview_acceptance.rs` の土台の確かめに足す(`33-plan.md` の親に決めてほしいこと3)。
 
 ## 注意
 
