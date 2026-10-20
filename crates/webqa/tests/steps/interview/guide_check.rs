@@ -66,7 +66,16 @@ fn check(world: &mut InterviewWorld) {
 }
 
 #[then(expr = "検査は成功し、終了コードは {int} である")]
+fn succeeds_with(world: &mut InterviewWorld, code: i32) {
+    exits_with(world, code);
+    assert_eq!(stashed(world, "DOC_STDERR"), "", "nothing was said");
+}
+
 #[then(expr = "検査は失敗し、終了コードは {int} である")]
+fn fails_with(world: &mut InterviewWorld, code: i32) {
+    exits_with(world, code);
+}
+
 fn exits_with(world: &mut InterviewWorld, code: i32) {
     assert_eq!(
         stashed(world, "DOC_CODE"),

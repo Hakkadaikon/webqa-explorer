@@ -2,7 +2,6 @@
 
 use cucumber::then;
 use webqa_core::interview::issue::Kind;
-use webqa_core::interview::ledger::set_selection;
 use webqa_tui::ledger::{Notice, notice_text};
 
 use super::frame::{detail_lines, shows};
@@ -20,22 +19,20 @@ fn file_has_checked(world: &mut InterviewWorld, issue: String) {
         "the selected issues"
     );
     drop(issue);
+    tui::tidy(world);
 }
 
 #[then(expr = "台帳のファイルの中身は、開く前と同じである")]
 fn file_is_as_opened(world: &mut InterviewWorld) {
     assert_eq!(tui::now(world), tui::opened(world), "the file");
+    tui::tidy(world);
 }
 
 #[then(expr = "台帳のファイルは上書きされておらず、{string} のチェックボックスは付いたままである")]
 fn file_kept_the_edit(world: &mut InterviewWorld, issue: String) {
     let number = world.scene.aliases.number(&issue);
-    let edited = set_selection(&tui::opened(world), number, true);
-    assert_eq!(
-        tui::now(world),
-        found(edited.ok(), "the checkbox is set"),
-        "the file"
-    );
+    let edited = tui::ticked(&tui::opened(world), number);
+    assert_eq!(tui::now(world), edited, "the file");
     assert_eq!(
         tui::ledger_now(world).selected(),
         [number],
@@ -51,6 +48,7 @@ fn screen_says_changed(world: &mut InterviewWorld) {
         shows(&frame, notice_text(Notice::ChangedOutside)),
         "the notice is drawn"
     );
+    tui::tidy(world);
 }
 
 #[then(expr = "一覧には視認性が悪い課題1件だけが出ている")]
@@ -72,6 +70,7 @@ fn only_visibility(world: &mut InterviewWorld) {
         (1, true, true, false, false),
         "rows, title, and the issues drawn"
     );
+    tui::tidy(world);
 }
 
 #[then(expr = "{string} の直す指示の文、操作の列、ペルソナの性質、理由と期待が表示されている")]
@@ -95,4 +94,5 @@ fn issue_is_read(world: &mut InterviewWorld, issue: String) {
         "the number is the title"
     );
     drop(issue);
+    tui::tidy(world);
 }

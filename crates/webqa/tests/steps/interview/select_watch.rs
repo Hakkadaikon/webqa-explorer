@@ -59,8 +59,9 @@ async fn watch(world: &mut InterviewWorld) {
         ..SceneInterrupt::default()
     };
     let (mut out, mut err) = (Vec::new(), Vec::new());
-    let dir = tui::work_dir(world);
-    let code = watching(&dir, &mut clock, &mut interrupt, &mut out, &mut err).await;
+    let log = tui::log(world);
+    let dir = found(log.parent(), "the log is in a directory");
+    let code = watching(dir, &mut clock, &mut interrupt, &mut out, &mut err).await;
     assert_eq!((code, err), (0, Vec::new()), "the viewer ended well");
     tui::keep_screen(world, &out);
 }
@@ -79,4 +80,5 @@ fn viewer_draws_as_before(world: &mut InterviewWorld) {
     let frame = tui::last_frame(world);
     assert_eq!(frame, frame_of(&expected), "the last screen");
     assert!(frame.contains("保存"), "the decision is drawn");
+    tui::tidy(world);
 }

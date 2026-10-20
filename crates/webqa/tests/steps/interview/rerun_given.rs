@@ -24,21 +24,50 @@ async fn hand_over(world: &mut InterviewWorld) {
     world.scene.previous = text;
 }
 
-/// The run before: `reached` of `total` trials hesitate on `at`, and the
-/// ledger has the issue.
-pub(super) async fn issue_before(world: &mut InterviewWorld, at: Spot, total: u32, reached: u32) {
+/// How many trials the run before made, how many reached the screen, and
+/// in how many of those the persona hesitated.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Before {
+    pub(super) total: u32,
+    pub(super) reached: u32,
+    pub(super) occurred: u32,
+}
+
+/// The run before: the trials of `before` on `at`, and the ledger has the
+/// issue with those counts.
+pub(super) async fn issue_before(world: &mut InterviewWorld, at: Spot, before: Before) {
+    let Before {
+        total,
+        reached,
+        occurred,
+    } = before;
     course(
         &mut world.scene,
-        &trials_at(total, reached, reached, at),
+        &trials_at(total, reached, occurred, at),
         GUESS,
     );
     let number = number(at, Kind::Hesitant);
     world.scene.aliases.bind(at.issue, number);
     hand_over(world).await;
     let ledger = read_back(found(world.scene.previous.as_deref(), "handed over"));
-    let has = ledger.entries.iter().any(|e| e.issue.number == number);
-    assert!(has, "the ledger before has the issue of {}", at.issue);
+    let entry = ledger.entries.iter().find(|e| e.issue.number == number);
+    let count = found(entry, "the ledger before has the issue").issue.count;
+    let counts = (count.occurred, count.finished, count.reached);
+    let size = |n: u32| usize::try_from(n).unwrap_or(usize::MAX);
+    assert_eq!(
+        counts,
+        (size(occurred), size(total), size(reached)),
+        "the counts of {}",
+        at.issue
+    );
 }
+
+/// Every trial reaches the screen and hesitates there.
+pub(super) const ALL: Before = Before {
+    total: 3,
+    reached: 3,
+    occurred: 3,
+};
 
 /// The screen of the number `issue` of the feature, which now stands for
 /// the hesitation on it.
@@ -70,13 +99,13 @@ async fn run_before(world: &mut InterviewWorld) {
 
 #[given(expr = "前回の台帳に課題 {string} がある")]
 async fn before_has(world: &mut InterviewWorld, issue: String) {
-    issue_before(world, spot(issue), 3, 3).await;
+    issue_before(world, spot(issue), ALL).await;
 }
 
 #[given(expr = "前回の台帳に課題 {string} が無い")]
 async fn before_lacks(world: &mut InterviewWorld, issue: String) {
     let other = spot("I-0001");
-    issue_before(world, other, 3, 3).await;
+    issue_before(world, other, ALL).await;
     let new = number(bound(world, issue), Kind::Hesitant);
     let ledger = read_back(found(world.scene.previous.as_deref(), "handed over"));
     assert!(
@@ -95,22 +124,40 @@ async fn before_reached(
     screen: String,
     issue: String,
 ) {
-    issue_before(world, at(issue, screen), total, reached).await;
+    issue_before(
+        world,
+        at(issue, screen),
+        Before {
+            total,
+            reached,
+            occurred: 1,
+        },
+    )
+    .await;
 }
 
 #[given(expr = "前回の台帳に、3回の試行のうち2回が画面 {string} に届いて出た課題 {string} がある")]
 async fn before_two_of_three(world: &mut InterviewWorld, screen: String, issue: String) {
-    issue_before(world, at(issue, screen), 3, 2).await;
+    issue_before(
+        world,
+        at(issue, screen),
+        Before {
+            total: 3,
+            reached: 2,
+            occurred: 1,
+        },
+    )
+    .await;
 }
 
 #[given(expr = "前回の台帳に、画面 {string} に出た課題 {string} がある")]
 async fn before_on_screen(world: &mut InterviewWorld, screen: String, issue: String) {
-    issue_before(world, at(issue, screen), 3, 3).await;
+    issue_before(world, at(issue, screen), ALL).await;
 }
 
 #[given(expr = "前回の台帳で課題 {string} を選んでいる")]
 async fn before_selected(world: &mut InterviewWorld, issue: String) {
-    issue_before(world, spot(&issue), 3, 3).await;
+    issue_before(world, spot(&issue), ALL).await;
     let number = world.scene.aliases.number(&issue);
     let text = found(world.scene.previous.as_deref(), "handed over");
     let selected = set_selection(text, number, true);
@@ -125,7 +172,7 @@ fn before_none(world: &mut InterviewWorld) {
 
 #[given(expr = "前回の台帳として渡したファイルの課題の区切りが崩れていて、読み戻せない")]
 async fn before_broken(world: &mut InterviewWorld) {
-    issue_before(world, spot("I-0001"), 3, 3).await;
+    issue_before(world, spot("I-0001"), ALL).await;
     let text = found(world.scene.previous.as_deref(), "handed over");
     let broken = text.replace("\n- [ ] I-", "\n* [ ] I-");
     assert_ne!(broken, text, "the separators are broken");

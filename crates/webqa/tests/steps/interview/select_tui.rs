@@ -143,11 +143,6 @@ pub fn log(world: &mut InterviewWorld) -> PathBuf {
     dir(world).join("events.jsonl")
 }
 
-/// The directory of the scenario.
-pub fn work_dir(world: &mut InterviewWorld) -> PathBuf {
-    dir(world)
-}
-
 /// What the viewer drew, kept for the Then.
 pub fn keep_screen(world: &mut InterviewWorld, out: &[u8]) {
     write(&dir(world).join(SCREEN), &String::from_utf8_lossy(out));
@@ -156,4 +151,18 @@ pub fn keep_screen(world: &mut InterviewWorld, out: &[u8]) {
 /// The ledger file, as it is now, read back.
 pub fn ledger_now(world: &mut InterviewWorld) -> Ledger {
     read_back(&now(world))
+}
+
+/// Removes the directory of the scenario, which its last step is done with.
+pub fn tidy(world: &mut InterviewWorld) {
+    let removed = fs::remove_dir_all(dir(world));
+    assert!(removed.is_ok(), "the directory is removed");
+}
+
+/// `text` as an editor leaves it when the checkbox of `number` is ticked.
+pub fn ticked(text: &str, number: Number) -> String {
+    let (open, ticked) = (format!("- [ ] {number}"), format!("- [x] {number}"));
+    let edited = text.replacen(&open, &ticked, 1);
+    assert_ne!(edited, text, "the checkbox was there to tick");
+    edited
 }

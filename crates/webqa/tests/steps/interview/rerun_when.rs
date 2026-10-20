@@ -2,13 +2,16 @@
 
 use cucumber::when;
 use webqa_core::interview::issue::Kind;
+use webqa_core::interview::ledger::set_selection;
 
 use super::course::{GUESS, Mark, Spot, at, course, number, screen, spot, stash, trials_at};
-use super::given::{bound, issue_before};
+use super::given::{ALL, bound, issue_before};
+use crate::scene::found;
 use crate::world::InterviewWorld;
 
-/// Sets the scene to run `trials_at(total, reached, 0, at)` with the ledger
-/// before: the issue does not happen.
+/// Sets the scene to run `total` trials, of which `reached` go on to `on`,
+/// and `occurred` of those hesitate there. The ledger before is handed over
+/// already.
 fn rerun(world: &mut InterviewWorld, total: u32, reached: u32, occurred: u32, on: Spot) {
     course(
         &mut world.scene,
@@ -24,11 +27,18 @@ fn again_has(world: &mut InterviewWorld, issue: String) {
 }
 
 #[when(expr = "同じペルソナと目的で前回の台帳を渡して再実行し、{string} が出る")]
+fn again_new(world: &mut InterviewWorld, issue: String) {
+    let at = bound(world, issue);
+    rerun(world, 3, 3, 3, at);
+}
+
 #[when(expr = "前回の台帳を渡して再実行し、新しい課題 {string} が出る")]
-async fn again_new(world: &mut InterviewWorld, issue: String) {
-    if world.scene.previous.is_none() {
-        issue_before(world, spot("I-0001"), 3, 3).await;
-    }
+async fn again_new_beside_selected(world: &mut InterviewWorld, issue: String) {
+    issue_before(world, spot("I-0001"), ALL).await;
+    let number = world.scene.aliases.number("I-0001");
+    let text = found(world.scene.previous.as_deref(), "handed over");
+    let selected = set_selection(text, number, true);
+    world.scene.previous = Some(found(selected.ok(), "the checkbox is set"));
     let at = bound(world, issue);
     rerun(world, 3, 3, 3, at);
 }

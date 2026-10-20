@@ -4,7 +4,6 @@
 //! stand for the issue of one screen.
 
 use std::collections::VecDeque;
-use std::ffi::OsString;
 use std::iter;
 
 use webqa_core::interview::ask::{EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS};
@@ -211,25 +210,20 @@ pub fn trials_at(total: u32, reached: u32, occurred: u32, at: Spot) -> Vec<Trial
     (0..total).map(trial).collect()
 }
 
-/// A value the steps of a scenario hand to the ones after them, such as
-/// the file a ledger screen opens. The world has no room for it; the
-/// environment of the scene does, since no run follows.
-pub fn stash(world: &mut InterviewWorld, key: &str, value: &str) {
-    let env = &mut world.scene.env;
-    env.retain(|(name, _)| name.to_str() != Some(key));
-    env.push((OsString::from(key), OsString::from(value)));
+/// Keeps `value` under `key` for the steps after this one.
+pub fn stash(world: &mut InterviewWorld, key: &'static str, value: &str) {
+    world.kept.insert(key, value.to_owned());
 }
 
 /// The value `stash` kept under `key`. A step gets the world as `&mut`
-/// whether it changes it or not, so this reads through the mutable side.
+/// whether it changes it or not, and a helper that only read it would make
+/// every step that only calls the helper pass `&mut` for nothing, so this
+/// reads through the mutable side too.
 pub fn stashed(world: &mut InterviewWorld, key: &str) -> String {
-    let mut env = world.scene.env.iter_mut();
-    let kept = env.find(|(name, _)| name.to_str() == Some(key));
-    let value = found(
-        kept.map(|(_, value)| value.clone()),
+    found(
+        world.kept.get_mut(key).map(|v| v.clone()),
         "the value was stashed",
-    );
-    value.to_string_lossy().into_owned()
+    )
 }
 
 /// The screen the feature calls `name`.

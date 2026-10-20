@@ -142,18 +142,14 @@ fn guide_ends_at_confirm(world: &mut InterviewWorld) {
 
 #[given(expr = "配布物の中の、ペルソナと目的を書かせる手引きの場所を見る")]
 fn see_place(world: &mut InterviewWorld) {
-    assert!(
-        root().join(GUIDE).is_file(),
-        "the guide is in the distribution"
-    );
-    stash(world, "GUIDE_FILE", GUIDE);
+    read_guide(world);
 }
 
 #[then(expr = "手引きは、このリポジトリの開発用の手順書の置き場の外にある")]
 fn guide_is_outside_dev_skills(world: &mut InterviewWorld) {
-    let guide = PathBuf::from(stashed(world, "GUIDE_FILE"));
+    assert!(!guide(world).is_empty(), "the guide is in the distribution");
     let skill = found(
-        guide.parent().and_then(Path::file_name),
+        Path::new(GUIDE).parent().and_then(Path::file_name),
         "the guide is in a directory",
     );
     let homes = [DEV_SKILLS, ".claude/skills", ".agents/skills"];

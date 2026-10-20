@@ -14,9 +14,9 @@ async fn entry_of(world: &mut InterviewWorld, example: &str) -> Entry {
     world.run().await;
     let number = world.scene.aliases.number(example);
     let ledger = found(world.ledger(), "the run wrote a ledger");
-    let entries = ledger.entries.into_iter();
+    let mut entries = ledger.entries.into_iter();
     found(
-        entries.into_iter().find(|e| e.issue.number == number),
+        entries.find(|e| e.issue.number == number),
         "the issue is in the ledger",
     )
 }

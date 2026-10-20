@@ -7,6 +7,8 @@ use webqa_core::judge::op_name;
 
 use crate::scene::found;
 
+/// The characters of the border, which cut a wrapped line.
+const BOX: &str = "│┌┐└┘─";
 /// What clears the screen before a frame.
 pub const CLEAR: &str = "\x1b[2J";
 
@@ -19,7 +21,8 @@ pub fn frame_of(drawn: &str) -> String {
         Some((!inside).then_some(c))
     };
     let text: String = last.chars().scan(false, step).flatten().collect();
-    squeezed(&text)
+    let inside: String = text.chars().filter(|c| !BOX.contains(*c)).collect();
+    squeezed(&inside)
 }
 
 /// `text` without its blanks.
@@ -32,8 +35,8 @@ pub fn shows(frame: &str, text: &str) -> bool {
     frame.contains(&squeezed(text))
 }
 
-/// What the screen of an open hesitation says of it, line by line, as far
-/// as the width of the screen shows it. `None` for another kind.
+/// What the screen of an open hesitation says of it, line by line, as the
+/// screen wraps it. `None` for another kind.
 pub fn detail_lines(entry: &Entry) -> Option<Vec<String>> {
     let issue = &entry.issue;
     let Detail::Hesitant { clues, expectation } = &issue.detail else {
@@ -41,13 +44,11 @@ pub fn detail_lines(entry: &Entry) -> Option<Vec<String>> {
     };
     let acts: Vec<String> = issue.path.iter().map(act).collect();
     assert!(!acts.is_empty(), "the issue has the operations before it");
-    // The row is cut at the width of the screen: its first words show.
-    let said: String = instruction(issue).chars().take(20).collect();
     let persona = entry.persona_trait.as_ref();
     let trait_line = persona.map(|t| format!("性質 {}: {}", t.which.label(), t.content));
     let reasons: Vec<&str> = clues.iter().map(|c| clue_label(*c)).collect();
     Some(vec![
-        format!("指示 {said}"),
+        format!("指示 {}", instruction(issue)),
         format!("操作 {}", acts.join(" → ")),
         found(trait_line, "the persona trait is known"),
         format!("理由 {}", reasons.join("、")),
