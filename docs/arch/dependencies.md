@@ -39,7 +39,7 @@ edition 2024で書き、最小の版(`rust-version`)は1.99である。
 | thiserror | 2.0.21 | 全部 | エラーの型 |
 | base64 | 0.23.1 | webqa-judge | 橋渡しで画像を送る |
 | ratatui | 0.30.2 | webqa-tui | 描画 |
-| crossterm | 0.29.0 | webqa-tui | 端末 |
+| crossterm | 0.29.0 | webqa-tui | 端末の消去と大きさ、台帳の画面のキーの読み取りとrawモード |
 | clap | 4.6.7 | webqa | 引数 |
 | dotenvy | 0.15.7 | webqa | 作業ディレクトリの`.env`の読み込み |
 | jiff | 0.2.38 | webqa | 本物の時計の時刻の表記 |

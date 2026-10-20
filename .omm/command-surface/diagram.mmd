@@ -6,6 +6,7 @@ graph TD
     interview["interview\n--config --out --previous"]
     check-docs["check-docs\npersona|purpose file"]
     watch["watch\ndir"]
+    ledger["ledger\nledger file"]
     run-session["Run Session\ncrates/webqa/src/run/session.rs"]
     webqa -->|"決め打ちシナリオモード"| run
     webqa -->|"探索モード"| explore
@@ -13,6 +14,7 @@ graph TD
     webqa -->|"ペルソナの試行"| interview
     webqa -->|"文書の形の検査"| check-docs
     webqa -->|"別の実行を追う"| watch
+    webqa -->|"台帳の課題を選ぶ"| ledger
     run -->|"起動の手順のあと"| run-session
     explore -->|"起動の手順のあと"| run-session
     replay -->|"起動の手順のあと"| run-session
