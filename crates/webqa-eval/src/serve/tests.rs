@@ -98,3 +98,19 @@ fn a_client_that_sends_nothing_gets_the_index() {
     stream.read_to_string(&mut response).unwrap();
     assert_eq!(response, ok("text/html; charset=utf-8", "<h1>index</h1>\n"));
 }
+
+/// A reader that never ends: 1000 bytes with no blank line per read.
+struct Endless;
+
+impl Read for Endless {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let piece = buf.get_mut(..1000).unwrap();
+        piece.fill(b'a');
+        Ok(piece.len())
+    }
+}
+
+#[test]
+fn a_head_without_a_blank_line_stops_after_the_limit() {
+    assert_eq!(read_head(&mut Endless).len(), MAX_HEAD + 808);
+}

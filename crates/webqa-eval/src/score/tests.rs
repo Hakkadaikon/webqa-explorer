@@ -180,3 +180,22 @@ fn the_first_label_that_fits_wins() {
         (1, 0, 0, 1)
     );
 }
+
+#[test]
+fn rulings_do_not_count_an_issue_that_hit_a_plant() {
+    let plants = [plant("a", KindId::Hesitant, Some("/"), None)];
+    let labels = [
+        label(KindId::Hesitant, None, None, Verdict::Real),
+        label(KindId::Hesitant, None, None, Verdict::False),
+    ];
+    let s = score(
+        &plants,
+        &labels,
+        &[issue(KindId::Hesitant, "/", None)],
+        None,
+    );
+    assert_eq!(
+        (s.hit_issues, s.real, s.wrong, s.labeled_precision()),
+        (1, 0, 0, Some(1.0))
+    );
+}

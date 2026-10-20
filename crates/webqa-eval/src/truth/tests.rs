@@ -86,3 +86,23 @@ fn kind_ids_follow_the_core_kinds() {
         ]
     );
 }
+
+fn is_yaml_error<T>(result: &Result<T, EvalError>) -> bool {
+    matches!(result, Err(EvalError::Yaml(_)))
+}
+
+#[test]
+fn rejects_an_unknown_field_in_a_label_or_an_element() {
+    let label = "- kind: hesitant\n  verdict: real\n";
+    let element = "  element: { role: link, name: n, extra: 1 }\n";
+    assert_eq!(
+        (
+            is_yaml_error(&read_labels(&format!("{label}  extra: 1\n"))),
+            is_yaml_error(&read_labels(&format!("{label}{element}"))),
+            is_yaml_error(&read_truth(&format!(
+                "- id: x\n  kind: visibility\n  note: n\n{element}"
+            ))),
+        ),
+        (true, true, true)
+    );
+}

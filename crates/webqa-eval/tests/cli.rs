@@ -56,3 +56,15 @@ fn score_with_a_missing_answer_key_exits_2_with_the_reason() -> io::Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn score_counts_the_runs_of_every_ledger_given() -> io::Result<()> {
+    let truth = format!("{FIXTURES}/truth.yaml");
+    let labels = format!("{FIXTURES}/labels.yaml");
+    let ledger = format!("{FIXTURES}/ledger.txt");
+    let (_, out, _) = webqa_eval(&[
+        "score", "--truth", &truth, "--labels", &labels, &ledger, &ledger,
+    ])?;
+    assert_eq!(out.lines().next(), Some("採点した回: 2"));
+    Ok(())
+}
