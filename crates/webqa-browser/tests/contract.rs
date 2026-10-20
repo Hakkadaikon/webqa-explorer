@@ -13,6 +13,7 @@ mod contract {
     pub mod probes;
     pub mod serve;
     pub mod session;
+    pub mod settle;
 }
 
 use contract::port::{at, launch};

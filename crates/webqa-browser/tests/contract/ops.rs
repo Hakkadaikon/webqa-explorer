@@ -1,6 +1,7 @@
 //! Contract tests of each operation of the table on a real Chromium.
 
 use webqa_browser::PlaywrightBrowser;
+use webqa_core::guard::paywall::Paywall;
 use webqa_core::ports::BrowserError;
 use webqa_core::screen::{Viewport, visible};
 
@@ -147,4 +148,18 @@ async fn performs_each_operation() {
     waits_and_reloads(&mut browser).await.unwrap();
     returns_to_start(&mut browser).await.unwrap();
     refuses_what_it_cannot_do(&mut browser).await.unwrap();
+}
+
+/// A veil that says it is loading covers every operation for a moment after
+/// the click. The page is no paywall: the touch waits for the veil to go.
+#[tokio::test]
+async fn waits_for_the_loading_veil_before_judging_the_paywall() {
+    let mut browser = launch(at("/loading").unwrap(), 0).await.unwrap();
+    seen(&mut browser).await.unwrap();
+    touch(&mut browser, "click", Some(id("button", "検索")))
+        .await
+        .unwrap();
+    let o = seen(&mut browser).await.unwrap();
+    assert_eq!(o.paywall.hits, [true, true], "nothing covers the buttons");
+    assert!(!Paywall::default().detects(&o.paywall), "no paywall");
 }
