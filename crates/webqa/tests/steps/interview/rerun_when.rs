@@ -2,9 +2,10 @@
 
 use cucumber::when;
 use webqa_core::interview::issue::Kind;
-use webqa_core::interview::ledger::set_selection;
 
-use super::course::{GUESS, Mark, Spot, at, course, number, screen, spot, stash, trials_at};
+use super::course::{
+    GUESS, Mark, Spot, at, course, number, screen, spot, stash, ticked, trials_at,
+};
 use super::given::{ALL, bound, issue_before};
 use crate::scene::found;
 use crate::world::InterviewWorld;
@@ -37,8 +38,7 @@ async fn again_new_beside_selected(world: &mut InterviewWorld, issue: String) {
     issue_before(world, spot("I-0001"), ALL).await;
     let number = world.scene.aliases.number("I-0001");
     let text = found(world.scene.previous.as_deref(), "handed over");
-    let selected = set_selection(text, number, true);
-    world.scene.previous = Some(found(selected.ok(), "the checkbox is set"));
+    world.scene.previous = Some(ticked(text, number));
     let at = bound(world, issue);
     rerun(world, 3, 3, 3, at);
 }

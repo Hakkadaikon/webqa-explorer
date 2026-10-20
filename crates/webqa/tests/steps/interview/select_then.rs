@@ -6,7 +6,7 @@ use webqa_tui::ledger::{Notice, notice_text};
 
 use super::frame::{detail_lines, shows};
 use super::tui;
-use crate::rerun::course::{number, spot};
+use crate::rerun::course::{number, spot, ticked};
 use crate::scene::found;
 use crate::world::InterviewWorld;
 
@@ -31,7 +31,7 @@ fn file_is_as_opened(world: &mut InterviewWorld) {
 #[then(expr = "台帳のファイルは上書きされておらず、{string} のチェックボックスは付いたままである")]
 fn file_kept_the_edit(world: &mut InterviewWorld, issue: String) {
     let number = world.scene.aliases.number(&issue);
-    let edited = tui::ticked(&tui::opened(world), number);
+    let edited = ticked(&tui::opened(world), number);
     assert_eq!(tui::now(world), edited, "the file");
     assert_eq!(
         tui::ledger_now(world).selected(),

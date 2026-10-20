@@ -7,9 +7,8 @@ use cucumber::given;
 use webqa_core::config::purpose::{Aim, Written};
 use webqa_core::config::raw::DoneWhen;
 use webqa_core::interview::issue::Kind;
-use webqa_core::interview::ledger::set_selection;
 
-use super::course::{GUESS, Spot, at, course, number, spot, stash, trials_at};
+use super::course::{GUESS, Spot, at, course, number, spot, stash, ticked, trials_at};
 use crate::ledger::read_back;
 use crate::page::PageSpec;
 use crate::scene::found;
@@ -53,7 +52,7 @@ pub(super) async fn issue_before(world: &mut InterviewWorld, at: Spot, before: B
     let entry = ledger.entries.iter().find(|e| e.issue.number == number);
     let count = found(entry, "the ledger before has the issue").issue.count;
     let counts = (count.occurred, count.finished, count.reached);
-    let size = |n: u32| usize::try_from(n).unwrap_or(usize::MAX);
+    let size = |n: u32| found(usize::try_from(n).ok(), "a count fits");
     assert_eq!(
         counts,
         (size(occurred), size(total), size(reached)),
@@ -160,8 +159,7 @@ async fn before_selected(world: &mut InterviewWorld, issue: String) {
     issue_before(world, spot(&issue), ALL).await;
     let number = world.scene.aliases.number(&issue);
     let text = found(world.scene.previous.as_deref(), "handed over");
-    let selected = set_selection(text, number, true);
-    world.scene.previous = Some(found(selected.ok(), "the checkbox is set"));
+    world.scene.previous = Some(ticked(text, number));
 }
 
 #[given(expr = "前回の台帳を渡していない")]

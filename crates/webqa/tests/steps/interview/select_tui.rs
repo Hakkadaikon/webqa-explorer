@@ -158,11 +158,3 @@ pub fn tidy(world: &mut InterviewWorld) {
     let removed = fs::remove_dir_all(dir(world));
     assert!(removed.is_ok(), "the directory is removed");
 }
-
-/// `text` as an editor leaves it when the checkbox of `number` is ticked.
-pub fn ticked(text: &str, number: Number) -> String {
-    let (open, ticked) = (format!("- [ ] {number}"), format!("- [x] {number}"));
-    let edited = text.replacen(&open, &ticked, 1);
-    assert_ne!(edited, text, "the checkbox was there to tick");
-    edited
-}

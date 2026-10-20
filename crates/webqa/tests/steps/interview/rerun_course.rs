@@ -220,14 +220,19 @@ pub fn stash(world: &mut InterviewWorld, key: &'static str, value: &str) {
 /// every step that only calls the helper pass `&mut` for nothing, so this
 /// reads through the mutable side too.
 pub fn stashed(world: &mut InterviewWorld, key: &str) -> String {
-    found(
-        world.kept.get_mut(key).map(|v| v.clone()),
-        "the value was stashed",
-    )
+    found(world.kept.get_mut(key).cloned(), "the value was stashed")
 }
 
 /// The screen the feature calls `name`.
 pub fn screen(name: impl AsRef<str>) -> Spot {
     let found_in = |s: &&Spot| s.screen == name.as_ref();
     found(SPOTS.iter().find(found_in).copied(), "a known screen")
+}
+
+/// `text` as an editor leaves it when the checkbox of `number` is ticked.
+pub fn ticked(text: &str, number: Number) -> String {
+    let (open, ticked) = (format!("- [ ] {number}"), format!("- [x] {number}"));
+    let edited = text.replacen(&open, &ticked, 1);
+    assert_ne!(edited, text, "the checkbox was there to tick");
+    edited
 }

@@ -6,7 +6,7 @@ use cucumber::{given, then, when};
 use webqa_core::interview::issue::Kind;
 use webqa_tui::keys::Key;
 
-use crate::rerun::course::{GUESS, Mark, course, number, spot};
+use crate::rerun::course::{GUESS, Mark, course, number, spot, ticked};
 use crate::scene::found;
 use crate::world::InterviewWorld;
 
@@ -62,7 +62,7 @@ async fn checked_in_editor(world: &mut InterviewWorld, issue: String) {
     finished_run(world, [Mark::Hesitant; 3]).await;
     let text = found(world.ran().store.ledger.clone(), "a ledger");
     let number = world.scene.aliases.number(&issue);
-    let edited = tui::ticked(&text, number);
+    let edited = ticked(&text, number);
     let ran = found(world.ran.as_mut(), "the scene ran");
     ran.store.ledger = Some(edited);
     drop(issue);
@@ -96,7 +96,7 @@ async fn opened_with_two_kinds(world: &mut InterviewWorld) {
 #[given(expr = "そのあとに、エディタで台帳の課題 {string} のチェックボックスを付けて保存している")]
 fn edited_after(world: &mut InterviewWorld, issue: String) {
     let number = world.scene.aliases.number(&issue);
-    let edited = tui::ticked(&tui::opened(world), number);
+    let edited = ticked(&tui::opened(world), number);
     tui::edit_later(world, &edited);
     drop(issue);
 }
