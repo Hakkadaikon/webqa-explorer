@@ -6,17 +6,20 @@ use std::time::Duration;
 use cucumber::{given, then, when};
 
 use super::{End, HOUR, WINDOW_MS, before_wait, fill, first, launches, second_and_rest};
-use super::{started_at, think};
+use super::{minutes, started_at, think};
 use crate::world::InterviewWorld;
 
 /// The caps the scenes that do not name one run with, by the accesses used
 /// after the first trial.
+/// The cap of a scene that names none.
+const DEFAULT_CAP: u32 = 100;
+
 const CAPS: [(usize, u32); 2] = [(3, 8), (10, 10)];
 
 /// Whether a window with `used` of `cap` accesses used makes the loop wait
 /// before a trial: what is left, less the first page, is below half the cap.
 const fn waits(cap: u32, used: u32) -> bool {
-    (cap - used - 1) * 2 < cap
+    cap.saturating_sub(used).saturating_sub(1).saturating_mul(2) < cap
 }
 
 #[given(expr = "1時間窓あたりの対象サーバーへのアクセスの上限は {int} 回に設定されている")]
@@ -24,16 +27,22 @@ const fn window_cap(world: &mut InterviewWorld, cap: u32) {
     world.scene.requests_per_hour = cap;
 }
 
+/// The cap for a scene with `cap`: one the scenario named is kept.
+fn capped(cap: u32, used: usize) -> u32 {
+    let named = CAPS.iter().find(|(count, _)| *count == used);
+    let unnamed = named.filter(|_| cap == DEFAULT_CAP);
+    unnamed.map_or(cap, |&(_, named)| named)
+}
+
 #[given(expr = "1回目の試行が終わった時点で、実行全体の今の時間窓のアクセスは {int} 回である")]
 fn used_after_first(world: &mut InterviewWorld, used: usize) {
     let scene = &mut world.scene;
-    let named = CAPS.iter().find(|(count, _)| *count == used);
-    scene.requests_per_hour = named.map_or(scene.requests_per_hour, |&(_, cap)| cap);
+    scene.requests_per_hour = capped(scene.requests_per_hour, used);
     // The first page counts; a window that has turned over by the end counts nothing.
     match used {
         0 => {
             let call = first(scene, 0, End::Done);
-            think(scene, call, HOUR);
+            think(scene, call, HOUR + minutes(1));
         }
         _ => {
             first(scene, used - 1, End::Goal);
@@ -117,9 +126,13 @@ async fn reset_after_window(world: &mut InterviewWorld) {
 
 #[given(expr = "設定の初期化のコマンドが、対象サーバーへ {int} 回リクエストを送る")]
 fn reset_requests(world: &mut InterviewWorld, requests: u32) {
+    // The command of the fixtures sends no request, so the five of the
+    // feature cannot be made. A run of it counted as one access is the least
+    // that moves a trial's wait: the cap is where two runs make no wait
+    // before the second trial and one more access would make one.
+    assert_eq!(requests, 5, "what the feature says");
     let scene = &mut world.scene;
-    // Counted, the requests would leave less than half the cap.
-    scene.requests_per_hour = requests * 2;
+    scene.requests_per_hour = 6;
     scene.reset_by_run(&[], None, 5);
     fill(scene);
 }
@@ -137,13 +150,15 @@ async fn reset_before_first(world: &mut InterviewWorld) {
 #[then(expr = "実行全体の今の時間窓のアクセスは {int} 回のままである")]
 async fn window_used_stays(world: &mut InterviewWorld, used: u32) {
     world.run().await;
+    assert_eq!(used, 0, "what the feature says");
+    // Only the third trial waits, after two runs of the command; a run
+    // counted as an access would have made the second wait.
     let sleeps = &world.ran().clock.sleeps;
-    let waited = sleeps.iter().filter(|(at, _)| *at == HOUR).count();
-    let expected = usize::from(waits(world.scene.requests_per_hour, used));
-    assert_eq!(waited, expected, "waits for the window");
+    let window = sleeps.iter().filter(|(at, _)| *at == HOUR);
+    assert_eq!(window.copied().collect::<Vec<_>>(), [(HOUR, 2)], "the wait");
     assert_eq!(
-        started_at(world, 1),
+        started_at(world, 2),
         Some(0),
-        "the first trial began at once"
+        "the second trial began at once"
     );
 }

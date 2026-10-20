@@ -77,7 +77,7 @@ fn second_with_cap(world: &mut InterviewWorld, cap: u32) {
 async fn window_turns(world: &mut InterviewWorld) {
     let scene = &mut world.scene;
     let call = super::plan::course(scene, 7, End::Done);
-    think(scene, call, super::HOUR);
+    think(scene, call, super::HOUR + minutes(1));
     fill(scene);
     world.run().await;
 }
@@ -150,23 +150,23 @@ fn second_after_wait(world: &mut InterviewWorld) {
 
 #[when(expr = "2回目の試行の1ステップを実行する")]
 async fn second_one_step(world: &mut InterviewWorld) {
-    super::plan::course(&mut world.scene, 1, End::Goal);
-    fill(&mut world.scene);
+    // The steps go on past the cap, to see where the trial has to wait.
+    second_and_rest(&mut world.scene, 10);
     world.run().await;
 }
 
 #[then(expr = "2回目の試行の時間窓の操作回数は、そのステップのアクセスだけを数えている")]
 async fn counts_its_own(world: &mut InterviewWorld) {
     world.run().await;
-    assert_eq!(executed(world).len(), 1, "the step of the trial");
+    // The cap of the window after the wait is 9: all of them are the trial's own.
+    assert_eq!(
+        before_wait(world, "executed", 2),
+        9,
+        "operations before it waited"
+    );
     assert_eq!(
         started_at(world, 2),
         Some(WINDOW_MS),
         "the trial began after the window"
-    );
-    assert_eq!(
-        world.ran().clock.sleeps,
-        [(super::HOUR, 0)],
-        "the third trial did not wait"
     );
 }

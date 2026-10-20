@@ -4,10 +4,10 @@
 use std::ffi::OsString;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process;
 
 use cucumber::{given, then, when};
 use webqa::interview::reset;
-use webqa::interview::trials::{Ending, Stopped};
 use webqa_core::config::interview::Reset;
 use webqa_core::redact::Redactor;
 
@@ -23,7 +23,8 @@ const SCRIPT: &str = "./reset-db.sh";
 fn kept(name: &str) -> PathBuf {
     let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join("trials");
     assert!(fs::create_dir_all(&dir).is_ok(), "the directory is made");
-    dir.join(name)
+    // Runs of the tests at the same time do not share the files.
+    dir.join(format!("{}-{name}", process::id()))
 }
 
 /// The file `extra` of the command that records into `out`.
@@ -35,7 +36,7 @@ fn beside(out: &Path, extra: &str) -> PathBuf {
 /// `name`, and removes what an earlier run left.
 fn recording(scene: &mut Scene, name: &str) {
     let out = kept(name);
-    for extra in ["args", "env"] {
+    for extra in ["args", "env", "parent"] {
         drop(fs::remove_file(beside(&out, extra)));
     }
     scene.env.push(("RESET_OUT".into(), OsString::from(&out)));
@@ -75,14 +76,12 @@ async fn received_whole(world: &mut InterviewWorld, program: String, argument: S
 #[then(expr = "シェルは起動されていない")]
 async fn no_shell(world: &mut InterviewWorld) {
     world.run().await;
-    let wrote = Ending::Wrote {
-        stopped: Stopped::Completed,
-        confirmed: false,
-    };
+    // The command was started by this process itself, not by a shell.
+    let parent = fs::read_to_string(beside(&kept("arguments"), "parent"));
     assert_eq!(
-        world.ran().ending,
-        Some(wrote),
-        "the command ran, the run went on"
+        parent.unwrap_or_default(),
+        process::id().to_string(),
+        "the parent of the command"
     );
 }
 

@@ -198,3 +198,17 @@ pub(super) fn claim_goal(scene: &mut Scene) {
         course(scene, 0, End::Done);
     }
 }
+
+/// Plans every trial to press the button of the start page once, which
+/// leaves the page as it was, and then say it is done.
+pub(super) fn stay(scene: &mut Scene) {
+    let name = step_name(scene);
+    scene.start = PageSpec::at("/").with(PageSpec::button(&name));
+    scene.purpose.aim = written();
+    let trials = usize::try_from(scene.trials).unwrap_or(usize::MAX);
+    for _ in scene.after.len()..trials {
+        scene.after.push(vec![scene.start.clone(); 4]);
+        queued(scene);
+        scene.replies.extend(replies(1, End::Done));
+    }
+}

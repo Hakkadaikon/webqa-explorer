@@ -5,8 +5,8 @@ use cucumber::{given, then, when};
 use webqa_core::interview::issue::Kind;
 
 use super::seen::TIME_UP;
-use super::{End, HOUR, course, ending_of, fill, first, found, issues_of, said, started_at};
-use super::{step_name, think};
+use super::{End, course, ending_of, fill, first, found, issues_of, said, started_at};
+use super::{minutes, step_name, think};
 use crate::ledger::number_of;
 use crate::world::InterviewWorld;
 
@@ -44,6 +44,11 @@ async fn issue_not_in_ledger(world: &mut InterviewWorld, example: String) {
         .iter()
         .filter(|entry| entry.issue.number == number);
     assert_eq!(with.count(), 0, "the issue of the cut trial");
+    assert_eq!(
+        issues_of(world, Kind::Hesitant),
+        Vec::<usize>::new(),
+        "no hesitation"
+    );
 }
 
 #[then(expr = "台帳の試行の回数は {int} 回である")]
@@ -96,16 +101,23 @@ fn second_in_progress(world: &mut InterviewWorld) {
 #[when(expr = "2回目の試行が 実行全体の期限による時間切れ で終わる")]
 async fn second_times_out_by_limit(world: &mut InterviewWorld) {
     let scene = &mut world.scene;
-    scene.max_duration = Some(HOUR);
+    scene.max_duration = Some(minutes(30));
     // The call after the first trial's, which was the first trial's own.
-    think(scene, 1, HOUR);
+    think(scene, 1, minutes(31));
     world.run().await;
+    ended_as(world, "time_up");
 }
 
 #[when(expr = "2回目の試行が 利用者による中断 で終わる")]
 async fn second_is_interrupted(world: &mut InterviewWorld) {
     world.scene.stall_sleep = true;
     world.run().await;
+    ended_as(world, "interrupted");
+}
+
+/// The second trial ended as `ending`, as the log names it.
+fn ended_as(world: &InterviewWorld, ending: &str) {
+    assert_eq!(ending_of(world, 2).as_deref(), Some(ending), "how it ended");
 }
 
 #[then(expr = "目的に届かない試行は {int} 回だけ数えられている")]

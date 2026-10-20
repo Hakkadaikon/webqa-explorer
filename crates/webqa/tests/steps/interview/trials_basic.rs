@@ -6,13 +6,11 @@ use std::path::PathBuf;
 
 use cucumber::{given, then, when};
 use webqa_core::explore::{ElementOp, Memory};
-use webqa_core::judge::{Question, QuestionId};
 use webqa_core::redact::Redactor;
 use webqa_core::screen::element_ids;
 
-use super::plan::claim_goal;
+use super::plan::{claim_goal, stay};
 use super::{End, ending_of, fill, first, found, has, kind_of, openings, within};
-use crate::judge::Asked;
 use crate::launch::Opened;
 use crate::page::PageSpec;
 use crate::world::InterviewWorld;
@@ -37,6 +35,7 @@ async fn trials_ran(world: &mut InterviewWorld, n: usize) {
 #[then(expr = "台帳は1つのファイルで、{int}回の試行の結果がまとめられている")]
 async fn one_ledger(world: &mut InterviewWorld, n: usize) {
     world.run().await;
+    // The store keeps the last ledger written: its head counts the trials of the run.
     let finished = found(world.ledger(), "one ledger").head.finished;
     assert_eq!(finished, n, "the trials of the ledger");
 }
@@ -89,7 +88,9 @@ fn remembered(world: &mut InterviewWorld, name: String) {
     let origin = scene.origin();
     let memory = memory_of(&origin, &name);
     scene.memories.insert(origin, memory);
-    fill(scene);
+    // A trial ends as stuck at the first step that explores nothing new.
+    scene.interview_stuck = Some(1);
+    stay(scene);
     drop(name);
 }
 
@@ -107,28 +108,11 @@ fn memory_of(origin: &str, name: &str) -> String {
 #[then(expr = "各試行は、操作済みの要素が無い空の記憶から始まっている")]
 async fn memory_starts_empty(world: &mut InterviewWorld) {
     world.run().await;
-    let asked = &world.ran().judge.asked;
-    let all: Vec<Vec<String>> = asked.iter().map(offered).collect();
-    let button = vec!["1".to_owned()];
-    let expected = vec![button; asked.len()];
-    assert_eq!(all, expected, "every call offers the button");
-}
-
-/// The options of the question about the target at a call of the judge.
-fn offered(call: &Asked) -> Vec<String> {
-    let target = QuestionId::target();
-    let options = |question: &Question| {
-        if let Question::Choice { id, options, .. } = question {
-            (*id == target).then(|| options.clone())
-        } else {
-            None
-        }
-    };
-    call.questions
-        .iter()
-        .filter_map(options)
-        .flatten()
-        .collect()
+    // The button is pressed once and the page stays: the press explores
+    // something new only if the trial starts without the button operated.
+    let ends: Vec<Option<String>> = (1..=3).map(|n| ending_of(world, n)).collect();
+    let done = Some("done".to_owned());
+    assert_eq!(ends, vec![done; 3], "no trial ended as stuck");
 }
 
 #[then(expr = "探索の記憶のファイルは実行の前と同じ中身のままである")]

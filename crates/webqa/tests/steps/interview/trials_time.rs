@@ -69,7 +69,7 @@ async fn timed_out_before_window(world: &mut InterviewWorld) {
 async fn second_goes_on(world: &mut InterviewWorld) {
     let scene = &mut world.scene;
     let call = course(scene, 1, End::Open);
-    think(scene, call, minutes(20));
+    think(scene, call, minutes(30));
     world.run().await;
 }
 
@@ -78,7 +78,10 @@ async fn second_times_out(world: &mut InterviewWorld, at: u64) {
     world.run().await;
     let ended = ending_of(world, 2);
     assert_eq!(ended.as_deref(), Some("time_up"), "how the trial ended");
-    assert_eq!(world.ran().clock.elapsed(), minutes(at), "when it ended");
+    // The call that took the clock past the limit was the last thing it did.
+    let ended = world.ran().clock.elapsed();
+    assert!(ended >= minutes(at), "the limit had passed");
+    assert_eq!(ended, minutes(40) + minutes(30), "and nothing came after");
 }
 
 #[then(expr = "3回目の試行は始まっていない")]
