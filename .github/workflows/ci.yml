@@ -13,10 +13,39 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  # A pull request runs the heavy jobs only when it changes what they test.
+  # A push to main runs check and deny; commit-msg and mutation run on PRs.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.paths.outputs.code }}
+      rust: ${{ steps.paths.outputs.rust }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: paths
+        # bash adds pipefail, so a failing git diff fails this job.
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            git -c core.quotePath=false diff --no-renames --name-only "$BASE"...HEAD |
+              python3 scripts/ci_changes.py >> "$GITHUB_OUTPUT"
+          else
+            printf 'code=true\nrust=true\n' >> "$GITHUB_OUTPUT"
+          fi
   check:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Place the Playwright driver
         run: echo "PLAYWRIGHT_DRIVER_CACHE_DIR=$RUNNER_TEMP/playwright-driver" >> "$GITHUB_ENV"
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -36,8 +65,47 @@ jobs:
         run: just check
       - name: Dependency audit
         run: just deny
-  pull-request:
+  docs:
+    needs: changes
+    if: needs.changes.outputs.code != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: |
+          sh scripts/install-aqua.sh
+          echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
+          "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
+          "$AQUA_ROOT_DIR/bin/aqua" install
+          PATH="$AQUA_ROOT_DIR/bin:$PATH" npm ci --prefix .config/npm --no-fund --no-audit
+          echo "$GITHUB_WORKSPACE/.config/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Documents, spelling and config
+        run: just docs-check config-check
+      - name: YAML and TOML format
+        run: just fmt-check-config
+  commit-msg:
     if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install tools
+        run: |
+          sh scripts/install-aqua.sh
+          echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
+          "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
+          "$AQUA_ROOT_DIR/bin/aqua" install
+      - name: Commit messages
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: just commit-msg --range "$BASE..HEAD"
+  mutants:
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-latest
     # The mutants of a large PR outlast one runner, so they are split four ways.
     strategy:
@@ -48,6 +116,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Place the Playwright driver
         run: echo "PLAYWRIGHT_DRIVER_CACHE_DIR=$RUNNER_TEMP/playwright-driver" >> "$GITHUB_ENV"
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -61,10 +130,6 @@ jobs:
           "$AQUA_ROOT_DIR/bin/aqua" install
           PATH="$AQUA_ROOT_DIR/bin:$PATH" npm ci --prefix .config/npm --no-fund --no-audit
           echo "$GITHUB_WORKSPACE/.config/npm/node_modules/.bin" >> "$GITHUB_PATH"
-      - name: Commit messages
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-        run: just commit-msg --range "$BASE..HEAD"
       - name: Chromium for the contract tests
         run: just install-browsers-with-deps
       - name: Mutation test of the changed code
