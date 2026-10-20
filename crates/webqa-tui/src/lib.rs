@@ -1,6 +1,7 @@
 //! Terminal viewer of the webqa event log.
 
 pub mod follow;
+pub mod keys;
 pub mod ledger;
 pub mod ledger_file;
 pub mod tail;

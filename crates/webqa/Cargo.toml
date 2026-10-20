@@ -42,5 +42,9 @@ tokio = { workspace = true, features = ["macros", "rt", "sync", "time"] }
 name = "acceptance"
 harness = false
 
+[[test]]
+name = "interview_acceptance"
+harness = false
+
 [lints]
 workspace = true

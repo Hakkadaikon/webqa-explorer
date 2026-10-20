@@ -17,6 +17,8 @@
 - `crates/webqa/tests/support/interview/`(新規。世界、場面、偽物の判断モデルとブラウザの組み立て、台帳の読み取り)
 - `crates/webqa/tests/steps/interview/common.rs`(新規。Background と共通の手順)
 - `crates/webqa/tests/steps/interview/` の Rule ごとの空のファイル(新規。`READY` だけを置く。下の表)
+- `crates/webqa/tests/fixtures/bridge/`(新規。場面の橋渡しの台本)と `crates/webqa/tests/fixtures/reset/runs.sh`(新規。回ごとに場面の時計を進め、決めた回から終わらない初期化の台本)
+- `crates/webqa/Cargo.toml`(`[[test]]` に `interview_acceptance` を `harness = false` で足す。cucumber の `main` を走らせるため)
 
 触らないもの: `crates/webqa/tests/acceptance.rs`、`crates/webqa/tests/support/` と `steps/` の既存のファイル(読み込むのはよい)、`crates/` の下の製品のコード。製品のコードに足りない口があれば NEEDS_CONTEXT で返す。
 
@@ -89,7 +91,7 @@
 | 土台の確かめ | 偽物の判断モデルが答えを使い切ると、止まらずに失敗する(`stuck.rs` の待ち) |
 | 土台の確かめ | 書いた台帳を読み戻すと、課題の番号が `I-` と16進8桁である |
 | `cargo test -p webqa --test interview_acceptance` | 0本のシナリオで成功し、あいまいな手順の出力が無い |
-| `cargo test -p webqa --test acceptance` | 探索モードの196本がそのまま通る |
+| `cargo test -p webqa --test acceptance` | 探索モードの190本がそのまま通る |
 
 止まり続けるテストを書かない。`tokio::time` はこのクレートで禁止なので、待つなら std の `recv_timeout` か `stuck.rs` を使う。
 

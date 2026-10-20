@@ -1,9 +1,6 @@
 //! Tests of the argument reading.
 
-use std::env::temp_dir;
-use std::fs::write;
 use std::path::Path;
-use std::process::id;
 
 use crate::clock::Wall;
 use jiff::Timestamp;
@@ -51,6 +48,12 @@ fn arguments_are_read() {
             dir: ".webqa/runs/r1".into()
         }))
     );
+    assert_eq!(
+        read_ok(&["webqa", "ledger", "out/ledger.md"]),
+        Ok(Sub::Ledger(LedgerArgs {
+            path: "out/ledger.md".into()
+        }))
+    );
 }
 
 #[test]
@@ -59,6 +62,10 @@ fn bad_arguments_are_errors() {
     assert_eq!(read(&limit), Err(ErrorKind::UnknownArgument));
     assert_eq!(
         read(&["webqa", "watch"]),
+        Err(ErrorKind::MissingRequiredArgument)
+    );
+    assert_eq!(
+        read(&["webqa", "ledger"]),
         Err(ErrorKind::MissingRequiredArgument)
     );
     assert_eq!(read(&["webqa", "tail"]), Err(ErrorKind::InvalidSubcommand));
@@ -119,9 +126,19 @@ fn subcommands_become_jobs() {
     );
     assert_eq!(
         job(&["webqa", "watch", "d"]),
-        Some(Err(WatchArgs { dir: "d".into() })),
+        Some(Err(Viewing::Watch(WatchArgs { dir: "d".into() }))),
         "watching starts no run"
     );
+}
+
+#[test]
+fn the_ledger_screen_starts_no_run() {
+    let cli = Cli::try_parse_from(["webqa", "ledger", "l.md"]).ok();
+    let split = cli.map(|cli| cli.command.split().map(|c| start::job(c).ok()));
+    let screen = Viewing::Ledger(LedgerArgs {
+        path: "l.md".into(),
+    });
+    assert_eq!(split, Some(Err(screen)));
 }
 
 #[test]
@@ -134,30 +151,6 @@ fn other_subcommands_become_no_jobs() {
     assert_eq!(job(&docs), Some(Ok(None)));
     let interview = ["webqa", "interview", "--config", "a"];
     assert_eq!(job(&interview), Some(Ok(None)));
-}
-
-#[tokio::test]
-async fn unreadable_files_stop_as_configuration_errors() {
-    let missing = Path::new("no/such/file");
-    assert_eq!(
-        start::config_text(missing).await,
-        Err(start::Stop::Config("設定ファイルを読めない".into()))
-    );
-    let replay = start::script(&start::Source::Replay(missing.into())).await;
-    assert_eq!(
-        replay.err(),
-        Some(start::Stop::Config("実行結果を読めない".into()))
-    );
-}
-
-#[tokio::test]
-async fn modes_come_from_the_subcommand() {
-    let mode = |source| async move { start::script(&source).await.map(|(mode, _)| mode) };
-    assert_eq!(
-        mode(start::Source::Scenario).await.ok(),
-        Some(Mode::Scenario)
-    );
-    assert_eq!(mode(start::Source::Explore).await.ok(), Some(Mode::Explore));
 }
 
 #[test]
@@ -205,18 +198,6 @@ async fn a_file_that_is_no_report_stops_as_a_configuration_error() {
 }
 
 #[tokio::test]
-async fn a_report_of_an_interview_cannot_be_replayed() {
-    let path = temp_dir().join(format!("webqa-interview-{}.json", id()));
-    let report = r#"{"schema":1,"mode":"interview","calls":[]}"#;
-    write(&path, report).unwrap();
-    let replay = start::script(&start::Source::Replay(path)).await;
-    assert_eq!(
-        replay.err().map(start::Stop::into_parts),
-        Some((2, "インタビューの実行結果は再実行できない".to_owned()))
-    );
-}
-
-#[tokio::test]
 async fn an_output_that_cannot_be_made_stops_as_a_runtime_error() {
     let wall = Wall::at(Timestamp::UNIX_EPOCH);
     let out = Path::new(THIS_FILE).join("out");
@@ -227,3 +208,4 @@ async fn an_output_that_cannot_be_made_stops_as_a_runtime_error() {
 }
 
 mod ending;
+mod replays;

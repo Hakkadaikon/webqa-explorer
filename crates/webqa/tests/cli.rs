@@ -8,6 +8,8 @@ mod config;
 mod exec;
 #[path = "cli/interview.rs"]
 mod interview;
+#[path = "cli/ledger.rs"]
+mod ledger;
 #[path = "cli/modes.rs"]
 mod modes;
 #[path = "cli/site.rs"]
