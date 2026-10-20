@@ -20,6 +20,7 @@ pub const READY: &[&str] = &[
     "決め打ちシナリオと探索モードを同じツールで実行する",
     "指定した認証状態を注入してから探索を始める",
     "設定で指定した機密情報は判断モデルに送る前に伏せる",
+    "secret を false にした入力の値は、判断モデルに送る画面状態で伏せない",
     "API キーは設定ファイルに書かず、環境変数から読む",
     "TLS 証明書の検証を無効にする設定は受け付けない",
 ];
@@ -123,6 +124,23 @@ fn redacts(world: &mut QaWorld, name: String) {
 #[given(expr = "対象ページに {string} が表示されている")]
 fn page_shows(world: &mut QaWorld, value: String) {
     world.scene.start.elements.push(PageSpec::link(&value));
+    drop(value);
+}
+
+#[given(expr = "設定で入力欄 {string} は値 {string} を打ち、伏せない指定にしている")]
+fn open_input(world: &mut QaWorld, name: String, value: String) {
+    let open = format!("{name}: {{ env: TEST_OPEN, secret: false }}");
+    world.configure("メールアドレス: { env: TEST_EMAIL }", &open);
+    world.scene.env.insert("TEST_OPEN".to_owned(), value);
+    drop(name);
+}
+
+#[then(expr = "判断モデルに送った画面状態に {string} が含まれる")]
+async fn judge_text_shows(world: &mut QaWorld, value: String) {
+    world.run().await;
+    let texts = &world.ran().judge.texts;
+    let shown = texts.iter().filter(|t| t.contains(&value)).count();
+    assert_ne!(shown, 0, "the value was hidden: {texts:?}");
     drop(value);
 }
 
