@@ -7,7 +7,7 @@ use webqa_core::redact::Rule;
 const API_KEY: &str = "APIキー";
 
 /// The redaction rules of the configuration: `redact` in order, then each
-/// input value under its key, then the API key as `APIキー`. Empty values
+/// input value under its key, unless it is `secret: false`, then the API key as `APIキー`. Empty values
 /// make no rule.
 #[must_use]
 pub fn rules(config: &Config) -> Vec<Rule> {
@@ -15,6 +15,7 @@ pub fn rules(config: &Config) -> Vec<Rule> {
     let inputs = config
         .inputs
         .iter()
+        .filter(|(key, _)| !config.open_inputs.contains(*key))
         .filter_map(|(key, value)| literal(key, value));
     let key = config
         .judge
@@ -70,6 +71,17 @@ mod tests {
         let empty = rules(&config(EXAMPLE, EMPTY_EMAIL));
         assert_eq!(names(&empty), [email, key], "no empty input");
         assert_eq!(Redactor::new(&empty).ok().map(drop), Some(()), "usable");
+    }
+
+    #[test]
+    fn inputs_marked_not_secret_make_no_rule() {
+        let yaml = changed("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, secret: false }");
+        let all = rules(&config(&yaml, ALL_ENV));
+        assert_eq!(
+            names(&all),
+            [rule("メールアドレス"), rule("APIキー")],
+            "the pattern and the key only"
+        );
     }
 
     #[test]

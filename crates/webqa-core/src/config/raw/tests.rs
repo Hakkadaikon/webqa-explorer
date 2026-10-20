@@ -147,3 +147,23 @@ fn assert_hides_key(err: &ConfigError) {
         "Debug hides the key"
     );
 }
+
+#[test]
+fn input_secret_defaults_to_true_and_reads_false() {
+    let raw = parse(example()).unwrap();
+    assert!(raw.inputs["メールアドレス"].secret, "secret by default");
+    let open = changed("{ env: TEST_EMAIL }", "{ env: TEST_EMAIL, secret: false }");
+    let raw = parse(&open).unwrap();
+    assert!(!raw.inputs["メールアドレス"].secret, "secret: false");
+}
+
+#[test]
+fn api_key_rejects_secret() {
+    let yaml = changed(
+        "api_key: { env: JEV_API_KEY }",
+        "api_key: { env: JEV_API_KEY, secret: false }",
+    );
+    let err = parse(&yaml).unwrap_err();
+    let want = discriminant(&ConfigError::LiteralApiKey);
+    assert_eq!(discriminant(&err), want, "{err:?}");
+}

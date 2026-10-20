@@ -12,7 +12,7 @@ pub mod validate;
 
 pub use mode::check_mode;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::num::NonZeroU64;
 
@@ -99,6 +99,9 @@ pub struct Config {
     pub redact: Vec<Redact>,
     /// Values to type into inputs, keyed by the input's accessible name.
     pub inputs: BTreeMap<String, Secret>,
+    /// The keys of `inputs` written with `secret: false`. Their values are
+    /// not hidden from the judge.
+    pub open_inputs: BTreeSet<String>,
     /// Authentication state. A storage state file is already checked for
     /// Playwright's format.
     pub auth: Option<Auth>,

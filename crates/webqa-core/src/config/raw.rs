@@ -27,7 +27,7 @@ pub struct RawConfig {
     pub redact: Vec<RawRedact>,
     /// Values to type into inputs, keyed by the input's accessible name.
     #[serde(default)]
-    pub inputs: BTreeMap<String, EnvRef>,
+    pub inputs: BTreeMap<String, RawInput>,
     /// Authentication state.
     pub auth: Option<Auth>,
     /// A scripted scenario.
@@ -73,6 +73,22 @@ pub struct RawJudge {
 pub struct EnvRef {
     /// The variable name.
     pub env: String,
+}
+
+/// An input's value, read from an environment variable.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RawInput {
+    /// The variable name.
+    pub env: String,
+    /// Whether the value is hidden from the judge and the logs. `true` when
+    /// omitted.
+    #[serde(default = "default_secret")]
+    pub secret: bool,
+}
+
+const fn default_secret() -> bool {
+    true
 }
 
 /// Prices per 1000 tokens.
