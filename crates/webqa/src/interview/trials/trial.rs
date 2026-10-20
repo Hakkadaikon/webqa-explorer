@@ -48,7 +48,7 @@ impl Course<'_> {
         self.log(Event::TrialStarted { trial: number }).await?;
         let now = self.parts.clock.elapsed();
         self.window = count_first_page(self.window, now);
-        let explored = self.explore(browser, core_window(cap, now)).await?;
+        let explored = self.explore(browser, core_window(cap, now), number).await?;
         self.ended(number, explored).await
     }
 
@@ -57,11 +57,12 @@ impl Course<'_> {
         &mut self,
         browser: &mut dyn Browser,
         window: RequestWindow,
+        number: usize,
     ) -> Result<Explored, RunError> {
         let kept = mem::take(&mut self.kept);
         let acts_from = kept.record.acts.len();
         let rules = self.rules();
-        let interviewing = self.interviewing(&rules);
+        let interviewing = self.interviewing(&rules, number);
         let mut ports = Ports::new(
             browser,
             &mut *self.parts.judge,
@@ -84,7 +85,7 @@ impl Course<'_> {
     }
 
     /// The interview's questions, offering the operations of `rules`.
-    fn interviewing(&self, rules: &Rules) -> Interviewing {
+    fn interviewing(&self, rules: &Rules, number: usize) -> Interviewing {
         let interview = &self.plan.interview;
         let goal = interview.purpose.stage().goal;
         let reads_images = self.parts.judge.reads_images();
@@ -93,6 +94,7 @@ impl Course<'_> {
             goal,
             rules.ops.clone(),
             reads_images,
+            number,
         )
     }
 

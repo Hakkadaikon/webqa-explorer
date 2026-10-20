@@ -76,3 +76,19 @@ fn issue_screenshot_name_from_numbers_only() {
         "the number, the trial and the step, whatever the judge wrote"
     );
 }
+
+#[test]
+fn trial_screenshot_name_has_kind_trial_and_step() {
+    let names = [
+        trial_name(IssueKind::ConsoleError, 2, 0),
+        trial_name(IssueKind::ErrorDisplay, 10, 7),
+    ];
+    assert_eq!(
+        names,
+        [
+            "ISSUE_console_error_trial2_step0.png".to_owned(),
+            "ISSUE_error_display_trial10_step7.png".to_owned()
+        ],
+        "the trial between the kind and the step"
+    );
+}

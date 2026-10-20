@@ -67,3 +67,29 @@ async fn mismatch_screenshot_named_from_first_match() {
         "the page of the first step that the pattern matches"
     );
 }
+
+/// A browser whose start page reports the console error `error`.
+fn failing(error: &str) -> FakeBrowser {
+    let mut page = top();
+    page.console = vec![error.to_owned()];
+    FakeBrowser {
+        pages: iter::repeat_n(page, 5).collect(),
+        ..FakeBrowser::default()
+    }
+}
+
+#[tokio::test]
+async fn detected_problem_screenshots_do_not_overwrite_across_trials() {
+    let mut world = World::new(2);
+    world.launch.browsers = VecDeque::from([failing("boom one"), failing("boom two")]);
+    world.run().await;
+    let names: Vec<_> = written(&world).into_iter().map(|(name, _)| name).collect();
+    assert_eq!(
+        names,
+        [
+            "ISSUE_console_error_trial1_step0.png".to_owned(),
+            "ISSUE_console_error_trial2_step0.png".to_owned()
+        ],
+        "one file for each trial's problem"
+    );
+}
