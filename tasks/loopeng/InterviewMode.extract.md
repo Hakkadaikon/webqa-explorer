@@ -578,11 +578,11 @@ EARSの型: {'optional': 5, 'ubiquitous': 57, 'event': 36, 'unwanted': 31, 'stat
 シナリオ: 139 本(Outline 25 本) {'ペルソナと目的の入力': 19, '試行': 29, '判断モデルへの問い': 18, '試行の終わり方': 8, '課題の見つけ方': 14, 'ペルソナから外れないこと': 6, '台帳の書式': 16, '課題を選ぶことと TUI': 7, '再実行と照らし合わせ': 12, '手引きと形式の検査': 5, '既存のモードとの関係': 5}
 ```
 
-設計の文書の行番号の参照の照合(リポジトリの根で`python3 -I -`に次を渡す。台帳の各行の引用を、参照した行の文と2文字ずつの重なりで比べ、0.6未満を挙げる):
+設計の文書の行番号の参照の照合(リポジトリの根で`python3 -I -`に次を渡す。設計の文書は、削除の直前の版を`git show`で読む。台帳の各行の引用を、参照した行の文と2文字ずつの重なりで比べ、0.6未満を挙げる):
 
 ```python
-import re
-doc=open('docs/superpowers/specs/2026-10-18-interview-mode-design.md').read().split('\n')
+import re,subprocess
+doc=subprocess.check_output(['git','show','c18ac7d^:docs/superpowers/specs/2026-10-18-interview-mode-design.md'],text=True).split('\n')
 e=open('tasks/loopeng/InterviewMode.extract.md').read()
 led=e.split('\n## 台帳\n')[1].split('\n## トレーサビリティ')[0]
 bad=0;n=0
