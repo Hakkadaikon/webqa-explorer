@@ -4,7 +4,7 @@ mod reach;
 
 use std::collections::HashSet;
 
-use crate::interview::issue::{Count, Issue, Place, Run};
+use crate::interview::issue::{Count, Detail, Halt, Issue, Place, Run};
 use crate::interview::ledger::{Compared, Entry, Goal, Head, Ledger};
 use reach::reached;
 
@@ -98,15 +98,33 @@ fn carry(entry: &mut Entry, previous: &Ledger) {
     entry.compared = before.map_or(Compared::New, |_| Compared::Remaining);
 }
 
+/// Whether `issue` is an unreached issue of a trial out of budget, which a
+/// run no longer makes: its absence says nothing.
+const fn budget_spent(issue: &Issue) -> bool {
+    matches!(
+        issue.detail,
+        Detail::Unreached {
+            halt: Halt::BudgetSpent,
+            ..
+        }
+    )
+}
+
+/// Whether the previous `issue`, gone from this run, is resolved, given that
+/// `now` finished trials reached its screen.
+fn verdict(issue: &Issue, now: usize) -> Compared {
+    if now >= issue.count.reached.max(1) && !budget_spent(issue) {
+        Compared::Resolved
+    } else {
+        Compared::Unverified
+    }
+}
+
 /// The previous `entry`, whose issue is not in this run, as this run's
 /// ledger records it.
 fn left(entry: &Entry, run: &Run<'_>, finished: usize) -> Entry {
     let now = reached(&entry.issue.place, run);
-    let compared = if now >= entry.issue.count.reached.max(1) {
-        Compared::Resolved
-    } else {
-        Compared::Unverified
-    };
+    let compared = verdict(&entry.issue, now);
     let finished = match entry.issue.place {
         Place::Screen { .. } => finished,
         Place::Pattern(_) => now,
