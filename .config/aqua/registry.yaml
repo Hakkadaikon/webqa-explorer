@@ -28,3 +28,16 @@ packages:
       - name: rust-code-analysis-cli
     supported_envs:
       - linux/amd64
+  - name: crates.io/ra-jit
+    type: cargo
+    crate: ra-jit
+    description: Rust compiler daemon on rust-analyzer for fast incremental builds
+    # Built from crates.io: its GitHub release has only a moving `nightly`
+    # tag and no binary for Intel macOS.
+    files:
+      - name: ra-jit
+      - name: cargo-ra-jit
+      - name: ra-jit-rustc
+      - name: ra-jit-rustc-first
+    cargo:
+      locked: true

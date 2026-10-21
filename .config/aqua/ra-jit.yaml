@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/aqua-yaml.json
+# ra-jit only, apart from aqua.yaml: it builds from source with cargo, which
+# CI and `just setup` should not wait for. `just ra-jit` installs it on first use.
+checksum:
+  enabled: true
+  require_checksum: true
+registries:
+  - name: local
+    type: local
+    path: registry.yaml
+packages:
+  - name: crates.io/ra-jit@0.1.0
+    registry: local
