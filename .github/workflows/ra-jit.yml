@@ -1,6 +1,7 @@
 name: ra-jit
-# Builds the workspace with ra-jit, run by hand only: ra-jit 0.1.0 is new,
-# builds from source and is no gate (`just ra-jit`, docs/arch/dependencies.md).
+# Builds the workspace with ra-jit and times it against plain cargo, run by
+# hand only: ra-jit 0.1.0 is new, builds from source and is no gate
+# (`just ra-jit`, docs/arch/dependencies.md).
 on:
   workflow_dispatch:
 permissions:
@@ -15,7 +16,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # ra-jit builds from source on a cache miss; then the two builds.
+    # ra-jit builds from source on a cache miss; then eight builds.
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -41,14 +42,11 @@ jobs:
         with:
           path: .aqua/pkgs/cargo/crates.io/ra-jit
           key: ${{ steps.cache.outputs.cache-primary-key }}
-      - name: Build with ra-jit
-        run: just ra-jit build
-      # The first build may be rustc's alone; a build after an edit goes
-      # through the daemon, or ra-jit does not build here.
-      - name: Build again after an edit
-        run: |
-          echo "// ra-jit probe" >> crates/webqa-core/src/event.rs
-          just ra-jit build
+      # The same edits, built by plain cargo and by ra-jit on this runner.
+      # A rebuild after an edit goes through the daemon, which the last
+      # step checks: the first build may be rustc's alone.
+      - name: Compare with plain cargo
+        run: sh scripts/ra-jit-compare.sh | tee -a "$GITHUB_STEP_SUMMARY"
       - name: The daemon built
         run: |
           just ra-jit status | tee "$RUNNER_TEMP/status"

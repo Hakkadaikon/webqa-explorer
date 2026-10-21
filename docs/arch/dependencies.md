@@ -168,7 +168,10 @@ worktreeごとに、rust-analyzerの中身を持つプロセスも立つ。
 IntelのMac(x86_64)では、初回のビルドはrustcに任せて通るが、組み直しで失敗する。
 そのため、`just ra-jit`はLinuxとAppleシリコンのMac以外では理由を書いて止まる。
 LinuxのCIでは、手動のワークフロー`ra-jit`(`.github/workflows/ra-jit.yml`)で確かめる。
-組んだあと1つのファイルを書き換えて組み直し、常駐のプロセスが組んだことを`status`で確かめる。
+同じ機械で、普通の`cargo build`とra-jitの時間を比べる(`scripts/ra-jit-compare.sh`)。
+どちらも冷えた状態から組み、`webqa-core`への同じ書き換えを3回して、そのたびに組み直す。
+時間の表は、ワークフローの実行の要約に出る。
+最後に、常駐のプロセスが組んだことを`status`で確かめる。
 PRとmainへのpushでは回らず、マージの条件にも入らない。
 AppleシリコンのMacで組めるかは、まだ確かめていない。
 
