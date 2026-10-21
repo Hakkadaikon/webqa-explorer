@@ -129,6 +129,25 @@ cargo-mutantsとrust-code-analysisは、aquaの標準のregistryに無い。
 rust-code-analysisの配布物はLinuxのx86_64向けだけである。
 ほかの環境では`cargo install rust-code-analysis-cli --version 0.0.25`で入れる。
 
+ra-jitは、rust-analyzerの上に作った、常駐して増分で組むコンパイラである。
+`just ra-jit`で、ワークスペースをra-jitで組む。
+`just ra-jit test`のように、`test`、`run`、`check`も渡せる。
+版は0.1.0で、crates.ioからaquaの`cargo`の型で入れる。
+GitHubのリリースには動く`nightly`のタグしか無く、版を固定できないためである。
+ra-jitだけは`.config/aqua/ra-jit.yaml`に分け、`aqua.yaml`には入れない。
+ソースからのビルドに時間がかかるので、CIと`just setup`では入れない。
+`just ra-jit`を初めて回したときに入れる。
+
+ra-jitが対応するRustは1.99.0だけである。
+このリポジトリは1.99.1に固定しているので、`just ra-jit`の中だけ1.99.0で組む。
+1.99.0とそのrust-srcは、無ければ`just ra-jit`がrustupで入れる。
+置き場は`target/ra-jit`に分け、普通のビルドの成果物と混ぜない。
+ra-jitは借用検査をしないので、品質ゲートとCIは今までどおり普通の`cargo`で回す。
+
+ra-jitが組めるのは、LinuxとAppleシリコンのMacだけである。
+IntelのMac(x86_64)では、初回のビルドはrustcに任せて通るが、組み直しで失敗する。
+そのため、`just ra-jit`はほかの機械では理由を書いて止まる。
+
 ほかに、次のものを使う。
 
 | ツール | 版 | 入れ方 | 用途 |
