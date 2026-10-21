@@ -146,8 +146,9 @@ check-serial:
 # CI で回す全部の検査
 ci: check deny
 
-# ra-jit で速く組む(既定は build。test、run、check も渡せる)。借用検査をしないので、ゲートは普通の cargo で回す
-# Linux と Apple シリコンの Mac だけで動く。初回は aqua が ra-jit をソースからビルドし、Rust 1.99.0 も入れる
+# ra-jit で速く組む(既定は build。cargo ra-jit の引数をそのまま渡す: test、check、status、stop など)
+# 借用検査をしないので、ゲートは普通の cargo で回す。Intel の Mac では組み直しで失敗するので止める
+# 初回は aqua が ra-jit をソースからビルドし、Rust 1.99.0 と rust-src も入れる
 ra-jit *args="build":
     #!/bin/sh
     set -eu
@@ -158,10 +159,11 @@ ra-jit *args="build":
             exit 1
             ;;
     esac
-    rustup toolchain list | grep -q '^1\.99\.0-' || rustup toolchain install 1.99.0 --profile minimal -c rust-src
+    # 入っていれば、足りない rust-src だけを入れる
+    rustup toolchain install 1.99.0 --profile minimal -c rust-src --no-self-update
     export AQUA_CONFIG="{{ justfile_directory() }}/.config/aqua/ra-jit.yaml"
     aqua install
-    RUSTUP_TOOLCHAIN=1.99.0 CARGO_TARGET_DIR=target/ra-jit RUSTC_WRAPPER= cargo ra-jit {{ args }}
+    RUSTUP_TOOLCHAIN=1.99.0 CARGO_TARGET_DIR="{{ justfile_directory() }}/target/ra-jit" cargo ra-jit {{ args }}
 
 # インタビューのモードを仕込みのサイトで回して採点する(本物の判断モデルを使う。本体の checkout の直下で回す)
 eval runs="3":

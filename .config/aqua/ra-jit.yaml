@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/aqua-yaml.json
 # ra-jit only, apart from aqua.yaml: it builds from source with cargo, which
 # CI and `just setup` should not wait for. `just ra-jit` installs it on first use.
-checksum:
-  enabled: true
-  require_checksum: true
+# aqua checks no checksum for a cargo package. What pins it is crates.io, where
+# a published version cannot change, cargo's check of the crate against the
+# index, and `--locked`, which builds the crate's own Cargo.lock.
 registries:
   - name: local
     type: local

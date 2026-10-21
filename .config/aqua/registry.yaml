@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/registry.json
-# Tools missing from the standard aqua registry. Their releases ship no
+# Tools missing from the standard aqua registry. The GitHub releases ship no
 # checksum file; aqua-checksums.json (next to aqua.yaml) pins them instead.
+# ra-jit is a cargo package; ra-jit.yaml says what pins it.
 packages:
   - type: github_release
     repo_owner: sourcefrog
