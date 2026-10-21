@@ -102,6 +102,7 @@ JEVの問いは、そのときもGatewayへ送る。
 開発ツールは、aquaで`.aqua/`の下に入れる。
 版は`.config/aqua/aqua.yaml`で固定し、チェックサムも検査する。
 `just setup`が全部を入れる。
+ra-jitだけは別の設定に置き、`just ra-jit`を初めて回したときに入れる(下に書く)。
 
 | ツール | 版 | 用途 |
 |---|---|---|
@@ -123,6 +124,7 @@ JEVの問いは、そのときもGatewayへ送る。
 | cargo-mutants | v27.1.0 | mutationテスト |
 | rust-code-analysis | v0.0.25 | 複雑度の計測 |
 | sccache | v0.18.0 | コンパイル結果の使い回し |
+| ra-jit | 0.1.0 | 常駐して増分で組む(`just ra-jit`で入れる) |
 
 cargo-mutantsとrust-code-analysisは、aquaの標準のregistryに無い。
 そこで、`.config/aqua/registry.yaml`に定義を置く。
@@ -131,22 +133,41 @@ rust-code-analysisの配布物はLinuxのx86_64向けだけである。
 
 ra-jitは、rust-analyzerの上に作った、常駐して増分で組むコンパイラである。
 `just ra-jit`で、ワークスペースをra-jitで組む。
-`just ra-jit test`のように、`test`、`run`、`check`も渡せる。
+引数は`cargo ra-jit`にそのまま渡す。
+`just ra-jit test`や`just ra-jit stop`のように使える。
 版は0.1.0で、crates.ioからaquaの`cargo`の型で入れる。
 GitHubのリリースには動く`nightly`のタグしか無く、版を固定できないためである。
 ra-jitだけは`.config/aqua/ra-jit.yaml`に分け、`aqua.yaml`には入れない。
 ソースからのビルドに時間がかかるので、CIと`just setup`では入れない。
 `just ra-jit`を初めて回したときに入れる。
+`just ra-jit`の外で`cargo ra-jit`を打つと、aquaが`aqua.yaml`に無いと言って止まる。
+
+aquaは、`cargo`の型の道具のチェックサムを検査しない。
+ra-jitの中身を固定しているのは次の3つである。
+crates.ioでは、出した版の中身を書き換えられない。
+cargoは、落としたクレートを索引のsha256と照らし合わせる。
+`--locked`で、クレートに入ったCargo.lockの版の依存を使う。
+依存はcargo-denyの検査の外にある。
+crates.ioのra-jitの持ち主は`andrewgazelka`である。
+GitHubのリポジトリの作者と同じであることを、2026-10-21に確かめた。
 
 ra-jitが対応するRustは1.99.0だけである。
 このリポジトリは1.99.1に固定しているので、`just ra-jit`の中だけ1.99.0で組む。
-1.99.0とそのrust-srcは、無ければ`just ra-jit`がrustupで入れる。
+1.99.0とそのrust-srcは、足りなければ`just ra-jit`がrustupで入れる。
 置き場は`target/ra-jit`に分け、普通のビルドの成果物と混ぜない。
+そのぶん、worktreeごとのディスクの使い方が増える(このリポジトリで約2GB)。
 ra-jitは借用検査をしないので、品質ゲートとCIは今までどおり普通の`cargo`で回す。
 
-ra-jitが組めるのは、LinuxとAppleシリコンのMacだけである。
+ra-jitは常駐のプロセスを立て、`~/.cache/ra-jit`にソケットと状態を置く。
+worktreeごとに、rust-analyzerの中身を持つプロセスも立つ。
+どれも、使われないまま30分たつと止まる(`RA_JIT_IDLE_SECS`で変えられる)。
+並列にworktreeで回すとメモリを取り合う。
+終わったら`just ra-jit stop`で止める。
+`just ra-jit status`で、動いているかを見られる。
+
 IntelのMac(x86_64)では、初回のビルドはrustcに任せて通るが、組み直しで失敗する。
-そのため、`just ra-jit`はほかの機械では理由を書いて止まる。
+そのため、`just ra-jit`はLinuxとAppleシリコンのMac以外では理由を書いて止まる。
+LinuxとAppleシリコンのMacで最後まで組めるかは、まだ確かめていない。
 
 ほかに、次のものを使う。
 
