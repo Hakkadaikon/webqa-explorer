@@ -2,16 +2,30 @@
 # Times plain cargo and ra-jit on the same machine and the same edits: a
 # build from cold, then a rebuild after each of three edits to webqa-core,
 # which every other crate depends on. Both use Rust 1.99.0, the only one
-# ra-jit takes. Writes a Markdown table to stdout; run by the ra-jit workflow.
+# ra-jit takes, and only the build is timed: the toolchain, the crates and
+# ra-jit (.config/aqua/ra-jit.yaml) are made ready first. Writes a Markdown
+# table to stdout, a row as each way finishes; run by the ra-jit workflow.
+# `date +%N` is GNU's: elsewhere the times round to whole seconds.
 # Usage: ra-jit-compare.sh
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root"
 edited=crates/webqa-core/src/lib.rs
+if ! git diff --quiet -- "$edited"; then
+	echo "ra-jit-compare: $edited has changes that this would undo" >&2
+	exit 1
+fi
 log=$(mktemp)
 trap 'git checkout -q -- "$edited"; rm -f "$log"' EXIT
 export RUSTUP_TOOLCHAIN=1.99.0
+export AQUA_CONFIG="$root/.config/aqua/ra-jit.yaml"
+
+rustup toolchain install 1.99.0 --profile minimal -c rust-src --no-self-update >/dev/null 2>&1
+aqua install
+cargo fetch --locked >/dev/null
+cargo ra-jit stop >/dev/null 2>&1 || true
+rm -rf "$root/target/plain" "$root/target/ra-jit"
 
 now() {
 	date +%s.%N
@@ -31,25 +45,22 @@ edit() {
 	printf 'pub fn ra_jit_probe_%s() -> u32 {\n    %s\n}\n' "$1" "$1" >>"$edited"
 }
 
-# The four times of one way of building, separated by spaces.
-series() {
+# One table row: the name, then the four times.
+row() {
+	name=$1
+	shift
 	git checkout -q -- "$edited"
-	times=$(timed "$@")
+	cells="| $name | $(timed "$@") 秒"
 	for n in 1 2 3; do
 		edit "$n"
-		times="$times $(timed "$@")"
+		cells="$cells | $(timed "$@") 秒"
 	done
-	echo "$times"
+	echo "$cells |"
 }
-
-cargo fetch --locked >/dev/null
-plain=$(
-	export CARGO_TARGET_DIR="$root/target/plain"
-	series cargo build --workspace
-)
-rajit=$(series just ra-jit build)
 
 echo "| 組み方 | 冷えた状態から | 書き換え1 | 書き換え2 | 書き換え3 |"
 echo "|---|---|---|---|---|"
-echo "| cargo build | $(echo "$plain" | tr ' ' '|' | sed 's/|/ 秒 | /g') 秒 |"
-echo "| just ra-jit build | $(echo "$rajit" | tr ' ' '|' | sed 's/|/ 秒 | /g') 秒 |"
+row "cargo build" env CARGO_TARGET_DIR="$root/target/plain" cargo build
+row "cargo ra-jit build" env CARGO_TARGET_DIR="$root/target/ra-jit" cargo ra-jit build
+echo
+echo "1回ずつ測った値で、普通の cargo を先に回す。"

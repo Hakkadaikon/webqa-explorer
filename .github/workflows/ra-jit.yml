@@ -46,6 +46,8 @@ jobs:
       # A rebuild after an edit goes through the daemon, which the last
       # step checks: the first build may be rustc's alone.
       - name: Compare with plain cargo
+        # bash adds pipefail, so a failing build fails this step past tee.
+        shell: bash
         run: sh scripts/ra-jit-compare.sh | tee -a "$GITHUB_STEP_SUMMARY"
       - name: The daemon built
         run: |
