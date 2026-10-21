@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/aquaproj/aqua/main/json-schema/registry.json
-# Tools missing from the standard aqua registry. Their releases ship no
+# Tools missing from the standard aqua registry. The GitHub releases ship no
 # checksum file; aqua-checksums.json (next to aqua.yaml) pins them instead.
+# ra-jit is a cargo package; ra-jit.yaml says what pins it.
 packages:
   - type: github_release
     repo_owner: sourcefrog
@@ -28,3 +29,16 @@ packages:
       - name: rust-code-analysis-cli
     supported_envs:
       - linux/amd64
+  - name: crates.io/ra-jit
+    type: cargo
+    crate: ra-jit
+    description: Rust compiler daemon on rust-analyzer for fast incremental builds
+    # Built from crates.io: its GitHub release has only a moving `nightly`
+    # tag and no binary for Intel macOS.
+    files:
+      - name: ra-jit
+      - name: cargo-ra-jit
+      - name: ra-jit-rustc
+      - name: ra-jit-rustc-first
+    cargo:
+      locked: true
