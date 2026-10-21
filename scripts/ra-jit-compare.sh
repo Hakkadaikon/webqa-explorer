@@ -18,10 +18,11 @@ if ! git diff --quiet -- "$edited"; then
 fi
 log=$(mktemp)
 trap 'git checkout -q -- "$edited"; rm -f "$log"' EXIT
+trap 'exit 1' INT TERM
 export RUSTUP_TOOLCHAIN=1.99.0
 export AQUA_CONFIG="$root/.config/aqua/ra-jit.yaml"
 
-rustup toolchain install 1.99.0 --profile minimal -c rust-src --no-self-update >/dev/null 2>&1
+rustup toolchain install 1.99.0 --profile minimal -c rust-src --no-self-update >/dev/null
 aqua install
 cargo fetch --locked >/dev/null
 cargo ra-jit stop >/dev/null 2>&1 || true
