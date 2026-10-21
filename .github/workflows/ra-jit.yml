@@ -1,0 +1,55 @@
+name: ra-jit
+# Builds the workspace with ra-jit, run by hand only: ra-jit 0.1.0 is new,
+# builds from source and is no gate (`just ra-jit`, docs/arch/dependencies.md).
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  AQUA_ROOT_DIR: ${{ github.workspace }}/.aqua
+  AQUA_CONFIG: ${{ github.workspace }}/.config/aqua/aqua.yaml
+  AQUA_POLICY_CONFIG: ${{ github.workspace }}/.config/aqua/policy.yaml
+concurrency:
+  group: ra-jit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # ra-jit builds from source on a cache miss; then the two builds.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: |
+          sh scripts/install-aqua.sh
+          echo "$AQUA_ROOT_DIR/bin" >> "$GITHUB_PATH"
+          "$AQUA_ROOT_DIR/bin/aqua" policy allow "$AQUA_POLICY_CONFIG"
+          "$AQUA_ROOT_DIR/bin/aqua" install
+      # ra-jit builds from source; its version is in these files. It is
+      # saved once installed, so that a failing build after it keeps it.
+      - id: cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .aqua/pkgs/cargo/crates.io/ra-jit
+          key: ra-jit-${{ runner.os }}-${{ hashFiles('.config/aqua/ra-jit.yaml', '.config/aqua/registry.yaml') }}
+      - name: Install ra-jit
+        run: AQUA_CONFIG="$GITHUB_WORKSPACE/.config/aqua/ra-jit.yaml" aqua install
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .aqua/pkgs/cargo/crates.io/ra-jit
+          key: ${{ steps.cache.outputs.cache-primary-key }}
+      - name: Build with ra-jit
+        run: just ra-jit build
+      # The first build may be rustc's alone; a build after an edit goes
+      # through the daemon, or ra-jit does not build here.
+      - name: Build again after an edit
+        run: |
+          echo "// ra-jit probe" >> crates/webqa-core/src/event.rs
+          just ra-jit build
+      - name: The daemon built
+        run: |
+          just ra-jit status | tee "$RUNNER_TEMP/status"
+          grep -E '[1-9][0-9]* builds by the daemon' "$RUNNER_TEMP/status"
