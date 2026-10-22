@@ -47,9 +47,9 @@ struct Hit<'r> {
     record: &'r Record<'r>,
     trial: usize,
     /// The step's position in the trial, from 1.
-    step: usize,
+    number: usize,
     /// The step's number in the event log.
-    logged: u64,
+    step: u64,
 }
 
 /// The mismatch issue of `question`.
@@ -82,9 +82,9 @@ fn issue(question: &MismatchQuestion<'_>, run: &Run<'_>) -> Issue {
         },
         shot: first.map(|hit| Shot {
             trial: hit.trial,
-            step: hit.logged,
+            step: hit.step,
         }),
-        path: first.map_or_else(Vec::new, |hit| path(hit.record.steps, hit.step)),
+        path: first.map_or_else(Vec::new, |hit| path(hit.record.steps, hit.number)),
         confidence: None,
     }
 }
@@ -96,11 +96,11 @@ fn hit<'r>(pattern: &UrlPattern, record: &'r Record<'r>, trial: usize) -> Option
         .iter()
         .zip(1..)
         .find(|(seen, _)| pattern.matches(&seen.screen.as_inner().url))
-        .map(|(seen, step)| Hit {
+        .map(|(seen, number)| Hit {
             record,
             trial,
-            step,
-            logged: seen.step,
+            number,
+            step: seen.step,
         })
 }
 
