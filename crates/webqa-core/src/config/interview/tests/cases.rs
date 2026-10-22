@@ -3,26 +3,33 @@
 use super::super::Interview;
 
 /// Rejected while reading the YAML.
-pub const UNREADABLE: [&str; 2] = [
+pub const UNREADABLE: [&str; 3] = [
+    "  trials: -1\n",
     "  reset: { command: [x], timeout_secs: 0 }\n",
     "  trial: 3\n",
 ];
 
 const HESITATION: &str = "interview.hesitation_threshold は 0 より大きく 1 以下の値にする";
 const CONFIDENCE: &str = "interview.confidence_threshold は 0 より大きく 1 以下の値にする";
+const STUCK: &str = "interview.stuck_threshold は 1 以上にする";
+const NATURAL: &str = "interview.max_natural_questions は 1 以上にする";
+const REQUESTS: &str = "interview.requests_per_hour は 2 以上にする";
 const TRIALS: &str = "interview.trials は 1 以上 100 以下にする";
 
 /// Rejected while loading, with the message expected.
-pub const OUT_OF_RANGE: [(&str, &str); 12] = [
+pub const OUT_OF_RANGE: [(&str, &str); 15] = [
+    ("  stuck_threshold: 0\n  requests_per_hour: 1\n", STUCK),
+    (
+        "  requests_per_hour: 1\n  max_natural_questions: 0\n",
+        REQUESTS,
+    ),
+    (
+        "  max_natural_questions: 0\n  reset: { command: [] }\n",
+        NATURAL,
+    ),
     ("  trials: 0\n", TRIALS),
-    (
-        "  stuck_threshold: 0\n",
-        "interview.stuck_threshold は 1 以上にする",
-    ),
-    (
-        "  max_natural_questions: 0\n",
-        "interview.max_natural_questions は 1 以上にする",
-    ),
+    ("  stuck_threshold: 0\n", STUCK),
+    ("  max_natural_questions: 0\n", NATURAL),
     ("  trials: 101\n", TRIALS),
     ("  hesitation_threshold: 0\n", HESITATION),
     ("  hesitation_threshold: 1.5\n", HESITATION),
@@ -30,10 +37,7 @@ pub const OUT_OF_RANGE: [(&str, &str); 12] = [
     ("  hesitation_threshold: -0.1\n", HESITATION),
     ("  confidence_threshold: 0\n", CONFIDENCE),
     ("  confidence_threshold: 1.5\n", CONFIDENCE),
-    (
-        "  requests_per_hour: 1\n",
-        "interview.requests_per_hour は 2 以上にする",
-    ),
+    ("  requests_per_hour: 1\n", REQUESTS),
     ("  trials: 101\n  hesitation_threshold: 0\n", TRIALS),
 ];
 
