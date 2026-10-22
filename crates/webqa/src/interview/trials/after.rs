@@ -183,10 +183,10 @@ async fn ask_natural(
     judgement
 }
 
-/// The text of the page of the step `shot` points at; both numbers count
-/// from 1.
-fn shot_text(run: &Run<'_>, shot: Shot) -> Option<Redacted<ScreenText>> {
+/// The text of the page of the step `shot` points at: the trial counts from
+/// 1, the step is the event log's number.
+pub(super) fn shot_text(run: &Run<'_>, shot: Shot) -> Option<Redacted<ScreenText>> {
     let record = run.trials.get(shot.trial.saturating_sub(1));
-    let step = record.and_then(|record| record.steps.get(shot.step.saturating_sub(1)));
+    let step = record.and_then(|record| record.steps.iter().find(|seen| seen.step == shot.step));
     step.map(text)
 }

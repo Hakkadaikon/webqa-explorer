@@ -79,6 +79,7 @@ fn views(trial: &Trial) -> Vec<Seen<'_>> {
 /// `step` as the issues read it.
 fn seen(step: &record::Step) -> Seen<'_> {
     Seen {
+        step: step.logged,
         screen: &step.screen,
         viewport: step.viewport,
         reply: step.reply.as_ref(),

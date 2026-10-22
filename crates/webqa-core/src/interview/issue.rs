@@ -145,13 +145,13 @@ pub struct Count {
     pub reached: usize,
 }
 
-/// A step of a trial, numbered from 1.
+/// A step of a trial, as the event log numbers it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Shot {
     /// The trial's number among the trials started, from 1.
     pub trial: usize,
-    /// The step's number in the trial, from 1.
-    pub step: usize,
+    /// The step's number in the event log.
+    pub step: u64,
 }
 
 /// An operation that ran on the page.

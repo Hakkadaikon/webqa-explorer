@@ -1,13 +1,21 @@
 //! Tests of the screenshots of the issues.
 
+use std::slice;
+
 use webqa_core::interview::ask::{DIFFERENT, HARD_TO_SEE, SAME};
-use webqa_core::interview::issue::{Kind, Shot};
+use webqa_core::interview::clue::Thresholds;
+use webqa_core::interview::issue::{Kind, Number, Shot};
+use webqa_core::interview::outcome::{self, Outcome};
+use webqa_core::judge::{Image, ImageFormat};
+use webqa_core::machine::ExitReason;
 use webqa_core::ports::StoreError;
 
+use super::super::record::{Trial, steps};
+use super::super::shots::shot_file;
 use super::purposes::purposeful;
 use super::*;
-use crate::run::RunError;
 use crate::run::fakes::PNG;
+use crate::run::{RunError, Taken};
 use crate::store::screenshots::issue_name;
 
 /// The judge reads images and says nothing is hard to see, `steps` times.
@@ -111,5 +119,48 @@ async fn screenshot_that_cannot_be_written_fails_the_run() {
         (failing.run().await, failing.store.ledger),
         (Ending::Failed(RunError::Store(StoreError)), None),
         "the first write after the log is the screenshot, and the ledger waits for it"
+    );
+}
+
+/// A step of the log's number `step` whose screenshot is `bytes`.
+fn photographed(step: u64, bytes: &[u8]) -> Taken {
+    let at = top();
+    Taken {
+        step,
+        screen: Redactor::default().screen(at.screen),
+        viewport: at.viewport,
+        reply: None,
+        image: Some(Image::new(ImageFormat::Png, bytes.to_vec())),
+    }
+}
+
+#[test]
+fn a_recovery_step_keeps_the_shot_on_the_page_of_the_log_step() {
+    // The core's own recovery was step 2 of the log, so the judge's second
+    // question is step 3.
+    let thresholds = Thresholds {
+        hesitation: 0.5,
+        confidence: 0.5,
+    };
+    let taken = vec![photographed(1, b"one"), photographed(3, b"three")];
+    let trial = Trial {
+        outcome: Outcome::Finished(outcome::Ending::Goal),
+        reason: ExitReason::GoalAchieved,
+        steps: steps(taken, &[], thresholds),
+    };
+    let number = Number::parse("I-00000001").unwrap();
+    let files = |step| {
+        let shot = Shot { trial: 1, step };
+        let found = shot_file(slice::from_ref(&trial), (number, shot));
+        found.map(|(name, image)| (name, image.bytes().to_vec()))
+    };
+    let named = |step, bytes: &[u8]| {
+        let name = issue_name(number, Shot { trial: 1, step });
+        Some((name, bytes.to_vec()))
+    };
+    assert_eq!(
+        [files(1), files(2), files(3)],
+        [named(1, b"one"), None, named(3, b"three")],
+        "the log's step picks the page; step 2 asked no question"
     );
 }

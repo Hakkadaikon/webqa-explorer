@@ -209,7 +209,7 @@ pub const CLICK1: Option<Ran> = Some(Ran {
     target: Some(1),
 });
 
-/// A step on `screen` in [`VIEWPORT`].
+/// A step on `screen` in [`VIEWPORT`], numbered by [`record`] by its position.
 pub const fn seen<'a>(
     screen: &'a Redacted<Screen>,
     reply: Option<&'a Reply>,
@@ -217,6 +217,7 @@ pub const fn seen<'a>(
     ran: Option<Ran>,
 ) -> Seen<'a> {
     Seen {
+        step: 0,
         screen,
         viewport: VIEWPORT,
         reply,
@@ -225,9 +226,18 @@ pub const fn seen<'a>(
     }
 }
 
-/// A trial ending as `outcome` after `steps`.
-pub const fn record<'a>(outcome: Outcome, steps: &'a [Seen<'a>]) -> Record<'a> {
-    Record { outcome, steps }
+/// A trial ending as `outcome` after `steps`, which it numbers from 1
+/// whatever step they carry.
+pub fn record<'a>(outcome: Outcome, steps: &'a [Seen<'a>]) -> Record<'a> {
+    let numbered = steps.iter().zip(1..).map(|(seen, number)| Seen {
+        step: number,
+        ..*seen
+    });
+    // Leaked so that the record borrows steps that outlive the call.
+    Record {
+        outcome,
+        steps: Vec::leak(numbered.collect()),
+    }
 }
 
 /// A step on `screen` with `answers`, no clue, and nothing run.
