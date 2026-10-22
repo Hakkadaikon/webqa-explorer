@@ -44,7 +44,7 @@ pub enum InterviewError {
     /// A count that must be at least 1 is 0.
     #[error("{0} は 1 以上にする")]
     Zero(&'static str),
-    /// The requests per hour in an interview is 1.
+    /// The requests per hour in an interview is under 2: 0 or 1.
     #[error("{0} は 2 以上にする")]
     TooFewRequests(&'static str),
 }
