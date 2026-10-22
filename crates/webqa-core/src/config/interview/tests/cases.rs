@@ -3,10 +3,7 @@
 use super::super::Interview;
 
 /// Rejected while reading the YAML.
-pub const UNREADABLE: [&str; 5] = [
-    "  trials: 0\n",
-    "  stuck_threshold: 0\n",
-    "  max_natural_questions: 0\n",
+pub const UNREADABLE: [&str; 2] = [
     "  reset: { command: [x], timeout_secs: 0 }\n",
     "  trial: 3\n",
 ];
@@ -16,7 +13,16 @@ const CONFIDENCE: &str = "interview.confidence_threshold は 0 より大きく 1
 const TRIALS: &str = "interview.trials は 1 以上 100 以下にする";
 
 /// Rejected while loading, with the message expected.
-pub const OUT_OF_RANGE: [(&str, &str); 9] = [
+pub const OUT_OF_RANGE: [(&str, &str); 12] = [
+    ("  trials: 0\n", TRIALS),
+    (
+        "  stuck_threshold: 0\n",
+        "interview.stuck_threshold は 1 以上にする",
+    ),
+    (
+        "  max_natural_questions: 0\n",
+        "interview.max_natural_questions は 1 以上にする",
+    ),
     ("  trials: 101\n", TRIALS),
     ("  hesitation_threshold: 0\n", HESITATION),
     ("  hesitation_threshold: 1.5\n", HESITATION),
