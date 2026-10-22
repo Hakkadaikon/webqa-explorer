@@ -86,3 +86,56 @@ async fn the_ledger_names_the_log_step_of_the_issue() {
         "the log's step, not the position"
     );
 }
+
+/// The judge clicks without hesitating, then says it is done, hesitating.
+fn click_then_hesitant_done() -> Scripted {
+    let ops = [("click", 0.0), ("done", 0.9)];
+    ops.iter()
+        .fold(Scripted::default(), |script, &(op, hesitation)| {
+            script
+                .then(QuestionId::operation(), [(op, 0.9)])
+                .then(QuestionId::target(), [("1", 0.8)])
+                .then(QuestionId::error_shown(), [("true", 0.0)])
+                .then(QuestionId::goal_reached(), [("true", 0.0)])
+                .then(QuestionId::new(HESITATION), [("true", hesitation)])
+                .then_text(QuestionId::new(EXPECTATION), "保存される")
+                .then_text(QuestionId::new(PURPOSE_GUESS), GUESS)
+        })
+}
+
+/// The steps of the log's lines of `kind`, each once.
+fn logged_steps(world: &World, kind: &str) -> Vec<u64> {
+    let lines = world.store.lines.iter();
+    let lines = lines.filter(|line| line["kind"] == kind);
+    let mut steps: Vec<u64> = lines.filter_map(|line| line["step"].as_u64()).collect();
+    steps.dedup();
+    steps
+}
+
+#[tokio::test]
+async fn a_recovery_keeps_the_ledger_step_on_the_page_the_log_asked_about() {
+    let mut world = World::new(1);
+    // The page never changes, so the core reloads it after the click.
+    world.plan.rules.freeze_threshold = nz(1);
+    world.judge.script = click_then_hesitant_done();
+    world.run().await;
+    let recovered = logged_steps(&world, "recovered").len();
+    assert_eq!(recovered, 1, "the core recovered once");
+    let steps = logged_steps(&world, "asked");
+    assert_eq!(steps.len(), 2, "the judge was asked at two steps");
+    // The hesitation is at the second of them.
+    let logged = steps[1];
+    assert_ne!(
+        logged, 2,
+        "the recovery moved the log's step off the count of questions"
+    );
+    let issue = world.ledger().unwrap().entries[0].issue.clone();
+    let shot = issue.shot.unwrap();
+    let name = issue_name(issue.number, shot);
+    let suffix = format!("_trial1_step{logged}.png");
+    assert_eq!(
+        (shot.step, name.ends_with(&suffix), written(&world)),
+        (logged, true, vec![(name, PNG.to_vec())]),
+        "the ledger and its screenshot name the log's step of the hesitant page"
+    );
+}
