@@ -124,9 +124,9 @@ fn persona() -> Persona {
 }
 
 /// The interview of the persona towards the goal of the stage.
-fn interviewing(ops: &[Op], reads_images: bool) -> Interviewing {
+fn interviewing(reads_images: bool) -> Interviewing {
     let goal = "経費を申請する".to_owned();
-    Interviewing::new(persona(), goal, with_done(ops), reads_images, 1, 0)
+    Interviewing::new(persona(), goal, reads_images, 1, 0)
 }
 
 /// The rules of a scenario of one stage, with `ops`.
@@ -217,7 +217,7 @@ fn options(questions: &[Question]) -> Vec<(String, Vec<String>)> {
 async fn interview_questions_match_core_options() {
     let mut fakes = Fakes::new();
     let judge = Spy::new(false, answers(false));
-    let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
     let sent = asked.judge.asked.first().unwrap();
     let core: Vec<_> = options(&asked.core);
     let same: Vec<_> = options(sent)

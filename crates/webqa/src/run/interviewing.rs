@@ -5,7 +5,6 @@ use std::time::Duration;
 use std::{iter, mem, slice};
 
 use webqa_core::config::persona::Persona;
-use webqa_core::config::raw::Op;
 use webqa_core::effect::Questions;
 use webqa_core::interview::answer::{Reply, read_expectation, read_step, read_without_expectation};
 use webqa_core::interview::ask::{
@@ -42,7 +41,6 @@ pub struct Taken {
 pub struct Interviewing {
     persona: Persona,
     goal: String,
-    ops: Vec<Op>,
     reads_images: bool,
     trial: usize,
     /// How many operations the run had done before the trial.
@@ -51,15 +49,14 @@ pub struct Interviewing {
 }
 
 impl Interviewing {
-    /// The interview of `persona` in trial number `trial`, towards `goal`,
-    /// offering the operation kinds `ops`. A judge that reads images gets a
-    /// screenshot with each question. The judge is told the latest operations
-    /// from the `acts_from`th of the run on.
+    /// The interview of `persona` in trial number `trial`, towards `goal`.
+    /// A judge that reads images gets a screenshot with each question. The
+    /// judge is told the latest operations from the `acts_from`th of the run
+    /// on.
     #[must_use]
     pub const fn new(
         persona: Persona,
         goal: String,
-        ops: Vec<Op>,
         reads_images: bool,
         trial: usize,
         acts_from: usize,
@@ -67,7 +64,6 @@ impl Interviewing {
         Self {
             persona,
             goal,
-            ops,
             reads_images,
             trial,
             acts_from,
@@ -115,7 +111,7 @@ impl Interviewing {
         let asked = Step {
             persona: &self.persona,
             goal: &self.goal,
-            ops: &self.ops,
+            ops: &state.offered_ops(),
             elements: elements(&last.screen, last.viewport),
             image: attached(self.reads_images, image.as_ref()),
         };

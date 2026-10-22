@@ -5,6 +5,7 @@
 use super::input::{fielded, valued};
 use super::{APP, not_an_option, notice, options, save, settings};
 use crate::config::raw::Op;
+use crate::explore::Memory;
 use crate::judge::QuestionId;
 use crate::machine::testing::{
     answer, below, budget, id, idle, inside, memory_of, next, operated, page, rules, secs, seen,
@@ -17,6 +18,25 @@ use crate::screen::Screen;
 fn offers_enter(rules: Rules, screen: &Screen) -> bool {
     let asked = started(rules, screen);
     options(asked.effect())[0].contains(&"enter".to_owned())
+}
+
+#[test]
+fn offered_ops_leave_out_enter_where_a_forbidden_element_shows() {
+    let ops = vec![Op::Click, Op::Enter, Op::Done];
+    let offered = |forbidden: bool| {
+        let mut shown = seen(&page(&format!("{APP}/"), &[("button", "実行")]));
+        shown.material.candidates[0].forbidden_listed = forbidden;
+        let rules = Rules {
+            ops: ops.clone(),
+            ..rules()
+        };
+        idle(rules, shown, Memory::default()).offered_ops()
+    };
+    assert_eq!(
+        (offered(true), offered(false)),
+        (vec![Op::Click, Op::Done], ops),
+        "enter goes only where a forbidden element shows"
+    );
 }
 
 #[test]

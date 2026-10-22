@@ -35,7 +35,7 @@ fn unreadable(id: &str) -> JudgeError {
 async fn passed(answers: Answers) -> (Result<Answers, JudgeError>, Vec<(u64, bool)>) {
     let mut fakes = Fakes::new();
     let judge = Spy::giving(answers);
-    let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
     let kept = asked.steps.iter().map(|t| (t.step, t.reply.is_none()));
     (asked.reply, kept.collect())
 }
@@ -101,7 +101,7 @@ async fn interview_passes_on_a_malformed_reply_when_hard_to_see_is_not_an_option
     said.table.insert(QuestionId::new(HARD_TO_SEE), text);
     let mut fakes = Fakes::new();
     let judge = Spy::giving(said);
-    let asked = asked(judge, Some(interviewing(&[Op::Click], true)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(true)), &mut fakes).await;
     let kept = asked.steps.iter().map(|t| (t.step, t.reply.is_none()));
     assert_eq!(
         (asked.reply, kept.collect::<Vec<_>>()),

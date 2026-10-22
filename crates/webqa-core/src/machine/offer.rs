@@ -60,6 +60,15 @@ pub(super) fn offer(state: &State) -> Offer {
     }
 }
 
+impl State {
+    /// The operation kinds the latest page offers the judge, as the core
+    /// checks the answers against them.
+    #[must_use]
+    pub fn offered_ops(&self) -> Vec<Op> {
+        offer(self).ops
+    }
+}
+
 /// The operation kinds of the rules, in the order of the table.
 fn kinds(rules: &Rules) -> impl Iterator<Item = Op> {
     offered(rules).into_iter().map(|row| row.op)

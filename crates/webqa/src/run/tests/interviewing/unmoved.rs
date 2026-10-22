@@ -60,7 +60,7 @@ async fn ran() -> Ran {
     let mut fakes = Fakes::new();
     fakes.browser.pages = iter::repeat_n(page("/"), 40).collect();
     let mut judge = Spy::new(false, clicks_then_done());
-    let interview = interviewing(&[Op::Click], false);
+    let interview = interviewing(false);
     let mut ports = ported(&mut fakes, &mut judge).interviewing(interview);
     let rules = scenario(&[Op::Click]);
     let mut never = Never;
@@ -114,7 +114,7 @@ async fn second_call_cannot_change_the_operation() {
     let mut fakes = Fakes::new();
     fakes.browser.pages = iter::repeat_n(page("/"), 40).collect();
     let mut judge = straying();
-    let interview = interviewing(&[Op::Click], false);
+    let interview = interviewing(false);
     let mut ports = ported(&mut fakes, &mut judge).interviewing(interview);
     let rules = scenario(&[Op::Click, Op::ScrollDown]);
     let mut never = Never;

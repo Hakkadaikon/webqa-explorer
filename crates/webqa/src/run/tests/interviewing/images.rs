@@ -6,7 +6,7 @@ use super::*;
 async fn interview_sends_screenshot_to_a_judge_that_reads_images() {
     let mut fakes = Fakes::new();
     let judge = Spy::new(true, answers(true));
-    let asked = asked(judge, Some(interviewing(&[Op::Click], true)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(true)), &mut fakes).await;
     let png = Image::new(ImageFormat::Png, PNG.to_vec());
     let hard = asked.judge.asked.first().unwrap().iter();
     let hard = hard.filter(|q| q.id().as_str() == HARD_TO_SEE).count();
@@ -21,7 +21,7 @@ async fn interview_sends_screenshot_to_a_judge_that_reads_images() {
 async fn interview_keeps_but_does_not_send_a_screenshot_for_a_judge_that_does_not_read_images() {
     let mut fakes = Fakes::new();
     let judge = Spy::new(false, answers(false));
-    let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
     assert_eq!(
         (
             asked.judge.images.len(),
@@ -38,7 +38,7 @@ async fn interview_asks_without_image_when_the_screenshot_fails() {
     let mut fakes = Fakes::new();
     fakes.browser.unshootable = true;
     let judge = Spy::new(true, answers(true));
-    let asked = asked(judge, Some(interviewing(&[Op::Click], true)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(true)), &mut fakes).await;
     assert_eq!(
         (
             asked.judge.images.len(),
