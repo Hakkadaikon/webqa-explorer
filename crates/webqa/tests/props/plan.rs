@@ -59,6 +59,8 @@ pub fn plan(case: &Case, out: &Path) -> Fallible<Plan> {
         mode: Mode::Interview,
         started_at: None,
         detect: Detect::default(),
+        inputs: Vec::new(),
+        price: None,
     })
 }
 

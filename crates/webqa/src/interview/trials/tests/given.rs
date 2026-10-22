@@ -1,6 +1,33 @@
 //! Tests of what the plan hands to the trials and the records.
 
+use webqa_core::config::raw::Op;
+use webqa_core::judge::{Answers, JudgeError, Question, Usage};
+use webqa_core::redact::Redacted;
+use webqa_core::screen::ScreenText;
+
 use super::*;
+use crate::store::report::Price;
+
+/// A judge whose every call used 1500 tokens sent and 500 received.
+struct Metered(RecordingJudge);
+
+impl Judge for Metered {
+    fn ask<'a>(
+        &'a mut self,
+        screen: &'a Redacted<ScreenText>,
+        questions: &'a [Question],
+    ) -> Pending<'a, Result<Answers, JudgeError>> {
+        let asked = self.0.ask(screen, questions);
+        Box::pin(async move {
+            let mut answers = asked.await?;
+            answers.usage = Usage {
+                input_tokens: 1500,
+                output_tokens: 500,
+            };
+            Ok(answers)
+        })
+    }
+}
 
 /// The judge says done at the first look, sure at `shown` that the page
 /// shows an error.
@@ -63,4 +90,55 @@ async fn the_error_confidence_of_the_plan_decides_what_is_confirmed() {
     };
     assert_eq!(outcome(0.8).await, wrote(true));
     assert_eq!(outcome(0.95).await, wrote(false));
+}
+
+#[tokio::test]
+async fn the_price_of_the_plan_makes_the_cost_of_the_report() {
+    let mut world = World::new(1);
+    world.plan.price = Some(Price {
+        input_per_1k: 1.0,
+        output_per_1k: 2.0,
+    });
+    let mut judge = Metered(RecordingJudge {
+        script: done(1),
+        ..RecordingJudge::default()
+    });
+    let mut never = Never;
+    let running = interview(
+        &mut world.launch,
+        &mut judge,
+        &mut world.clock,
+        &mut world.store,
+        &world.redactor,
+        &mut never,
+        &world.plan,
+    );
+    watched(running).await;
+    let report = world.store.report.unwrap();
+    let usage = &report["usage"];
+    let tokens = (
+        usage["input_tokens"].as_u64(),
+        usage["output_tokens"].as_u64(),
+    );
+    assert_eq!(tokens, (Some(1500), Some(500)));
+    assert_eq!(usage["cost"].as_f64(), Some(1.5 + 1.0));
+}
+
+#[tokio::test]
+async fn the_inputs_of_the_plan_name_the_typed_field_in_the_report() {
+    let mut world = World::new(1);
+    world.plan.inputs = vec!["email".to_owned()];
+    world.plan.rules.ops.push(Op::Input);
+    world.plan.rules.input_names.insert("email".to_owned());
+    let url = Url::parse("https://app.example.test/").unwrap();
+    let page = fakes::page(&url, &[("textbox", "email")]);
+    world.launch.browsers = VecDeque::from([FakeBrowser {
+        pages: iter::repeat_n(page, 30).collect(),
+        ..FakeBrowser::default()
+    }]);
+    world.judge.script = script(&["input", "done"]);
+    world.run().await;
+    let report = world.store.report.unwrap();
+    assert_eq!(report["steps"][0]["op"], "input");
+    assert_eq!(report["steps"][0]["input"], "email");
 }

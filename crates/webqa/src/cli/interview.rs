@@ -98,6 +98,8 @@ fn plan(setup: Setup, interview: Interview, previous: Option<Ledger>, started_at
             error_confidence: setup.error_confidence,
             probes: probes(),
         },
+        inputs: setup.inputs,
+        price: Some(start::price(&setup.judge)),
     }
 }
 

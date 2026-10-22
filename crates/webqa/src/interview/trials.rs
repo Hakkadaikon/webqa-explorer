@@ -30,6 +30,7 @@ use webqa_core::redact::{Redacted, Redactor};
 use super::reset::ResetError;
 use crate::interrupt::Interrupt;
 use crate::run::{Detect, RunError};
+use crate::store::report::Price;
 
 /// What the loop needs besides its ports.
 pub struct Plan {
@@ -57,6 +58,10 @@ pub struct Plan {
     pub started_at: Option<String>,
     /// What each trial looks for besides the core's own notes.
     pub detect: Detect,
+    /// The keys of `inputs`, for the report.
+    pub inputs: Vec<String>,
+    /// The price of the judge's tokens, for the cost in the report.
+    pub price: Option<Price>,
 }
 
 /// Opens a fresh browser for a trial: a new context with the storage state.

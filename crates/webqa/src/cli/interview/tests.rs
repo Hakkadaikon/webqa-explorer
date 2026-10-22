@@ -173,3 +173,41 @@ async fn the_head_of_the_previous_ledger_must_match_this_run() {
     let same_goal = interview(purpose::parse(aim).unwrap());
     assert_eq!(checking(&kept, &same_goal).await, None);
 }
+
+#[test]
+fn the_plan_carries_the_inputs_and_the_price_of_the_setup() {
+    let yaml = format!(
+        "
+target: {{ url: 'http://localhost:1/', allowed_origins: [] }}
+judge:
+  kind: command
+  command: ['x']
+  timeout_secs: 1
+  pricing: {{ input_per_1k: 1.5, output_per_1k: 2.5 }}
+limits:
+  freeze_threshold: 1
+  stuck_threshold: 1
+  max_decisions: 1
+  requests_per_hour: 2
+  page_timeout_secs: 1
+  back_confidence: 0.7
+  error_confidence: 0.8
+guard:
+  forbidden: {{ keywords: [], selectors: [] }}
+  allowed: {{ selectors: [] }}
+inputs:
+  email: {{ env: PATH }}
+interview:
+  persona: {}/tests/fixtures/docs/persona.yaml
+  trials: 1
+",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let (setup, interview) = start::interview_setup(&yaml).unwrap();
+    let plan = plan(setup, interview, None, "now".to_owned());
+    let price = plan.price.map(|p| (p.input_per_1k, p.output_per_1k));
+    assert_eq!(
+        (plan.inputs, price),
+        (vec!["email".to_owned()], Some((1.5, 2.5)))
+    );
+}

@@ -72,6 +72,8 @@ fn plan(started: Started, env: Vec<(OsString, OsString)>) -> Plan {
         mode: Mode::Interview,
         started_at: Some("2026-10-18T02:00:00Z".to_owned()),
         detect: Detect::default(),
+        inputs: Vec::new(),
+        price: None,
     }
 }
 

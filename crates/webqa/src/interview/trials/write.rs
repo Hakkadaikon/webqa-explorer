@@ -152,8 +152,8 @@ async fn conclude(closing: Closing<'_>, reason: ExitReason) -> Result<bool, RunE
         mode: plan.mode,
         started_at: plan.started_at.clone(),
         target: plan.start.clone(),
-        inputs: Vec::new(),
-        price: None,
+        inputs: plan.inputs.clone(),
+        price: plan.price,
     };
     let report = report::build(&kept.record, reason, &meta, &Value::Null, redactor);
     store.write_report(&report).await?;

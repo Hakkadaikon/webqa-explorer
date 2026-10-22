@@ -17,7 +17,7 @@ use webqa_core::config::purpose::Purpose;
 use webqa_core::config::raw::Op;
 use webqa_core::guard::domain::AllowedOrigin;
 use webqa_core::interview::ask::{EXPECTATION, HESITATION, PURPOSE_GUESS};
-use webqa_core::interview::ledger::{Goal, Head, Ledger, read};
+use webqa_core::interview::ledger::{Ledger, read};
 use webqa_core::judge::QuestionId;
 use webqa_core::ports::{Observation, Pending};
 use webqa_core::redact::Redactor;
@@ -43,7 +43,7 @@ mod windows;
 mod launch;
 
 use self::launch::FakeLaunch;
-use self::stubs::{FIXTURES, Fires, Never, Stalled, scratch, stuck, var, watched};
+use self::stubs::{FIXTURES, Fires, Never, Stalled, head, scratch, stuck, var, watched};
 use super::*;
 use crate::run::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
 
@@ -102,6 +102,8 @@ fn plan(trials: u32) -> Plan {
         mode: Mode::Interview,
         started_at: None,
         detect: Detect::default(),
+        inputs: Vec::new(),
+        price: None,
     }
 }
 
@@ -244,23 +246,6 @@ impl World {
         kinds
             .map(|kind| kind.as_str().unwrap().to_owned())
             .collect()
-    }
-}
-
-/// The head of a ledger of this persona and an inferred purpose after
-/// `finished` finished trials: the guess of each is the same.
-fn head(finished: usize) -> Head {
-    let guesses = if finished == 0 {
-        Vec::new()
-    } else {
-        vec![GUESS.to_owned()]
-    };
-    Head {
-        persona: "田中".to_owned(),
-        goal: Goal::Inferred(guesses),
-        start: "https://app.example.test/".to_owned(),
-        finished,
-        images: false,
     }
 }
 
