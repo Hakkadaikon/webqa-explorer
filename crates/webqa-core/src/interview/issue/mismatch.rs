@@ -46,7 +46,10 @@ pub fn unchecked(question: &MismatchQuestion<'_>) -> UncheckedPurpose {
 struct Hit<'r> {
     record: &'r Record<'r>,
     trial: usize,
+    /// The step's position in the trial, from 1.
     step: usize,
+    /// The step's number in the event log.
+    logged: u64,
 }
 
 /// The mismatch issue of `question`.
@@ -79,7 +82,7 @@ fn issue(question: &MismatchQuestion<'_>, run: &Run<'_>) -> Issue {
         },
         shot: first.map(|hit| Shot {
             trial: hit.trial,
-            step: hit.step,
+            step: hit.logged,
         }),
         path: first.map_or_else(Vec::new, |hit| path(hit.record.steps, hit.step)),
         confidence: None,
@@ -93,10 +96,11 @@ fn hit<'r>(pattern: &UrlPattern, record: &'r Record<'r>, trial: usize) -> Option
         .iter()
         .zip(1..)
         .find(|(seen, _)| pattern.matches(&seen.screen.as_inner().url))
-        .map(|(_, step)| Hit {
+        .map(|(seen, step)| Hit {
             record,
             trial,
             step,
+            logged: seen.step,
         })
 }
 

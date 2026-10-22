@@ -28,6 +28,8 @@ pub(super) struct Trial {
 /// A step of a trial that asked the judge.
 #[derive(Debug, Clone)]
 pub(super) struct Step {
+    /// The step number, as the event log numbers it.
+    pub(super) number: u64,
     /// The page the judge was asked about.
     pub(super) screen: Redacted<Screen>,
     /// The viewport it was seen in.
@@ -119,6 +121,7 @@ fn step(at: Taken, act: Option<&Act>, trail: &[ScreenId], thresholds: Thresholds
         clues(signs, trail, thresholds)
     });
     Step {
+        number: at.step,
         clues: clues.unwrap_or_default(),
         ran: ran(&at, act),
         screen: at.screen,

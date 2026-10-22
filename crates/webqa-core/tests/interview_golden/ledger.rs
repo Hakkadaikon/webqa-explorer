@@ -57,7 +57,10 @@ fn issue(
             finished,
             reached,
         },
-        shot: Some(Shot { trial, step }),
+        shot: Some(Shot {
+            trial,
+            step: u64::try_from(step).ok()?,
+        }),
         path: vec![],
         confidence: None,
     })

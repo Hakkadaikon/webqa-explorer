@@ -159,7 +159,7 @@ fn occurrence(
         detail,
         shot: Shot {
             trial: step.at.trial,
-            step: step.number,
+            step: step.seen.step,
         },
         path: path(step.at.record.steps, step.number),
         confidence,
