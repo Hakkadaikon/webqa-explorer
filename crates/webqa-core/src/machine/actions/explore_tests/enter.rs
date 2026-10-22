@@ -35,7 +35,7 @@ fn offered_ops_leave_out_enter_where_a_forbidden_element_shows() {
     assert_eq!(
         (offered(true), offered(false)),
         (vec![Op::Click, Op::Done], ops),
-        "enter goes only where a forbidden element shows"
+        "enter goes away where a forbidden element shows"
     );
 }
 
