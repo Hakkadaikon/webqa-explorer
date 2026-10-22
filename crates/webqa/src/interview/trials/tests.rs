@@ -27,6 +27,7 @@ mod ends;
 mod findings;
 mod given;
 mod groups;
+mod ledger_shots;
 mod opening;
 mod purposes;
 mod record;

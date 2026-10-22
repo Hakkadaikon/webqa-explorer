@@ -26,7 +26,7 @@ fn seeing(script: Scripted, steps: usize) -> Scripted {
 }
 
 /// The names and the bytes of the screenshots written.
-fn written(world: &World) -> Vec<(String, Vec<u8>)> {
+pub(super) fn written(world: &World) -> Vec<(String, Vec<u8>)> {
     let shots = world.store.shots.iter();
     shots
         .map(|(name, image)| (name.clone(), image.bytes().to_vec()))
@@ -123,7 +123,7 @@ async fn screenshot_that_cannot_be_written_fails_the_run() {
 }
 
 /// A step of the log's number `step` whose screenshot is `bytes`.
-fn photographed(step: u64, bytes: &[u8]) -> Taken {
+pub(super) fn photographed(step: u64, bytes: &[u8]) -> Taken {
     let at = top();
     Taken {
         step,
