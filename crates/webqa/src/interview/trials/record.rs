@@ -28,7 +28,9 @@ pub(super) struct Trial {
 /// A step of a trial that asked the judge.
 #[derive(Debug, Clone)]
 pub(super) struct Step {
-    /// The step number, as the event log numbers it.
+    /// The step number, as the event log numbers it: `Seen.step` of the
+    /// core. Not named `step`: `clippy::struct_field_names` refuses a field
+    /// that repeats its struct's name.
     pub(super) logged: u64,
     /// The page the judge was asked about.
     pub(super) screen: Redacted<Screen>,
