@@ -11,10 +11,11 @@ const STUCK: &str = "interview.stuck_threshold は 1 以上にする";
 const NATURAL: &str = "interview.max_natural_questions は 1 以上にする";
 const REQUESTS: &str = "interview.requests_per_hour は 2 以上にする";
 const TIMEOUT: &str = "interview.reset.timeout_secs は 1 以上にする";
+const COMMAND: &str = "interview.reset.command を書く";
 const TRIALS: &str = "interview.trials は 1 以上 100 以下にする";
 
 /// Rejected while loading, with the message expected.
-pub const OUT_OF_RANGE: [(&str, &str); 17] = [
+pub const OUT_OF_RANGE: [(&str, &str); 18] = [
     ("  stuck_threshold: 0\n  requests_per_hour: 1\n", STUCK),
     (
         "  requests_per_hour: 1\n  max_natural_questions: 0\n",
@@ -37,6 +38,7 @@ pub const OUT_OF_RANGE: [(&str, &str); 17] = [
     ("  requests_per_hour: 1\n", REQUESTS),
     ("  requests_per_hour: 0\n", REQUESTS),
     ("  reset: { command: [x], timeout_secs: 0 }\n", TIMEOUT),
+    ("  reset: { command: [], timeout_secs: 0 }\n", COMMAND),
     ("  trials: 101\n  hesitation_threshold: 0\n", TRIALS),
 ];
 
