@@ -41,8 +41,8 @@ pub fn unchecked(question: &MismatchQuestion<'_>) -> UncheckedPurpose {
     }
 }
 
-/// A finished trial that reached the pattern: its number and the number
-/// of the first step that did, both from 1.
+/// A finished trial that reached the pattern, with the number of the
+/// trial and the first step that did.
 struct Hit<'r> {
     record: &'r Record<'r>,
     trial: usize,
