@@ -1,4 +1,4 @@
-//! Tests of an `enter` chosen in the interview on a page with a forbidden element.
+//! Tests of how the interview treats `enter` on a page with a forbidden element.
 
 use webqa_core::effect::Touch;
 use webqa_core::judge::Unusable;
@@ -66,9 +66,9 @@ async fn interview_does_not_press_enter_on_a_page_with_a_forbidden_element() {
     assert_eq!(ops, ["enter"], "the same page, allowed: enter is pressed");
 }
 
-#[tokio::test]
-async fn the_interview_leaves_out_enter_where_a_forbidden_element_shows() {
-    let mut fakes = on_forbidden(true);
+/// The operation kinds the interview's first question offers on the page.
+async fn first_offered(listed: bool) -> Option<Vec<String>> {
+    let mut fakes = on_forbidden(listed);
     let mut judge = Spy::giving(pressing_enter());
     let mut ports = Ports::new(
         &mut fakes.browser,
@@ -86,9 +86,19 @@ async fn the_interview_leaves_out_enter_where_a_forbidden_element_shows() {
     let operation = first
         .into_iter()
         .find(|(id, _)| *id == QuestionId::operation().as_str());
+    operation.map(|(_, options)| options)
+}
+
+#[tokio::test]
+async fn the_interview_leaves_out_enter_where_a_forbidden_element_shows() {
+    let offered = (first_offered(true).await, first_offered(false).await);
+    let kinds = |kinds: &[&str]| Some(kinds.iter().map(|k| (*k).to_owned()).collect());
     assert_eq!(
-        operation.map(|(_, options)| options),
-        Some(vec!["click".to_owned(), "done".to_owned()]),
-        "the operation kinds asked"
+        offered,
+        (
+            kinds(&["click", "done"]),
+            kinds(&["click", "done", "enter"])
+        ),
+        "the operation kinds asked, with and without a forbidden element"
     );
 }

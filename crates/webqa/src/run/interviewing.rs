@@ -50,8 +50,7 @@ pub struct Interviewing {
 
 impl Interviewing {
     /// The interview of `persona` in trial number `trial`, towards `goal`.
-    /// A judge that reads images gets a
-    /// screenshot with each question. The judge is told the latest operations
+    /// A judge that reads images gets a screenshot with each question. The judge is told the latest operations
     /// from the `acts_from`th of the run on.
     #[must_use]
     pub const fn new(
