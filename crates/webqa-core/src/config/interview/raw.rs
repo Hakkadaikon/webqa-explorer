@@ -1,6 +1,5 @@
 //! The `interview` section as read from YAML, before checking.
 
-use std::num::{NonZeroU32, NonZeroU64};
 use std::path::PathBuf;
 
 use serde::Deserialize;
@@ -25,7 +24,7 @@ pub struct RawInterview {
     /// Steps without progress that count as stuck. `limits` when omitted.
     pub stuck_threshold: Option<u32>,
     /// The most operations in an hour. `limits` when omitted.
-    pub requests_per_hour: Option<NonZeroU32>,
+    pub requests_per_hour: Option<u32>,
     /// The most questions about naturalness. 50 when omitted.
     #[serde(default = "default_natural_questions")]
     pub max_natural_questions: u32,
@@ -41,7 +40,7 @@ pub struct RawReset {
     pub command: Vec<String>,
     /// How long to wait for the command. 60 when omitted.
     #[serde(default = "default_reset_timeout")]
-    pub timeout_secs: NonZeroU64,
+    pub timeout_secs: u64,
 }
 
 const fn default_trials() -> u32 {
@@ -60,6 +59,6 @@ const fn default_natural_questions() -> u32 {
     50
 }
 
-const fn default_reset_timeout() -> NonZeroU64 {
-    NonZeroU64::MIN.saturating_add(59)
+const fn default_reset_timeout() -> u64 {
+    60
 }

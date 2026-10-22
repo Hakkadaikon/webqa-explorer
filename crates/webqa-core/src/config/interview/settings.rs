@@ -1,6 +1,6 @@
 //! Checking the values of the `interview` section.
 
-use std::num::NonZeroU32;
+use std::num::{NonZeroU32, NonZeroU64};
 
 use super::super::ConfigError;
 use super::super::raw::Limits;
@@ -93,18 +93,14 @@ fn stuck(interview: Option<u32>, limits: NonZeroU32) -> Result<NonZeroU32, Inter
 }
 
 /// The requests per hour in use, at least 2.
-fn requests(
-    interview: Option<NonZeroU32>,
-    limits: NonZeroU32,
-) -> Result<NonZeroU32, InterviewError> {
-    let (field, value) = interview.map_or(("limits.requests_per_hour", limits), |value| {
-        ("interview.requests_per_hour", value)
-    });
-    if value.get() < 2 {
-        Err(InterviewError::TooFewRequests(field))
-    } else {
-        Ok(value)
-    }
+fn requests(interview: Option<u32>, limits: NonZeroU32) -> Result<NonZeroU32, InterviewError> {
+    let (field, value) = interview.map_or_else(
+        || ("limits.requests_per_hour", limits.get()),
+        |value| ("interview.requests_per_hour", value),
+    );
+    NonZeroU32::new(value)
+        .filter(|value| value.get() >= 2)
+        .ok_or(InterviewError::TooFewRequests(field))
 }
 
 /// The program and its arguments. The program is never blank.
@@ -114,9 +110,11 @@ fn reset(raw: &RawReset) -> Result<Reset, InterviewError> {
         .split_first()
         .filter(|(program, _)| !is_blank(program))
         .ok_or(InterviewError::MissingField("interview.reset.command"))?;
+    let timeout_secs = NonZeroU64::new(raw.timeout_secs)
+        .ok_or(InterviewError::Zero("interview.reset.timeout_secs"))?;
     Ok(Reset {
         program: program.clone(),
         args: args.to_vec(),
-        timeout_secs: raw.timeout_secs,
+        timeout_secs,
     })
 }
