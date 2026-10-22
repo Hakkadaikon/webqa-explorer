@@ -120,15 +120,14 @@ async fn a_recovery_keeps_the_ledger_step_on_the_page_the_log_asked_about() {
     world.judge.script = click_then_hesitant_done();
     world.run().await;
     let recovered = logged_steps(&world, "recovered").len();
-    assert_eq!(recovered, 1, "the core recovered once");
+    assert_eq!(recovered, 1, "the core recovered at one step");
     let steps = logged_steps(&world, "asked");
     assert_eq!(steps.len(), 2, "the judge was asked at two steps");
     // The hesitation is at the second of them.
     let logged = steps[1];
-    assert_ne!(
-        logged, 2,
-        "the recovery moved the log's step off the count of questions"
-    );
+    // Asked at 1, recovered at 2: the second question is the log's step 3,
+    // not the 2nd of the questions.
+    assert_eq!(logged, 3, "the recovery moved the log's step");
     let issue = world.ledger().unwrap().entries[0].issue.clone();
     let shot = issue.shot.unwrap();
     let name = issue_name(issue.number, shot);
