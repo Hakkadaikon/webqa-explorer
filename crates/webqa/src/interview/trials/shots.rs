@@ -38,7 +38,7 @@ pub(super) fn shot_file(
     (number, shot): (Number, Shot),
 ) -> Option<(String, &Image)> {
     let trial = trials.get(shot.trial.saturating_sub(1));
-    let step = trial.and_then(|trial| trial.steps.iter().find(|step| step.number == shot.step));
+    let step = trial.and_then(|trial| trial.steps.iter().find(|step| step.logged == shot.step));
     let image = step.and_then(|step| step.image.as_ref());
     image.map(|image| (issue_name(number, shot), image))
 }

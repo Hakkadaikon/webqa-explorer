@@ -8,7 +8,7 @@ use crate::interview::issue::tests::fixture::{
     CUT, GOAL, answered, cart, count, guessing, product, products, questions, record, run, sure,
 };
 use crate::interview::issue::tests::sample::mismatch_of;
-use crate::interview::issue::{Issue, Seen, Shot};
+use crate::interview::issue::{Issue, Record, Seen, Shot};
 
 const JOIN: [&str; 1] = ["会員登録をする"];
 
@@ -41,7 +41,11 @@ fn the_mismatch_shot_names_the_step_of_the_log() {
             ..answered(&page, &join)
         },
     ];
-    let got = ruled_on(&[record(GOAL, &steps)], Some(Match::Different));
+    let numbered = Record {
+        outcome: GOAL,
+        steps: &steps,
+    };
+    let got = ruled_on(&[numbered], Some(Match::Different));
     let shot = Shot { trial: 1, step: 7 };
     let expected = mismatch_of(&JOIN, count(1, 1, 1), shot, vec![]);
     assert_eq!(got, Ruling::Mismatch(Box::new(expected)));
