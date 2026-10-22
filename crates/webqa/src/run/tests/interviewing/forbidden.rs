@@ -40,7 +40,7 @@ async fn pressed(listed: bool) -> (Vec<Touch>, Option<Note>) {
         &mut fakes.store,
         &fakes.redactor,
     )
-    .interviewing(interviewing(&[Op::Click, Op::Enter], false));
+    .interviewing(interviewing(false));
     let rules = scenario(&[Op::Click, Op::Enter]);
     let outcome = explore(&mut ports, &mut Never, rules, Memory::default())
         .await
@@ -64,4 +64,31 @@ async fn interview_does_not_press_enter_on_a_page_with_a_forbidden_element() {
     let mut ops: Vec<_> = touches.iter().map(|touch| touch.op.as_str()).collect();
     ops.dedup();
     assert_eq!(ops, ["enter"], "the same page, allowed: enter is pressed");
+}
+
+#[tokio::test]
+async fn the_interview_leaves_out_enter_where_a_forbidden_element_shows() {
+    let mut fakes = on_forbidden(true);
+    let mut judge = Spy::giving(pressing_enter());
+    let mut ports = Ports::new(
+        &mut fakes.browser,
+        &mut judge,
+        &mut fakes.clock,
+        &mut fakes.store,
+        &fakes.redactor,
+    )
+    .interviewing(interviewing(false));
+    let rules = scenario(&[Op::Click, Op::Enter]);
+    explore(&mut ports, &mut Never, rules, Memory::default())
+        .await
+        .unwrap();
+    let first = options(judge.asked.first().unwrap());
+    let operation = first
+        .into_iter()
+        .find(|(id, _)| *id == QuestionId::operation().as_str());
+    assert_eq!(
+        operation.map(|(_, options)| options),
+        Some(vec!["click".to_owned(), "done".to_owned()]),
+        "the operation kinds asked"
+    );
 }
