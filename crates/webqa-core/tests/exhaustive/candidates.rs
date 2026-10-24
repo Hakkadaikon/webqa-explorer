@@ -129,6 +129,15 @@ pub fn explore_rules() -> Rules {
     }
 }
 
+/// The rules of an interview: a scenario that counts a stopped proposal and
+/// not an element a scroll shows.
+pub fn interview_rules() -> Rules {
+    Rules {
+        mode: Mode::Interview,
+        ..rules()
+    }
+}
+
 fn stage(name: &str, done_when: DoneWhen) -> Stage {
     Stage {
         name: name.to_owned(),

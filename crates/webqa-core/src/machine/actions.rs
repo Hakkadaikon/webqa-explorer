@@ -7,6 +7,8 @@ mod explore_tests;
 #[cfg(test)]
 mod page_tests;
 #[cfg(test)]
+mod refuse_tests;
+#[cfg(test)]
 mod repeat_tests;
 #[cfg(test)]
 mod reveal_tests;
@@ -21,7 +23,7 @@ use std::time::Duration;
 
 use super::guards::{answered, rejection, seen};
 use super::note::{Note, Rejection};
-use super::observe::{arrived, executed, settled};
+use super::observe::{arrived, executed, refused, settled};
 use super::proposal::{Proposal, hear};
 use super::state::{ExitReason, Phase, State};
 use super::{Facts, Outcome, Seen, Step, abort};
@@ -144,7 +146,7 @@ fn decide(state: State, reply: &Result<Answers, JudgeError>, now: Duration) -> N
 /// Stops the proposal, or else finishes with it or passes it on.
 fn judged(state: State, proposal: Proposal, now: Duration) -> Next {
     match rejection(&state, &proposal) {
-        Some(why) => idle(state.noted(Note::Rejected(why))),
+        Some(why) => idle(refused(state.noted(Note::Rejected(why)))),
         None => pass(state, proposal, now),
     }
 }
@@ -183,7 +185,7 @@ fn confirm(state: State, seen: Seen, now: Duration) -> Next {
         .map_or(Err(Rejection::Missing), |p| verdict(p, &seen));
     match checked {
         Ok(touch) => touched(state, Phase::Acting, touch, now),
-        Err(why) => idle(settled(state.noted(Note::Rejected(why)), seen)),
+        Err(why) => idle(settled(refused(state.noted(Note::Rejected(why))), seen)),
     }
 }
 

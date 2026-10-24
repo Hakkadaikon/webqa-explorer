@@ -105,6 +105,17 @@ pub(super) fn settled(state: State, seen: Seen) -> State {
     state
 }
 
+/// `state` after the guardrails stopped its proposal. An interview counts it
+/// as a step without progress, so that a persona whose proposals keep being
+/// stopped ends stuck instead of spending the budget; other modes change
+/// nothing.
+pub(super) fn refused(mut state: State) -> State {
+    if interviewing(&state) {
+        state.counters = stalled(state.counters);
+    }
+    state
+}
+
 /// The counters with one more step without progress, the freeze count kept.
 fn stalled(counters: Counters) -> Counters {
     counted(counters.freeze(), counters.stuck().saturating_add(1))
