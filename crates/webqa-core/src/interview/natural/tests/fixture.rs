@@ -13,9 +13,7 @@ use crate::interview::issue::tests::fixture::{
     GOAL as REACHED, answered, cart, cart_purpose, guessing, product, products, questions, record,
     shipping,
 };
-use crate::interview::natural::{
-    Judgement, NATURAL, PERSONA_TRAIT, PersonaTrait, Quota, Trait, natural_questions,
-};
+use crate::interview::natural::{NATURAL, PERSONA_TRAIT, Quota, natural_questions};
 use crate::judge::{Answers, Question, QuestionId, Usage};
 
 /// The goal of the step the persona aims at.
@@ -116,17 +114,6 @@ pub fn ids_of(issue: &Issue) -> (Vec<String>, Vec<String>) {
 
 fn names<'a>(ids: impl Iterator<Item = &'a QuestionId>) -> Vec<String> {
     ids.map(|id| id.as_str().to_owned()).collect()
-}
-
-/// The judge's answer that the issue is not natural, from IT literacy.
-pub fn unnatural() -> Judgement {
-    Judgement {
-        natural: false,
-        persona_trait: PersonaTrait {
-            which: Trait::ItLiteracy,
-            content: Trait::ItLiteracy.content(&persona()),
-        },
-    }
 }
 
 /// The description of a sample issue.

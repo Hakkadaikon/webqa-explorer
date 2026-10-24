@@ -2,11 +2,16 @@
 //! sections they put the issues in.
 
 use super::*;
-use crate::interview::issue::tests::sample::sample;
+use crate::interview::issue::tests::sample::{mismatch_sample, sample};
 use crate::interview::natural::tests::fixture::{answers, both, persona};
 use crate::interview::natural::{Placed, Section, Trait, place};
 
 const NAN: f64 = f64::NAN;
+
+/// Reads `answers` about a hesitation issue.
+fn read_hesitant(answers: &Answers) -> Result<Judgement, Unusable> {
+    read_natural(answers, &persona(), &sample("I-00000001", 2, 3))
+}
 
 /// The trait with the persona's text of it.
 fn of(which: Trait) -> PersonaTrait {
@@ -47,10 +52,10 @@ const READ: [Read; 3] = [
 
 #[test]
 fn natural_answer_goes_to_body() {
-    let read = read_natural(
-        &both(&[("自然", 0.8), ("自然でない", 0.2)], &[("ITの慣れ", 0.9)]),
-        &persona(),
-    );
+    let read = read_hesitant(&both(
+        &[("自然", 0.8), ("自然でない", 0.2)],
+        &[("ITの慣れ", 0.9)],
+    ));
     let it_literacy = PersonaTrait {
         which: Trait::ItLiteracy,
         content: "スマートフォンの基本操作だけ。「カート」「ログイン」の意味は知っている"
@@ -69,7 +74,7 @@ fn natural_answer_goes_to_body() {
     };
     assert_eq!(placed, body, "in the body with its trait");
     for (i, (natural, trait_, yes, which)) in READ.into_iter().enumerate() {
-        let got = read_natural(&both(natural, trait_), &persona());
+        let got = read_hesitant(&both(natural, trait_));
         let expected = Judgement {
             natural: yes,
             persona_trait: of(which),
@@ -80,10 +85,10 @@ fn natural_answer_goes_to_body() {
 
 #[test]
 fn unnatural_answer_goes_to_off_persona() {
-    let read = read_natural(
-        &both(&[("自然でない", 0.7), ("自然", 0.3)], &[("ITの慣れ", 0.9)]),
-        &persona(),
-    );
+    let read = read_hesitant(&both(
+        &[("自然でない", 0.7), ("自然", 0.3)],
+        &[("ITの慣れ", 0.9)],
+    ));
     let expected = Judgement {
         natural: false,
         persona_trait: of(Trait::ItLiteracy),
@@ -167,13 +172,12 @@ fn unusable_answer_goes_to_unchecked() {
         persona_trait: None,
     };
     for (i, (rows, variant, id)) in UNUSABLE.into_iter().enumerate() {
-        let read = read_natural(&answers(rows), &persona());
+        let read = read_hesitant(&answers(rows));
         assert_eq!(read, Err(variant(QuestionId::new(id))), "case {i}");
         let placed = place(sample("I-00000001", 2, 3), read.ok());
         assert_eq!(placed, unchecked, "case {i}");
     }
-    let message =
-        read_natural(&both(&[("たぶん", 0.9)], &[]), &persona()).map_err(|e| e.to_string());
+    let message = read_hesitant(&both(&[("たぶん", 0.9)], &[])).map_err(|e| e.to_string());
     assert_eq!(
         message,
         Err("判断モデルの答えの natural が問いの選択肢に無い".to_owned()),
@@ -181,6 +185,23 @@ fn unusable_answer_goes_to_unchecked() {
     );
     let unasked = place(sample("I-00000001", 2, 3), None);
     assert_eq!(unasked, unchecked, "not asked, or the judge failed");
+}
+
+#[test]
+fn mismatch_issue_reads_trait_alone() {
+    let read = |answers: &Answers| read_natural(answers, &persona(), &mismatch_sample());
+    let wants = Judgement {
+        natural: true,
+        persona_trait: of(Trait::Wants),
+    };
+    let trait_only = read(&answers(&[(PERSONA_TRAIT, &[("達成したいこと", 0.8)])]));
+    assert_eq!(trait_only, Ok(wants), "natural without the question");
+    let placed = place(mismatch_sample(), trait_only.ok()).section;
+    assert_eq!(placed, Section::Body, "in the body");
+    let unnatural = read(&both(&[("自然でない", 0.9)], &[("達成したいこと", 0.8)]));
+    assert_eq!(unnatural.map(|j| j.natural), Ok(true), "not read");
+    let missing = Unusable::Missing(QuestionId::new(PERSONA_TRAIT));
+    assert_eq!(read(&answers(&[])), Err(missing), "the trait is needed");
 }
 
 #[test]

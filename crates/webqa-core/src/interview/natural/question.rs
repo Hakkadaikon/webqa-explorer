@@ -1,6 +1,6 @@
 //! The naturalness questions about an issue.
 
-use super::{NATURAL, NO, PERSONA_TRAIT, TRAITS, YES};
+use super::{NATURAL, NO, PERSONA_TRAIT, TRAITS, YES, asks_natural};
 use crate::config::persona::Persona;
 use crate::interview::ask::preamble;
 use crate::interview::issue::{Detail, Issue, Place, Target, clue_label};
@@ -9,23 +9,24 @@ use crate::judge::{Question, QuestionId};
 const NATURAL_PROMPT: &str = "このペルソナが、この場面でこう考え、こう操作するのは自然か";
 const PERSONA_TRAIT_PROMPT: &str = "この課題は、ペルソナのどの性質から起きたと考えるかを1つ選ぶ";
 
-/// The two questions about `issue`, each prompt led by the persona
-/// preamble and a description of the issue.
+/// The questions about `issue`, each prompt led by the persona preamble and
+/// a description of the issue: the naturalness one when
+/// [`asks_natural`], then the trait one.
 #[must_use]
 pub fn natural_questions(persona: &Persona, goal: &str, issue: &Issue) -> Vec<Question> {
     let head = format!("{}\n\n{}", preamble(persona, goal), describe(issue));
-    vec![
-        Question::Choice {
-            id: QuestionId::new(NATURAL),
-            prompt: format!("{head}\n\n{NATURAL_PROMPT}"),
-            options: vec![YES.to_owned(), NO.to_owned()],
-        },
-        Question::Choice {
-            id: QuestionId::new(PERSONA_TRAIT),
-            prompt: format!("{head}\n\n{PERSONA_TRAIT_PROMPT}"),
-            options: TRAITS.iter().map(|(_, name)| (*name).to_owned()).collect(),
-        },
-    ]
+    let natural = Question::Choice {
+        id: QuestionId::new(NATURAL),
+        prompt: format!("{head}\n\n{NATURAL_PROMPT}"),
+        options: vec![YES.to_owned(), NO.to_owned()],
+    };
+    let persona_trait = Question::Choice {
+        id: QuestionId::new(PERSONA_TRAIT),
+        prompt: format!("{head}\n\n{PERSONA_TRAIT_PROMPT}"),
+        options: TRAITS.iter().map(|(_, name)| (*name).to_owned()).collect(),
+    };
+    let natural = asks_natural(issue).then_some(natural);
+    natural.into_iter().chain([persona_trait]).collect()
 }
 
 /// The lines describing `issue` to the judge.

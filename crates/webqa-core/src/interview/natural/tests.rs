@@ -6,7 +6,7 @@ use std::num::NonZeroU32;
 
 use fixture::{
     GOAL, MISMATCH, expected_questions, ids_of, mismatch_of, numbers, patterns, persona, quota,
-    three_purposes, unnatural,
+    three_purposes,
 };
 
 use super::*;
@@ -119,7 +119,7 @@ fn mismatch_questions_take_cap_before_natural() {
 }
 
 #[test]
-fn mismatch_issue_also_gets_natural_question() {
+fn mismatch_issue_gets_only_trait_question() {
     let screens = [products()];
     let mut cap = quota(50);
     let (asked, _) = mismatch_round(&mut cap, mismatch_of(&screens));
@@ -132,18 +132,8 @@ fn mismatch_issue_also_gets_natural_question() {
     assert_eq!(over, vec![], "none over the cap");
     assert_eq!(cap.left(), 47, "one question per issue");
     let questions = natural_questions(&persona(), GOAL, &mismatch_sample());
-    assert_eq!(questions, expected_questions(MISMATCH), "the two questions");
-    let placed = place(mismatch_sample(), Some(unnatural()));
-    assert_eq!(placed, off_persona(mismatch_sample()), "not natural");
-}
-
-/// `issue` off the persona, from IT literacy.
-fn off_persona(issue: Issue) -> Placed {
-    Placed {
-        issue,
-        section: Section::OffPersona,
-        persona_trait: Some(unnatural().persona_trait),
-    }
+    let trait_only = expected_questions(MISMATCH).split_off(1);
+    assert_eq!(questions, trait_only, "the trait question alone");
 }
 
 #[test]

@@ -10,7 +10,7 @@ pub use question::{describe, natural_questions};
 pub use quota::{Quota, mismatch_round, natural_round};
 
 use crate::config::persona::Persona;
-use crate::interview::issue::Issue;
+use crate::interview::issue::{Issue, Kind};
 
 /// The id of the naturalness question.
 pub const NATURAL: &str = "natural";
@@ -109,6 +109,14 @@ impl Trait {
 fn joined(items: &[String]) -> String {
     let trimmed: Vec<&str> = items.iter().map(String::as_str).map(str::trim).collect();
     trimmed.join("、")
+}
+
+/// Whether `issue` gets the naturalness question. A mismatch does not: the
+/// further the guesses are from what the persona wants, the more it is a
+/// mismatch, and the less natural the judge finds it.
+#[must_use]
+pub fn asks_natural(issue: &Issue) -> bool {
+    issue.kind() != Kind::Mismatch
 }
 
 /// The section of `issue` from the judgement, `None` when the issue was

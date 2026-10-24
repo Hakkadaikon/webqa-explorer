@@ -49,7 +49,7 @@ fn answer_is_neither(world: &mut InterviewWorld) {
 )]
 fn mismatch_issue_comes_out(world: &mut InterviewWorld, pattern: String) {
     written(&mut world.scene, &pattern, "この画面で目的を果たす");
-    // The naturalness question about that issue is answered too: not natural.
+    // The judge would also call that issue not natural, were it asked.
     let answers = vec![mismatch_answer(DIFFERENT), natural_answer(NO)];
     asked_gets(world, answers);
     drop(pattern);

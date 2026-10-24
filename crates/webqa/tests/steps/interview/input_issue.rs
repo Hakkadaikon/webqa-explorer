@@ -136,14 +136,12 @@ async fn budget_is_not_spent(world: &mut InterviewWorld) {
     );
 }
 
-#[then(
-    expr = "自然さの問いで自然でないと答えれば、その課題はペルソナから外れると判断した課題の節に入る"
-)]
-async fn off_persona(world: &mut InterviewWorld) {
+#[then(expr = "判断モデルが自然でないと答えても、その課題は台帳の本体に入る")]
+async fn mismatch_in_body(world: &mut InterviewWorld) {
     world.run().await;
     let ledger = ledger_of(world);
     let entry = the_mismatch(&ledger);
-    assert_eq!(entry.section, Section::OffPersona, "its section");
+    assert_eq!(entry.section, Section::Body, "its section");
     let persona = &world.scene.persona;
     let content = persona.it_literacy.clone();
     let expected = PersonaTrait {

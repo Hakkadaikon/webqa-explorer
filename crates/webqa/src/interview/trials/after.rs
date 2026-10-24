@@ -192,7 +192,7 @@ async fn ask_natural(
         .filter_map(|shot| shot_text(run, shot))
     {
         let reply = judge.ask(&text, &questions).await;
-        let read = |answers: Answers| read_natural(&answers, &interview.persona).ok();
+        let read = |answers: Answers| read_natural(&answers, &interview.persona, issue).ok();
         judgement = reply.ok().and_then(read);
     }
     judgement
