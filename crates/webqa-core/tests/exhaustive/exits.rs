@@ -12,7 +12,7 @@ const DECLARED: ExitReason = ExitReason::Stuck(StuckKind::Declared);
 const NO_PROGRESS: ExitReason = ExitReason::Stuck(StuckKind::NoProgress);
 
 /// Each reason is backed by the state or by the answer.
-pub static REASONS: [Property; 9] = [
+pub static REASONS: [Property; 10] = [
     BUDGET_BACKED,
     TIME_BACKED,
     Property {
@@ -68,6 +68,10 @@ pub static REASONS: [Property; 9] = [
     Property {
         name: "an interruption does not end the run",
         holds: |t| t.reason() != Some(ExitReason::UserAborted),
+    },
+    Property {
+        name: "the core never ends for a browser error",
+        holds: |t| t.reason() != Some(ExitReason::Error),
     },
 ];
 

@@ -163,20 +163,19 @@ class ClaudeTextTest(unittest.TestCase):
         asked(request([TEXT]), run, env={claude_cli.PROGRAM_ENV: "/opt/claude"})
         self.assertEqual(run.calls[0][0][0], "/opt/claude")
 
-    def test_hard_to_see_carries_the_screenshot_as_an_image_block(self):
+    def test_every_text_question_carries_the_screenshot_as_an_image_block(self):
         run = FakeRun(output(RESULT), output(RESULT))
         hard = {**TEXT, "id": "hard_to_see", "prompt": "見えにくい要素"}
         asked(request([TEXT, hard], image=IMAGE), run)
-        self.assertEqual(
-            run.message(0)["message"]["content"], "何を期待したか\n\n画面:\n" + SCREEN
-        )
-        self.assertEqual(
-            run.message(1)["message"]["content"],
-            [
-                {"type": "text", "text": "見えにくい要素\n\n画面:\n" + SCREEN},
-                {"type": "image", "source": {"type": "base64", **IMAGE}},
-            ],
-        )
+        for n, prompt in enumerate(("何を期待したか", "見えにくい要素")):
+            self.assertEqual(
+                run.message(n)["message"]["content"],
+                [
+                    {"type": "text", "text": prompt + "\n\n画面:\n" + SCREEN},
+                    {"type": "image", "source": {"type": "base64", **IMAGE}},
+                ],
+            )
+        self.assertEqual(system_of(run.calls[0][0]), jev.TEXT_SYSTEM)
         self.assertEqual(system_of(run.calls[1][0]), jev.HARD_TO_SEE_SYSTEM)
 
     def test_a_failed_result_is_an_api_error(self):

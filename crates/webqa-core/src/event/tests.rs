@@ -130,6 +130,7 @@ fn finished_names_reason_and_stuck() {
         ),
         (ExitReason::TimeExceeded, finished("time_exceeded", None)),
         (ExitReason::UserAborted, finished("user_aborted", None)),
+        (ExitReason::Error, finished("error", None)),
         (
             ExitReason::JudgeUnavailable,
             finished("judge_unavailable", None),

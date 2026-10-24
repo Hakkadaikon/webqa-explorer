@@ -78,6 +78,9 @@ pub struct Ports<'a> {
     /// The interview's questions in place of the core's: `None` for the
     /// other modes.
     interview: Option<Interviewing>,
+    /// The state before the step the browser failed in: `None` until then,
+    /// and when it failed on the first page.
+    last: Option<Box<State>>,
 }
 
 /// What a run keeps from one browser to the next: the log's counters, what
@@ -114,6 +117,7 @@ impl<'a> Ports<'a> {
             record: Record::default(),
             shots: BTreeSet::new(),
             interview: None,
+            last: None,
         }
     }
 
@@ -193,6 +197,19 @@ impl<'a> Ports<'a> {
             .await
     }
 
+    /// `next`, keeping `kept`, the state before the step, when the browser
+    /// failed in it.
+    fn kept_on_break(
+        &mut self,
+        next: Result<Step, RunError>,
+        kept: State,
+    ) -> Result<Step, RunError> {
+        if let Err(RunError::Browser(_)) = next {
+            self.last = Some(Box::new(kept));
+        }
+        next
+    }
+
     /// `written`, remembering a failure so that nothing is written after it.
     pub(super) fn kept(&mut self, written: Result<(), StoreError>) -> Result<(), RunError> {
         self.journal.kept(written)
@@ -251,7 +268,9 @@ pub async fn run(
                 tokio::select! {
                     biased;
                     () = interrupt.wait() => return Ok(machine::abort(kept)),
-                    next = advance(*state, effect, ports) => step = next?,
+                    next = advance(*state, effect, ports) => {
+                        step = ports.kept_on_break(next, kept)?;
+                    }
                 }
             }
             Step::Finished(outcome) => return Ok(outcome),

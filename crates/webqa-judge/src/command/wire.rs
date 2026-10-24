@@ -151,11 +151,17 @@ impl ReplyError {
     }
 }
 
-/// Whether `message` is short and only of letters, digits, spaces and
-/// `._:-`, so that it holds no secret or page string worth hiding.
+/// Whether `message` is short, not only spaces, and only of letters,
+/// digits, spaces and `._:-`, so that it holds no secret or page string
+/// worth hiding.
 fn plain(message: &str) -> bool {
     let allowed = |c: char| c.is_ascii_alphanumeric() || " ._:-".contains(c);
-    (1..=MAX_DETAIL).contains(&message.len()) && message.chars().all(allowed)
+    said(message) && message.chars().all(allowed)
+}
+
+/// Whether `message` says something within the length kept.
+fn said(message: &str) -> bool {
+    message.len() <= MAX_DETAIL && !message.trim().is_empty()
 }
 
 /// A missing probability becomes NaN.

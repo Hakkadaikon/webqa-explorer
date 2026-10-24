@@ -50,3 +50,15 @@ fn a_long_message_is_dropped() {
     assert_eq!(api_error(&longest), api(Some(&longest)), "64 characters");
     assert_eq!(api_error(&"a".repeat(65)), api(None), "65 characters");
 }
+
+#[test]
+fn a_message_of_only_spaces_is_dropped() {
+    for message in [" ", "   "] {
+        assert_eq!(api_error(message), api(None), "{message:?}");
+    }
+    assert_eq!(
+        api_error(" http 500 "),
+        api(Some(" http 500 ")),
+        "spaces around"
+    );
+}

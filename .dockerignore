@@ -1,0 +1,7 @@
+# The image takes only what docker/Dockerfile copies; the repository itself
+# is mounted at run time. Leaving out everything else keeps target/ and .env
+# (the keys) out of the build.
+*
+!rust-toolchain.toml
+!scripts/install-aqua.sh
+!.config/aqua/

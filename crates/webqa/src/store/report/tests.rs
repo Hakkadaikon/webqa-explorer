@@ -239,3 +239,20 @@ mod edges;
 mod memory;
 
 pub use self::memory::start_memory;
+
+#[test]
+fn report_names_error_reason() {
+    let report = build(
+        &record(),
+        ExitReason::Error,
+        &meta(),
+        &start_memory(),
+        &Redactor::default(),
+    )
+    .into_inner();
+    assert_eq!(
+        (&report["reason"], &report["stuck"]),
+        (&json!("error"), &Value::Null),
+        "the reason and no kind"
+    );
+}

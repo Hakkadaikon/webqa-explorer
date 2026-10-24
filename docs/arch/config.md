@@ -15,7 +15,7 @@ target:
   allowed_origins: ["https://app.example.test", "https://*.app.example.test"]
 judge:
   kind: command
-  command: ["./bridge/jev.py", "--text-model", "<言語モデルの名前>", "--timeout", "25"]
+  command: ["./bridge/jev.py", "--text-model", "<言語モデルの名前>", "--text-images", "--timeout", "25"]
   api_key: { env: JEV_API_KEY }
   timeout_secs: 30
   pricing: { input_per_1k: 0.0, output_per_1k: 0.0 }

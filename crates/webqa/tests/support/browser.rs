@@ -26,6 +26,8 @@ pub struct SceneBrowser {
     pub looks: VecDeque<Observation>,
     /// Whether an operation never finishes.
     pub stall_touch: bool,
+    /// The operation that fails, counted from 1, if one does.
+    pub fail_touch: Option<usize>,
     /// The operations received, in order.
     pub touches: Vec<Touch>,
     /// How many observations were asked for.
@@ -49,6 +51,7 @@ impl SceneBrowser {
             after,
             looks,
             stall_touch: false,
+            fail_touch: None,
             touches: Vec::new(),
             observed: 0,
             shots: 0,
@@ -75,6 +78,9 @@ impl Browser for SceneBrowser {
 
     fn touch<'a>(&'a mut self, touch: &'a Touch) -> Pending<'a, Result<(), BrowserError>> {
         self.touches.push(touch.clone());
+        if self.fail_touch == Some(self.touches.len()) {
+            return Box::pin(future::ready(Err(BrowserError)));
+        }
         if self.stall_touch {
             self.gate.notify_one();
             return Box::pin(future::pending());
@@ -125,6 +131,9 @@ pub async fn check() {
     let mut browser = SceneBrowser::new(shows("開始"), after, looks, Arc::clone(&gate));
     check_looks(&mut browser).await;
     check_touches(&mut browser).await;
+    browser.fail_touch = Some(4);
+    let failed = browser.touch(&click("click")).await;
+    assert_eq!(failed, Err(BrowserError), "the fourth operation fails");
     let held = click("click");
     browser.stall_touch = true;
     let mut stalled = browser.touch(&held);

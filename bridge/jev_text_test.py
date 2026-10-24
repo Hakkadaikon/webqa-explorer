@@ -18,6 +18,9 @@ from fake import (
     request,
 )
 
+IMAGE = {"media_type": "image/png", "data": "iVBORw=="}
+DATA_URL = "data:image/png;base64,iVBORw=="
+
 
 class TextTest(unittest.TestCase):
     def test_text_question_goes_to_language_model(self):
@@ -73,23 +76,22 @@ class TextTest(unittest.TestCase):
         ):
             self.assertIn(rule, lines)
 
-    def test_hard_to_see_carries_the_screenshot(self):
-        http = FakeHttp(CHAT_REPLY, CHAT_REPLY)
-        image = {"media_type": "image/png", "data": "iVBORw=="}
+    def test_every_text_question_carries_the_screenshot(self):
         hard = {**TEXT, "id": "hard_to_see", "prompt": "見えにくい要素"}
-        ask(request([TEXT, hard], image=image), http, options(text_model="m"))
-        plain = http.body(0)["messages"][1]["content"]
-        self.assertEqual(plain, "何を期待したか\n\n画面:\n" + SCREEN)
-        self.assertEqual(
-            http.body(1)["messages"][1]["content"],
-            [
-                {"type": "text", "text": "見えにくい要素\n\n画面:\n" + SCREEN},
-                {
-                    "type": "image_url",
-                    "image_url": {"url": "data:image/png;base64,iVBORw=="},
-                },
-            ],
-        )
+        for question in (TEXT, GUESS, hard):
+            with self.subTest(id=question["id"]):
+                http = FakeHttp(CHAT_REPLY)
+                ask(request([question], image=IMAGE), http, options(text_model="m"))
+                self.assertEqual(
+                    http.body()["messages"][1]["content"],
+                    [
+                        {
+                            "type": "text",
+                            "text": question["prompt"] + "\n\n画面:\n" + SCREEN,
+                        },
+                        {"type": "image_url", "image_url": {"url": DATA_URL}},
+                    ],
+                )
 
     def test_hard_to_see_without_image_is_plain_text(self):
         http = FakeHttp(CHAT_REPLY)

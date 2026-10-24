@@ -21,6 +21,13 @@ impl Quota {
         }
     }
 
+    /// Nothing left: every question goes over the cap, unasked. For a run
+    /// whose judge stopped answering.
+    #[must_use]
+    pub const fn spent() -> Self {
+        Self { left: 0 }
+    }
+
     /// How many questions are left.
     #[must_use]
     pub const fn left(self) -> usize {

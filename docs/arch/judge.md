@@ -224,6 +224,7 @@ sequenceDiagram
 知らない項目は無視する。
 `error`の`kind`は`api`か`timeout`にし、ほかの値は形式の誤りにする。
 `api`の`message`は、英数字、空白、`._:-`だけでできた64字以内の文のときだけ、失敗の`detail`として残す。
+空白だけの文は残さない。
 それ以外の文は捨てる。
 `message`には、APIキーやページの文字列が入りうるためである。
 残した文は、応答の異常のイベントに書く。
@@ -256,9 +257,12 @@ JEVの問いは1回の呼び出しにまとめ、`text`の問いは1つずつ別
 ほかの自由な文の問いには、必ず1文を返させる。
 それでも崩れたときの守りは、受け取った文の前後の空白を取ることだけにする。
 中身は作り変えない。
-見えにくい要素(`hard_to_see`)の問いは、行に画像があれば、画面の文と並べて画像も送る。
+行に画像があれば、自由な文の問い(`expectation`、`purpose_guess`、`hard_to_see`)のすべてに、画面の文と並べて画像も送る。
 画像は、chat completionsの`image_url`にdata URLで入れる。
-画像を扱えない言語モデルを`--text-model`に選ぶと、その問いはGatewayの失敗(`api`)になりうる。
+`--text-model`の言語モデルに画像を送るには、`--text-images`を付ける(下の引数の表)。
+付けなければ申告が偽になり、中核は画像を添えず、見えにくい要素も問わない。
+視認性の課題も出なくなる。
+Gatewayの失敗(`api`)になりうるのは、画像を読めない言語モデルに`--text-images`を付けたときである。
 Gatewayへの送信、時間の予算、送り直し、リダイレクトの扱いは`bridge/gateway.py`にまとめてある。
 
 ### `claude -p`で答える
@@ -290,7 +294,7 @@ AWSやGoogle Cloudの変数(地域や認証)は渡さない。
 キーチェーンを読まなくなり、ログインの認証が使えなくなるためである。
 
 問いは標準入力に`stream-json`の1行で渡し、答えも`stream-json`で受け取る。
-見えにくい要素の問いに画像があるときは、画像を`image`の内容として同じ行に入れる。
+行に画像があるときは、自由な文の問いのすべてで、画像を`image`の内容として同じ行に入れる。
 答えは最後の行の`result`の文で、前後の空白を取って返す。
 最後の行が`result`でない、`is_error`が真、文が無い、のどれかなら`api`の失敗にする。
 入力のトークン数には、キャッシュに書いた分と読んだ分も足す。
@@ -336,6 +340,7 @@ echo '{"version":2,"seq":1,"screen":"1: button \"保存\"","questions":[{"kind":
 | `--model` | `typesafe-ai/jev-1.14.0` | JEVのモデル |
 | `--text-model` | 無し | `text`の問いを送るGatewayの言語モデル |
 | `--text-claude` | 無し | `text`の問いに答える`claude`のモデル |
+| `--text-images` | 付けない | `--text-model`の言語モデルが画像を読めると申告する。`--text-model`と組むときだけ意味を持つ |
 | `--timeout` | 30 | 問いの1行あたりの時間の予算(秒) |
 
 `--text-model`と`--text-claude`は、どちらか一方だけを書ける。
@@ -353,7 +358,18 @@ echo '{"version":2,"seq":1,"screen":"1: button \"保存\"","questions":[{"kind":
 そのときは、webqaの側の`judge.timeout_secs`が打ち切る。
 そのため、`--timeout`は`judge.timeout_secs`より短くする。
 
-`--model`が`typesafe-ai/jev-1.13.0`か`typesafe-ai/jev-1.14.0`のときだけ、画像を読めると申告する。
+次の両方を満たすときだけ、画像を読めると申告する。
+
+- `--model`が`typesafe-ai/jev-1.13.0`か`typesafe-ai/jev-1.14.0`である。
+- 自由な文を受けるモデルが画像を読める。
+  `--text-claude`なら読める(Haiku、Sonnet、Opus)。
+  `--text-model`は、`--text-images`を付けたときだけ読める。
+  どちらも無いときは、JEVだけで決める。
+
+JEVが読めて自由な文のモデルが読めないときは、申告を偽にする。
+中核は画像を添えず、見えにくい要素も問わない。
+プロトコルの版は2のままである。
+
 JEVへの問いに画像を添えるときは、画像を許すヘッダを要求に付ける。
 ヘッダは`TypeSafe-Danger-Zone-Images: true`である。
 言語モデルへの自由文の問いには付けない。

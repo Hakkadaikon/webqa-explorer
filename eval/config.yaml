@@ -3,7 +3,7 @@ target:
   allowed_origins: []
 judge:
   kind: command
-  command: ["./bridge/jev.py", "--model", "typesafe-ai/jev-1.14.0", "--text-model", "anthropic/claude-haiku-5.5", "--timeout", "60"]
+  command: ["./bridge/jev.py", "--model", "typesafe-ai/jev-1.14.0", "--text-model", "anthropic/claude-haiku-5.5", "--text-images", "--timeout", "60"]
   api_key: {env: WEBQA_JUDGE_API_KEY}
   timeout_secs: 70
   pricing: {input_per_1k: 0.0, output_per_1k: 0.0}

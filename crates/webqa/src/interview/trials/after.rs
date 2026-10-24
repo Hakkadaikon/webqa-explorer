@@ -59,15 +59,30 @@ impl Asker<'_> {
 }
 
 /// Asks about the screen purposes, then about each issue the trials found,
-/// within the one cap on questions.
-pub(super) async fn findings(judge: &mut Asker<'_>, plan: &Plan, run: &Run<'_>) -> Findings {
-    let mut quota = Quota::new(plan.interview.max_natural_questions);
+/// within the one cap on questions. When the judge stopped answering, the
+/// cap is spent: nothing is asked, and everything is left unchecked.
+pub(super) async fn findings(
+    judge: &mut Asker<'_>,
+    plan: &Plan,
+    run: &Run<'_>,
+    down: bool,
+) -> Findings {
+    let mut quota = cap(plan, down);
     let (mismatches, unchecked) = mismatches(judge, plan, run, &mut quota).await;
     let mut issues = step_issues(run);
     issues.extend(mismatches);
     Findings {
         entries: naturals(judge, plan, run, &mut quota, issues).await,
         unchecked,
+    }
+}
+
+/// The cap on the questions after the trials: none when the judge is down.
+fn cap(plan: &Plan, down: bool) -> Quota {
+    if down {
+        Quota::spent()
+    } else {
+        Quota::new(plan.interview.max_natural_questions)
     }
 }
 

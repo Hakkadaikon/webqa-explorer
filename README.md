@@ -77,6 +77,7 @@ webqa-explorerは、Webサービスの探索的テストエージェントであ
 | 文書 | 内容 |
 |---|---|
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 環境の用意と開発の進め方 |
+| [`docs/container.md`](docs/container.md) | LinuxでOSにライブラリを入れずに回すコンテナの手順 |
 | [`docs/quality-gates.md`](docs/quality-gates.md) | 品質ゲートの基準と、落ちたときの直し方 |
 | [`docs/commit-messages.md`](docs/commit-messages.md) | コミットメッセージの規約 |
 | [`docs/agents.md`](docs/agents.md) | Claude Codeの親セッションとサブエージェントの役割分担 |

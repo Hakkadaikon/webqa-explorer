@@ -51,6 +51,8 @@ pub enum ExitReason {
     JudgeUnavailable,
     /// The user interrupted the run.
     UserAborted,
+    /// The browser failed. The run loop sets it; the core never does.
+    Error,
 }
 
 /// How many failures of the judge in a row end the run.

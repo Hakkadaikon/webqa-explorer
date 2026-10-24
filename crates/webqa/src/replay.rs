@@ -5,6 +5,8 @@
 //! questions are not compared with the recorded ones.
 
 #[cfg(test)]
+mod failure_tests;
+#[cfg(test)]
 mod tests;
 
 use std::collections::{BTreeMap, VecDeque};

@@ -14,7 +14,8 @@ pub const CONFIG_ERROR: u8 = 2;
 pub const RUNTIME_ERROR: u8 = 3;
 
 /// The exit code of a run: 0 without a confirmed issue, 1 with one, 3 when
-/// it failed, was abandoned, or the judge failed too many times in a row.
+/// the browser broke, it failed, was abandoned, or the judge failed too many
+/// times in a row.
 #[must_use]
 pub fn code(ending: &Ending) -> u8 {
     match ending {
@@ -22,7 +23,7 @@ pub fn code(ending: &Ending) -> u8 {
             RUNTIME_ERROR
         }
         Ending::Finished { confirmed, .. } => u8::from(*confirmed),
-        Ending::Abandoned | Ending::Failed(_) => RUNTIME_ERROR,
+        Ending::Broke(_) | Ending::Abandoned | Ending::Failed(_) => RUNTIME_ERROR,
     }
 }
 
@@ -30,8 +31,8 @@ pub fn code(ending: &Ending) -> u8 {
 ///
 /// 0 or 1 when its records are written: 1 only for a confirmed issue, and
 /// the issues of the ledger do not count. 2 when the previous ledger does
-/// not match, 3 when it failed, was abandoned, or the judge failed too many
-/// times in a row.
+/// not match, 3 when the reset command or a browser broke it, it failed, was
+/// abandoned, or the judge failed too many times in a row.
 #[must_use]
 pub fn interview_code(ending: &Interview) -> u8 {
     match ending {
@@ -40,6 +41,7 @@ pub fn interview_code(ending: &Interview) -> u8 {
             ..
         }
         | Interview::ResetFailed(_)
+        | Interview::Broke(_)
         | Interview::Failed(_)
         | Interview::Abandoned => RUNTIME_ERROR,
         Interview::Wrote { confirmed, .. } => u8::from(*confirmed),

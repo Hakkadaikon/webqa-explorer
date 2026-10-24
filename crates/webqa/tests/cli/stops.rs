@@ -52,9 +52,10 @@ fn an_output_that_cannot_be_made_exits_three() -> io::Result<()> {
 }
 
 /// A reset that removes the persona document, which the browser's launch
-/// reads again, stops the trial that follows it.
+/// reads again, stops the trial that follows it; the ledger is still
+/// written.
 #[test]
-fn a_browser_that_cannot_be_launched_ends_the_interview_as_failed() -> io::Result<()> {
+fn a_browser_that_cannot_be_launched_writes_the_ledger_and_exits_three() -> io::Result<()> {
     let case = Case::new("interview_launch_fails")?;
     let persona = case.dir.join("persona.yaml");
     fs::copy(format!("{DOCS}persona.yaml"), &persona)?;
@@ -64,12 +65,18 @@ fn a_browser_that_cannot_be_launched_ends_the_interview_as_failed() -> io::Resul
         "interview:\n  persona: {persona}\n  trials: 2\n  reset:\n    command: [\"rm\", \"{persona}\"]\n"
     );
     config.tail = &tail;
-    stopped(
-        &case,
-        &config,
-        3,
-        "interview.persona のファイルを読めない\nブラウザを操作できない\n",
-    )
+    let output = case.run(&["interview"], &config, &[])?;
+    assert_eq!(exec::code(&output), Some(3), "exit code");
+    let ledger = interview_run(&case)?.join("ledger.md");
+    assert_eq!(
+        exec::stderr(&output),
+        format!(
+            "interview.persona のファイルを読めない\nブラウザを操作できない、台帳 {}\n",
+            ledger.display()
+        ),
+        "the sentence on the standard error"
+    );
+    Ok(())
 }
 
 #[test]

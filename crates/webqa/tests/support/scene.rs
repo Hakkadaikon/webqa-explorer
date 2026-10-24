@@ -123,6 +123,8 @@ pub struct Scene {
     pub stall: Stall,
     /// `MemoryStore.limit`.
     pub store_limit: Option<usize>,
+    /// The browser operation that fails, counted from 1, if one does.
+    pub fail_touch: Option<usize>,
     /// Which write of the memory is held.
     pub store_hold: Hold,
     /// The YAML to start from.
@@ -160,6 +162,7 @@ impl Default for Scene {
             user_interrupts: false,
             stall: Stall::Nothing,
             store_limit: None,
+            fail_touch: None,
             store_hold: Hold::None,
             yaml: None,
             env: BTreeMap::new(),
