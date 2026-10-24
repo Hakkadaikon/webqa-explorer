@@ -3,8 +3,8 @@
 対象: Web サービスの探索的テストエージェント(判断モデルの問い合わせ、ガードレール、ブラウザ操作、終了判定、段階、探索の記憶、負荷制御、問題の記録、設定、中断、終了コード)
 走査アンカー: 受け入れ条件(`tasks/loopeng/WebExploratoryQA.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
-転記元の版: コミット 7871ee84d83088815071c7b1217c3a84813c32ea の `tasks/loopeng/WebExploratoryQA.feature`(確定)に、issue #4 の決定(許可リストは禁止より優先する)と issue #62〜#64 の決定(探索モードで対象に合わない操作を外し、記憶にも数えない)と issue #70 の決定(キーを押す操作 enter を足す)と、入力の値ごとに伏せ字を外せる決定(S-045)と、`secret` を書かない入力の値は伏せ、`judge.api_key` に `secret` を書くと設定エラーにする決定(S-045。T-120、T-121 を足し、行番号を合わせた)と、`secret: false` の入力の値をイベントログの操作の記録に書かない決定(S-045。T-122 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
-転記元の sha256: 04a723b50c5bebdceb7da24b1fd0b32cfd7d8296cfe20b48f85655173a512499
+転記元の版: コミット 7871ee84d83088815071c7b1217c3a84813c32ea の `tasks/loopeng/WebExploratoryQA.feature`(確定)に、issue #4 の決定(許可リストは禁止より優先する)と issue #62〜#64 の決定(探索モードで対象に合わない操作を外し、記憶にも数えない)と issue #70 の決定(キーを押す操作 enter を足す)と、入力の値ごとに伏せ字を外せる決定(S-045)と、`secret` を書かない入力の値は伏せ、`judge.api_key` に `secret` を書くと設定エラーにする決定(S-045。T-120、T-121 を足し、行番号を合わせた)と、`secret: false` の入力の値をイベントログの操作の記録に書かない決定(S-045。T-122 を足し、行番号を合わせた)と、issue #85 の決定(判断モデルの失敗が3回続いたら終了コード3で終える。T-123 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
+転記元の sha256: 6f5f4d08bae91b7e1d015fd4c084b1275ec0e87078fdcb832e037204a9b5050e
 内ループで feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py` は、この値と実物の feature の sha256 が違えば失敗する。
 
 各 ID は「テストすべき振る舞い」1つ。test-catalog で全行に手法とテスト名を割り当てた。
@@ -130,67 +130,67 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `stuck_beats_budget` / issue: #12
 - [x] T-023 WebExploratoryQA.feature:277(終了の判定) [state] 「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_beats_freeze_recovery` / issue: #12
-- [x] T-024 WebExploratoryQA.feature:310(終了の判定) [unwanted] 「終了した実行はそれ以上ステップを進めない」
+- [x] T-024 WebExploratoryQA.feature:322(終了の判定) [unwanted] 「終了した実行はそれ以上ステップを進めない」
       → 手法: 禁止仕様からの導出(blackbox-state)、モデルベーステスト(oracle-model-based) / テスト名: 受け入れ(同題の Scenario)、全状態の探索 `webqa-core/tests/exhaustive.rs` の `finished_is_absorbing` / issue: #12
-- [x] T-025 WebExploratoryQA.feature:517(固まりとドメイン外からの復帰) [state] 「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」
+- [x] T-025 WebExploratoryQA.feature:529(固まりとドメイン外からの復帰) [state] 「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `reload_after_freeze_keeps_memory` / issue: #12
-- [x] T-026 WebExploratoryQA.feature:543(固まりとドメイン外からの復帰) [state] 「画面が変化すれば固まりの数え直しになる」
+- [x] T-026 WebExploratoryQA.feature:555(固まりとドメイン外からの復帰) [state] 「画面が変化すれば固まりの数え直しになる」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `screen_change_resets_freeze` / issue: #12
-- [x] T-027 WebExploratoryQA.feature:562(固まりとドメイン外からの復帰) [unwanted] 「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」
+- [x] T-027 WebExploratoryQA.feature:574(固まりとドメイン外からの復帰) [unwanted] 「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `outside_domain_returns_without_asking` / issue: #12
-- [x] T-028 WebExploratoryQA.feature:571(固まりとドメイン外からの復帰) [boundary] 「許可ドメインかどうかは、最終的な遷移先のオリジンの完全一致で判定する」(Examples の各行を1ケースとする)
+- [x] T-028 WebExploratoryQA.feature:583(固まりとドメイン外からの復帰) [boundary] 「許可ドメインかどうかは、最終的な遷移先のオリジンの完全一致で判定する」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard::domain` の `origin_must_match_exactly` / issue: #4
-- [x] T-029 WebExploratoryQA.feature:595(探索の記憶と優先順位) [ubiquitous] 「探索の記憶を次の実行に引き継ぐ」
+- [x] T-029 WebExploratoryQA.feature:607(探索の記憶と優先順位) [ubiquitous] 「探索の記憶を次の実行に引き継ぐ」
       → 手法: CRUD/ライフサイクルテスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、保存 `webqa/tests/store.rs` の `memory_round_trips_across_runs` / issue: #14
-- [x] T-030 WebExploratoryQA.feature:616(探索の記憶と優先順位) [state] 「未操作の要素を、未探索の分岐が残る操作済み要素より先に選ぶ」
+- [x] T-030 WebExploratoryQA.feature:628(探索の記憶と優先順位) [state] 「未操作の要素を、未探索の分岐が残る操作済み要素より先に選ぶ」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::select` の `untouched_before_unfinished_branch` / issue: #10
-- [x] T-031 WebExploratoryQA.feature:622(探索の記憶と優先順位) [state] 「未操作の要素が無ければ、未探索の分岐が残る操作済み要素を戻る・スクロールより先に選ぶ」
+- [x] T-031 WebExploratoryQA.feature:634(探索の記憶と優先順位) [state] 「未操作の要素が無ければ、未探索の分岐が残る操作済み要素を戻る・スクロールより先に選ぶ」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::select` の `unfinished_branch_before_back_and_scroll` / issue: #10
-- [x] T-032 WebExploratoryQA.feature:628(探索の記憶と優先順位) [state] 「どの要素にも未探索の分岐が残っていなければ、戻るかスクロールを選ぶ」
+- [x] T-032 WebExploratoryQA.feature:640(探索の記憶と優先順位) [state] 「どの要素にも未探索の分岐が残っていなければ、戻るかスクロールを選ぶ」
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::select` の `back_or_scroll_when_all_finished` / issue: #10
-- [x] T-033 WebExploratoryQA.feature:634(探索の記憶と優先順位) [unwanted] 「遷移先を探索し終えるまで、途中のボタンを探索し終えた要素として扱わない」
+- [x] T-033 WebExploratoryQA.feature:646(探索の記憶と優先順位) [unwanted] 「遷移先を探索し終えるまで、途中のボタンを探索し終えた要素として扱わない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `finished_follows_reachable_screens` / issue: #10
-- [x] T-034 WebExploratoryQA.feature:639(探索の記憶と優先順位) [unwanted] 「探索モードでも決済導線の要素は選ばない」
+- [x] T-034 WebExploratoryQA.feature:651(探索の記憶と優先順位) [unwanted] 「探索モードでも決済導線の要素は選ばない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::select` の `payment_elements_never_candidates` / issue: #10
-- [x] T-035 WebExploratoryQA.feature:702(対象サーバへの負荷) [unwanted] 「1時間窓の操作回数が上限に達したら、窓が明けるまで問い合わせも操作もしない」
+- [x] T-035 WebExploratoryQA.feature:714(対象サーバへの負荷) [unwanted] 「1時間窓の操作回数が上限に達したら、窓が明けるまで問い合わせも操作もしない」
       → 手法: 境界値分析(blackbox-partition)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `window_full_waits_for_next_window` / issue: #12
-- [x] T-036 WebExploratoryQA.feature:709(対象サーバへの負荷) [state] 「時間窓は時刻で区切られ、上限に達していなくても満了する」
+- [x] T-036 WebExploratoryQA.feature:721(対象サーバへの負荷) [state] 「時間窓は時刻で区切られ、上限に達していなくても満了する」
       → 手法: 境界値分析(blackbox-partition)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::window` の `window_index_follows_elapsed_time` / issue: #12
-- [x] T-037 WebExploratoryQA.feature:750(問題の記録) [event] 「問題を見つけたら、種類とステップ番号を含む名前でスクリーンショットを残す」
+- [x] T-037 WebExploratoryQA.feature:762(問題の記録) [event] 「問題を見つけたら、種類とステップ番号を含む名前でスクリーンショットを残す」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::screenshots` の `screenshot_name_has_kind_and_step` / issue: #14
-- [x] T-038 WebExploratoryQA.feature:763(問題の記録) [unwanted] 「エラー表示の確信度が閾値に届かなければ問題として記録しない」
+- [x] T-038 WebExploratoryQA.feature:775(問題の記録) [unwanted] 「エラー表示の確信度が閾値に届かなければ問題として記録しない」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `error_display_below_threshold_not_recorded` / issue: #8
-- [x] T-039 WebExploratoryQA.feature:769(問題の記録) [event] 「読み上げ名が画像ファイル名や仮の値の要素はアクセシビリティの問題として記録する」(Examples の各行を1ケースとする)
+- [x] T-039 WebExploratoryQA.feature:781(問題の記録) [event] 「読み上げ名が画像ファイル名や仮の値の要素はアクセシビリティの問題として記録する」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `placeholder_accessible_names_are_issues` / issue: #8
-- [x] T-040 WebExploratoryQA.feature:780(問題の記録) [event] 「ブラウザのコンソールにエラーが出たら問題として記録する」
+- [x] T-040 WebExploratoryQA.feature:792(問題の記録) [event] 「ブラウザのコンソールにエラーが出たら問題として記録する」
       → 手法: コントラクトテスト(levels-service)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `console_error_is_issue`、契約 `webqa-browser/tests/contract.rs` の `collects_console_errors` / issue: #8、#9
-- [x] T-041 WebExploratoryQA.feature:785(問題の記録) [unwanted] 「意味の判断が要る検出は、判断モデルだけの判定なら参考情報として記録する」
+- [x] T-041 WebExploratoryQA.feature:797(問題の記録) [unwanted] 「意味の判断が要る検出は、判断モデルだけの判定なら参考情報として記録する」
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `judge_only_detection_is_reference` / issue: #8
-- [x] T-042 WebExploratoryQA.feature:790(問題の記録) [ubiquitous] 「実行結果は再実行できる形で出力する」
+- [x] T-042 WebExploratoryQA.feature:802(問題の記録) [ubiquitous] 「実行結果は再実行できる形で出力する」
       → 手法: ゴールデンテスト(oracle-past-output) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::store::report` の `report_matches_snapshot`、実行ファイル `webqa/tests/cli.rs` の `replay_reruns_report`、単体 `webqa::run::session` の `replay_starts_from_given_memory_and_keeps_stored`、単体 `webqa::run::session` の `stored_start_is_written_back`、単体 `webqa::store::report` の `report_keeps_start_memory`、単体 `webqa::store::report` の `start_memory_is_redacted`、単体 `webqa::replay` の `from_report_reads_start_memory`、単体 `webqa::cli::start` の `broken_start_memory_is_config_error` / issue: #14、#61
-- [x] T-043 WebExploratoryQA.feature:798(設定と外部境界) [event] 「テスト対象・入力値・段階を YAML の設定で定義して実行する」
+- [x] T-043 WebExploratoryQA.feature:810(設定と外部境界) [event] 「テスト対象・入力値・段階を YAML の設定で定義して実行する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `reads_target_inputs_and_stages` / issue: #3
-- [x] T-044 WebExploratoryQA.feature:803(設定と外部境界) [ubiquitous] 「決め打ちシナリオと探索モードを同じツールで実行する」
+- [x] T-044 WebExploratoryQA.feature:815(設定と外部境界) [ubiquitous] 「決め打ちシナリオと探索モードを同じツールで実行する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、実行ファイル `webqa/tests/cli.rs` の `runs_scenario_and_explore_modes`、実行ファイル `webqa/tests/cli.rs` の `explore_without_click_or_input_exits_two` / issue: #14
-- [x] T-045 WebExploratoryQA.feature:807(設定と外部境界) [optional] 「指定した認証状態を注入してから探索を始める」
+- [x] T-045 WebExploratoryQA.feature:819(設定と外部境界) [optional] 「指定した認証状態を注入してから探索を始める」
       → 手法: コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、契約 `webqa-browser/tests/contract.rs` の `storage_state_opens_logged_in_page` / issue: #9
-- [x] T-046 WebExploratoryQA.feature:812(設定と外部境界) [unwanted] 「設定で指定した機密情報は判断モデルに送る前に伏せる」
+- [x] T-046 WebExploratoryQA.feature:824(設定と外部境界) [unwanted] 「設定で指定した機密情報は判断モデルに送る前に伏せる」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::redact` の `redacts_configured_values` / issue: #5
-- [x] T-047 WebExploratoryQA.feature:818(設定と外部境界) [ubiquitous] 「API キーは設定ファイルに書かず、環境変数から読む」
+- [x] T-047 WebExploratoryQA.feature:830(設定と外部境界) [ubiquitous] 「API キーは設定ファイルに書かず、環境変数から読む」
       → 手法: セキュリティテスト(nonfunctional-attributes)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、契約 `webqa-judge/tests/command.rs` の `api_key_env_reaches_bridge` / issue: #7
-- [x] T-048 WebExploratoryQA.feature:871(設定と外部境界) [unwanted] 「TLS 証明書の検証を無効にする設定は受け付けない」
+- [x] T-048 WebExploratoryQA.feature:883(設定と外部境界) [unwanted] 「TLS 証明書の検証を無効にする設定は受け付けない」
       → 手法: セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `rejects_tls_verification_key` / issue: #3
-- [x] T-049 WebExploratoryQA.feature:876(設定と外部境界) [boundary] 「0 以下の閾値・上限や空の操作種別は設定エラーにする」(Examples の各行を1ケースとする)
+- [x] T-049 WebExploratoryQA.feature:888(設定と外部境界) [boundary] 「0 以下の閾値・上限や空の操作種別は設定エラーにする」(Examples の各行を1ケースとする)
       → 手法: 境界値分析(blackbox-partition)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate::check` の `rejects_non_positive_and_empty` / issue: #3
-- [x] T-050 WebExploratoryQA.feature:904(設定と外部境界) [ubiquitous] 「判断モデルを差し替えても同じ探索ができる」
+- [x] T-050 WebExploratoryQA.feature:916(設定と外部境界) [ubiquitous] 「判断モデルを差し替えても同じ探索ができる」
       → 手法: テストダブル(test-doubles)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-judge::table` の `selects_judge_by_kind`、契約 `webqa-judge/tests/command.rs` の `command_bridge_round_trips` / issue: #7、#15
-- [x] T-051 WebExploratoryQA.feature:909(設定と外部境界) [nonfunctional] 「判断・操作・画面変化待ちの時間と、判断モデルのコストを記録する」
+- [x] T-051 WebExploratoryQA.feature:921(設定と外部境界) [nonfunctional] 「判断・操作・画面変化待ちの時間と、判断モデルのコストを記録する」
       → 手法: 時刻依存の封じ込め(flakiness-value)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `records_step_timings_with_fake_clock`、単体 `webqa::store::report` の `cost_from_usage_and_pricing` / issue: #14
-- [x] T-052 WebExploratoryQA.feature:588(固まりとドメイン外からの復帰) [boundary] 「リダイレクトされたら、最終的な遷移先で許可ドメインかどうかを判定する」
+- [x] T-052 WebExploratoryQA.feature:600(固まりとドメイン外からの復帰) [boundary] 「リダイレクトされたら、最終的な遷移先で許可ドメインかどうかを判定する」
       → 手法: コントラクトテスト(levels-service)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard::domain` の `judges_final_url`、契約 `webqa-browser/tests/contract.rs` の `reports_final_url_after_redirect` / issue: #4、#9
-- [x] T-053 WebExploratoryQA.feature:715(対象サーバへの負荷) [unwanted] 「ページの再読み込みや許可ドメインへの戻りも、時間窓の操作回数に数える」(Examples の各行を1ケースとする)
+- [x] T-053 WebExploratoryQA.feature:727(対象サーバへの負荷) [unwanted] 「ページの再読み込みや許可ドメインへの戻りも、時間窓の操作回数に数える」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::window` の `counts_each_access_kind` / issue: #12
-- [x] T-054 WebExploratoryQA.feature:742(対象サーバへの負荷) [boundary] 「ガードレールで止めて実行しなかった提案は、時間窓の操作回数に数えない」
+- [x] T-054 WebExploratoryQA.feature:754(対象サーバへの負荷) [boundary] 「ガードレールで止めて実行しなかった提案は、時間窓の操作回数に数えない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `rejected_proposal_uses_no_access` / issue: #12
 - [x] T-055 WebExploratoryQA.feature:58(1ステップの問い合わせと実行) [boundary] 「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `empty_screen_allows_only_untargeted_ops` / issue: #13
@@ -200,31 +200,31 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_one_left_still_asks` / issue: #12
 - [x] T-058 WebExploratoryQA.feature:292(終了の判定) [boundary] 「探索済みの要素が増えず、未操作の要素も新しく見えない操作が閾値の1回手前までなら終了しない」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `stuck_below_threshold_continues` / issue: #12
-- [x] T-059 WebExploratoryQA.feature:527(固まりとドメイン外からの復帰) [unwanted] 「固まりを検出しているステップでは判断モデルに問い合わせない」
+- [x] T-059 WebExploratoryQA.feature:539(固まりとドメイン外からの復帰) [unwanted] 「固まりを検出しているステップでは判断モデルに問い合わせない」
       → 手法: 禁止仕様からの導出(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `no_question_while_frozen` / issue: #12
-- [x] T-060 WebExploratoryQA.feature:533(固まりとドメイン外からの復帰) [unwanted] 「ページが応答しないステップが3回続けば、画面が変化しないステップと同じく開き直す」
+- [x] T-060 WebExploratoryQA.feature:545(固まりとドメイン外からの復帰) [unwanted] 「ページが応答しないステップが3回続けば、画面が変化しないステップと同じく開き直す」
       → 手法: コントラクトテスト(levels-service)、状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、契約 `webqa-browser/tests/contract.rs` の `page_timeout_becomes_unchanged_observation`、単体 `webqa-core::machine::counters` の `unresponsive_steps_count_as_freeze` / issue: #9、#12
-- [x] T-061 WebExploratoryQA.feature:600(探索の記憶と優先順位) [boundary] 「初めての実行では空の記憶から始める」
+- [x] T-061 WebExploratoryQA.feature:612(探索の記憶と優先順位) [boundary] 「初めての実行では空の記憶から始める」
       → 手法: CRUD/ライフサイクルテスト(blackbox-state)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、保存 `webqa/tests/store.rs` の `missing_memory_starts_empty` / issue: #14
-- [x] T-062 WebExploratoryQA.feature:605(探索の記憶と優先順位) [unwanted] 「探索の記憶が壊れていたら、空の記憶で始めてそのことを記録する」
+- [x] T-062 WebExploratoryQA.feature:617(探索の記憶と優先順位) [unwanted] 「探索の記憶が壊れていたら、空の記憶で始めてそのことを記録する」
       → 手法: ネガティブテスト(process-static)、CRUD/ライフサイクルテスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、保存 `webqa/tests/store.rs` の `broken_memory_moved_aside_and_starts_empty` / issue: #14
-- [x] T-063 WebExploratoryQA.feature:611(探索の記憶と優先順位) [unwanted] 「別の対象の探索の記憶は引き継がない」
+- [x] T-063 WebExploratoryQA.feature:623(探索の記憶と優先順位) [unwanted] 「別の対象の探索の記憶は引き継がない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、保存 `webqa/tests/store.rs` の `memory_is_kept_per_origin` / issue: #14
-- [x] T-064 WebExploratoryQA.feature:757(問題の記録) [boundary] 「エラー表示の確信度が閾値ちょうどなら問題として記録する」
+- [x] T-064 WebExploratoryQA.feature:769(問題の記録) [boundary] 「エラー表示の確信度が閾値ちょうどなら問題として記録する」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `error_display_at_threshold_recorded` / issue: #8
-- [x] T-065 WebExploratoryQA.feature:823(設定と外部境界) [unwanted] 「実行結果の出力とログでも、指定した機密情報を伏せる」
+- [x] T-065 WebExploratoryQA.feature:835(設定と外部境界) [unwanted] 「実行結果の出力とログでも、指定した機密情報を伏せる」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::redact` の `redacts_names_in_event_payloads` / issue: #5
-- [x] T-066 WebExploratoryQA.feature:849(設定と外部境界) [unwanted] 「設定ファイルに API キーが直接書かれていたら設定エラーにする」
+- [x] T-066 WebExploratoryQA.feature:861(設定と外部境界) [unwanted] 「設定ファイルに API キーが直接書かれていたら設定エラーにする」
       → 手法: セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `literal_api_key_rejected_without_value` / issue: #3
-- [x] T-067 WebExploratoryQA.feature:861(設定と外部境界) [unwanted] 「参照先の環境変数に API キーが無ければ起動しない」
+- [x] T-067 WebExploratoryQA.feature:873(設定と外部境界) [unwanted] 「参照先の環境変数に API キーが無ければ起動しない」
       → 手法: ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate::secrets` の `missing_env_is_config_error`、実行ファイル `webqa/tests/cli.rs` の `missing_api_key_env_exits_two` / issue: #3
-- [x] T-068 WebExploratoryQA.feature:866(設定と外部境界) [unwanted] 「注入する認証状態の形式が不正なら設定エラーにする」
+- [x] T-068 WebExploratoryQA.feature:878(設定と外部境界) [unwanted] 「注入する認証状態の形式が不正なら設定エラーにする」
       → 手法: ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::validate::storage_state` の `malformed_storage_state_rejected` / issue: #3
 - [x] T-069 WebExploratoryQA.feature:297(終了の判定) [boundary] 「ブラウザ操作が起きなかったステップは固まりにも行き詰まりにも数えず、判断予算切れで止まる」(Examples の各行を1ケースとする)
       → 手法: 境界値分析(blackbox-partition)、状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `steps_without_browser_op_leave_counters` / issue: #12
-- [x] T-070 WebExploratoryQA.feature:644(探索の記憶と優先順位) [unwanted] 「禁止要素は未操作のまま残っていても、探索の候補に入れない」
+- [x] T-070 WebExploratoryQA.feature:656(探索の記憶と優先順位) [unwanted] 「禁止要素は未操作のまま残っていても、探索の候補に入れない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::select` の `forbidden_untouched_excluded` / issue: #10
-- [x] T-071 WebExploratoryQA.feature:728(対象サーバへの負荷) [unwanted] 「時間窓の操作回数が上限に達していたら、再読み込み・戻り・離脱も窓が明けるまで待つ」(Examples の各行を1ケースとする)
+- [x] T-071 WebExploratoryQA.feature:740(対象サーバへの負荷) [unwanted] 「時間窓の操作回数が上限に達していたら、再読み込み・戻り・離脱も窓が明けるまで待つ」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `window_full_defers_reload_return_and_leave` / issue: #12
 - [x] T-072 WebExploratoryQA.feature:83(1ステップの問い合わせと実行) [event] 「判断モデルに送る操作可能要素の一覧は、表示領域の中の要素だけにする」
       → 手法: ドメイン分析テスト(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::screen` の `viewport_filter_by_box`、契約 `webqa-browser/tests/contract.rs` の `aria_snapshot_boxes_mark_viewport` / issue: #6、#9
@@ -232,102 +232,104 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `scroll_revealing_untouched_resets_stuck` / issue: #12
 - [x] T-074 WebExploratoryQA.feature:249(終了の判定) [unwanted] 「スクロールしても未操作の要素が新しく見えなければ、行き詰まりを数え続ける」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `scroll_without_new_untouched_counts_stuck` / issue: #12
-- [x] T-075 WebExploratoryQA.feature:316(終了の判定) [event] 「探索モードで制限時間に達したら、判断モデルに問い合わせずに時間切れで終了する」
+- [x] T-075 WebExploratoryQA.feature:328(終了の判定) [event] 「探索モードで制限時間に達したら、判断モデルに問い合わせずに時間切れで終了する」
       → 手法: 状態遷移テスト(blackbox-state)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `time_limit_finishes_without_asking` / issue: #12
-- [x] T-076 WebExploratoryQA.feature:324(終了の判定) [boundary] 「制限時間の手前なら、時間切れにせず問い合わせる」
+- [x] T-076 WebExploratoryQA.feature:336(終了の判定) [boundary] 「制限時間の手前なら、時間切れにせず問い合わせる」
       → 手法: 境界値分析(blackbox-partition)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `time_limit_boundary` / issue: #12
-- [x] T-077 WebExploratoryQA.feature:332(終了の判定) [event] 「決め打ちシナリオでも、実行時間の上限に達したら時間切れで終了する」
+- [x] T-077 WebExploratoryQA.feature:344(終了の判定) [event] 「決め打ちシナリオでも、実行時間の上限に達したら時間切れで終了する」
       → 手法: 同値分割(blackbox-partition)、時刻依存の封じ込め(flakiness-value) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `time_limit_applies_to_scenario_mode` / issue: #12
-- [x] T-078 WebExploratoryQA.feature:339(終了の判定) [state] 「判断予算切れと時間切れが重なったら、どちらか1つの終了理由で終了する」
+- [x] T-078 WebExploratoryQA.feature:351(終了の判定) [state] 「判断予算切れと時間切れが重なったら、どちらか1つの終了理由で終了する」
       → 手法: デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_and_timeout_yield_one_of_them`、全状態の探索 `webqa-core/tests/exhaustive.rs` の `budget_and_timeout_tie_yields_one_reason` / issue: #12
-- [x] T-079 WebExploratoryQA.feature:347(終了の判定) [state] 「時間切れとゴール達成や行き詰まりが重なったら、ゴール達成や行き詰まりを採る」(Examples の各行を1ケースとする)
+- [x] T-079 WebExploratoryQA.feature:359(終了の判定) [state] 「時間切れとゴール達成や行き詰まりが重なったら、ゴール達成や行き詰まりを採る」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `goal_and_stuck_beat_timeout` / issue: #13
-- [x] T-080 WebExploratoryQA.feature:358(終了の判定) [unwanted] 「時間窓が明けるのを待っている間に制限時間に達したら、窓を待たずに時間切れで終了する」
+- [x] T-080 WebExploratoryQA.feature:370(終了の判定) [unwanted] 「時間窓が明けるのを待っている間に制限時間に達したら、窓を待たずに時間切れで終了する」
       → 手法: 時刻依存の封じ込め(flakiness-value)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `timeout_during_window_wait`、単体 `webqa::run` の `window_wait_sleeps_until_earlier_deadline` / issue: #12、#14
-- [x] T-081 WebExploratoryQA.feature:366(終了の判定) [event] 「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」
+- [x] T-081 WebExploratoryQA.feature:378(終了の判定) [event] 「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `all_explored_except_forbidden_is_finished` / issue: #13
-- [x] T-082 WebExploratoryQA.feature:374(終了の判定) [boundary] 「探索モードで未操作の要素が禁止要素だけになったら、ゴール達成で終了する」
+- [x] T-082 WebExploratoryQA.feature:386(終了の判定) [boundary] 「探索モードで未操作の要素が禁止要素だけになったら、ゴール達成で終了する」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `only_forbidden_left_is_finished` / issue: #13
-- [x] T-083 WebExploratoryQA.feature:382(終了の判定) [unwanted] 「探索モードで禁止要素以外の未操作の要素が残っていれば、ゴール達成にしない」
+- [x] T-083 WebExploratoryQA.feature:394(終了の判定) [unwanted] 「探索モードで禁止要素以外の未操作の要素が残っていれば、ゴール達成にしない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `untouched_on_other_screen_blocks_finished` / issue: #13
-- [x] T-084 WebExploratoryQA.feature:415(終了の判定) [state] 「探索モードでは、判断モデルに問い合わせる操作種別の選択肢に done を入れない」
+- [x] T-084 WebExploratoryQA.feature:427(終了の判定) [state] 「探索モードでは、判断モデルに問い合わせる操作種別の選択肢に done を入れない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `explore_mode_omits_done_option` / issue: #13
-- [x] T-085 WebExploratoryQA.feature:421(終了の判定) [unwanted] 「探索モードで判断モデルが done を返しても、未検証の終了にせず応答の異常として扱う」
+- [x] T-085 WebExploratoryQA.feature:433(終了の判定) [unwanted] 「探索モードで判断モデルが done を返しても、未検証の終了にせず応答の異常として扱う」
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `done_in_explore_mode_is_anomaly` / issue: #13
-- [x] T-086 WebExploratoryQA.feature:430(決め打ちシナリオの段階) [event] 「最後でない段階の done_when を満たしたら、判断モデルに問い合わせずに次の段階へ進む」
+- [x] T-086 WebExploratoryQA.feature:442(決め打ちシナリオの段階) [event] 「最後でない段階の done_when を満たしたら、判断モデルに問い合わせずに次の段階へ進む」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `non_last_stage_met_advances` / issue: #13
-- [x] T-087 WebExploratoryQA.feature:439(決め打ちシナリオの段階) [event] 「最後の段階の done_when を満たしたら、ゴール達成で終了する」
+- [x] T-087 WebExploratoryQA.feature:451(決め打ちシナリオの段階) [event] 「最後の段階の done_when を満たしたら、ゴール達成で終了する」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `last_stage_met_achieves_goal` / issue: #13
-- [x] T-088 WebExploratoryQA.feature:445(決め打ちシナリオの段階) [unwanted] 「後の段階の done_when だけを満たしても、段階を飛ばさずゴール達成にもしない」
+- [x] T-088 WebExploratoryQA.feature:457(決め打ちシナリオの段階) [unwanted] 「後の段階の done_when だけを満たしても、段階を飛ばさずゴール達成にもしない」
       → 手法: 禁止仕様からの導出(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::stage` の `later_stage_done_when_does_not_skip` / issue: #13
-- [x] T-089 WebExploratoryQA.feature:474(決め打ちシナリオの段階) [state] 「段階を進めたら、固まりと行き詰まりの回数を0に戻す」
+- [x] T-089 WebExploratoryQA.feature:486(決め打ちシナリオの段階) [state] 「段階を進めたら、固まりと行き詰まりの回数を0に戻す」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `stage_advance_resets_freeze_and_stuck` / issue: #13
-- [x] T-090 WebExploratoryQA.feature:482(決め打ちシナリオの段階) [state] 「段階を進めても、判断予算・時間窓の操作回数・探索の記憶は引き継ぐ」
+- [x] T-090 WebExploratoryQA.feature:494(決め打ちシナリオの段階) [state] 「段階を進めても、判断予算・時間窓の操作回数・探索の記憶は引き継ぐ」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `stage_advance_keeps_budget_window_memory` / issue: #13
-- [x] T-091 WebExploratoryQA.feature:494(決め打ちシナリオの段階) [boundary] 「done_when に宣言が複数あれば、すべて成り立ったときだけ満たしたとみなす」(Examples の各行を1ケースとする)
+- [x] T-091 WebExploratoryQA.feature:506(決め打ちシナリオの段階) [boundary] 「done_when に宣言が複数あれば、すべて成り立ったときだけ満たしたとみなす」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::stage` の `done_when_requires_all_declarations` / issue: #13
-- [x] T-092 WebExploratoryQA.feature:508(決め打ちシナリオの段階) [boundary] 「done_when の要素とテキストは、表示領域の外にあっても成り立つ」
+- [x] T-092 WebExploratoryQA.feature:520(決め打ちシナリオの段階) [boundary] 「done_when の要素とテキストは、表示領域の外にあっても成り立つ」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::stage` の `done_when_uses_whole_page` / issue: #13
-- [x] T-093 WebExploratoryQA.feature:548(固まりとドメイン外からの復帰) [state] 「スクロールで表示領域の要素が変われば、画面が変化したと数えて固まりの数え直しになる」
+- [x] T-093 WebExploratoryQA.feature:560(固まりとドメイン外からの復帰) [state] 「スクロールで表示領域の要素が変われば、画面が変化したと数えて固まりの数え直しになる」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::screen` の `scroll_changing_viewport_is_change` / issue: #6
-- [x] T-094 WebExploratoryQA.feature:555(固まりとドメイン外からの復帰) [boundary] 「ページの一番下でスクロールして表示領域の要素が変わらなければ、画面が変化しないステップと数える」
+- [x] T-094 WebExploratoryQA.feature:567(固まりとドメイン外からの復帰) [boundary] 「ページの一番下でスクロールして表示領域の要素が変わらなければ、画面が変化しないステップと数える」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::screen` の `scroll_at_bottom_is_unchanged` / issue: #6
-- [x] T-095 WebExploratoryQA.feature:650(探索の記憶と優先順位) [unwanted] 「スクロールしても、探索の記憶では同じ画面として扱う」
+- [x] T-095 WebExploratoryQA.feature:662(探索の記憶と優先順位) [unwanted] 「スクロールしても、探索の記憶では同じ画面として扱う」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::screen` の `scroll_keeps_screen_identity` / issue: #6
-- [x] T-096 WebExploratoryQA.feature:656(探索の記憶と優先順位) [event] 「ページ全体の操作可能要素が変われば、探索の記憶では別の画面として扱う」
+- [x] T-096 WebExploratoryQA.feature:668(探索の記憶と優先順位) [event] 「ページ全体の操作可能要素が変われば、探索の記憶では別の画面として扱う」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::screen` の `page_element_change_is_new_screen` / issue: #6
-- [x] T-097 WebExploratoryQA.feature:916(利用者による中断) [event] 「待っている間に中断したら、記憶・終了のイベント・実行結果を書いてから中断で終了する」(Examples の各行を1ケースとする)
+- [x] T-097 WebExploratoryQA.feature:928(利用者による中断) [event] 「待っている間に中断したら、記憶・終了のイベント・実行結果を書いてから中断で終了する」(Examples の各行を1ケースとする)
       → 手法: 並行・競合の封じ込め(flakiness-concurrency)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `interrupt_cancels_wait_and_writes_records`、実行ファイル `webqa/tests/cli.rs` の `interrupt_writes_records_then_exits` / issue: #14
-- [x] T-098 WebExploratoryQA.feature:931(利用者による中断) [boundary] 「ブラウザ操作の途中で中断したら、ページの応答を待たずに記録を書いて中断で終了する」
+- [x] T-098 WebExploratoryQA.feature:943(利用者による中断) [boundary] 「ブラウザ操作の途中で中断したら、ページの応答を待たずに記録を書いて中断で終了する」
       → 手法: 並行・競合の封じ込め(flakiness-concurrency)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `interrupt_during_browser_op_skips_page_wait` / issue: #14
-- [x] T-099 WebExploratoryQA.feature:938(利用者による中断) [unwanted] 「中断で終了した実行は、それ以上状態を変えない」
+- [x] T-099 WebExploratoryQA.feature:950(利用者による中断) [unwanted] 「中断で終了した実行は、それ以上状態を変えない」
       → 手法: 禁止仕様からの導出(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `interrupted_run_changes_nothing` / issue: #14
-- [x] T-100 WebExploratoryQA.feature:945(利用者による中断) [unwanted] 「ほかの理由で終了したあとに中断しても、終了理由は変わらない」
+- [x] T-100 WebExploratoryQA.feature:957(利用者による中断) [unwanted] 「ほかの理由で終了したあとに中断しても、終了理由は変わらない」
       → 手法: 禁止仕様からの導出(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interrupt` の `interrupt_after_finish_keeps_reason` / issue: #14
-- [x] T-101 WebExploratoryQA.feature:950(利用者による中断) [event] 「中断で終わったときの終了コードは、確定の問題の有無で0か1になる」(Examples の各行を1ケースとする)
+- [x] T-101 WebExploratoryQA.feature:962(利用者による中断) [event] 「中断で終わったときの終了コードは、確定の問題の有無で0か1になる」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::exit` の `interrupted_exit_code_by_confirmed_issues` / issue: #14
-- [x] T-102 WebExploratoryQA.feature:961(利用者による中断) [unwanted] 「記録を書いている間に2回目の中断を受けたら、書き終わりを待たずに終了コード3で終わる」
+- [x] T-102 WebExploratoryQA.feature:973(利用者による中断) [unwanted] 「記録を書いている間に2回目の中断を受けたら、書き終わりを待たずに終了コード3で終わる」
       → 手法: 並行・競合の封じ込め(flakiness-concurrency) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interrupt` の `second_interrupt_abandons_writing` / issue: #14
-- [x] T-103 WebExploratoryQA.feature:969(終了コード) [event] 「確定の問題を見つけずに終わったら、終了コードは0になる」(Examples の各行を1ケースとする)
+- [x] T-103 WebExploratoryQA.feature:981(終了コード) [event] 「確定の問題を見つけずに終わったら、終了コードは0になる」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::exit` の `no_confirmed_issue_exits_zero` / issue: #14
-- [x] T-104 WebExploratoryQA.feature:982(終了コード) [event] 「確定の問題を1件でも見つけて終わったら、終了コードは1になる」(Examples の各行を1ケースとする)
+- [x] T-104 WebExploratoryQA.feature:994(終了コード) [event] 「確定の問題を1件でも見つけて終わったら、終了コードは1になる」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::exit` の `confirmed_issue_exits_one` / issue: #14
-- [x] T-105 WebExploratoryQA.feature:994(終了コード) [boundary] 「参考情報だけを記録して終わったら、終了コードは0になる」
+- [x] T-105 WebExploratoryQA.feature:1006(終了コード) [boundary] 「参考情報だけを記録して終わったら、終了コードは0になる」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::exit` の `reference_only_exits_zero` / issue: #14
-- [x] T-106 WebExploratoryQA.feature:999(終了コード) [unwanted] 「設定エラーで起動しなかったら、終了コードは2になる」(Examples の各行を1ケースとする)
+- [x] T-106 WebExploratoryQA.feature:1011(終了コード) [unwanted] 「設定エラーで起動しなかったら、終了コードは2になる」(Examples の各行を1ケースとする)
       → 手法: ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、実行ファイル `webqa/tests/cli.rs` の `config_error_exits_two` / issue: #14
-- [x] T-107 WebExploratoryQA.feature:1013(終了コード) [unwanted] 「記録の書き込みに失敗したら、実行を止めて終了コード3で終わる」(Examples の各行を1ケースとする)
+- [x] T-107 WebExploratoryQA.feature:1025(終了コード) [unwanted] 「記録の書き込みに失敗したら、実行を止めて終了コード3で終わる」(Examples の各行を1ケースとする)
       → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::exit` の `runtime_error_exits_three`、単体 `webqa::run` の `store_failure_stops_run` / issue: #14
-- [x] T-108 WebExploratoryQA.feature:389(終了の判定) [unwanted] 「探索モードで探索してよい要素が無くても、最初の問い合わせの前にはゴール達成にしない」(Examples の各行を1ケースとする)
+- [x] T-108 WebExploratoryQA.feature:401(終了の判定) [unwanted] 「探索モードで探索してよい要素が無くても、最初の問い合わせの前にはゴール達成にしない」(Examples の各行を1ケースとする)
       → 手法: 禁止仕様からの導出(blackbox-state)、境界値分析(blackbox-partition)、モデルベーステスト(oracle-model-based) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `explore_goal_never_before_first_question`、全状態の探索 `webqa-core/tests/exhaustive.rs` の `explore_goal_needs_a_question` / issue: #13
-- [x] T-109 WebExploratoryQA.feature:401(終了の判定) [boundary] 「探索モードで探索してよい要素が無ければ、1回問い合わせた後にゴール達成で終了する」(Examples の各行を1ケースとする)
+- [x] T-109 WebExploratoryQA.feature:413(終了の判定) [boundary] 「探索モードで探索してよい要素が無ければ、1回問い合わせた後にゴール達成で終了する」(Examples の各行を1ケースとする)
       → 手法: 境界値分析(blackbox-partition)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `empty_explorable_goal_after_first_question` / issue: #13
-- [x] T-110 WebExploratoryQA.feature:453(決め打ちシナリオの段階) [event] 「実行を開始した時点で最初の段階の done_when を満たしていれば、操作せずに段階を進める」(Examples の各行を1ケースとする)
+- [x] T-110 WebExploratoryQA.feature:465(決め打ちシナリオの段階) [event] 「実行を開始した時点で最初の段階の done_when を満たしていれば、操作せずに段階を進める」(Examples の各行を1ケースとする)
       → 手法: 状態遷移テスト(blackbox-state)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `start_with_done_when_met_moves_on_without_ops` / issue: #13
-- [x] T-111 WebExploratoryQA.feature:466(決め打ちシナリオの段階) [state] 「段階を進めた時点で次の段階の done_when も満たしていれば、操作せずにさらに進む」
+- [x] T-111 WebExploratoryQA.feature:478(決め打ちシナリオの段階) [state] 「段階を進めた時点で次の段階の done_when も満たしていれば、操作せずにさらに進む」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `advance_into_met_stage_moves_on_without_ops` / issue: #13
-- [x] T-112 WebExploratoryQA.feature:893(設定と外部境界) [unwanted] 「探索モードで使う操作種別に click も input も無ければ設定エラーにする」(Examples の各行を1ケースとする)
+- [x] T-112 WebExploratoryQA.feature:905(設定と外部境界) [unwanted] 「探索モードで使う操作種別に click も input も無ければ設定エラーにする」(Examples の各行を1ケースとする)
       → 手法: ネガティブテスト(process-static)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::mode` の `explore_mode_needs_click_or_input`(設定とモードを引数に取る関数)、実行ファイル `webqa/tests/cli.rs` の `explore_without_click_or_input_exits_two` / issue: #17、#14
 - [x] T-113 WebExploratoryQA.feature:140(ガードレール) [event] 「許可リストに一致する要素は、禁止のキーワードを含んでも操作する」
       → 手法: ゴールデンテスト(oracle-past-output)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard` の `allowed_list_wins_over_every_axis` / issue: #4
-- [x] T-114 WebExploratoryQA.feature:661(探索の記憶と優先順位) [state] 「探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める」(Examples の各行を1ケースとする)
+- [x] T-114 WebExploratoryQA.feature:673(探索の記憶と優先順位) [state] 「探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_offered_only_for_a_field_with_a_value`、単体 `webqa-core::machine::rules` の `input_does_nothing_without_a_field_or_a_value`、単体 `webqa-core::machine::actions` の `input_stays_when_the_rules_offer_nothing_else`、単体 `webqa-core::machine::actions` の `input_is_dropped_when_its_field_is_past_the_options` / issue: #62、#63
-- [x] T-115 WebExploratoryQA.feature:679(探索の記憶と優先順位) [unwanted] 「何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない」(Examples の各行を1ケースとする)
+- [x] T-115 WebExploratoryQA.feature:691(探索の記憶と優先順位) [unwanted] 「何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_remembered_only_when_it_typed`、単体 `webqa::run` の `input_that_does_nothing_is_recorded_and_run_continues` / issue: #62、#64
-- [x] T-116 WebExploratoryQA.feature:692(探索の記憶と優先順位) [event] 「値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える」
+- [x] T-116 WebExploratoryQA.feature:704(探索の記憶と優先順位) [event] 「値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える」
       → 手法: 同値分割(blackbox-partition)、状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_remembered_after_the_page_loses_the_field` / issue: #62、#64
-- [x] T-117 WebExploratoryQA.feature:673(探索の記憶と優先順位) [event] 「入力欄に打ったあと Enter を押すと、画面が変わり、変わった先の画面が探索の記憶に加わる」
+- [x] T-117 WebExploratoryQA.feature:685(探索の記憶と優先順位) [event] 「入力欄に打ったあと Enter を押すと、画面が変わり、変わった先の画面が探索の記憶に加わる」
       → 手法: 状態遷移テスト(blackbox-state)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `enter_is_offered_only_with_a_field_that_takes_a_value`、単体 `webqa-core::machine::actions` の `enter_stays_after_the_field_is_typed`、単体 `webqa-core::machine::actions` の `enter_alone_does_not_narrow_to_the_moves`、単体 `webqa-core::machine::actions` の `enter_needs_no_target`、契約 `webqa-browser/tests/contract.rs` の `enter_presses_only_into_a_focused_input_field` / issue: #70
 - [x] T-118 WebExploratoryQA.feature:200(ガードレール) [unwanted] 「ページに禁止要素があれば、操作種別の選択肢に enter を含めない」
       → 手法: 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `enter_is_dropped_when_a_forbidden_element_is_on_the_page`、単体 `webqa-core::machine::actions` の `enter_is_dropped_even_when_it_is_the_only_kind`、単体 `webqa-core::config::mode` の `scenario_mode_needs_a_kind_besides_enter` / issue: #70
-- [x] T-119 WebExploratoryQA.feature:829(設定と外部境界) [optional] 「secret を false にした入力の値は、判断モデルに送る画面状態で伏せない」
+- [x] T-119 WebExploratoryQA.feature:841(設定と外部境界) [optional] 「secret を false にした入力の値は、判断モデルに送る画面状態で伏せない」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `input_secret_defaults_to_true_and_reads_false`、単体 `webqa-core::config::raw` の `input_secret_reads_explicit_true`、単体 `webqa::setup::redact` の `inputs_marked_not_secret_make_no_rule`、単体 `webqa::setup::redact` の `redactor_keeps_not_secret_values_and_hides_the_rest` / issue: #76
-- [x] T-120 WebExploratoryQA.feature:843(設定と外部境界) [ubiquitous] 「secret を書かない入力の値は、判断モデルに送る画面状態で伏せる」
+- [x] T-120 WebExploratoryQA.feature:855(設定と外部境界) [ubiquitous] 「secret を書かない入力の値は、判断モデルに送る画面状態で伏せる」
       → 手法: セキュリティテスト(nonfunctional-attributes)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `input_secret_defaults_to_true_and_reads_false`、単体 `webqa::setup::redact` の `redactor_keeps_not_secret_values_and_hides_the_rest` / issue: #76
-- [x] T-121 WebExploratoryQA.feature:855(設定と外部境界) [unwanted] 「判断モデルの API キーの設定に secret が書かれていたら設定エラーにする」
+- [x] T-121 WebExploratoryQA.feature:867(設定と外部境界) [unwanted] 「判断モデルの API キーの設定に secret が書かれていたら設定エラーにする」
       → 手法: セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `literal_api_key_rejected_without_value`(`NOT_ENV_REF` の `secret: false` の行) / issue: #76
-- [x] T-122 WebExploratoryQA.feature:835(設定と外部境界) [unwanted] 「secret を false にした入力の値も、イベントログの操作の記録には書かない」
+- [x] T-122 WebExploratoryQA.feature:847(設定と外部境界) [unwanted] 「secret を false にした入力の値も、イベントログの操作の記録には書かない」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::event` の `event_lines_match_documented_jsonl`(操作の記録の形に値の項目が無いこと) / issue: #76
+- [x] T-123 WebExploratoryQA.feature:310(終了の判定) [unwanted] 「判断モデルの失敗が3回続いたら、予算を使い切る前に終了コード3で終わる」(Examples の各行を1ケースとする)
+      → 手法: 状態遷移テスト(blackbox-state)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `three_judge_failures_in_a_row_end_the_run`、単体 `webqa-core::machine::actions` の `an_answer_restarts_the_failure_count`、単体 `webqa-core::machine::actions` の `unusable_answers_are_not_judge_failures`、単体 `webqa-core::machine::actions` の `judge_failures_come_before_the_budget`、単体 `webqa::exit` の `judge_unavailable_exits_3` / issue: #85
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
@@ -459,6 +461,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-120 | ubiquitous | セキュリティテスト(nonfunctional-attributes)、同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`redactor_keeps_not_secret_values_and_hides_the_rest` | #76 | [x] | [ ] | 要 |
 | T-121 | unwanted | セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) | `literal_api_key_rejected_without_value` | #76 | [x] | [ ] | 要 |
 | T-122 | unwanted | セキュリティテスト(nonfunctional-attributes) | `event_lines_match_documented_jsonl`(型に値の項目が無い。受け入れが確かめる) | #76 | [x] | [ ] | 要 |
+| T-123 | unwanted | 状態遷移テスト(blackbox-state)、境界値分析(blackbox-partition) | `three_judge_failures_in_a_row_end_the_run`、`an_answer_restarts_the_failure_count`、`unusable_answers_are_not_judge_failures`、`judge_failures_come_before_the_budget`、`judge_unavailable_exits_3` | #85 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
@@ -469,7 +472,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 - T-113(許可リストに一致する要素の操作): T-007(禁止要素)
 - T-117(Enter を押す操作): T-118(禁止要素があれば enter を選択肢から外す)
 - T-015、T-017(終了の記録): T-016(自己申告だけの done)、T-024(終了後に進めない)
-- T-018、T-019、T-073、T-021〜T-023(行き詰まり・数え直し・重なり): T-074(新しく見えた要素が無いスクロール)、T-014(離脱の繰り返し)、T-020(判断予算切れ)、T-024
+- T-018、T-019、T-073、T-021〜T-023(行き詰まり・数え直し・重なり): T-074(新しく見えた要素が無いスクロール)、T-014(離脱の繰り返し)、T-020(判断予算切れ)、T-123(判断モデルの失敗の連続)、T-024
 - T-075、T-077〜T-079(時間切れ・重なり): T-076(制限時間の手前)、T-080(時間窓の待ちの途中)、T-024
 - T-081、T-084(探索モードのゴール・done を選ばせない): T-082(禁止要素だけが残る)、T-083(ほかの画面に未操作の要素が残る)、T-085(探索モードで返った done)、T-108(探索してよい要素が無くても最初の問い合わせの前はゴールにしない)、T-109(探索してよい要素が無いときのゴール)
 - T-086、T-087、T-089、T-090、T-110、T-111(段階の切り替え、開始時と進めた直後の done_when): T-088(後の段階の done_when だけが成り立つ)、T-091(宣言の一部だけが成り立つ)、T-092(表示領域の外の宣言)
@@ -532,8 +535,8 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py
-feature の sha256: 04a723b50c5bebdceb7da24b1fd0b32cfd7d8296cfe20b48f85655173a512499
-台帳の sha256:     04a723b50c5bebdceb7da24b1fd0b32cfd7d8296cfe20b48f85655173a512499
+feature の sha256: 6f5f4d08bae91b7e1d015fd4c084b1275ec0e87078fdcb832e037204a9b5050e
+台帳の sha256:     6f5f4d08bae91b7e1d015fd4c084b1275ec0e87078fdcb832e037204a9b5050e
 `- [ ]` の行: 0
 台帳の T-ID 行: 122(期待 122)
 欠番: なし
