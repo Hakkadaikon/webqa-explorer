@@ -3,20 +3,31 @@
 use super::super::Interview;
 
 /// Rejected while reading the YAML.
-pub const UNREADABLE: [&str; 5] = [
-    "  trials: 0\n",
-    "  stuck_threshold: 0\n",
-    "  max_natural_questions: 0\n",
-    "  reset: { command: [x], timeout_secs: 0 }\n",
-    "  trial: 3\n",
-];
+pub const UNREADABLE: [&str; 2] = ["  trials: -1\n", "  trial: 3\n"];
 
 const HESITATION: &str = "interview.hesitation_threshold は 0 より大きく 1 以下の値にする";
 const CONFIDENCE: &str = "interview.confidence_threshold は 0 より大きく 1 以下の値にする";
+const STUCK: &str = "interview.stuck_threshold は 1 以上にする";
+const NATURAL: &str = "interview.max_natural_questions は 1 以上にする";
+const REQUESTS: &str = "interview.requests_per_hour は 2 以上にする";
+const TIMEOUT: &str = "interview.reset.timeout_secs は 1 以上にする";
+const COMMAND: &str = "interview.reset.command を書く";
 const TRIALS: &str = "interview.trials は 1 以上 100 以下にする";
 
 /// Rejected while loading, with the message expected.
-pub const OUT_OF_RANGE: [(&str, &str); 9] = [
+pub const OUT_OF_RANGE: [(&str, &str); 18] = [
+    ("  stuck_threshold: 0\n  requests_per_hour: 1\n", STUCK),
+    (
+        "  requests_per_hour: 1\n  max_natural_questions: 0\n",
+        REQUESTS,
+    ),
+    (
+        "  max_natural_questions: 0\n  reset: { command: [] }\n",
+        NATURAL,
+    ),
+    ("  trials: 0\n", TRIALS),
+    ("  stuck_threshold: 0\n", STUCK),
+    ("  max_natural_questions: 0\n", NATURAL),
     ("  trials: 101\n", TRIALS),
     ("  hesitation_threshold: 0\n", HESITATION),
     ("  hesitation_threshold: 1.5\n", HESITATION),
@@ -24,10 +35,10 @@ pub const OUT_OF_RANGE: [(&str, &str); 9] = [
     ("  hesitation_threshold: -0.1\n", HESITATION),
     ("  confidence_threshold: 0\n", CONFIDENCE),
     ("  confidence_threshold: 1.5\n", CONFIDENCE),
-    (
-        "  requests_per_hour: 1\n",
-        "interview.requests_per_hour は 2 以上にする",
-    ),
+    ("  requests_per_hour: 1\n", REQUESTS),
+    ("  requests_per_hour: 0\n", REQUESTS),
+    ("  reset: { command: [x], timeout_secs: 0 }\n", TIMEOUT),
+    ("  reset: { command: [], timeout_secs: 0 }\n", COMMAND),
     ("  trials: 101\n  hesitation_threshold: 0\n", TRIALS),
 ];
 

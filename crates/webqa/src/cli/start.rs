@@ -9,6 +9,7 @@ use serde_json::Value;
 use tokio::fs as async_fs;
 use webqa_browser::probe::ProbeArg;
 use webqa_browser::{LaunchOptions, PlaywrightBrowser};
+use webqa_core::config;
 use webqa_core::config::interview::Interview;
 use webqa_core::event::Mode;
 use webqa_core::explore::{Memory, MemoryFileError};
@@ -24,6 +25,7 @@ use crate::replay::{Replay, ReplayError};
 use crate::run::session::Start;
 use crate::setup::{self, BrowserPlan, Setup};
 use crate::store::file::FileStore;
+use crate::store::report::Price;
 
 /// The viewport of the browsers.
 pub const VIEWPORT: Viewport = Viewport {
@@ -216,6 +218,15 @@ pub fn judge_stop(error: StartError) -> Stop {
         StartError::UnknownKind(_) => Stop::config("判断モデルの種類が表に無い"),
         StartError::NoCommand => Stop::config(error),
         StartError::Spawn | StartError::Declaration | StartError::Version => Stop::runtime(error),
+    }
+}
+
+/// The price of the judge's tokens, as the report reckons the cost.
+#[must_use]
+pub const fn price(judge: &config::Judge) -> Price {
+    Price {
+        input_per_1k: judge.pricing.input_per_1k,
+        output_per_1k: judge.pricing.output_per_1k,
     }
 }
 

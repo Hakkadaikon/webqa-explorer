@@ -65,7 +65,7 @@ async fn issue_counts(world: &mut InterviewWorld, reached: usize) {
 #[then(
     expr = "その課題のスクリーンショットは1回目の試行のステップ {int} のもので、名前は課題の番号、{int}、{int} から作られている"
 )]
-async fn issue_shot(world: &mut InterviewWorld, first: usize, trial: usize, again: usize) {
+async fn issue_shot(world: &mut InterviewWorld, first: u64, trial: usize, again: u64) {
     world.run().await;
     let ledger = ledger_of(world);
     let issue = &the_mismatch(&ledger).issue;

@@ -2,9 +2,13 @@
 
 use webqa_core::config::purpose::{self, Purpose};
 use webqa_core::interview::ask::{DIFFERENT, PURPOSE_MATCH, SAME};
-use webqa_core::interview::issue::{Kind, Place, UncheckedPurpose};
+use webqa_core::interview::issue::{Kind, Place, Record, Run, Seen, Shot, UncheckedPurpose};
 use webqa_core::interview::natural::Section;
+use webqa_core::interview::outcome::{self, Outcome};
+use webqa_core::redact::Redacted;
+use webqa_core::screen::{Screen, screen_text};
 
+use super::super::after::shot_text;
 use super::findings::{ONCE, entries};
 use super::*;
 
@@ -120,5 +124,50 @@ async fn questions_over_the_cap_are_unchecked() {
         ),
         (Some(4), 1, Vec::new()),
         "three calls for two decisions, one question within the cap; the other purpose is unchecked"
+    );
+}
+
+/// The text of the page of `screen`, as the judge reads it.
+fn read(screen: &Redacted<Screen>) -> String {
+    let text = screen_text(screen, top().viewport);
+    text.as_inner().as_str().to_owned()
+}
+
+/// The text `shot_text` finds for `step` of the one trial made of `seen`.
+fn texted(seen: &[Seen<'_>], step: u64) -> Option<String> {
+    let outcome = Outcome::Finished(outcome::Ending::Goal);
+    let record = Record {
+        outcome,
+        steps: seen,
+    };
+    let run = Run {
+        trials: &[record],
+        images: false,
+    };
+    let text = shot_text(&run, Shot { trial: 1, step })?;
+    Some(text.as_inner().as_str().to_owned())
+}
+
+#[test]
+fn the_text_after_the_trials_is_the_page_of_the_log_step() {
+    let url = Url::parse(ORIGIN).unwrap();
+    let screens = ["保存", "送信"].map(|name| {
+        let page = fakes::page(&url, &[("button", name)]);
+        Redactor::default().screen(page.screen)
+    });
+    // The core's own recovery was step 2, so the second question is step 3.
+    let seen = [(1, 0), (3, 1)].map(|(step, i)| Seen {
+        step,
+        screen: &screens[i],
+        viewport: top().viewport,
+        reply: None,
+        clues: &[],
+        ran: None,
+    });
+    let got = [1, 2, 3].map(|step| texted(&seen, step));
+    assert_eq!(
+        got,
+        [Some(read(&screens[0])), None, Some(read(&screens[1]))],
+        "the log's step picks the page; step 2 asked no question"
     );
 }

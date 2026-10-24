@@ -38,10 +38,13 @@ pub enum InterviewError {
     /// The purpose text at this 1-based position is blank.
     #[error("purpose.screens の {0} 番目の purpose を書く")]
     BlankScreenPurpose(usize),
-    /// `interview.trials` is over 100.
+    /// `interview.trials` is 0 or over 100.
     #[error("interview.trials は 1 以上 100 以下にする")]
     Trials,
-    /// The requests per hour in an interview is 1.
+    /// A count that must be at least 1 is 0.
+    #[error("{0} は 1 以上にする")]
+    Zero(&'static str),
+    /// The requests per hour in an interview is under 2: 0 or 1.
     #[error("{0} は 2 以上にする")]
     TooFewRequests(&'static str),
 }

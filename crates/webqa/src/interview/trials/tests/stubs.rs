@@ -11,12 +11,15 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
 use tokio::task::yield_now;
+use webqa_core::interview::ledger::{Goal, Head};
 use webqa_core::judge::{Answers, JudgeError, Question};
 use webqa_core::ports::{Clock, Judge, Pending};
 use webqa_core::redact::Redacted;
 use webqa_core::screen::ScreenText;
 
 use crate::interrupt::Interrupt;
+
+use super::GUESS;
 
 use crate::run::fakes::RecordingJudge;
 pub(super) use crate::run::fakes::stuck::{Limit, stuck};
@@ -127,5 +130,22 @@ pub(super) async fn watched<T>(run: impl Future<Output = T>) -> T {
     tokio::select! {
         done = run => done,
         never = overdue => never,
+    }
+}
+
+/// The head of a ledger of this persona and an inferred purpose after
+/// `finished` finished trials: the guess of each is the same.
+pub(super) fn head(finished: usize) -> Head {
+    let guesses = if finished == 0 {
+        Vec::new()
+    } else {
+        vec![GUESS.to_owned()]
+    };
+    Head {
+        persona: "田中".to_owned(),
+        goal: Goal::Inferred(guesses),
+        start: "https://app.example.test/".to_owned(),
+        finished,
+        images: false,
     }
 }

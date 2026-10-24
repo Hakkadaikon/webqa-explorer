@@ -33,9 +33,12 @@ fn shots<'a>(trials: &'a [Trial], ledger: &Ledger) -> Vec<(String, &'a Image)> {
 
 /// The name and the image of the screenshot of the issue `number`, first
 /// seen at `shot`, if one was taken.
-fn shot_file(trials: &[Trial], (number, shot): (Number, Shot)) -> Option<(String, &Image)> {
+pub(super) fn shot_file(
+    trials: &[Trial],
+    (number, shot): (Number, Shot),
+) -> Option<(String, &Image)> {
     let trial = trials.get(shot.trial.saturating_sub(1));
-    let step = trial.and_then(|trial| trial.steps.get(shot.step.saturating_sub(1)));
+    let step = trial.and_then(|trial| trial.steps.iter().find(|step| step.logged == shot.step));
     let image = step.and_then(|step| step.image.as_ref());
     image.map(|image| (issue_name(number, shot), image))
 }

@@ -41,12 +41,15 @@ pub fn unchecked(question: &MismatchQuestion<'_>) -> UncheckedPurpose {
     }
 }
 
-/// A finished trial that reached the pattern: its number and the number
-/// of the first step that did, both from 1.
+/// A finished trial that reached the pattern, with the number of the
+/// trial and the first step that did.
 struct Hit<'r> {
     record: &'r Record<'r>,
     trial: usize,
-    step: usize,
+    /// The step's position in the trial, from 1.
+    number: usize,
+    /// The step's number in the event log.
+    step: u64,
 }
 
 /// The mismatch issue of `question`.
@@ -81,7 +84,7 @@ fn issue(question: &MismatchQuestion<'_>, run: &Run<'_>) -> Issue {
             trial: hit.trial,
             step: hit.step,
         }),
-        path: first.map_or_else(Vec::new, |hit| path(hit.record.steps, hit.step)),
+        path: first.map_or_else(Vec::new, |hit| path(hit.record.steps, hit.number)),
         confidence: None,
     }
 }
@@ -93,10 +96,11 @@ fn hit<'r>(pattern: &UrlPattern, record: &'r Record<'r>, trial: usize) -> Option
         .iter()
         .zip(1..)
         .find(|(seen, _)| pattern.matches(&seen.screen.as_inner().url))
-        .map(|(_, step)| Hit {
+        .map(|(seen, number)| Hit {
             record,
             trial,
-            step,
+            number,
+            step: seen.step,
         })
 }
 

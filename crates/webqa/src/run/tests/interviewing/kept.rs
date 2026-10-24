@@ -6,7 +6,7 @@ use super::*;
 async fn interview_keeps_the_reply_of_the_step() {
     let mut fakes = Fakes::new();
     let judge = Spy::new(false, answers(false));
-    let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
     let kept: Vec<_> = asked
         .steps
         .iter()
@@ -24,7 +24,7 @@ async fn interview_keeps_the_reply_of_the_step() {
 async fn interview_keeps_the_step_whose_answers_are_unusable() {
     let mut fakes = Fakes::new();
     let judge = Spy::new(false, Scripted::default());
-    let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
     let kept: Vec<_> = asked
         .steps
         .iter()

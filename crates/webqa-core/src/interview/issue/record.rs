@@ -22,6 +22,8 @@ pub struct Ran {
 /// A step of a trial, as the issues read it.
 #[derive(Debug, Clone, Copy)]
 pub struct Seen<'a> {
+    /// The step number, as the event log numbers it.
+    pub step: u64,
     /// The screen the judge was asked about.
     pub screen: &'a Redacted<Screen>,
     /// The viewport the screen text was made with.

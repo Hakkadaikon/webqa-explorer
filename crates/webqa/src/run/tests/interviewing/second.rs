@@ -32,7 +32,7 @@ fn unreadable(id: &str) -> JudgeError {
 async fn second_call_asks_only_the_expectation_of_the_chosen_operation() {
     let mut fakes = Fakes::new();
     let judge = Spy::new(false, answers(false));
-    let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
     let ids = |questions: &Vec<Question>| -> Vec<String> {
         questions
             .iter()
@@ -79,7 +79,7 @@ async fn second_call_is_not_made_when_no_operation_is_carried_out() {
     for (name, answers, calls) in cases {
         let mut fakes = Fakes::new();
         let judge = Spy::giving(answers);
-        let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+        let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
         assert_eq!(asked.judge.asked.len(), calls, "{name}");
     }
 }
@@ -90,7 +90,7 @@ async fn missing_expectation_is_unreadable_after_two_calls() {
     said.table.remove(&QuestionId::new(EXPECTATION));
     let mut fakes = Fakes::new();
     let judge = Spy::giving(said);
-    let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+    let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
     assert_eq!(
         (asked.judge.asked.len(), asked.reply),
         (2, Err(unreadable(EXPECTATION))),
@@ -111,7 +111,7 @@ async fn failed_second_call_reaches_the_core_as_it_failed() {
     for failure in cases {
         let mut fakes = Fakes::new();
         let judge = failing_second(failure.clone());
-        let asked = asked(judge, Some(interviewing(&[Op::Click], false)), &mut fakes).await;
+        let asked = asked(judge, Some(interviewing(false)), &mut fakes).await;
         let kept: Vec<_> = asked
             .steps
             .iter()
@@ -131,7 +131,7 @@ async fn run_with_failing_second() -> (Vec<u64>, usize) {
     let mut fakes = Fakes::new();
     fakes.browser.pages = iter::repeat_n(page("/"), 40).collect();
     let mut judge = failing_second(JudgeError::Timeout);
-    let interview = interviewing(&[Op::Click], false);
+    let interview = interviewing(false);
     let mut ports = ported(&mut fakes, &mut judge).interviewing(interview);
     let mut never = Never;
     let rules = scenario(&[Op::Click]);

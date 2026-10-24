@@ -42,7 +42,7 @@ pub(super) struct WireShot {
     #[serde(rename = "試行")]
     trial: usize,
     #[serde(rename = "ステップ")]
-    step: usize,
+    step: u64,
 }
 
 /// An operation that ran on the page.

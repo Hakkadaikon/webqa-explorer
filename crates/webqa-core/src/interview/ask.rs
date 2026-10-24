@@ -41,8 +41,7 @@ pub struct Step<'a> {
     /// The goal of the one stage: the written purpose, or
     /// [`INFERRED_GOAL`](crate::config::purpose::INFERRED_GOAL).
     pub goal: &'a str,
-    /// The operation kinds of the settings. Done is offered even when
-    /// they leave it out.
+    /// The operation kinds the core offers on this page.
     pub ops: &'a [Op],
     /// The viewport's elements: the lines of the screen text. Every one is
     /// offered; none is left out.

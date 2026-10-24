@@ -3,6 +3,7 @@
 mod counting;
 pub mod fixture;
 pub mod sample;
+mod shots;
 
 use fixture::{
     CLICK1, CUT, GOAL, NO_PROGRESS, answered, cart, clicked, confirm, count, guessing, next1,

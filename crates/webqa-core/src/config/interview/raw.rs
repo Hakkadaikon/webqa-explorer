@@ -1,6 +1,5 @@
 //! The `interview` section as read from YAML, before checking.
 
-use std::num::{NonZeroU32, NonZeroU64};
 use std::path::PathBuf;
 
 use serde::Deserialize;
@@ -15,7 +14,7 @@ pub struct RawInterview {
     pub purpose: Option<PathBuf>,
     /// How many trials to run. 3 when omitted.
     #[serde(default = "default_trials")]
-    pub trials: NonZeroU32,
+    pub trials: u32,
     /// How hesitant a step must be to count. 0.6 when omitted.
     #[serde(default = "default_hesitation")]
     pub hesitation_threshold: f64,
@@ -23,12 +22,12 @@ pub struct RawInterview {
     #[serde(default = "default_confidence")]
     pub confidence_threshold: f64,
     /// Steps without progress that count as stuck. `limits` when omitted.
-    pub stuck_threshold: Option<NonZeroU32>,
+    pub stuck_threshold: Option<u32>,
     /// The most operations in an hour. `limits` when omitted.
-    pub requests_per_hour: Option<NonZeroU32>,
+    pub requests_per_hour: Option<u32>,
     /// The most questions about naturalness. 50 when omitted.
     #[serde(default = "default_natural_questions")]
-    pub max_natural_questions: NonZeroU32,
+    pub max_natural_questions: u32,
     /// The command that resets the service before each trial.
     pub reset: Option<RawReset>,
 }
@@ -41,11 +40,11 @@ pub struct RawReset {
     pub command: Vec<String>,
     /// How long to wait for the command. 60 when omitted.
     #[serde(default = "default_reset_timeout")]
-    pub timeout_secs: NonZeroU64,
+    pub timeout_secs: u64,
 }
 
-const fn default_trials() -> NonZeroU32 {
-    NonZeroU32::MIN.saturating_add(2)
+const fn default_trials() -> u32 {
+    3
 }
 
 const fn default_hesitation() -> f64 {
@@ -56,10 +55,10 @@ const fn default_confidence() -> f64 {
     0.5
 }
 
-const fn default_natural_questions() -> NonZeroU32 {
-    NonZeroU32::MIN.saturating_add(49)
+const fn default_natural_questions() -> u32 {
+    50
 }
 
-const fn default_reset_timeout() -> NonZeroU64 {
-    NonZeroU64::MIN.saturating_add(59)
+const fn default_reset_timeout() -> u64 {
+    60
 }

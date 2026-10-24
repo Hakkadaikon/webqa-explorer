@@ -19,7 +19,7 @@ use crate::run::session::{Ending, Plan, Start, conduct};
 use crate::run::{Detect, Ports};
 use crate::setup::Setup;
 use crate::store::file::FileStore;
-use crate::store::report::{Meta, Price};
+use crate::store::report::Meta;
 use webqa_core::issue::probes;
 
 /// What is said when the records were left unwritten.
@@ -104,16 +104,12 @@ async fn launch(
     let wall = Wall::now();
     let clock = RealClock::start();
     let store = start::store(&job.out, &wall).await?;
-    let price = Price {
-        input_per_1k: setup.judge.pricing.input_per_1k,
-        output_per_1k: setup.judge.pricing.output_per_1k,
-    };
     let meta = Meta {
         mode: setup.mode,
         started_at: Some(wall.started_at),
         target: setup.target,
         inputs: setup.inputs,
-        price: Some(price),
+        price: Some(start::price(&setup.judge)),
     };
     Ok(Parts {
         browser,

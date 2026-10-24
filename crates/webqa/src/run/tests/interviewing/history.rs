@@ -20,7 +20,7 @@ async fn screens_over(pages: VecDeque<Observation>) -> Vec<String> {
     let mut fakes = Fakes::new();
     fakes.browser.pages = pages;
     let mut judge = Spy::new(false, clicks_then_done());
-    let interview = interviewing(&[Op::Click], false);
+    let interview = interviewing(false);
     let mut ports = ported(&mut fakes, &mut judge).interviewing(interview);
     let rules = scenario(&[Op::Click]);
     let mut never = Never;
@@ -72,11 +72,11 @@ async fn two_trials() -> Vec<String> {
     fakes.browser.pages = iter::repeat_n(page("/"), 80).collect();
     let script = judged(&["click", "click", "done", "click", "click", "done"]);
     let mut judge = Spy::new(false, script);
-    let mut ports = ported(&mut fakes, &mut judge).interviewing(interviewing(&[Op::Click], false));
+    let mut ports = ported(&mut fakes, &mut judge).interviewing(interviewing(false));
     run_to_end(&mut ports).await;
     let from = ports.record().acts.len();
     let goal = "経費を申請する".to_owned();
-    let second = Interviewing::new(persona(), goal, with_done(&[Op::Click]), false, 2, from);
+    let second = Interviewing::new(persona(), goal, false, 2, from);
     let mut ports = ports.interviewing(second);
     run_to_end(&mut ports).await;
     drop(ports);

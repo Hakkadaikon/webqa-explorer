@@ -1,6 +1,6 @@
 //! Checking the values of the `interview` section.
 
-use std::num::NonZeroU32;
+use std::num::{NonZeroU32, NonZeroU64};
 
 use super::super::ConfigError;
 use super::super::raw::Limits;
@@ -31,21 +31,25 @@ pub struct Settings {
 
 /// Checks the values in the order written in the documentation.
 pub fn check(raw: &RawInterview, limits: &Limits) -> Result<Settings, ConfigError> {
-    ranges(raw)?;
-    resolve(raw, limits).map_err(ConfigError::from)
+    let trials = ranges(raw)?;
+    resolve(raw, limits, trials).map_err(ConfigError::from)
 }
 
-fn ranges(raw: &RawInterview) -> Result<(), ConfigError> {
-    trials(raw.trials)?;
-    thresholds(raw)
+fn ranges(raw: &RawInterview) -> Result<NonZeroU32, ConfigError> {
+    let trials = trials(raw.trials)?;
+    thresholds(raw)?;
+    Ok(trials)
 }
 
-const fn trials(trials: NonZeroU32) -> Result<(), InterviewError> {
-    if trials.get() > MAX_TRIALS {
-        Err(InterviewError::Trials)
-    } else {
-        Ok(())
-    }
+fn trials(trials: u32) -> Result<NonZeroU32, InterviewError> {
+    NonZeroU32::new(trials)
+        .filter(|trials| trials.get() <= MAX_TRIALS)
+        .ok_or(InterviewError::Trials)
+}
+
+/// A count of at least 1.
+fn nonzero(field: &'static str, value: u32) -> Result<NonZeroU32, InterviewError> {
+    NonZeroU32::new(value).ok_or(InterviewError::Zero(field))
 }
 
 fn thresholds(raw: &RawInterview) -> Result<(), ConfigError> {
@@ -62,33 +66,41 @@ fn confidence(field: &'static str, value: f64) -> Result<(), ConfigError> {
     }
 }
 
-fn resolve(raw: &RawInterview, limits: &Limits) -> Result<Settings, InterviewError> {
+fn resolve(
+    raw: &RawInterview,
+    limits: &Limits,
+    trials: NonZeroU32,
+) -> Result<Settings, InterviewError> {
+    let stuck_threshold = stuck(raw.stuck_threshold, limits.stuck_threshold)?;
     let requests_per_hour = requests(raw.requests_per_hour, limits.requests_per_hour)?;
+    let natural = nonzero("interview.max_natural_questions", raw.max_natural_questions)?;
     let reset = raw.reset.as_ref().map(reset).transpose()?;
     Ok(Settings {
-        trials: raw.trials,
+        trials,
         hesitation_threshold: raw.hesitation_threshold,
         confidence_threshold: raw.confidence_threshold,
-        stuck_threshold: raw.stuck_threshold.unwrap_or(limits.stuck_threshold),
+        stuck_threshold,
         requests_per_hour,
-        max_natural_questions: raw.max_natural_questions,
+        max_natural_questions: natural,
         reset,
     })
 }
 
+/// The stuck threshold in use, at least 1.
+fn stuck(interview: Option<u32>, limits: NonZeroU32) -> Result<NonZeroU32, InterviewError> {
+    let written = interview.map(|value| nonzero("interview.stuck_threshold", value));
+    Ok(written.transpose()?.unwrap_or(limits))
+}
+
 /// The requests per hour in use, at least 2.
-fn requests(
-    interview: Option<NonZeroU32>,
-    limits: NonZeroU32,
-) -> Result<NonZeroU32, InterviewError> {
-    let (field, value) = interview.map_or(("limits.requests_per_hour", limits), |value| {
-        ("interview.requests_per_hour", value)
-    });
-    if value.get() < 2 {
-        Err(InterviewError::TooFewRequests(field))
-    } else {
-        Ok(value)
-    }
+fn requests(interview: Option<u32>, limits: NonZeroU32) -> Result<NonZeroU32, InterviewError> {
+    let (field, value) = interview.map_or_else(
+        || ("limits.requests_per_hour", limits.get()),
+        |value| ("interview.requests_per_hour", value),
+    );
+    NonZeroU32::new(value)
+        .filter(|value| value.get() >= 2)
+        .ok_or(InterviewError::TooFewRequests(field))
 }
 
 /// The program and its arguments. The program is never blank.
@@ -98,9 +110,11 @@ fn reset(raw: &RawReset) -> Result<Reset, InterviewError> {
         .split_first()
         .filter(|(program, _)| !is_blank(program))
         .ok_or(InterviewError::MissingField("interview.reset.command"))?;
+    let timeout_secs = NonZeroU64::new(raw.timeout_secs)
+        .ok_or(InterviewError::Zero("interview.reset.timeout_secs"))?;
     Ok(Reset {
         program: program.clone(),
         args: args.to_vec(),
-        timeout_secs: raw.timeout_secs,
+        timeout_secs,
     })
 }
