@@ -10,17 +10,20 @@ use webqa_core::ports::{Browser, BrowserError};
 use super::port::{at, kinds, launch, touch};
 use super::serve::answer;
 use super::session::Res;
+use super::slot::{Opened, Slot, opened};
 
 #[tokio::test]
 async fn unreadable_storage_state_fails_launch() {
     let mut options = at("/start").unwrap();
     options.storage_state = Some(env!("CARGO_TARGET_TMPDIR").into());
+    let _slot = Slot::take();
     let launched = PlaywrightBrowser::launch(options).await;
     assert_eq!(launched.err(), Some(LaunchError::Other), "not a file");
 }
 
 #[tokio::test]
 async fn failed_preparation_fails_launch() {
+    let _slot = Slot::take();
     let launched = PlaywrightBrowser::launch_with(at("/start").unwrap(), |_| async {
         Err(Error::InvalidArgument("prepare".to_owned()))
     });
@@ -29,6 +32,7 @@ async fn failed_preparation_fails_launch() {
 
 #[tokio::test]
 async fn closed_context_fails_launch() {
+    let _slot = Slot::take();
     let launched = PlaywrightBrowser::launch_with(at("/start").unwrap(), |context| async move {
         context.close().await
     });
@@ -39,14 +43,14 @@ async fn closed_context_fails_launch() {
 type Kept = Arc<Mutex<Option<BrowserContext>>>;
 
 /// Launches on `/start`, keeping the context.
-async fn launch_keeping(kept: &Kept) -> Res<PlaywrightBrowser> {
+async fn launch_keeping(kept: &Kept) -> Res<Opened> {
     let keep = Arc::clone(kept);
     let launched = PlaywrightBrowser::launch_with(at("/start")?, move |context| async move {
         let routed = context.route("**/*", |route| answer(route, 0)).await;
         *keep.lock().unwrap_or_else(PoisonError::into_inner) = Some(context);
         routed
     });
-    Ok(launched.await?)
+    opened(launched).await
 }
 
 #[tokio::test]

@@ -9,6 +9,8 @@ use playwright_rs::{
 use webqa_browser::probe::{PROBE, Probe, ProbeArg, RawProbe};
 use webqa_browser::snapshot::{Snapshot, parse};
 
+use super::slot::Slot;
+
 /// What a helper returns: the error of Playwright or of the reader.
 pub type Res<T> = Result<T, Box<dyn Error>>;
 
@@ -48,17 +50,21 @@ pub struct Session {
     _browser: Browser,
     /// Kept so the driver lives as long as the page.
     _playwright: Playwright,
+    /// Given back after the browser is dropped.
+    _slot: Slot,
 }
 
 impl Session {
     /// Launches Chromium and opens a page that answers from the fixtures.
     pub async fn start() -> Res<Self> {
+        let slot = Slot::take();
         let (playwright, browser) = launch().await?;
         let page = page(&browser).await?;
         Ok(Self {
             page,
             _browser: browser,
             _playwright: playwright,
+            _slot: slot,
         })
     }
 

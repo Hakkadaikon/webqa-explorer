@@ -1,10 +1,11 @@
 //! A proposal the guardrails stop, counted by mode.
 
 use crate::event::Mode;
+use crate::judge::{QuestionId, Unusable};
 use crate::machine::testing::{
     APP, answer, ask_top, away, counts, nz, page, rules, secs, seen, told,
 };
-use crate::machine::{ExitReason, Facts, Rules, StuckKind, step};
+use crate::machine::{Anomaly, ExitReason, Facts, Note, Rules, StuckKind, step};
 
 /// The rules of an interview.
 fn interview() -> Rules {
@@ -68,4 +69,16 @@ fn a_stop_that_lands_outside_counts_once_in_an_interview() {
     let aborted = step(looked.state().clone(), outside, secs(0));
     assert!(aborted.state().outside(), "landed outside");
     assert_eq!(counts(aborted.state()), (0, 1), "one step without progress");
+}
+
+#[test]
+fn an_unusable_answer_is_not_counted_as_stuck_in_an_interview() {
+    let no_element = answer("click", Some(0.9), None);
+    let unusable = told(&ask_top(interview()), no_element);
+    let anomaly = Anomaly::Unusable(Unusable::Missing(QuestionId::target()));
+    let note = Note::Anomaly(anomaly);
+    assert_eq!(unusable.state().notes().last(), Some(&note), "an anomaly");
+    assert_eq!(counts(unusable.state()), (0, 0), "not a stopped proposal");
+    let doubtful = told(&ask_top(interview()), answer("back", Some(0.5), None));
+    assert_eq!(counts(doubtful.state()), (0, 1), "a stopped one counts");
 }
