@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use url::Url;
 use webqa_core::issue::IssueKind;
-use webqa_core::machine::Cause;
+use webqa_core::machine::{Cause, Rejection};
 use webqa_core::redact::{Redactor, Rule};
 use webqa_core::screen::{Screen, Viewport, screen_text};
 
@@ -157,7 +157,7 @@ fn told_starts_at_the_operation_given() {
         acts: vec![act("back", None, true), act("scroll_down", None, false)],
         ..Record::default()
     };
-    let want = "\n\n直近の操作\n1. scroll_down なし → 画面は変わらなかった";
+    let want = "\n\n直近の操作\n1. scroll_down 対象なし → 画面は変わらなかった";
     assert_eq!(told(&record, 1, &Redactor::default()), want);
     assert_eq!(told(&record, 2, &Redactor::default()), "");
     assert_eq!(told(&record, 3, &Redactor::default()), "", "past the end");
@@ -183,6 +183,39 @@ fn a_change_within_the_page_is_told_as_shown() {
         acts: vec![act("scroll_down", None, true)],
         ..Record::default()
     };
-    let want = "\n\n直近の操作\n1. scroll_down なし → 同じページで表示が変わった";
+    let want = "\n\n直近の操作\n1. scroll_down 対象なし → 同じページで表示が変わった";
     assert_eq!(told(&record, 0, &Redactor::default()), want);
+}
+
+/// The proposal of a doubtful "back" stopped at `step`.
+fn refused(step: u64) -> Refused {
+    Refused {
+        step,
+        op: "back".to_owned(),
+        target: None,
+        why: Rejection::LowConfidence,
+    }
+}
+
+#[test]
+fn told_puts_the_stopped_proposals_among_the_operations_by_step() {
+    let record = Record {
+        acts: vec![Act {
+            step: 2,
+            ..act("click", Some("次へ"), false)
+        }],
+        ..Record::default()
+    };
+    let stopped = [refused(1), refused(3)];
+    let redactor = Redactor::default();
+    let text = record.told(0, &stopped, &empty_text(&redactor), &redactor);
+    let want = [
+        "",
+        "",
+        "直近の操作",
+        "1. back 対象なし → 止められた(確信度が低い)",
+        "2. click 「次へ」 → 画面は変わらなかった",
+        "3. back 対象なし → 止められた(確信度が低い)",
+    ];
+    assert_eq!(text.as_inner().as_str(), want.join("\n"));
 }

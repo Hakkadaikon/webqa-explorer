@@ -6,7 +6,7 @@ use webqa_core::machine::{Note, Phase, Rejection};
 use super::view::{Property, Transition, all, any, implies};
 
 /// What was learned is kept, and the counters move only by steps.
-pub static MEMORY: [Property; 4] = [
+pub static MEMORY: [Property; 5] = [
     Property {
         name: "an operated element stays operated",
         holds: operated_stays,
@@ -18,6 +18,10 @@ pub static MEMORY: [Property; 4] = [
     Property {
         name: "reloading restarts the freeze count",
         holds: |t| implies(t.touches("reload"), t.after().counters().freeze() == 0),
+    },
+    Property {
+        name: "in an interview, an operation that marks nothing new keeps counting steps without progress",
+        holds: shown_is_no_progress,
     },
     Property {
         name: "the counters move only by observing an operation, landing outside, reloading, going to a stage, or stopping a proposal in an interview",
@@ -32,6 +36,20 @@ pub static MEMORY: [Property; 4] = [
     },
 ];
 
+/// In an interview, only an element operated for the first time is progress
+/// after an operation: an element a scroll shows is not.
+fn shown_is_no_progress(t: &Transition) -> bool {
+    let before = t.before_marks.iter().flatten();
+    let after = t.after_marks.iter().flatten();
+    let marked = before.zip(after).any(|(was, is)| !*was && *is);
+    let interview = t.before.rules().mode == Mode::Interview;
+    let observed = t.before.phase() == Phase::Acting;
+    implies(
+        all(&[interview, observed, !marked]),
+        t.after().counters().stuck() > 0,
+    )
+}
+
 fn operated_stays(t: &Transition) -> bool {
     let before = t.before_marks.iter().flatten();
     let after = t.after_marks.iter().flatten();
@@ -44,12 +62,12 @@ fn counts(t: &Transition) -> (u32, u32) {
 }
 
 /// The counts before, with one more step without progress on landing
-/// outside without an operation and on stopping a proposal in an interview,
-/// and the freeze count restarted on reloading.
+/// outside without an operation or on stopping a proposal in an interview,
+/// once a step, and the freeze count restarted on reloading.
 fn expected(t: &Transition) -> (u32, u32) {
     let counters = t.before.counters();
     let freeze = counters.freeze() * u32::from(!t.touches("reload"));
-    let stuck = counters.stuck() + u32::from(stalled(t)) + u32::from(refused(t));
+    let stuck = counters.stuck() + u32::from(any(&[stalled(t), refused(t)]));
     (freeze, stuck)
 }
 

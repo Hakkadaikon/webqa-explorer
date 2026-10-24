@@ -14,6 +14,7 @@ use crate::world::InterviewWorld;
 /// The scenarios of this Rule that have their steps.
 pub const READY: &[&str] = &[
     "インタビューのモードでも、既存のガードレールで止まる操作は実行しない",
+    "インタビューのモードでは、引き返しに要る確信度を書かなければ 0.3 を使い、既存のモードで止まる back も実行する",
     "インタビューのモードでも、判断の回数が上限に達したら試行を止める",
     "インタビューのモードでも、設定で指定した機密情報は判断モデルに送るテキストで伏せる",
     "インタビューのモードは課題を直さず、台帳と実行結果のほかにファイルを書き換えない",
@@ -100,15 +101,42 @@ async fn did_not_go_back(world: &mut InterviewWorld) {
     assert_eq!(rejections(world), why, "why the step was stopped");
 }
 
+#[given(
+    expr = "既存のモードの引き返しに要る確信度は 0.7 で、インタビューのモードの値は書いていない"
+)]
+const fn back_confidence_left_out(world: &mut InterviewWorld) {
+    // The configuration of the scenes writes 0.7 in `limits`.
+    world.scene.back_confidence = None;
+}
+
+#[then(expr = "ブラウザで 「戻る」 を操作し、止めていない")]
+async fn went_back(world: &mut InterviewWorld) {
+    world.run().await;
+    let ran = world.ran();
+    let backs = ran.touches.iter().filter(|(_, touch)| touch.op == "back");
+    assert_eq!(backs.count(), 1, "the browser went back");
+    assert_eq!(
+        rejections(world),
+        Vec::<Value>::new(),
+        "nothing was stopped"
+    );
+}
+
+#[given(
+    expr = "止めた引き返しも行き詰まりに数えるので、インタビューのモードの行き詰まりの閾値は {int} 回に設定されている"
+)]
+const fn stuck_above_the_calls(world: &mut InterviewWorld, threshold: u32) {
+    world.scene.interview_stuck = Some(threshold);
+}
+
 #[when(expr = "1回の試行で {int} 回判断する")]
 async fn calls_the_judge(world: &mut InterviewWorld, calls: usize) {
     let scene = &mut world.scene;
     scene.start = page("/");
     // A back that the judge is not sure of stops the step: it uses one call
-    // and nothing else. Each stop is a step without progress, so the stuck
-    // threshold is above the calls.
+    // and nothing else. Each stop is a step without progress, so the
+    // scenario sets the stuck threshold above the calls.
     let unsure = (0..calls).map(|_| step("back", 0.2, Some("目的を果たす")));
-    scene.interview_stuck = u32::try_from(calls + 1).ok();
     reset(scene);
     say(scene, unsure);
     settle(scene);

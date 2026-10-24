@@ -1,7 +1,9 @@
 //! A proposal the guardrails stop, counted by mode.
 
 use crate::event::Mode;
-use crate::machine::testing::{APP, answer, ask_top, counts, nz, page, rules, secs, seen, told};
+use crate::machine::testing::{
+    APP, answer, ask_top, away, counts, nz, page, rules, secs, seen, told,
+};
 use crate::machine::{ExitReason, Facts, Rules, StuckKind, step};
 
 /// The rules of an interview.
@@ -57,4 +59,13 @@ fn stopped_backs_end_an_interview_stuck_before_the_budget() {
         3,
         "three of thirty decisions"
     );
+}
+
+#[test]
+fn a_stop_that_lands_outside_counts_once_in_an_interview() {
+    let looked = told(&ask_top(interview()), answer("click", Some(0.9), Some("1")));
+    let outside = Facts::Page(Box::new(seen(&away())));
+    let aborted = step(looked.state().clone(), outside, secs(0));
+    assert!(aborted.state().outside(), "landed outside");
+    assert_eq!(counts(aborted.state()), (0, 1), "one step without progress");
 }

@@ -65,6 +65,9 @@ pub struct Scene {
     pub hesitation: f64,
     /// The confidence below which a step is hesitant.
     pub confidence: f64,
+    /// The confidence a `back` needs in the `interview` section. The
+    /// default when `None`.
+    pub back_confidence: Option<f64>,
     /// Steps without progress that count as stuck, in `limits`.
     pub stuck_threshold: u32,
     /// The stuck threshold of the `interview` section. `limits` when `None`.
@@ -147,6 +150,7 @@ impl Default for Scene {
             trials: 1,
             hesitation: 0.5,
             confidence: 0.5,
+            back_confidence: None,
             stuck_threshold: 5,
             interview_stuck: None,
             freeze_threshold: 5,

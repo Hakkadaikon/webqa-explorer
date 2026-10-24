@@ -198,7 +198,7 @@ fn confirm(state: State, seen: Seen, now: Duration) -> Next {
         .map_or(Err(Rejection::Missing), |p| verdict(p, &seen));
     match checked {
         Ok(touch) => touched(state, Phase::Acting, touch, now),
-        Err(why) => idle(settled(refused(state.noted(Note::Rejected(why))), seen)),
+        Err(why) => idle(refused(settled(state.noted(Note::Rejected(why)), seen))),
     }
 }
 

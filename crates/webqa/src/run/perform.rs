@@ -94,6 +94,7 @@ async fn touched(touch: &Touch, state: &State, ports: &mut Ports<'_>) -> Result<
     let (after, timings) = act(touch, ports).await?;
     let before = &state.last().screen;
     let changed = screen::changed(before, &after.screen, after.viewport);
+    // Compared after redaction: URLs that differ only in a hidden value are one page.
     let moved = before.as_inner().url != after.screen.as_inner().url;
     ports
         .log(Event::Executed {

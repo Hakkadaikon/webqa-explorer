@@ -69,7 +69,7 @@ async fn one_line(world: &mut InterviewWorld, nth: usize, line: String) {
 async fn five_lines(world: &mut InterviewWorld, nth: usize) {
     world.run().await;
     let click = "click 「保存」 → 画面は変わらなかった";
-    let reload = "reload なし → 画面は変わらなかった";
+    let reload = "reload 対象なし → 画面は変わらなかった";
     let ops = [click, click, click, reload, click];
     let want: Vec<String> = ops
         .iter()
