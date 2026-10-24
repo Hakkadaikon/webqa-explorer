@@ -47,11 +47,9 @@ pub fn questions(ask: &Ask<'_>) -> Vec<Question> {
     questions
 }
 
-/// Whether `question` is sent.
-///
-/// All are but the question about the element when it has no element to
-/// offer, since the judge refuses a choice of nothing. An operation kind that needs an element is still read as before: chosen
-/// without an element to answer, it is an unusable answer.
+/// Whether `question` is sent: every question is, except the question about
+/// the element with no element to offer, since the judge refuses a choice
+/// of nothing.
 #[must_use]
 pub fn not_an_empty_target(question: &Question) -> bool {
     !matches!(question, Question::Choice { id, options, .. }

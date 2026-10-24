@@ -46,8 +46,7 @@ fn explore_moves_offer_back_and_scrolls() {
 
 #[test]
 fn explore_moves_ask_no_element() {
-    let empty = page(&format!("{APP}/empty"), &[]);
-    let asked = started(explore(), &empty);
+    let asked = waiting_with(explore(), &all_clicked());
     let Some(Effect::Outside(Outside::Ask(sent))) = asked.effect() else {
         panic!("asks");
     };
