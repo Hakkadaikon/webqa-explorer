@@ -85,6 +85,7 @@ async fn listed_without(world: &mut QaWorld, name: String) {
 fn scripted(world: &mut QaWorld) {
     world.scene.mode = Mode::Scenario;
     world.scene.stages = login_only(url_done("/home"));
+    world.scene.start.elements = vec![PageSpec::button("保存")];
 }
 
 /// The name an item of the table has as a question, and the kind of the

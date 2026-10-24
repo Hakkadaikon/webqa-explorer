@@ -42,3 +42,12 @@ fn explore_moves_offer_back_and_scrolls() {
     let expected = ask_with(&top_tall(), asked_for(&[Op::Click], 2, None));
     assert_eq!(unnarrowed.effect(), Some(&expected), "clicks still");
 }
+
+#[test]
+fn explore_moves_ask_no_element() {
+    let asked = waiting_with(explore(), &all_clicked());
+    let mut want = asked_for(&MOVES, 2, None);
+    want.retain(|q| *q.id() != QuestionId::target());
+    let expected = ask_with(&top_tall(), want);
+    assert_eq!(asked.effect(), Some(&expected), "no element to choose");
+}

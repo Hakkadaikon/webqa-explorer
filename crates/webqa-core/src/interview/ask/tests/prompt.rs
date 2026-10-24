@@ -156,10 +156,24 @@ fn target_options_are_all_viewport_elements() {
     let expected = "1: link \"カート\"\n2: link \"ヘルプ\"";
     assert_eq!(text.as_inner().as_str(), expected, "the same numbers");
     let all: Vec<String> = (1..=255).map(|n| n.to_string()).collect();
-    let cases = [(count, owned(&["1", "2"])), (0, Vec::new()), (300, all)];
+    let cases = [(count, owned(&["1", "2"])), (300, all)];
     for (elements, want) in cases {
         assert_eq!(offered(elements), Some(target(want)), "{elements}");
     }
+}
+
+#[test]
+fn no_element_asks_no_target() {
+    let ids = |elements| -> Vec<QuestionId> {
+        let asked = questions(&Step {
+            elements,
+            ..step(None)
+        });
+        asked.iter().map(|q| q.id().clone()).collect()
+    };
+    let mut want = ids(2);
+    want.retain(|id| *id != QuestionId::target());
+    assert_eq!(ids(0), want, "only the question about the element goes");
 }
 
 /// The question of the element when the screen text has `elements` lines.

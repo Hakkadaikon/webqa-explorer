@@ -93,7 +93,6 @@ fn step_asks_op_target_error_goal() {
     assert_eq!(questions(&no_goal), three, "no goal, no goal question");
     let back_click = op_options(&[Op::Back, Op::Click]);
     assert_eq!(back_click, ["back", "click"], "the order of ops kept");
-    assert_eq!(target_options(0), Vec::<String>::new(), "no element");
     let empty = questions(&Ask {
         goal: Some(""),
         ..ASK8
@@ -101,6 +100,17 @@ fn step_asks_op_target_error_goal() {
     let empty_goal = noul(QuestionId::goal_reached(), "次のゴールを達成したか: ");
     assert_eq!(empty.get(3), Some(&empty_goal), "an empty goal");
     assert_eq!(MAX_OPTIONS, 255, "JEV's limit");
+}
+
+#[test]
+fn no_element_asks_no_target() {
+    let ids = |elements| -> Vec<QuestionId> {
+        let asked = questions(&Ask { elements, ..ASK8 });
+        asked.iter().map(|q| q.id().clone()).collect()
+    };
+    let mut want = ids(2);
+    want.retain(|id| *id != QuestionId::target());
+    assert_eq!(ids(0), want, "only the question about the element goes");
 }
 
 #[test]

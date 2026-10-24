@@ -43,7 +43,17 @@ pub fn questions(ask: &Ask<'_>) -> Vec<Question> {
         prompt: "画面にエラーの表示があるか".to_owned(),
     });
     questions.extend(ask.goal.map(goal_question));
+    questions.retain(not_an_empty_target);
     questions
+}
+
+/// Whether `question` is sent: every question is, except the question about
+/// the element with no element to offer, since the judge refuses a choice
+/// of nothing.
+#[must_use]
+pub fn not_an_empty_target(question: &Question) -> bool {
+    !matches!(question, Question::Choice { id, options, .. }
+        if *id == QuestionId::target() && options.is_empty())
 }
 
 /// The names of `ops` in order, each once, so that no option is sent twice.

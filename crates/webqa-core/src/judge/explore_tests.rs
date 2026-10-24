@@ -130,8 +130,8 @@ fn done_in_explore_mode_is_anomaly() {
 fn empty_screen_allows_only_untargeted_ops() {
     assert_eq!(
         options(&EMPTY, &QuestionId::target()),
-        Some(Vec::new()),
-        "no element to choose"
+        None,
+        "no question without an element to choose"
     );
     let scroll = answers(&[(QuestionId::operation(), &[("scroll_down", 0.9)])]);
     assert_eq!(

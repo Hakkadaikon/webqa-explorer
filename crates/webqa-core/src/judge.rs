@@ -11,7 +11,7 @@ mod image;
 mod target;
 mod verdict;
 
-pub use ask::{Ask, MAX_OPTIONS, op_name, questions};
+pub use ask::{Ask, MAX_OPTIONS, not_an_empty_target, op_name, questions};
 pub use image::{Image, ImageFormat};
 pub use target::pick_target;
 pub use verdict::{Unusable, Verdict, read_answers};

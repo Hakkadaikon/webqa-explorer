@@ -195,6 +195,7 @@ pub(super) fn questions(state: &State) -> Questions {
             .iter_mut()
             .filter_map(target_options)
             .for_each(|options| options.clone_from(&names));
+        questions.retain(judge::not_an_empty_target);
     }
     let last = &state.last;
     Questions {
