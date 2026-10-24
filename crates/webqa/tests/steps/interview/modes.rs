@@ -14,6 +14,7 @@ use crate::world::InterviewWorld;
 /// The scenarios of this Rule that have their steps.
 pub const READY: &[&str] = &[
     "インタビューのモードでも、既存のガードレールで止まる操作は実行しない",
+    "インタビューのモードでは、引き返しに要る確信度を書かなければ 0.3 を使い、既存のモードで止まる back も実行する",
     "インタビューのモードでも、判断の回数が上限に達したら試行を止める",
     "インタビューのモードでも、設定で指定した機密情報は判断モデルに送るテキストで伏せる",
     "インタビューのモードは課題を直さず、台帳と実行結果のほかにファイルを書き換えない",
@@ -98,6 +99,27 @@ async fn did_not_go_back(world: &mut InterviewWorld) {
     assert_eq!(backs.count(), 0, "the browser did not go back");
     let why = [json!("low_confidence")];
     assert_eq!(rejections(world), why, "why the step was stopped");
+}
+
+#[given(
+    expr = "既存のモードの引き返しに要る確信度は 0.7 で、インタビューのモードの値は書いていない"
+)]
+const fn back_confidence_left_out(world: &mut InterviewWorld) {
+    // The configuration of the scenes writes 0.7 in `limits`.
+    world.scene.back_confidence = None;
+}
+
+#[then(expr = "ブラウザで 「戻る」 を操作し、止めていない")]
+async fn went_back(world: &mut InterviewWorld) {
+    world.run().await;
+    let ran = world.ran();
+    let backs = ran.touches.iter().filter(|(_, touch)| touch.op == "back");
+    assert_eq!(backs.count(), 1, "the browser went back");
+    assert_eq!(
+        rejections(world),
+        Vec::<Value>::new(),
+        "nothing was stopped"
+    );
 }
 
 #[when(expr = "1回の試行で {int} 回判断する")]
