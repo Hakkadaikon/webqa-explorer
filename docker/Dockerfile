@@ -5,8 +5,9 @@
 FROM mcr.microsoft.com/playwright:v1.64.0-noble
 
 # cargo needs a C linker; openssl-sys (under playwright-rs) needs OpenSSL.
+# python3 runs bridge/; the base image has it, but nothing promises it stays.
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends build-essential libssl-dev pkg-config \
+	&& apt-get install -y --no-install-recommends build-essential libssl-dev pkg-config python3 \
 	&& rm -rf /var/lib/apt/lists/*
 
 # The repository is mounted at /work when the container runs. The tools go
