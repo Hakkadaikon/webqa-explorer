@@ -157,3 +157,80 @@ $ cd tasks/loopeng && tlc -workers 2 -deadlock -config WebExploratoryQA.empty.cf
 Model checking completed. No error has been found.
 50698 states generated, 18825 distinct states found, 0 states left on queue.
 The depth of the complete state graph search is 16.
+
+# 2026-10-24: インタビューのモード(#86、#92)と判断モデルの失敗の連続(#85)を入れた spec(v7)の検査
+# TLC2 Version 2026.10.15.145915 (rev: 932d35e)。メモリの少ない手元で回すため、ワーカー2、ヒープ1500MB。
+# 3つの cfg に MaxJudgeFailures = 2 を足した(実装は3。状態数を抑えるため)。SANY とApalacheの型検査(tla_lint.sh)は回していない。TLC が構文を読んだ。
+# 下は生の出力から、モジュールの読み込みの行と警告の本文を除いたもの。
+$ cd tasks/loopeng && tlc -workers 2 -deadlock -config WebExploratoryQA.cfg WebExploratoryQA.tla
+date: 2026-10-24T18:26:40+0900
+TLC2 Version 2026.10.15.145915 (rev: 932d35e)
+Running breadth-first search Model-Checking with fp 37 and seed 1498339457358552540 with 2 workers on 16 cores with 1333MB heap and 64MB offheap memory [pid: 34986] (Mac OS X 26.6.2 x86_64, Oracle Corporation 18.0.2 64bit, MSBDiskFPSet, DiskStateQueue).
+Starting... (2026-10-24 18:26:40)
+Implied-temporal checking--satisfiability problem has 1 branches.
+Computing initial states...
+Computed 2 initial states...
+Computed 4 initial states...
+Finished computing initial states: 5 distinct states generated at 2026-10-24 18:26:40.
+Checking temporal properties for the current state space with 35154 total distinct states at (2026-10-24 18:26:43)
+Finished checking temporal properties in 00s at 2026-10-24 18:26:44
+Progress(7) at 2026-10-24 18:26:44: 127,777 states generated (127,777 s/min), 44,495 distinct states found (44,495 ds/min), 25,361 states left on queue.
+Progress(18) at 2026-10-24 18:27:07: 1,879,594 states generated, 560,893 distinct states found, 0 states left on queue.
+Checking temporal properties for the complete state space with 560893 total distinct states at (2026-10-24 18:27:07)
+Finished checking temporal properties in 03s at 2026-10-24 18:27:11
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 4.0E-8
+  based on the actual fingerprints:  val = 9.5E-8
+1879594 states generated, 560893 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 18.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 3).
+Finished in 31s at (2026-10-24 18:27:11)
+$ cd tasks/loopeng && tlc -workers 2 -deadlock -config WebExploratoryQA.noexplorable.cfg WebExploratoryQA.tla
+date: 2026-10-24T18:27:11+0900
+TLC2 Version 2026.10.15.145915 (rev: 932d35e)
+Running breadth-first search Model-Checking with fp 58 and seed -3710981477936212555 with 2 workers on 16 cores with 1333MB heap and 64MB offheap memory [pid: 35016] (Mac OS X 26.6.2 x86_64, Oracle Corporation 18.0.2 64bit, MSBDiskFPSet, DiskStateQueue).
+Starting... (2026-10-24 18:27:12)
+Implied-temporal checking--satisfiability problem has 1 branches.
+Computing initial states...
+Computed 2 initial states...
+Computed 4 initial states...
+Finished computing initial states: 5 distinct states generated at 2026-10-24 18:27:12.
+Checking temporal properties for the current state space with 42947 total distinct states at (2026-10-24 18:27:15)
+Finished checking temporal properties in 00s at 2026-10-24 18:27:15
+Progress(11) at 2026-10-24 18:27:15: 148,589 states generated (148,589 s/min), 49,975 distinct states found (49,975 ds/min), 11,629 states left on queue.
+Progress(14) at 2026-10-24 18:27:16: 209,598 states generated, 70,879 distinct states found, 0 states left on queue.
+Checking temporal properties for the complete state space with 70879 total distinct states at (2026-10-24 18:27:16)
+Finished checking temporal properties in 00s at 2026-10-24 18:27:16
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 5.3E-10
+  based on the actual fingerprints:  val = 2.8E-11
+209598 states generated, 70879 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 14.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 3).
+Finished in 04s at (2026-10-24 18:27:16)
+$ cd tasks/loopeng && tlc -workers 2 -deadlock -config WebExploratoryQA.empty.cfg WebExploratoryQA.tla
+date: 2026-10-24T18:27:16+0900
+TLC2 Version 2026.10.15.145915 (rev: 932d35e)
+Running breadth-first search Model-Checking with fp 44 and seed 4164167000024335863 with 2 workers on 16 cores with 1333MB heap and 64MB offheap memory [pid: 35024] (Mac OS X 26.6.2 x86_64, Oracle Corporation 18.0.2 64bit, MSBDiskFPSet, DiskStateQueue).
+Starting... (2026-10-24 18:27:17)
+Implied-temporal checking--satisfiability problem has 1 branches.
+Computing initial states...
+Computed 2 initial states...
+Computed 4 initial states...
+Finished computing initial states: 5 distinct states generated at 2026-10-24 18:27:17.
+Progress(14) at 2026-10-24 18:27:19: 140,424 states generated, 50,629 distinct states found, 0 states left on queue.
+Checking temporal properties for the complete state space with 50629 total distinct states at (2026-10-24 18:27:19)
+Finished checking temporal properties in 00s at 2026-10-24 18:27:19
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 2.5E-10
+  based on the actual fingerprints:  val = 1.7E-11
+140424 states generated, 50629 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 14.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 3).
+Finished in 03s at (2026-10-24 18:27:19)
