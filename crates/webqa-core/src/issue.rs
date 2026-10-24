@@ -123,17 +123,28 @@ fn name_issue(screen: &Redacted<Screen>, element: &Element) -> Issue {
     }
 }
 
+/// The network errors of the machine the run is on losing its connection.
+/// They say nothing about the page, so they are not issues.
+const OUTAGES: [&str; 2] = ["net::ERR_INTERNET_DISCONNECTED", "net::ERR_NETWORK_CHANGED"];
+
 /// One issue per distinct console error message, in the order received.
 ///
-/// A repeated message gives only its first issue.
+/// A repeated message gives only its first issue. A message of the
+/// connection being lost gives none.
 #[must_use]
 pub fn console_issues(errors: &[Redacted<String>]) -> Vec<Issue> {
     let mut seen: HashSet<&str> = HashSet::new();
     errors
         .iter()
+        .filter(|e| !outage(e.as_inner()))
         .filter(|e| seen.insert(e.as_inner().as_str()))
         .map(console_issue)
         .collect()
+}
+
+/// Whether `error` says the connection was lost.
+fn outage(error: &str) -> bool {
+    OUTAGES.iter().any(|code| error.contains(code))
 }
 
 fn console_issue(error: &Redacted<String>) -> Issue {

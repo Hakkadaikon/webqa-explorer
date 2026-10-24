@@ -163,7 +163,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-039 WebExploratoryQA.feature:781(問題の記録) [event] 「読み上げ名が画像ファイル名や仮の値の要素はアクセシビリティの問題として記録する」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `placeholder_accessible_names_are_issues` / issue: #8
 - [x] T-040 WebExploratoryQA.feature:792(問題の記録) [event] 「ブラウザのコンソールにエラーが出たら問題として記録する」
-      → 手法: コントラクトテスト(levels-service)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `console_error_is_issue`、契約 `webqa-browser/tests/contract.rs` の `collects_console_errors` / issue: #8、#9
+      → 手法: コントラクトテスト(levels-service)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `console_error_is_issue`、単体 `webqa-core::issue` の `network_outage_console_errors_are_not_issues`、契約 `webqa-browser/tests/contract.rs` の `collects_console_errors` / issue: #8、#9、#85
 - [x] T-041 WebExploratoryQA.feature:797(問題の記録) [unwanted] 「意味の判断が要る検出は、判断モデルだけの判定なら参考情報として記録する」
       → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::issue` の `judge_only_detection_is_reference` / issue: #8
 - [x] T-042 WebExploratoryQA.feature:802(問題の記録) [ubiquitous] 「実行結果は再実行できる形で出力する」
@@ -378,7 +378,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-037 | event | 同値分割(blackbox-partition) | `screenshot_name_has_kind_and_step` | #14 | [x] | [ ] | — |
 | T-038 | unwanted | 境界値分析(blackbox-partition) | `error_display_below_threshold_not_recorded` | #8 | [x] | [ ] | — |
 | T-039 | event | 同値分割(blackbox-partition) | `placeholder_accessible_names_are_issues` | #8 | [x] | [ ] | — |
-| T-040 | event | コントラクトテスト(levels-service)、同値分割(blackbox-partition) | `console_error_is_issue`、`collects_console_errors` | #8、#9 | [x] | [ ] | — |
+| T-040 | event | コントラクトテスト(levels-service)、同値分割(blackbox-partition) | `console_error_is_issue`、`network_outage_console_errors_are_not_issues`、`collects_console_errors` | #8、#9、#85 | [x] | [ ] | — |
 | T-041 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition) | `judge_only_detection_is_reference` | #8 | [x] | [ ] | — |
 | T-042 | ubiquitous | ゴールデンテスト(oracle-past-output) | `report_matches_snapshot`、`replay_reruns_report`、`replay_starts_from_given_memory_and_keeps_stored`、`stored_start_is_written_back`、`report_keeps_start_memory`、`start_memory_is_redacted`、`from_report_reads_start_memory`、`broken_start_memory_is_config_error` | #14、#61 | [x] | [ ] | — |
 | T-043 | event | 同値分割(blackbox-partition) | `reads_target_inputs_and_stages` | #3 | [x] | [ ] | — |
