@@ -108,9 +108,9 @@ pub(super) fn settled(state: State, seen: Seen) -> State {
 /// `state` after the guardrails stopped its proposal. An interview counts it
 /// as a step without progress, so that a persona whose proposals keep being
 /// stopped ends stuck instead of spending the budget; other modes change
-/// nothing.
+/// nothing. A step that landed outside is counted already, once a step.
 pub(super) fn refused(mut state: State) -> State {
-    if interviewing(&state) {
+    if interviewing(&state) && !state.outside {
         state.counters = stalled(state.counters);
     }
     state

@@ -44,12 +44,12 @@ fn counts(t: &Transition) -> (u32, u32) {
 }
 
 /// The counts before, with one more step without progress on landing
-/// outside without an operation and on stopping a proposal in an interview,
-/// and the freeze count restarted on reloading.
+/// outside without an operation or on stopping a proposal in an interview,
+/// once a step, and the freeze count restarted on reloading.
 fn expected(t: &Transition) -> (u32, u32) {
     let counters = t.before.counters();
     let freeze = counters.freeze() * u32::from(!t.touches("reload"));
-    let stuck = counters.stuck() + u32::from(stalled(t)) + u32::from(refused(t));
+    let stuck = counters.stuck() + u32::from(any(&[stalled(t), refused(t)]));
     (freeze, stuck)
 }
 
