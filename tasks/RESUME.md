@@ -23,7 +23,7 @@ PR の前にすること: diff-review を6観点(design、test、security、docs
 
 ### 残りの課題
 
-- #67(失敗で終わったときも実行結果を書く)、#71(Linux のコンテナ)。
+- #67、#71、#83、#84、#85、#86、#92 は、統合用のブランチ issues-rest の PR で直した。
 - 探索モードの使い方の文書(TodoMVC を手本に)。worktree `docs-usage` を用意してある。
 
 ## 決めたことと注意
