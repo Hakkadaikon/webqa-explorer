@@ -203,7 +203,7 @@ CLIは1行書くたびにフラッシュする。
 | `recovered` | 中核が自分で操作した。`op`と、操作の理由の`cause` |
 | `executed` | ブラウザが操作した。画面が変わったかの`changed`と、ネットワークへのアクセスの数`accesses` |
 | `rejected` | ガードレールが判断モデルの提案を止めた。`why`に理由 |
-| `anomaly` | 判断モデルの答えが使えなかった。`cause`と、答えの誤っていた問い`question`。API のエラーなら、橋渡しが返した短い文`detail`(残せる文が無ければ省く) |
+| `anomaly` | 判断モデルの答えが使えなかった。`cause`と、答えの誤っていた問い`question`。APIのエラーなら、橋渡しが返した短い文`detail`(残せる文が無ければ省く) |
 | `issue` | 問題を見つけた。`issue`、`class`、`evidence`、`label`、`p`、`screenshot` |
 | `skipped` | ブラウザが何もしない操作だった。`cause`は`not_an_input`か`no_input_value` |
 | `stage_advanced` | 決め打ちシナリオが次の段階に進んだ。0から数える`stage`と、名前の`name` |
