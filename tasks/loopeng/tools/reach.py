@@ -88,9 +88,34 @@ CHECKS = [
     ("P49", "SafeProposalProceeds (操作可能な要素が無く、対象を取らない操作を実行する)", "S", 'phase = "acting" /\\ proposedOp \\notin DirectOps /\\ proposedTarget = "none"', NOELEM),
     ("P50", "DirectOpActedOnlyOnSafeTarget / ProposalWellFormed (対象の要る操作に要素番号が無い応答)", "S", 'phase = "awaiting_decision" /\\ proposedOp \\in DirectOps /\\ proposedTarget = "none"', NOELEM),
     ("P51", "ProposalWellFormed (要素がある画面で、対象を取らない操作の対象なし)", "S", 'phase = "awaiting_decision" /\\ proposedOp \\notin DirectOps /\\ proposedTarget = "none"'),
+    # v7: インタビュー(#86、#92)と判断モデルの失敗の連続(#85)
+    ("P52", "JudgeUnavailableOnlyAfterFailures / ExitReasonMatchesPhase (判断モデルの停止)", "S", 'exitReason = "judge_unavailable"'),
+    ("P53", "JudgeDownStops", "S", 'phase = "idle" /\\ ~ExploreDone /\\ ~ScenarioStageDone /\\ stuckCounter < StuckThreshold /\\ judgeFails >= MaxJudgeFailures'),
+    ("P54a", "JudgeDownStops (判断予算の最後の1回で閾値に達した: 予算切れより先)", "S", 'phase = "idle" /\\ ~ExploreDone /\\ ~ScenarioStageDone /\\ stuckCounter < StuckThreshold /\\ judgeFails >= MaxJudgeFailures /\\ decisionBudget = 0'),
+    ("P54b", "JudgeDownStops (時間切れと同時)", "S", 'phase = "idle" /\\ ~ExploreDone /\\ ~ScenarioStageDone /\\ stuckCounter < StuckThreshold /\\ judgeFails >= MaxJudgeFailures /\\ timeUp'),
+    ("P54c", "JudgeUnavailableOnlyAfterFailures (判断予算が残っているのに停止で終わる)", "S", 'exitReason = "judge_unavailable" /\\ decisionBudget > 0'),
+    ("P55", "AwaitingOnlyByDecision / JudgeFailsTracksReplies (判断モデルに届かない一歩)", "A", 'decisionsMade\' = decisionsMade + 1 /\\ phase\' = "idle"'),
+    ("P56", "JudgeFailsTracksReplies (失敗の後に答えが届いて0に戻る)", "A", "judgeFails > 0 /\\ judgeFails' = 0"),
+    ("P57", "JudgeFailsBounded (閾値に達した状態)", "S", "judgeFails = MaxJudgeFailures"),
+    ("P58", "LimitStops (失敗が閾値未満で判断予算切れ、失敗が1回以上)", "S", 'phase = "idle" /\\ ~ExploreDone /\\ ~ScenarioStageDone /\\ stuckCounter < StuckThreshold /\\ judgeFails > 0 /\\ judgeFails < MaxJudgeFailures /\\ decisionBudget = 0'),
+    ("P59", "RefusalCountsStuck (インタビューでガードレールが止めた)", "A", 'phase = "awaiting_decision" /\\ phase\' = "idle" /\\ mode = "interview" /\\ inAllowedDomain\''),
+    ("P60", "RefusalCountsStuck (インタビュー以外で止めた: 数えない)", "A", 'phase = "awaiting_decision" /\\ phase\' = "idle" /\\ mode # "interview" /\\ inAllowedDomain\''),
+    ("P61", "RefusalCountsStuck / DomainChangesOnlyByNavigation (確かめ直しで外に着いた)", "A", 'phase = "awaiting_decision" /\\ phase\' = "idle" /\\ ~inAllowedDomain\''),
+    ("P62", "RefusalCountsStuck (インタビューで確かめ直しの後に外に着いた: 1回だけ)", "A", 'phase = "awaiting_decision" /\\ phase\' = "idle" /\\ ~inAllowedDomain\' /\\ mode = "interview"'),
+    ("P63", "RefusalCountsStuck (インタビューの応答の異常: 数えない)", "A", 'phase = "awaiting_decision" /\\ phase\' = "idle" /\\ mode = "interview" /\\ proposedOp \\in DirectOps /\\ proposedTarget = "none"', NOELEM),
+    ("P64", "ObservationChangesOnlyByExecution (確かめ直しで外に着いて新しく見えた要素が無くなる)", "A", 'phase = "awaiting_decision" /\\ newSeen /\\ ~newSeen\''),
+    ("P65", "StuckCounterTracksNewElements (インタビューで新しい要素が見えても数える)", "A", 'phase = "acting" /\\ phase\' = "idle" /\\ mode = "interview" /\\ visited\' = visited /\\ newSeen\''),
+    ("P66", "StuckPreempts (インタビューで止めた提案が続いて行き詰まる)", "A", 'phase = "awaiting_decision" /\\ phase\' = "idle" /\\ mode = "interview" /\\ stuckCounter\' >= StuckThreshold'),
+    ("P67", "ScenarioGoalOnlyAtLastStage / GoalPreempts (インタビューのゴール達成)", "S", 'mode = "interview" /\\ exitReason = "goal_achieved"'),
+    ("P68", "StageAdvancePreempts (インタビューの段階の切り替え)", "S", 'phase = "idle" /\\ StageCleared /\\ mode = "interview"'),
+    ("P69", "ReportedDoneOnlyWithoutDoneWhen (インタビューの申告による終了)", "S", 'mode = "interview" /\\ exitReason = "reported_done"'),
+    ("P70", "CountersBoundedByOps (止めた提案で数えた行き詰まりが判断の回数に並ぶ)", "S", "stuckCounter = decisionsMade /\\ stuckCounter > 0 /\\ mode = \"interview\""),
 ]
+ONLY = set(os.environ["REACH_ONLY"].split(",")) if os.environ.get("REACH_ONLY") else None
+if ONLY:
+    CHECKS = [c for c in CHECKS if c[0] in ONLY]
 
-env = dict(os.environ, _JAVA_OPTIONS="-Djava.io.tmpdir=/tmp/tla")
+env = dict(os.environ, _JAVA_OPTIONS="-Djava.io.tmpdir=" + os.environ.get("TLA_TMPDIR", "/tmp/tla"))
 with open(LOG, "a") as log:
     tz = datetime.datetime.now().astimezone().strftime("%z")
     log.write(f"\n# {HEADING}時刻の表記は {tz[:3]}:{tz[3:]}。\n")

@@ -1,0 +1,692 @@
+BASE	-	PASS	1879594	560893	-	-	PASS(209598/70879)	PASS(140424/50629)
+lt->le#0@7320	L184	ACTION:StuckPreempts	46441	16644	CODE		ACTION:StuckPreempts	ACTION:StuckPreempts
+lt->le#1@7420	L185	ACTION:JudgeDownStops	2222	1528	CODE		ACTION:JudgeDownStops	ACTION:JudgeDownStops
+lt->le#2@7839	L194	ACTION:FreezePreemptsDecision	341875	106774	CODE		PASS	PASS
+lt->le#3@9008	L219	PASS	1889470	560893	CODE	equivalent: 時間窓の巻き戻しのガードを外すと、予算が満タンのときに requestBudget'=MaxRequests, requestsInWindow'=0 の冪等な自己ループが増えるだけ(distinct は原本と同じ 560893)	PASS	PASS
+lt->le#4@19236	L429	ACTION:StuckPreempts	568991	167311	CODE		ACTION:StuckPreempts	ACTION:StuckPreempts
+lt->le#5@19271	L430	ACTION:JudgeDownStops	226738	72596	CODE		ACTION:JudgeDownStops	ACTION:JudgeDownStops
+lt->le#6@19815	L441	ACTION:StuckPreempts	119419	38931	CODE		ACTION:StuckPreempts	ACTION:StuckPreempts
+lt->le#7@19850	L442	ACTION:JudgeDownStops	15191	5689	CODE		ACTION:JudgeDownStops	ACTION:JudgeDownStops
+lt->le#8@27936	L638	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+lt->le#9@28281	L644	ACTION:LimitStops	119408	38929	CODE		ACTION:LimitStops	ACTION:LimitStops
+lt->le#10@28320	L645	ACTION:LimitStops	15030	5561	CODE		ACTION:LimitStops	ACTION:LimitStops
+gt->ge#0@229	L6	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+gt->ge#1@255	L6	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+gt->ge#2@865	L17	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+gt->ge#3@880	L18	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+gt->ge#4@894	L18	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+gt->ge#5@911	L18	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+gt->ge#6@938	L18	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+gt->ge#7@5456	L123	PASS	1879594	560893	CODE	killed: 主の設定では緑だが、WebExploratoryQA.noexplorable.cfg(探索してよい要素が空)で INV:ExploreGoalOnlyWhenAllExplored	INV:ExploreGoalOnlyWhenAllExplored	INV:ExploreGoalOnlyWhenAllExplored
+gt->ge#8@7457	L185	ACTION:LimitStops	287280	92005	CODE		ACTION:LimitStops	ACTION:LimitStops
+gt->ge#9@7876	L195	INV:TypeOK	4163	2364	CODE		INV:TypeOK	INV:TypeOK
+gt->ge#10@22508	L508	PASS	1879594	560893	CODE	killed: 主の設定では緑だが、WebExploratoryQA.noexplorable.cfg(探索してよい要素が空)で ACTION:GoalPreempts	ACTION:GoalPreempts	ACTION:GoalPreempts
+gt->ge#11@23075	L518	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+gt->ge#12@24477	L551	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+gt->ge#13@24594	L555	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+gt->ge#14@30904	L695	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+gt->ge#15@30938	L695	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+gt->ge#16@30958	L695	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+eq->neq#0@5032	L116	INV:ProposalWellFormed	61	61	CODE		INV:ProposalWellFormed	INV:ProposalWellFormed
+eq->neq#1@5401	L123	ACTION:StageAdvancePreempts	57	57	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+eq->neq#2@5426	L123	INV:ExploreGoalOnlyWhenAllExplored	553	526	CODE		ACTION:GoalPreempts	ACTION:GoalPreempts
+eq->neq#3@5527	L126	INV:ScenarioGoalOnlyAtLastStage	57	57	CODE		INV:ScenarioGoalOnlyAtLastStage	INV:ScenarioGoalOnlyAtLastStage
+eq->neq#4@5548	L126	INV:ScenarioGoalOnlyAtLastStage	57	57	CODE		INV:ScenarioGoalOnlyAtLastStage	INV:ScenarioGoalOnlyAtLastStage
+eq->neq#5@6562	L159	OTHER_ERROR:In evaluation, the identifier stage is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill()	OTHER_ERROR:In evaluation, the identifier stage is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier stage is either undefined or not an operator.
+eq->neq#6@6579	L160	OTHER_ERROR:In evaluation, the identifier phase is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase, ProposalWellFormed, RecoveryOnlyAfterFreeze)	OTHER_ERROR:In evaluation, the identifier phase is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier phase is either undefined or not an operator.
+eq->neq#7@6606	L161	OTHER_ERROR:In evaluation, the identifier proposedOp is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(NoProposalBeforeDecision)	OTHER_ERROR:In evaluation, the identifier proposedOp is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier proposedOp is either undefined or not an operator.
+eq->neq#8@6637	L162	OTHER_ERROR:In evaluation, the identifier proposedTarget is either undefined or not an opera	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(NoProposalBeforeDecision)	OTHER_ERROR:In evaluation, the identifier proposedTarget is either undefined or not an opera	OTHER_ERROR:In evaluation, the identifier proposedTarget is either undefined or not an opera
+eq->neq#9@6669	L163	OTHER_ERROR:In evaluation, the identifier proposedLowConf is either undefined or not an oper	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(NoProposalBeforeDecision)	OTHER_ERROR:In evaluation, the identifier proposedLowConf is either undefined or not an oper	OTHER_ERROR:In evaluation, the identifier proposedLowConf is either undefined or not an oper
+eq->neq#10@6694	L164	OTHER_ERROR:In evaluation, the identifier isPaywall is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(NoProposalBeforeDecision)	OTHER_ERROR:In evaluation, the identifier isPaywall is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier isPaywall is either undefined or not an operator.
+eq->neq#11@6722	L165	OTHER_ERROR:In evaluation, the identifier targetExists is either undefined or not an operato	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(NoProposalBeforeDecision)	OTHER_ERROR:In evaluation, the identifier targetExists is either undefined or not an operato	OTHER_ERROR:In evaluation, the identifier targetExists is either undefined or not an operato
+eq->neq#12@6750	L166	OTHER_ERROR:In evaluation, the identifier screenChanged is either undefined or not an operat	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(NoChangeObservedOnlyAfterOps)	OTHER_ERROR:In evaluation, the identifier screenChanged is either undefined or not an operat	OTHER_ERROR:In evaluation, the identifier screenChanged is either undefined or not an operat
+eq->neq#13@6772	L167	OTHER_ERROR:In evaluation, the identifier newSeen is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(NewSeenOnlyOnChangedAllowedPage)	OTHER_ERROR:In evaluation, the identifier newSeen is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier newSeen is either undefined or not an operator.
+eq->neq#14@6839	L169	OTHER_ERROR:In evaluation, the identifier visited is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(NeverOperatesForbidden, VisitedOnlyByOps)	OTHER_ERROR:In evaluation, the identifier visited is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier visited is either undefined or not an operator.
+eq->neq#15@6863	L170	OTHER_ERROR:In evaluation, the identifier idleCounter is either undefined or not an operator	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(CountersBoundedByOps)	OTHER_ERROR:In evaluation, the identifier idleCounter is either undefined or not an operator	OTHER_ERROR:In evaluation, the identifier idleCounter is either undefined or not an operator
+eq->neq#16@6887	L171	OTHER_ERROR:In evaluation, the identifier stuckCounter is either undefined or not an operato	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(CountersBoundedByOps)	OTHER_ERROR:In evaluation, the identifier stuckCounter is either undefined or not an operato	OTHER_ERROR:In evaluation, the identifier stuckCounter is either undefined or not an operato
+eq->neq#17@6914	L172	OTHER_ERROR:In evaluation, the identifier inAllowedDomain is either undefined or not an oper	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:In evaluation, the identifier inAllowedDomain is either undefined or not an oper	OTHER_ERROR:In evaluation, the identifier inAllowedDomain is either undefined or not an oper
+eq->neq#18@6940	L173	OTHER_ERROR:In evaluation, the identifier pageOutside is either undefined or not an operator	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:In evaluation, the identifier pageOutside is either undefined or not an operator	OTHER_ERROR:In evaluation, the identifier pageOutside is either undefined or not an operator
+eq->neq#19@6962	L174	OTHER_ERROR:In evaluation, the identifier timeUp is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill()	OTHER_ERROR:In evaluation, the identifier timeUp is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier timeUp is either undefined or not an operator.
+eq->neq#20@6992	L175	OTHER_ERROR:In evaluation, the identifier decisionBudget is either undefined or not an opera	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 6通り中 1通りが緑(decisionBudget=4)。.cfg の定数と同じ値を代入して「≠ 元の式」で無効になる書き換えで equivalent	OTHER_ERROR:In evaluation, the identifier decisionBudget is either undefined or not an opera	OTHER_ERROR:In evaluation, the identifier decisionBudget is either undefined or not an opera
+eq->neq#21@7028	L176	OTHER_ERROR:In evaluation, the identifier decisionsMade is either undefined or not an operat	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 5通りすべて性質違反で kill(BudgetAccounting, DecisionsWithinCap)	OTHER_ERROR:In evaluation, the identifier decisionsMade is either undefined or not an operat	OTHER_ERROR:In evaluation, the identifier decisionsMade is either undefined or not an operat
+eq->neq#22@7053	L177	OTHER_ERROR:In evaluation, the identifier requestBudget is either undefined or not an operat	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通り中 1通りが緑(requestBudget=2)。.cfg の定数と同じ値を代入して「≠ 元の式」で無効になる書き換えで equivalent	OTHER_ERROR:In evaluation, the identifier requestBudget is either undefined or not an operat	OTHER_ERROR:In evaluation, the identifier requestBudget is either undefined or not an operat
+eq->neq#23@7091	L178	OTHER_ERROR:In evaluation, the identifier requestsInWindow is either undefined or not an ope	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(BudgetAccounting, RequestsWithinWindowCap)	OTHER_ERROR:In evaluation, the identifier requestsInWindow is either undefined or not an ope	OTHER_ERROR:In evaluation, the identifier requestsInWindow is either undefined or not an ope
+eq->neq#24@7113	L179	OTHER_ERROR:In evaluation, the identifier judgeFails is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(JudgeFailsBounded, TypeOK)	OTHER_ERROR:In evaluation, the identifier judgeFails is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier judgeFails is either undefined or not an operator.
+eq->neq#25@7135	L180	OTHER_ERROR:In evaluation, the identifier exitReason is either undefined or not an operator.	0	0	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:In evaluation, the identifier exitReason is either undefined or not an operator.	OTHER_ERROR:In evaluation, the identifier exitReason is either undefined or not an operator.
+eq->neq#26@7194	L183	INV:ExitReasonMatchesPhase	32	29	CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#27@7926	L197	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 6通りすべて性質違反で kill(BudgetAccounting, TEMPORAL, TypeOK)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#28@7969	L198	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 6通りすべて性質違反で kill(BudgetAccounting, DecisionsWithinCap, NoProposalBeforeDecision, TEMPORAL)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#29@8011	L199	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(BudgetAccounting, TEMPORAL, TypeOK)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#30@8056	L200	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(BudgetAccounting, RequestsWithinWindowCap, TEMPORAL)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#31@8099	L201	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(AwaitingOnlyByDecision, DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#32@8146	L202	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(JudgeFailsBounded, JudgeFailsTracksReplies, TypeOK)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#33@8300	L204	PASS	315138	101735	CODE	killed: 主の設定では緑だが、WebExploratoryQA.empty.cfg(操作可能な要素が無い)で INV:ProposalWellFormed	PASS	INV:ProposalWellFormed
+eq->neq#34@8366	L205	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 5通りすべて性質違反で kill(ProposalWellFormed)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#35@8404	L206	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(ProposalWellFormed)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#36@8442	L207	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 2通り中 2通りが緑(proposedLowConf'=FALSE; proposedLowConf'=TRUE)。abstraction-limited: 判断モデルの確信度の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#37@8475	L208	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 2通り中 2通りが緑(isPaywall'=FALSE; isPaywall'=TRUE)。abstraction-limited: 判断の応答と同時の課金画面の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#38@8511	L209	OTHER_ERROR:TLC threw an unexpected exception.	9	9	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 2通り中 1通りが緑(targetExists'=FALSE)。abstraction-limited: 対象の存在の観測を1つの値に固定(偽に固定すると直接操作は一度も実行されない)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#39@8541	L210	OTHER_ERROR:TLC threw an unexpected exception.	97	97	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通り中 1通りが緑(judgeFails'=1)。abstraction-limited: 判断モデルに届かない失敗が起こらなくなる(失敗の枝が無効になる)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#40@9044	L220	OTHER_ERROR:TLC threw an unexpected exception.	592	565	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(BudgetAccounting, TEMPORAL, TypeOK)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#41@9083	L221	OTHER_ERROR:TLC threw an unexpected exception.	590	563	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(BudgetAccounting, RequestsWithinWindowCap)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#42@9577	L228	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+eq->neq#43@9667	L230	OTHER_ERROR:TLC threw an unexpected exception.	212	212	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(CountersChangeOnlyBySteps, DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#44@9697	L231	OTHER_ERROR:TLC threw an unexpected exception.	158	158	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(CountersBoundedByOps, RefusalCountsStuck)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#45@9719	L231	ACTION:RefusalCountsStuck	159	159	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+eq->neq#46@9781	L231	ACTION:RefusalCountsStuck	607	578	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+eq->neq#47@9875	L233	OTHER_ERROR:TLC threw an unexpected exception.	158	158	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 2通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#48@9909	L234	OTHER_ERROR:TLC threw an unexpected exception.	219	216	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 2通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#49@9936	L235	OTHER_ERROR:TLC threw an unexpected exception.	218	216	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 2通りすべて性質違反で kill(ObservationChangesOnlyByExecution)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#50@10251	L242	INV:ProposalWellFormed	56	56	CODE		INV:ProposalWellFormed	INV:ProposalWellFormed
+eq->neq#51@10316	L244	OTHER_ERROR:TLC threw an unexpected exception.	348	335	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase, PaywallForcesBack, ProposalWellFormed, RecoveryOnlyAfterFreeze)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#52@10352	L245	OTHER_ERROR:TLC threw an unexpected exception.	358	344	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(PaywallForcesBack, ProposalWellFormed)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#53@10527	L248	ACTION:SafeProposalProceeds	294	284	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+eq->neq#54@11061	L261	INV:LowConfidenceBackNeverActed	305	296	CODE		INV:LowConfidenceBackNeverActed	INV:LowConfidenceBackNeverActed
+eq->neq#55@11226	L263	OTHER_ERROR:TLC threw an unexpected exception.	224	221	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze, SafeProposalProceeds, TEMPORAL)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#56@11983	L275	ACTION:StuckCounterTracksNewElements	1200	1032	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+eq->neq#57@12002	L275	ACTION:StuckCounterTracksNewElements	1354	1074	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+eq->neq#58@12293	L282	INV:NoChangeObservedOnlyAfterOps	56	55	CODE		INV:NoChangeObservedOnlyAfterOps	INV:NoChangeObservedOnlyAfterOps
+eq->neq#59@12363	L284	OTHER_ERROR:TLC threw an unexpected exception.	1140	1024	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#60@12394	L285	OTHER_ERROR:TLC threw an unexpected exception.	1200	1031	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, RecoveryResetsPageState, VisitedChangesOnlyByExecution)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#61@12425	L286	OTHER_ERROR:TLC threw an unexpected exception.	1208	1036	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(IdleCounterTracksScreen)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#62@12449	L287	OTHER_ERROR:TLC threw an unexpected exception.	1199	1031	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(NewSeenOnlyOnChangedAllowedPage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#63@12500	L289	OTHER_ERROR:TLC threw an unexpected exception.	1200	1031	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通り中 1通りが緑(idleCounter'=1)。abstraction-limited: 画面が変化しない結果が起こらなくなる(ExecuteNoChange が無効になる)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#64@12539	L290	OTHER_ERROR:TLC threw an unexpected exception.	1208	1036	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(CountersBoundedByOps, StuckCounterTracksNewElements)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#65@12946	L298	INV:CountersBoundedByOps	56	55	CODE		INV:CountersBoundedByOps	INV:CountersBoundedByOps
+eq->neq#66@13016	L300	OTHER_ERROR:TLC threw an unexpected exception.	1202	1033	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#67@13047	L301	OTHER_ERROR:TLC threw an unexpected exception.	1201	1033	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze, VisitedChangesOnlyByExecution)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#68@13078	L302	OTHER_ERROR:TLC threw an unexpected exception.	1202	1033	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(IdleCounterTracksScreen)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#69@13156	L305	OTHER_ERROR:TLC threw an unexpected exception.	1208	1039	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(CountersBoundedByOps, IdleCounterTracksScreen)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#70@13181	L306	OTHER_ERROR:TLC threw an unexpected exception.	1212	1040	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(CountersBoundedByOps, StuckCounterTracksNewElements)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#71@13608	L314	INV:CountersBoundedByOps	56	55	CODE		INV:CountersBoundedByOps	INV:CountersBoundedByOps
+eq->neq#72@13678	L316	OTHER_ERROR:TLC threw an unexpected exception.	1206	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#73@13709	L317	OTHER_ERROR:TLC threw an unexpected exception.	1205	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, RecoveryResetsPageState, VisitedChangesOnlyByExecution)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#74@13740	L318	OTHER_ERROR:TLC threw an unexpected exception.	1206	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(IdleCounterTracksScreen)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#75@13763	L319	OTHER_ERROR:TLC threw an unexpected exception.	1205	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(NewSeenOnlyOnChangedAllowedPage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#76@13814	L321	OTHER_ERROR:TLC threw an unexpected exception.	1205	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(CountersBoundedByOps, IdleCounterTracksScreen)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#77@13839	L322	OTHER_ERROR:TLC threw an unexpected exception.	1205	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 4通りすべて性質違反で kill(CountersBoundedByOps, StuckCounterTracksNewElements)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#78@13874	L323	OTHER_ERROR:TLC threw an unexpected exception.	1205	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#79@13905	L324	OTHER_ERROR:TLC threw an unexpected exception.	1206	1037	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#80@14256	L332	OTHER_ERROR:TLC threw an unexpected exception.	819	729	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#81@14288	L333	OTHER_ERROR:TLC threw an unexpected exception.	834	743	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通りすべて性質違反で kill(DomainRecordAccurate)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#82@14851	L342	ACTION:SafeProposalProceeds	253	247	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+eq->neq#83@14880	L343	ACTION:ProposalOutcome	1208	1040	CODE		ACTION:ProposalOutcome	ACTION:ProposalOutcome
+eq->neq#84@14903	L344	OTHER_ERROR:TLC threw an unexpected exception.	1372	1084	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#85@14931	L345	OTHER_ERROR:TLC threw an unexpected exception.	1372	1084	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#86@15367	L352	ACTION:SafeProposalProceeds	260	253	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+eq->neq#87@15396	L353	ACTION:ProposalOutcome	1208	1040	CODE		ACTION:ProposalOutcome	ACTION:ProposalOutcome
+eq->neq#88@15420	L354	OTHER_ERROR:TLC threw an unexpected exception.	1443	1103	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#89@15449	L355	OTHER_ERROR:TLC threw an unexpected exception.	1443	1103	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#90@16098	L367	OTHER_ERROR:TLC threw an unexpected exception.	178054	57857	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ActingOnlyAfterGuardrails, ExitReasonMatchesPhase, FreezePreemptsDecision, FreezeRecoveryRecorded)	PASS	PASS
+eq->neq#91@16139	L368	OTHER_ERROR:TLC threw an unexpected exception.	176957	57705	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(CountersBoundedByOps, RecoveryResetsPageState)	PASS	PASS
+eq->neq#92@16507	L374	ACTION:SafeProposalProceeds	233	224	CODE		INV:ExitReasonMatchesPhase	ACTION:SafeProposalProceeds
+eq->neq#93@16542	L375	OTHER_ERROR:TLC threw an unexpected exception.	342176	106820	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ActingOnlyAfterGuardrails, AwaitingOnlyByDecision, ExitReasonMatchesPhase, TEMPORAL)	PASS	PASS
+eq->neq#94@17075	L384	ACTION:StageAdvanceResetsCounters	160	160	CODE		ACTION:StageAdvanceResetsCounters	ACTION:StageAdvanceResetsCounters
+eq->neq#95@17132	L387	OTHER_ERROR:TLC threw an unexpected exception.	56	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 2通りすべて性質違反で kill(StageAdvancePreempts, TEMPORAL)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#96@17209	L389	OTHER_ERROR:TLC threw an unexpected exception.	56	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(CountersBoundedByOps)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#97@17234	L390	OTHER_ERROR:TLC threw an unexpected exception.	56	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 3通りすべて性質違反で kill(CountersBoundedByOps)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#98@17661	L397	ACTION:TerminalAbsorbing	1205	1037	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+eq->neq#99@17717	L400	OTHER_ERROR:TLC threw an unexpected exception.	226	225	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#100@17745	L401	OTHER_ERROR:TLC threw an unexpected exception.	244	240	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ReportedDoneOnlyWithoutDoneWhen)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#101@18237	L410	OTHER_ERROR:TLC threw an unexpected exception.	46814	16775	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#102@18266	L411	OTHER_ERROR:TLC threw an unexpected exception.	46806	16776	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#103@18753	L420	OTHER_ERROR:TLC threw an unexpected exception.	3076	1857	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#104@18787	L421	OTHER_ERROR:TLC threw an unexpected exception.	3029	1812	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(BudgetExceededOnlyWhenSpent, ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#105@19312	L431	INV:BudgetExceededOnlyWhenSpent	101	101	CODE		INV:BudgetExceededOnlyWhenSpent	INV:BudgetExceededOnlyWhenSpent
+eq->neq#106@19330	L432	OTHER_ERROR:TLC threw an unexpected exception.	287528	92044	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#107@19364	L433	OTHER_ERROR:TLC threw an unexpected exception.	333831	104514	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, JudgeUnavailableOnlyAfterFailures, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#108@19897	L444	OTHER_ERROR:TLC threw an unexpected exception.	553	525	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#109@19930	L445	OTHER_ERROR:TLC threw an unexpected exception.	546	521	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ExploreNeverReportedDone, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#110@20411	L454	OTHER_ERROR:TLC threw an unexpected exception.	56	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 1通り中 1通りが緑(timeUp'=FALSE)。abstraction-limited: 時刻の経過が起こらなくなる。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#111@20902	L463	OTHER_ERROR:TLC threw an unexpected exception.	58	58	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#112@20933	L464	OTHER_ERROR:TLC threw an unexpected exception.	58	58	CODE	エラーで止まった(証拠でない)→値ごとの再検査[x' = v かつ ≠ 元の式]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ReportedDoneOnlyWithoutDoneWhen, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+eq->neq#113@21851	L493	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+eq->neq#114@21922	L495	INV:NeverOperatesForbidden			CODE		INV:NeverOperatesForbidden	INV:NeverOperatesForbidden
+eq->neq#115@22017	L499	INV:LowConfidenceBackNeverActed	45	45	CODE		INV:LowConfidenceBackNeverActed	INV:LowConfidenceBackNeverActed
+eq->neq#116@22056	L499	INV:LowConfidenceBackNeverActed	292	284	CODE		INV:LowConfidenceBackNeverActed	INV:LowConfidenceBackNeverActed
+eq->neq#117@22193	L503	INV:DirectOpActedOnlyOnSafeTarget	11	11	CODE		INV:DirectOpActedOnlyOnSafeTarget	INV:DirectOpActedOnlyOnSafeTarget
+eq->neq#118@22455	L508	ACTION:GoalPreempts	179763	58096	CODE		ACTION:GoalPreempts	ACTION:GoalPreempts
+eq->neq#119@22478	L508	ACTION:GoalPreempts	563	534	CODE		ACTION:LimitStops	ACTION:LimitStops
+eq->neq#120@22753	L512	ACTION:GoalPreempts	57	57	CODE		ACTION:GoalPreempts	ACTION:GoalPreempts
+eq->neq#121@22988	L518	INV:ExploreGoalOnlyWhenAllExplored	217	217	CODE		INV:ExploreGoalOnlyWhenAllExplored	INV:ExploreGoalOnlyWhenAllExplored
+eq->neq#122@23014	L518	INV:ExploreGoalOnlyWhenAllExplored			CODE		INV:ExploreGoalOnlyWhenAllExplored	INV:ExploreGoalOnlyWhenAllExplored
+eq->neq#123@23045	L518	INV:ExploreGoalOnlyWhenAllExplored	206794	66524	CODE		INV:ExploreGoalOnlyWhenAllExplored	INV:ExploreGoalOnlyWhenAllExplored
+eq->neq#124@23221	L522	INV:ScenarioGoalOnlyAtLastStage			CODE		INV:ScenarioGoalOnlyAtLastStage	INV:ScenarioGoalOnlyAtLastStage
+eq->neq#125@23250	L522	INV:ScenarioGoalOnlyAtLastStage	232	229	CODE		INV:ScenarioGoalOnlyAtLastStage	INV:ScenarioGoalOnlyAtLastStage
+eq->neq#126@23395	L526	INV:ReportedDoneOnlyWithoutDoneWhen			CODE		INV:ReportedDoneOnlyWithoutDoneWhen	INV:ReportedDoneOnlyWithoutDoneWhen
+eq->neq#127@23559	L530	INV:ExploreNeverReportedDone	1373	1086	CODE		INV:ExploreNeverReportedDone	INV:ExploreNeverReportedDone
+eq->neq#128@23707	L534	INV:ExitReasonMatchesPhase			CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#129@23782	L535	INV:ExitReasonMatchesPhase			CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#130@23806	L535	INV:ExitReasonMatchesPhase	1448	1106	CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#131@23829	L536	INV:ExitReasonMatchesPhase			CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#132@23916	L537	INV:ExitReasonMatchesPhase			CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#133@23944	L537	INV:ExitReasonMatchesPhase	598	571	CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#134@23975	L538	INV:ExitReasonMatchesPhase			CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#135@24001	L538	INV:ExitReasonMatchesPhase	60	60	CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#136@24061	L539	INV:ExitReasonMatchesPhase			CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+eq->neq#137@24158	L543	INV:TimeExceededOnlyWhenTimeUp			CODE		INV:TimeExceededOnlyWhenTimeUp	INV:TimeExceededOnlyWhenTimeUp
+eq->neq#138@24272	L547	INV:StagesOnlyInScenario			CODE		INV:StagesOnlyInScenario	INV:StagesOnlyInScenario
+eq->neq#139@24294	L547	INV:StagesOnlyInScenario			CODE		INV:StagesOnlyInScenario	INV:StagesOnlyInScenario
+eq->neq#140@24697	L559	INV:NoProposalBeforeDecision	11	11	CODE		INV:NoProposalBeforeDecision	INV:NoProposalBeforeDecision
+eq->neq#141@24724	L560	INV:NoProposalBeforeDecision			CODE		INV:NoProposalBeforeDecision	INV:NoProposalBeforeDecision
+eq->neq#142@24751	L560	INV:NoProposalBeforeDecision			CODE		INV:NoProposalBeforeDecision	INV:NoProposalBeforeDecision
+eq->neq#143@25110	L572	INV:BudgetAccounting			CODE		INV:BudgetAccounting	INV:BudgetAccounting
+eq->neq#144@25165	L573	INV:BudgetAccounting			CODE		INV:BudgetAccounting	INV:BudgetAccounting
+eq->neq#145@25263	L577	INV:BudgetExceededOnlyWhenSpent			CODE		INV:BudgetExceededOnlyWhenSpent	INV:BudgetExceededOnlyWhenSpent
+eq->neq#146@25301	L577	INV:BudgetExceededOnlyWhenSpent	334159	104590	CODE		INV:BudgetExceededOnlyWhenSpent	INV:BudgetExceededOnlyWhenSpent
+eq->neq#147@25400	L581	INV:JudgeUnavailableOnlyAfterFailures			CODE		INV:JudgeUnavailableOnlyAfterFailures	INV:JudgeUnavailableOnlyAfterFailures
+eq->neq#148@25934	L597	INV:RecoveryOnlyAfterFreeze			CODE		INV:RecoveryOnlyAfterFreeze	INV:RecoveryOnlyAfterFreeze
+eq->neq#149@26084	L601	INV:RecoveryResetsPageState	223	220	CODE		INV:RecoveryResetsPageState	INV:RecoveryResetsPageState
+eq->neq#150@26121	L601	INV:RecoveryResetsPageState	176002	57595	CODE		PASS	PASS
+eq->neq#151@26248	L605	INV:DomainRecordAccurate			CODE		INV:DomainRecordAccurate	INV:DomainRecordAccurate
+eq->neq#152@26568	L613	INV:ProposalWellFormed	343	330	CODE		INV:ProposalWellFormed	PASS
+eq->neq#153@26639	L613	INV:ProposalWellFormed	23	23	CODE		INV:ProposalWellFormed	INV:ProposalWellFormed
+eq->neq#154@26708	L614	INV:ProposalWellFormed	13	13	CODE		INV:ProposalWellFormed	PASS
+eq->neq#155@26846	L616	INV:ProposalWellFormed	61	61	CODE		INV:ProposalWellFormed	INV:ProposalWellFormed
+eq->neq#156@26988	L621	ACTION:StageAdvancePreempts	60	60	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+eq->neq#157@27015	L621	ACTION:StageAdvancePreempts	60	60	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+eq->neq#158@27184	L625	PASS	1879594	560893	CODE	killed: 主の設定では緑だが、WebExploratoryQA.noexplorable.cfg(探索してよい要素が空)で ACTION:GoalPreempts	ACTION:GoalPreempts	ACTION:GoalPreempts
+eq->neq#159@27221	L625	ACTION:GoalPreempts	232	229	CODE		ACTION:GoalPreempts	ACTION:GoalPreempts
+eq->neq#160@27245	L625	ACTION:GoalPreempts	228	226	CODE		ACTION:GoalPreempts	ACTION:GoalPreempts
+eq->neq#161@27391	L629	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+eq->neq#162@27429	L629	ACTION:StageAdvancePreempts	57	57	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+eq->neq#163@27448	L629	ACTION:StageAdvancePreempts	57	57	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+eq->neq#164@27592	L633	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+eq->neq#165@27685	L633	ACTION:StuckPreempts	46816	16777	CODE		ACTION:StuckPreempts	ACTION:StuckPreempts
+eq->neq#166@27873	L638	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+eq->neq#167@28008	L639	ACTION:JudgeDownStops	3091	1869	CODE		ACTION:JudgeDownStops	ACTION:JudgeDownStops
+eq->neq#168@28038	L639	ACTION:JudgeDownStops	2980	1769	CODE		ACTION:JudgeDownStops	ACTION:JudgeDownStops
+eq->neq#169@28218	L644	ACTION:LimitStops	824	734	CODE		ACTION:LimitStops	ACTION:LimitStops
+eq->neq#170@28358	L645	ACTION:LimitStops	11	11	CODE		ACTION:LimitStops	ACTION:LimitStops
+eq->neq#171@28402	L646	ACTION:LimitStops	332446	104295	CODE		ACTION:LimitStops	ACTION:LimitStops
+eq->neq#172@28416	L646	ACTION:LimitStops	334081	104545	CODE		ACTION:LimitStops	ACTION:LimitStops
+eq->neq#173@28453	L646	ACTION:LimitStops	541	516	CODE		ACTION:LimitStops	ACTION:LimitStops
+eq->neq#174@28565	L650	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+eq->neq#175@28809	L655	ACTION:SafeProposalProceeds	7	7	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+eq->neq#176@28877	L657	ACTION:SafeProposalProceeds	320	309	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+eq->neq#177@29025	L659	ACTION:SafeProposalProceeds	221	221	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+eq->neq#178@29262	L664	ACTION:AwaitingOnlyByDecision	56	56	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+eq->neq#179@29304	L664	ACTION:AwaitingOnlyByDecision	11	11	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+eq->neq#180@29351	L665	ACTION:AwaitingOnlyByDecision	56	56	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+eq->neq#181@29430	L666	ACTION:AwaitingOnlyByDecision	11	11	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+eq->neq#182@29479	L667	ACTION:AwaitingOnlyByDecision	99	99	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+eq->neq#183@29498	L667	ACTION:AwaitingOnlyByDecision	99	99	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+eq->neq#184@29522	L667	ACTION:AwaitingOnlyByDecision	99	99	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+eq->neq#185@29730	L672	ACTION:JudgeFailsTracksReplies	11	11	CODE		ACTION:JudgeFailsTracksReplies	ACTION:JudgeFailsTracksReplies
+eq->neq#186@29833	L674	ACTION:JudgeFailsTracksReplies	11	11	CODE		ACTION:JudgeFailsTracksReplies	ACTION:JudgeFailsTracksReplies
+eq->neq#187@29845	L674	ACTION:JudgeFailsTracksReplies	11	11	CODE		ACTION:JudgeFailsTracksReplies	ACTION:JudgeFailsTracksReplies
+eq->neq#188@30031	L678	ACTION:ActingOnlyAfterGuardrails	7	7	CODE		ACTION:ActingOnlyAfterGuardrails	ACTION:ActingOnlyAfterGuardrails
+eq->neq#189@30053	L678	ACTION:ActingOnlyAfterGuardrails	226	223	CODE		ACTION:ActingOnlyAfterGuardrails	ACTION:ActingOnlyAfterGuardrails
+eq->neq#190@30201	L682	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+eq->neq#191@30296	L682	ACTION:FreezeRecoveryRecorded	175050	57458	CODE		ACTION:FreezeRecoveryRecorded	ACTION:FreezeRecoveryRecorded
+eq->neq#192@30312	L682	ACTION:FreezeRecoveryRecorded	177326	57758	CODE		PASS	PASS
+eq->neq#193@30468	L686	ACTION:VisitedChangesOnlyByExecution	1201	1032	CODE		PASS	PASS
+eq->neq#194@30489	L686	ACTION:VisitedChangesOnlyByExecution	1201	1032	CODE		PASS	PASS
+eq->neq#195@30612	L690	ACTION:PaywallForcesBack	2255	1250	CODE		ACTION:PaywallForcesBack	ACTION:PaywallForcesBack
+eq->neq#196@30660	L690	ACTION:PaywallForcesBack	354	340	CODE		ACTION:PaywallForcesBack	ACTION:PaywallForcesBack
+eq->neq#197@30686	L690	ACTION:PaywallForcesBack	350	337	CODE		ACTION:PaywallForcesBack	ACTION:PaywallForcesBack
+eq->neq#198@30844	L694	ACTION:ProposalOutcome	11	11	CODE		ACTION:ProposalOutcome	ACTION:ProposalOutcome
+eq->neq#199@30876	L695	ACTION:ProposalOutcome	1201	1032	CODE		ACTION:ProposalOutcome	ACTION:ProposalOutcome
+eq->neq#200@30894	L695	ACTION:ProposalOutcome	1201	1032	CODE		ACTION:ProposalOutcome	ACTION:ProposalOutcome
+eq->neq#201@30927	L695	ACTION:ProposalOutcome	1205	1036	CODE		ACTION:ProposalOutcome	ACTION:ProposalOutcome
+eq->neq#202@31090	L699	ACTION:IdleCounterTracksScreen	5821	3313	CODE		ACTION:IdleCounterTracksScreen	ACTION:IdleCounterTracksScreen
+eq->neq#203@31111	L699	ACTION:IdleCounterTracksScreen	75363	27161	CODE		ACTION:IdleCounterTracksScreen	ACTION:IdleCounterTracksScreen
+eq->neq#204@31146	L700	ACTION:IdleCounterTracksScreen	1210	1038	CODE		ACTION:IdleCounterTracksScreen	ACTION:IdleCounterTracksScreen
+eq->neq#205@31489	L709	ACTION:StuckCounterTracksNewElements	55	55	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+eq->neq#206@31510	L709	ACTION:StuckCounterTracksNewElements	1208	1039	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+eq->neq#207@31546	L710	ACTION:StuckCounterTracksNewElements	1200	1032	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+eq->neq#208@31560	L710	ACTION:StuckCounterTracksNewElements	1201	1032	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+eq->neq#209@31579	L710	ACTION:StuckCounterTracksNewElements	1352	1072	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+eq->neq#210@31822	L715	ACTION:RefusalCountsStuck	153	153	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+eq->neq#211@31854	L715	ACTION:RefusalCountsStuck	606	577	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+eq->neq#212@31890	L716	ACTION:RefusalCountsStuck	159	159	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+eq->neq#213@31922	L716	ACTION:RefusalCountsStuck	220	218	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+eq->neq#214@31984	L716	ACTION:RefusalCountsStuck	607	578	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+eq->neq#215@32159	L721	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+eq->neq#216@32178	L721	ACTION:NoDecisionOutsideDomain	793	705	CODE		ACTION:NoDecisionOutsideDomain	ACTION:NoDecisionOutsideDomain
+eq->neq#217@32415	L727	ACTION:StageAdvanceResetsCounters	57	57	CODE		ACTION:StageAdvanceResetsCounters	ACTION:StageAdvanceResetsCounters
+eq->neq#218@32434	L727	ACTION:StageAdvanceResetsCounters	57	57	CODE		ACTION:StageAdvanceResetsCounters	ACTION:StageAdvanceResetsCounters
+eq->neq#219@32469	L727	ACTION:StageAdvanceResetsCounters	57	57	CODE		ACTION:StageAdvanceResetsCounters	ACTION:StageAdvanceResetsCounters
+eq->neq#220@32509	L728	ACTION:StageAdvanceResetsCounters	57	57	CODE		ACTION:StageAdvanceResetsCounters	ACTION:StageAdvanceResetsCounters
+eq->neq#221@32530	L728	ACTION:StageAdvanceResetsCounters	57	57	CODE		ACTION:StageAdvanceResetsCounters	ACTION:StageAdvanceResetsCounters
+eq->neq#222@33527	L751	ACTION:ModeFixed	7	7	CODE		ACTION:ModeFixed	ACTION:ModeFixed
+eq->neq#223@33873	L757	ACTION:ProposalChangesOnlyByDecision	11	11	CODE		ACTION:ProposalChangesOnlyByDecision	ACTION:ProposalChangesOnlyByDecision
+eq->neq#224@33921	L758	ACTION:ProposalChangesOnlyByDecision	354	340	CODE		ACTION:ProposalChangesOnlyByDecision	ACTION:ProposalChangesOnlyByDecision
+eq->neq#225@33971	L758	ACTION:ProposalChangesOnlyByDecision	360	346	CODE		ACTION:ProposalChangesOnlyByDecision	ACTION:ProposalChangesOnlyByDecision
+eq->neq#226@34281	L765	ACTION:CountersChangeOnlyBySteps	1200	1032	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+eq->neq#227@34302	L765	ACTION:CountersChangeOnlyBySteps	1201	1032	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+eq->neq#228@34322	L765	ACTION:CountersChangeOnlyBySteps	182228	58109	CODE		PASS	PASS
+eq->neq#229@34353	L765	ACTION:CountersChangeOnlyBySteps	5934	3422	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+eq->neq#230@34476	L767	ACTION:CountersChangeOnlyBySteps	160	160	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+eq->neq#231@34496	L767	ACTION:CountersChangeOnlyBySteps	6479	3687	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+eq->neq#232@34724	L772	ACTION:DomainChangesOnlyByNavigation	1207	1038	CODE		ACTION:DomainChangesOnlyByNavigation	ACTION:DomainChangesOnlyByNavigation
+eq->neq#233@34745	L772	ACTION:DomainChangesOnlyByNavigation	1207	1038	CODE		ACTION:DomainChangesOnlyByNavigation	ACTION:DomainChangesOnlyByNavigation
+eq->neq#234@34780	L773	ACTION:DomainChangesOnlyByNavigation	222	220	CODE		PASS	PASS
+eq->neq#235@34812	L773	ACTION:DomainChangesOnlyByNavigation	160	160	CODE		PASS	PASS
+eq->neq#236@34983	L775	ACTION:DomainChangesOnlyByNavigation	814	724	CODE		ACTION:DomainChangesOnlyByNavigation	ACTION:DomainChangesOnlyByNavigation
+eq->neq#237@35002	L775	ACTION:DomainChangesOnlyByNavigation	1208	1038	CODE		ACTION:DomainChangesOnlyByNavigation	ACTION:DomainChangesOnlyByNavigation
+eq->neq#238@35216	L780	ACTION:ObservationChangesOnlyByExecution	1210	1038	CODE		ACTION:ObservationChangesOnlyByExecution	ACTION:ObservationChangesOnlyByExecution
+eq->neq#239@35237	L780	ACTION:ObservationChangesOnlyByExecution	1201	1032	CODE		ACTION:ObservationChangesOnlyByExecution	ACTION:ObservationChangesOnlyByExecution
+eq->neq#240@35301	L782	ACTION:ObservationChangesOnlyByExecution	1204	1036	CODE		ACTION:ObservationChangesOnlyByExecution	ACTION:ObservationChangesOnlyByExecution
+eq->neq#241@35322	L782	ACTION:ObservationChangesOnlyByExecution	1205	1036	CODE		ACTION:ObservationChangesOnlyByExecution	ACTION:ObservationChangesOnlyByExecution
+eq->neq#242@35342	L782	ACTION:ObservationChangesOnlyByExecution	28584	10708	CODE		PASS	PASS
+eq->neq#243@35580	L786	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	1198	1031	CODE		ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance
+eq->neq#244@35601	L786	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	1201	1033	CODE		ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance
+eq->neq#245@35621	L786	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+eq->neq#246@35686	L787	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	57	57	CODE		ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance
+eq->neq#247@36432	L802	OTHER_ERROR:Property line 802, col 8 to line 802, col 21 of module Meq__neq_247_36432 is vio			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言 "Property ... is violated by the initial state" が分類器の正規表現に掛からなかっただけ)	OTHER_ERROR:Property line 802, col 8 to line 802, col 21 of module Meq__neq_247_36432 is vio	OTHER_ERROR:Property line 802, col 8 to line 802, col 21 of module Meq__neq_247_36432 is vio
+eq->neq#248@36450	L802	OTHER_ERROR:Property line 802, col 26 to line 802, col 34 of module Meq__neq_248_36450 is vi			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言 "Property ... is violated by the initial state" が分類器の正規表現に掛からなかっただけ)	OTHER_ERROR:Property line 802, col 26 to line 802, col 34 of module Meq__neq_248_36450 is vi	OTHER_ERROR:Property line 802, col 26 to line 802, col 34 of module Meq__neq_248_36450 is vi
+eq->neq#249@36465	L802	OTHER_ERROR:Property line 802, col 39 to line 802, col 50 of module Meq__neq_249_36465 is vi			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言 "Property ... is violated by the initial state" が分類器の正規表現に掛からなかっただけ)	OTHER_ERROR:Property line 802, col 39 to line 802, col 50 of module Meq__neq_249_36465 is vi	OTHER_ERROR:Property line 802, col 39 to line 802, col 50 of module Meq__neq_249_36465 is vi
+eq->neq#250@36495	L802	OTHER_ERROR:Property line 802, col 66 to line 802, col 84 of module Meq__neq_250_36495 is vi			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言 "Property ... is violated by the initial state" が分類器の正規表現に掛からなかっただけ)	OTHER_ERROR:Property line 802, col 66 to line 802, col 84 of module Meq__neq_250_36495 is vi	OTHER_ERROR:Property line 802, col 66 to line 802, col 84 of module Meq__neq_250_36495 is vi
+eq->neq#251@36523	L803	OTHER_ERROR:Property line 803, col 8 to line 803, col 22 of module Meq__neq_251_36523 is vio			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言 "Property ... is violated by the initial state" が分類器の正規表現に掛からなかっただけ)	OTHER_ERROR:Property line 803, col 8 to line 803, col 22 of module Meq__neq_251_36523 is vio	OTHER_ERROR:Property line 803, col 8 to line 803, col 22 of module Meq__neq_251_36523 is vio
+eq->neq#252@36543	L803	OTHER_ERROR:Property line 803, col 27 to line 803, col 42 of module Meq__neq_252_36543 is vi			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言 "Property ... is violated by the initial state" が分類器の正規表現に掛からなかっただけ)	OTHER_ERROR:Property line 803, col 27 to line 803, col 42 of module Meq__neq_252_36543 is vi	OTHER_ERROR:Property line 803, col 27 to line 803, col 42 of module Meq__neq_252_36543 is vi
+eq->neq#253@36575	L803	OTHER_ERROR:Property line 803, col 67 to line 803, col 98 of module Meq__neq_253_36575 is vi			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言 "Property ... is violated by the initial state" が分類器の正規表現に掛からなかっただけ)	OTHER_ERROR:Property line 803, col 67 to line 803, col 98 of module Meq__neq_253_36575 is vi	OTHER_ERROR:Property line 803, col 67 to line 803, col 98 of module Meq__neq_253_36575 is vi
+eq->neq#254@36626	L804	OTHER_ERROR:Property line 804, col 8 to line 804, col 36 of module Meq__neq_254_36626 is vio			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言は Property ... is violated by the initial state)	OTHER_ERROR:Property line 804, col 8 to line 804, col 36 of module Meq__neq_254_36626 is vio	OTHER_ERROR:Property line 804, col 8 to line 804, col 36 of module Meq__neq_254_36626 is vio
+eq->neq#255@36658	L804	OTHER_ERROR:Property line 804, col 41 to line 804, col 67 of module Meq__neq_255_36658 is vi			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言は Property ... is violated by the initial state)	OTHER_ERROR:Property line 804, col 41 to line 804, col 67 of module Meq__neq_255_36658 is vi	OTHER_ERROR:Property line 804, col 41 to line 804, col 67 of module Meq__neq_255_36658 is vi
+eq->neq#256@36686	L804	OTHER_ERROR:Property line 804, col 72 to line 804, col 85 of module Meq__neq_256_36686 is vi			CODE	killed: 性質違反(StartsFresh の連言が初期状態で偽。TLC の文言は Property ... is violated by the initial state)	OTHER_ERROR:Property line 804, col 72 to line 804, col 85 of module Meq__neq_256_36686 is vi	OTHER_ERROR:Property line 804, col 72 to line 804, col 85 of module Meq__neq_256_36686 is vi
+and->or#0@5254	L120	INV:ProposalWellFormed	23	23	CODE		INV:ProposalWellFormed	PASS
+and->or#1@5439	L123	INV:ExploreGoalOnlyWhenAllExplored	563	534	CODE		INV:ExploreGoalOnlyWhenAllExplored	INV:ExploreGoalOnlyWhenAllExplored
+and->or#2@5575	L129	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#3@5597	L130	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#4@5627	L131	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#5@5651	L132	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#6@5706	L133	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#7@5755	L134	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#8@5790	L135	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#9@5819	L136	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#10@5851	L137	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#11@5884	L138	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#12@5911	L139	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#13@5942	L140	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#14@5976	L141	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#15@6003	L142	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#16@6031	L143	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#17@6066	L144	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#18@6097	L145	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#19@6123	L146	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#20@6165	L147	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#21@6194	L148	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#22@6234	L149	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#23@6266	L150	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#24@6308	L151	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#25@6531	L158	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#26@6553	L159	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill()	PARSE_ERROR	PARSE_ERROR
+and->or#27@6570	L160	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase, ProposalWellFormed, RecoveryOnlyAfterFreeze)	PARSE_ERROR	PARSE_ERROR
+and->or#28@6592	L161	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(NoProposalBeforeDecision)	PARSE_ERROR	PARSE_ERROR
+and->or#29@6619	L162	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(NoProposalBeforeDecision)	PARSE_ERROR	PARSE_ERROR
+and->or#30@6650	L163	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NoProposalBeforeDecision)	PARSE_ERROR	PARSE_ERROR
+and->or#31@6681	L164	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NoProposalBeforeDecision)	PARSE_ERROR	PARSE_ERROR
+and->or#32@6706	L165	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NoProposalBeforeDecision)	PARSE_ERROR	PARSE_ERROR
+and->or#33@6733	L166	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NoChangeObservedOnlyAfterOps)	PARSE_ERROR	PARSE_ERROR
+and->or#34@6761	L167	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NewSeenOnlyOnChangedAllowedPage)	PARSE_ERROR	PARSE_ERROR
+and->or#35@6784	L168	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 1通りが緑(conjunct unbound: doneWhenMet=FALSE)。abstraction-limited: 開始時の done_when の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#36@6828	L169	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(NeverOperatesForbidden, VisitedOnlyByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#37@6848	L170	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(CountersBoundedByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#38@6871	L171	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(CountersBoundedByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#39@6895	L172	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#40@6925	L173	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#41@6952	L174	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill()	PARSE_ERROR	PARSE_ERROR
+and->or#42@6974	L175	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 6通り中 1通りが緑(conjunct unbound: decisionBudget=4)。.cfg の定数と同じ値を代入して「≠ 元の式」で無効になる書き換えで equivalent	PARSE_ERROR	PARSE_ERROR
+and->or#43@7011	L176	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 5通りすべて性質違反で kill(BudgetAccounting, DecisionsWithinCap)	PARSE_ERROR	PARSE_ERROR
+and->or#44@7036	L177	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通り中 1通りが緑(conjunct unbound: requestBudget=2)。.cfg の定数と同じ値を代入して「≠ 元の式」で無効になる書き換えで equivalent	PARSE_ERROR	PARSE_ERROR
+and->or#45@7071	L178	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(BudgetAccounting, RequestsWithinWindowCap)	PARSE_ERROR	PARSE_ERROR
+and->or#46@7099	L179	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(JudgeFailsBounded, TypeOK)	PARSE_ERROR	PARSE_ERROR
+and->or#47@7121	L180	OTHER_ERROR:current state is not a legal state			CODE	エラーで止まった(証拠でない)→意味の通る書き換え: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	OTHER_ERROR:current state is not a legal state	OTHER_ERROR:current state is not a legal state
+and->or#48@7203	L183	ACTION:StageAdvancePreempts	106	57	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+and->or#49@7304	L184	ACTION:StageAdvancePreempts	106	57	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+and->or#50@7406	L185	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(JudgeDownStops)	PARSE_ERROR	PARSE_ERROR
+and->or#51@7439	L185	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(LimitStops)	PARSE_ERROR	PARSE_ERROR
+and->or#52@7461	L185	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(LimitStops)	PARSE_ERROR	PARSE_ERROR
+and->or#53@7806	L193	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#54@7824	L194	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(FreezePreemptsDecision)	PARSE_ERROR	PARSE_ERROR
+and->or#55@7859	L195	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TypeOK)	PARSE_ERROR	PARSE_ERROR
+and->or#56@7884	L196	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NoDecisionOutsideDomain)	PARSE_ERROR	PARSE_ERROR
+and->or#57@7907	L197	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 6通りすべて性質違反で kill(BudgetAccounting, TypeOK)	PARSE_ERROR	PARSE_ERROR
+and->or#58@7951	L198	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 6通りすべて性質違反で kill(BudgetAccounting, DecisionsWithinCap, NoProposalBeforeDecision)	PARSE_ERROR	PARSE_ERROR
+and->or#59@7993	L199	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(BudgetAccounting, TypeOK)	PARSE_ERROR	PARSE_ERROR
+and->or#60@8035	L200	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(BudgetAccounting, RequestsWithinWindowCap)	PARSE_ERROR	PARSE_ERROR
+and->or#61@8083	L201	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: 状態を変えない、または片方の枝だけにする]: 2通り中 2通りが緑(answer only (judge never fails); failure only (no answer ever))。abstraction-limited: 答えか失敗の片方だけになる(判断モデルが常に答える、または常に届かない)。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#62@8089	L201	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#63@8131	L202	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(JudgeFailsBounded, JudgeFailsTracksReplies, TypeOK)	PARSE_ERROR	PARSE_ERROR
+and->or#64@8160	L203	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	11	9	CODE	エラーで止まった(証拠でない)→意味の通る書き換え[この連言が縛らなくなる: 状態を変えない、または片方の枝だけにする]: 1通りすべて性質違反で kill(連言を外すだけの書き換えは代入が欠けて評価時エラーになり、証拠に数えず、状態を変えない書き換えに置き換えた)(ProposalWellFormed)	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex
+and->or#65@8295	L204	PASS	210483	76695	CODE	abstraction-limited: 対象の存在の観測が直接操作では常に偽になる(直接操作は一度も実行されない)。到達状態 210483/76695 に減るが、3つの設定のどれでも緑。要件が許す環境側の振る舞いを減らすだけ	PASS	PASS
+and->or#66@8351	L205	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#67@8385	L206	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(ProposalWellFormed)	PARSE_ERROR	PARSE_ERROR
+and->or#68@8422	L207	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 2通りが緑(conjunct unbound: proposedLowConf'=FALSE; conjunct unbound: proposedLowConf'=TRUE)。abstraction-limited: 判断モデルの確信度の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#69@8461	L208	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 2通りが緑(conjunct unbound: isPaywall'=FALSE; conjunct unbound: isPaywall'=TRUE)。abstraction-limited: 判断の応答と同時の課金画面の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#70@8494	L209	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	11	9	CODE	エラーで止まった(証拠でない)→意味の通る書き換え: 2通り中 1通りが緑(conjunct unbound: targetExists'=FALSE)。abstraction-limited: 対象の存在の観測を1つの値に固定(偽に固定すると直接操作は一度も実行されない)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex
+and->or#71@8526	L210	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#72@8568	L211	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	99	97	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 24通り中 1通りが緑(drop phase: phase'="idle")。abstraction-limited: 判断モデルに届かない失敗が起こらなくなる(失敗の枝が無効になる)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex
+and->or#73@8665	L212	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	7	5	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 41通りすべて性質違反で kill(CountersBoundedByOps, CountersChangeOnlyBySteps, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, ExitReasonMatchesPhase, ModeFixed, NeverOperatesForbidden, ObservationChangesOnlyByExecution…)	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex	OTHER_ERROR:Successor state is not completely specified by action RequestDecision of the nex
+and->or#74@8973	L218	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#75@8991	L219	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 緑。equivalent: 時間窓の巻き戻しのガードを外すと、予算が満タンのときに requestBudget'=MaxRequests, requestsInWindow'=0 の冪等な自己ループが増えるだけ(distinct は原本と同じ 560893)	PARSE_ERROR	PARSE_ERROR
+and->or#76@9026	L220	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通り中 1通りが緑(conjunct unbound: requestBudget'=2)。.cfg の定数と同じ値を代入して「≠ 元の式」で無効になる書き換えで equivalent	PARSE_ERROR	PARSE_ERROR
+and->or#77@9062	L221	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(BudgetAccounting, RequestsWithinWindowCap)	PARSE_ERROR	PARSE_ERROR
+and->or#78@9091	L222	OTHER_ERROR:Successor state is not completely specified by action ResetRequestWindow of the	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 81通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, ExitReasonMatchesPhase, ExploreGoalOnlyWhenAllExplored, JudgeFailsBounded…)	OTHER_ERROR:Successor state is not completely specified by action ResetRequestWindow of the	OTHER_ERROR:Successor state is not completely specified by action ResetRequestWindow of the
+and->or#79@9657	L230	OTHER_ERROR:TLC threw an unexpected exception.	158	158	CODE	エラーで止まった(証拠でない)→意味の通る書き換え: 8通りすべて性質違反で kill(CountersChangeOnlyBySteps, DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze)	OTHER_ERROR:TLC threw an unexpected exception.	OTHER_ERROR:TLC threw an unexpected exception.
+and->or#80@9680	L231	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	1490492	460687	CODE	エラーで止まった(証拠でない)→意味の通る書き換え: 4通りすべて性質違反で kill(CountersBoundedByOps, RefusalCountsStuck)	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex
+and->or#81@9733	L231	ACTION:RefusalCountsStuck	159	159	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+and->or#82@9763	L231	ACTION:RefusalCountsStuck	607	578	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+and->or#83@9859	L233	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#84@9889	L234	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#85@9924	L235	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	159	158	CODE	エラーで止まった(証拠でない)→意味の通る書き換え: 2通りすべて性質違反で kill(ObservationChangesOnlyByExecution)	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex
+and->or#86@9947	L235	ACTION:ObservationChangesOnlyByExecution	159	159	CODE		ACTION:ObservationChangesOnlyByExecution	ACTION:ObservationChangesOnlyByExecution
+and->or#87@10242	L242	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#88@10277	L243	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: 状態を変えない、または片方の枝だけにする]: 1通りすべて性質違反で kill(連言を外すだけの書き換えは代入が欠けて評価時エラーになり、証拠に数えず、状態を変えない書き換えに置き換えた)(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#89@10283	L243	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#90@10306	L244	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase, PaywallForcesBack, ProposalWellFormed, RecoveryOnlyAfterFreeze)	PARSE_ERROR	PARSE_ERROR
+and->or#91@10337	L245	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(PaywallForcesBack, ProposalWellFormed)	PARSE_ERROR	PARSE_ERROR
+and->or#92@10371	L246	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	159	158	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 16通りすべて性質違反で kill(CountersBoundedByOps, CountersChangeOnlyBySteps, DomainRecordAccurate, ObservationChangesOnlyByExecution, ProposalChangesOnlyByDecision, TEMPORAL)	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex
+and->or#93@10483	L247	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#94@10507	L248	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: 状態を変えない、または片方の枝だけにする]: 1通りすべて性質違反で kill(連言を外すだけの書き換えは代入が欠けて評価時エラーになり、証拠に数えず、状態を変えない書き換えに置き換えた)(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#95@10513	L248	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#96@10552	L249	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(SafeProposalProceeds)	PARSE_ERROR	PARSE_ERROR
+and->or#97@10587	L250	ACTION:SafeProposalProceeds	228	223	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+and->or#98@10620	L251	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#99@10664	L252	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(SafeProposalProceeds)	PARSE_ERROR	PARSE_ERROR
+and->or#100@10720	L253	ACTION:SafeProposalProceeds	227	223	CODE		OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	ACTION:SafeProposalProceeds
+and->or#101@10753	L254	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#102@10797	L255	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(SafeProposalProceeds)	PARSE_ERROR	PARSE_ERROR
+and->or#103@10830	L256	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	159	158	CODE	エラーで止まった(証拠でない)→意味の通る書き換え[この連言が縛らなくなる: 状態を変えない、または片方の枝だけにする]: 1通りすべて性質違反で kill(連言を外すだけの書き換えは代入が欠けて評価時エラーになり、証拠に数えず、状態を変えない書き換えに置き換えた)()	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex
+and->or#104@10863	L257	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#105@10907	L258	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(SafeProposalProceeds)	PARSE_ERROR	PARSE_ERROR
+and->or#106@10940	L259	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DomainChangesOnlyByNavigation)	PARSE_ERROR	PARSE_ERROR
+and->or#107@11013	L260	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	160	159	CODE	エラーで止まった(証拠でない)→意味の通る書き換え[この連言が縛らなくなる: 状態を変えない、または片方の枝だけにする]: 1通り中 1通りが緑(refusal outside not bound: stays awaiting)。abstraction-limited: 確かめ直しで許可ドメインの外に着く結果が起こらなくなる(止めて中に留まる枝は残る)。要件が許す環境側の振る舞いを減らすだけ	ACTION:DomainChangesOnlyByNavigation	ACTION:DomainChangesOnlyByNavigation
+and->or#108@11045	L261	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#109@11070	L261	TEMPORAL	75965	31059	CODE		TEMPORAL	TEMPORAL
+and->or#110@11106	L262	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DirectOpActedOnlyOnSafeTarget)	PARSE_ERROR	PARSE_ERROR
+and->or#111@11182	L262	INV:DirectOpActedOnlyOnSafeTarget	161	161	CODE		INV:DirectOpActedOnlyOnSafeTarget	INV:DirectOpActedOnlyOnSafeTarget
+and->or#112@11216	L263	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze, SafeProposalProceeds, TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#113@11253	L264	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	216	214	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 10通りすべて性質違反で kill(CountersBoundedByOps, CountersChangeOnlyBySteps, DomainRecordAccurate, ObservationChangesOnlyByExecution, TEMPORAL)	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex
+and->or#114@11332	L265	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	214	212	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 11通りすべて性質違反で kill(DirectOpActedOnlyOnSafeTarget, ProposalChangesOnlyByDecision)	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex
+and->or#115@11397	L266	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 59通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DirectOpActedOnlyOnSafeTarget, DoneWhenChangesOnlyByExecutionOrAdvance, ExitReasonMatchesPhase, JudgeFailsBounded…)	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex	OTHER_ERROR:Successor state is not completely specified by action ApplyGuardrails of the nex
+and->or#116@11993	L275	ACTION:StuckCounterTracksNewElements	1201	1032	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+and->or#117@12284	L282	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#118@12308	L283	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(ProposalOutcome)	PARSE_ERROR	PARSE_ERROR
+and->or#119@12351	L284	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#120@12384	L285	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, RecoveryResetsPageState, VisitedChangesOnlyByExecution)	PARSE_ERROR	PARSE_ERROR
+and->or#121@12407	L286	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(IdleCounterTracksScreen)	PARSE_ERROR	PARSE_ERROR
+and->or#122@12437	L287	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NewSeenOnlyOnChangedAllowedPage)	PARSE_ERROR	PARSE_ERROR
+and->or#123@12461	L288	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 1通りが緑(conjunct unbound: doneWhenMet'=FALSE)。abstraction-limited: 操作の後の done_when の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#124@12484	L289	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(CountersBoundedByOps, IdleCounterTracksScreen)	PARSE_ERROR	PARSE_ERROR
+and->or#125@12522	L290	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(CountersBoundedByOps, StuckCounterTracksNewElements)	PARSE_ERROR	PARSE_ERROR
+and->or#126@12558	L291	OTHER_ERROR:Successor state is not completely specified by action ExecuteNoChange of the nex	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 58通り中 4通りが緑(drop exitReason: exitReason'="none"; drop inAllowedDomain: inAllowedDomain'=TRUE; drop judgeFails: judgeFails'=0; drop pageOutside: pageOutside'=FALSE)。abstraction-limited: 画面が変化しない結果が起こらなくなる(ExecuteNoChange が無効になる)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:Successor state is not completely specified by action ExecuteNoChange of the nex	OTHER_ERROR:Successor state is not completely specified by action ExecuteNoChange of the nex
+and->or#127@12937	L298	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#128@12961	L299	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(ProposalOutcome)	PARSE_ERROR	PARSE_ERROR
+and->or#129@13004	L300	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#130@13037	L301	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, RecoveryOnlyAfterFreeze, VisitedChangesOnlyByExecution)	PARSE_ERROR	PARSE_ERROR
+and->or#131@13060	L302	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(IdleCounterTracksScreen)	PARSE_ERROR	PARSE_ERROR
+and->or#132@13089	L303	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 2通りが緑(conjunct unbound: newSeen'=FALSE; conjunct unbound: newSeen'=TRUE)。abstraction-limited: 新しく見えた要素の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#133@13117	L304	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 1通りが緑(conjunct unbound: doneWhenMet'=FALSE)。abstraction-limited: 操作の後の done_when の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#134@13140	L305	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(CountersBoundedByOps, IdleCounterTracksScreen)	PARSE_ERROR	PARSE_ERROR
+and->or#135@13164	L306	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(CountersBoundedByOps, StuckCounterTracksNewElements)	PARSE_ERROR	PARSE_ERROR
+and->or#136@13200	L307	OTHER_ERROR:Successor state is not completely specified by action ExecuteChange of the next-	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 58通り中 4通りが緑(drop exitReason: exitReason'="none"; drop inAllowedDomain: inAllowedDomain'=TRUE; drop judgeFails: judgeFails'=0; drop pageOutside: pageOutside'=FALSE)。abstraction-limited: 画面が変化する結果が起こらなくなる(ExecuteChange が無効になる)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:Successor state is not completely specified by action ExecuteChange of the next-	OTHER_ERROR:Successor state is not completely specified by action ExecuteChange of the next-
+and->or#137@13599	L314	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#138@13623	L315	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(ProposalOutcome)	PARSE_ERROR	PARSE_ERROR
+and->or#139@13666	L316	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(NeverOperatesForbidden, StuckCounterTracksNewElements, VisitedOnlyByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#140@13699	L317	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(AwaitingOnlyByDecision, ExitReasonMatchesPhase, RecoveryResetsPageState, VisitedChangesOnlyByExecution)	PARSE_ERROR	PARSE_ERROR
+and->or#141@13722	L318	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(IdleCounterTracksScreen)	PARSE_ERROR	PARSE_ERROR
+and->or#142@13751	L319	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(NewSeenOnlyOnChangedAllowedPage)	PARSE_ERROR	PARSE_ERROR
+and->or#143@13775	L320	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 1通りが緑(conjunct unbound: doneWhenMet'=FALSE)。abstraction-limited: 操作の後の done_when の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#144@13798	L321	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(CountersBoundedByOps, IdleCounterTracksScreen)	PARSE_ERROR	PARSE_ERROR
+and->or#145@13822	L322	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 4通りすべて性質違反で kill(CountersBoundedByOps, StuckCounterTracksNewElements)	PARSE_ERROR	PARSE_ERROR
+and->or#146@13858	L323	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#147@13885	L324	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#148@13917	L325	OTHER_ERROR:Successor state is not completely specified by action ExecuteOutOfDomain of the	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 54通り中 2通りが緑(drop exitReason: exitReason'="none"; drop judgeFails: judgeFails'=0)。abstraction-limited: 許可ドメインの外へ出る結果が起こらなくなる(ExecuteOutOfDomain が無効になる)。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:Successor state is not completely specified by action ExecuteOutOfDomain of the	OTHER_ERROR:Successor state is not completely specified by action ExecuteOutOfDomain of the
+and->or#149@14198	L330	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#150@14216	L331	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 緑。equivalent: 許可ドメインへの戻りのガードを外すと、中にいるときに pageOutside'=FALSE, inAllowedDomain'=TRUE の冪等な自己ループが増えるだけ(distinct は原本と同じ 560893)	PARSE_ERROR	PARSE_ERROR
+and->or#151@14240	L332	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#152@14268	L333	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(DomainRecordAccurate)	PARSE_ERROR	PARSE_ERROR
+and->or#153@14299	L334	OTHER_ERROR:Successor state is not completely specified by action ReturnToAllowedDomain of t	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 85通りすべて性質違反で kill(AwaitingOnlyByDecision, BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DirectOpActedOnlyOnSafeTarget, DoneWhenChangesOnlyByExecutionOrAdvance, ExitReasonMatchesPhase…)	OTHER_ERROR:Successor state is not completely specified by action ReturnToAllowedDomain of t	OTHER_ERROR:Successor state is not completely specified by action ReturnToAllowedDomain of t
+and->or#154@14842	L342	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#155@14866	L343	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(ProposalOutcome)	PARSE_ERROR	PARSE_ERROR
+and->or#156@14893	L344	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#157@14916	L345	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#158@14953	L346	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalDone of th	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, ExploreNeverReportedDone, JudgeFailsBounded, JudgeFailsTracksReplies…)	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalDone of th	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalDone of th
+and->or#159@15358	L352	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#160@15382	L353	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(ProposalOutcome)	PARSE_ERROR	PARSE_ERROR
+and->or#161@15410	L354	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#162@15434	L355	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#163@15463	L356	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalStuck of t	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, JudgeFailsBounded, JudgeFailsTracksReplies…)	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalStuck of t	OTHER_ERROR:Successor state is not completely specified by action FinishByProposalStuck of t
+and->or#164@16034	L365	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#165@16052	L366	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(RecoveryOnlyAfterFreeze)	PARSE_ERROR	PARSE_ERROR
+and->or#166@16088	L367	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ActingOnlyAfterGuardrails, ExitReasonMatchesPhase, FreezePreemptsDecision, FreezeRecoveryRecorded)	PARSE_ERROR	PARSE_ERROR
+and->or#167@16123	L368	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(CountersBoundedByOps, RecoveryResetsPageState)	PARSE_ERROR	PARSE_ERROR
+and->or#168@16147	L369	OTHER_ERROR:Successor state is not completely specified by action RecoverFromFreeze of the n	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 76通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, ExitReasonMatchesPhase, JudgeFailsTracksReplies…)	OTHER_ERROR:Successor state is not completely specified by action RecoverFromFreeze of the n	OTHER_ERROR:Successor state is not completely specified by action RecoverFromFreeze of the n
+and->or#169@16498	L374	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#170@16532	L375	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ActingOnlyAfterGuardrails, AwaitingOnlyByDecision, ExitReasonMatchesPhase, TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#171@16555	L376	OTHER_ERROR:Successor state is not completely specified by action ResumeAfterRecovery of the	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 80通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, ExitReasonMatchesPhase, JudgeFailsTracksReplies…)	OTHER_ERROR:Successor state is not completely specified by action ResumeAfterRecovery of the	OTHER_ERROR:Successor state is not completely specified by action ResumeAfterRecovery of the
+and->or#172@17066	L384	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#173@17088	L385	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(StageAdvanceResetsCounters)	PARSE_ERROR	PARSE_ERROR
+and->or#174@17104	L386	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TypeOK)	PARSE_ERROR	PARSE_ERROR
+and->or#175@17122	L387	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 1通りが緑(conjunct unbound: stage'=2)。.cfg の定数と同じ値を代入して「≠ 元の式」で無効になる書き換えで equivalent	PARSE_ERROR	PARSE_ERROR
+and->or#176@17148	L388	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 2通り中 2通りが緑(conjunct unbound: doneWhenMet'=FALSE; conjunct unbound: doneWhenMet'=TRUE)。abstraction-limited: 段階を進めた直後の done_when の観測を1つの値に固定。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#177@17193	L389	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(CountersBoundedByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#178@17217	L390	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 3通りすべて性質違反で kill(CountersBoundedByOps)	PARSE_ERROR	PARSE_ERROR
+and->or#179@17242	L391	OTHER_ERROR:Successor state is not completely specified by action AdvanceStage of the next-s	56	54	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 77通りすべて性質違反で kill(BudgetAccounting, DecisionsWithinCap, DomainRecordAccurate, ExitReasonMatchesPhase, JudgeFailsBounded, ModeFixed, NeverOperatesForbidden, NewSeenOnlyOnChangedAllowedPage…)	OTHER_ERROR:Successor state is not completely specified by action AdvanceStage of the next-s	OTHER_ERROR:Successor state is not completely specified by action AdvanceStage of the next-s
+and->or#180@17652	L397	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#181@17674	L398	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(ExploreGoalOnlyWhenAllExplored)	PARSE_ERROR	PARSE_ERROR
+and->or#182@17690	L399	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#183@17707	L400	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#184@17730	L401	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ReportedDoneOnlyWithoutDoneWhen)	PARSE_ERROR	PARSE_ERROR
+and->or#185@17767	L402	OTHER_ERROR:Successor state is not completely specified by action FinishNormally of the next	58	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, ExploreGoalOnlyWhenAllExplored, JudgeFailsBounded, ModeFixed…)	OTHER_ERROR:Successor state is not completely specified by action FinishNormally of the next	OTHER_ERROR:Successor state is not completely specified by action FinishNormally of the next
+and->or#186@18172	L408	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#187@18189	L409	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(LimitStops)	PARSE_ERROR	PARSE_ERROR
+and->or#188@18227	L410	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#189@18251	L411	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#190@18280	L412	OTHER_ERROR:Successor state is not completely specified by action FinishStuck of the next-st	58	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, JudgeFailsTracksReplies, ModeFixed…)	OTHER_ERROR:Successor state is not completely specified by action FinishStuck of the next-st	OTHER_ERROR:Successor state is not completely specified by action FinishStuck of the next-st
+and->or#191@18690	L418	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#192@18705	L419	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(JudgeUnavailableOnlyAfterFailures)	PARSE_ERROR	PARSE_ERROR
+and->or#193@18743	L420	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#194@18772	L421	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(BudgetExceededOnlyWhenSpent, ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#195@18813	L422	OTHER_ERROR:Successor state is not completely specified by action FinishJudgeUnavailable of	58	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, JudgeUnavailableOnlyAfterFailures, ModeFixed, NeverOperatesForbidden…)	OTHER_ERROR:Successor state is not completely specified by action FinishJudgeUnavailable of	OTHER_ERROR:Successor state is not completely specified by action FinishJudgeUnavailable of
+and->or#196@19203	L428	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#197@19220	L429	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(StuckPreempts)	PARSE_ERROR	PARSE_ERROR
+and->or#198@19257	L430	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(JudgeDownStops)	PARSE_ERROR	PARSE_ERROR
+and->or#199@19294	L431	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(BudgetExceededOnlyWhenSpent)	PARSE_ERROR	PARSE_ERROR
+and->or#200@19320	L432	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(DirectOpActedOnlyOnSafeTarget, ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#201@19349	L433	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, JudgeUnavailableOnlyAfterFailures, ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#202@19388	L434	OTHER_ERROR:Successor state is not completely specified by action ExceedDecisionBudget of th	58	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, JudgeFailsTracksReplies, ModeFixed, NeverOperatesForbidden…)	OTHER_ERROR:Successor state is not completely specified by action ExceedDecisionBudget of th	OTHER_ERROR:Successor state is not completely specified by action ExceedDecisionBudget of th
+and->or#203@19782	L440	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#204@19799	L441	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(StuckPreempts)	PARSE_ERROR	PARSE_ERROR
+and->or#205@19836	L442	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(JudgeDownStops)	PARSE_ERROR	PARSE_ERROR
+and->or#206@19873	L443	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TimeExceededOnlyWhenTimeUp)	PARSE_ERROR	PARSE_ERROR
+and->or#207@19887	L444	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#208@19915	L445	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#209@19952	L446	OTHER_ERROR:Successor state is not completely specified by action FinishTimeUp of the next-s	58	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, JudgeFailsBounded, JudgeFailsTracksReplies, ModeFixed…)	OTHER_ERROR:Successor state is not completely specified by action FinishTimeUp of the next-s	OTHER_ERROR:Successor state is not completely specified by action FinishTimeUp of the next-s
+and->or#210@20356	L452	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#211@20371	L453	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TerminalAbsorbing)	PARSE_ERROR	PARSE_ERROR
+and->or#212@20400	L454	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通り中 1通りが緑(conjunct unbound: timeUp'=FALSE)。abstraction-limited: 時刻の経過が起こらなくなる。要件が許す環境側の振る舞いを減らすだけ	PARSE_ERROR	PARSE_ERROR
+and->or#213@20422	L455	OTHER_ERROR:Successor state is not completely specified by action TimeElapses of the next-st	58	56	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 87通り中 1通りが緑(drop exitReason: exitReason'="none")。abstraction-limited: 時刻の経過が起こらなくなる。要件が許す環境側の振る舞いを減らすだけ	OTHER_ERROR:Successor state is not completely specified by action TimeElapses of the next-st	OTHER_ERROR:Successor state is not completely specified by action TimeElapses of the next-st
+and->or#214@20863	L462	PASS	1879594	560893	CODE	equivalent: 箇条の先頭の /\ が1項だけの \/ 箇条になり、後続の /\ と併せて元と同じ連言になる(構文上同値。直前の行は定義の見出しか、\/ の枝か、\E の本体の始まり)。到達状態数も原本と同じ	PASS	PASS
+and->or#215@20892	L463	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 8通りすべて性質違反で kill(ExitReasonMatchesPhase)	PARSE_ERROR	PARSE_ERROR
+and->or#216@20918	L464	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 7通りすべて性質違反で kill(ExitReasonMatchesPhase, ReportedDoneOnlyWithoutDoneWhen, ScenarioGoalOnlyAtLastStage)	PARSE_ERROR	PARSE_ERROR
+and->or#217@20954	L465	OTHER_ERROR:Successor state is not completely specified by action UserAbort of the next-stat	60	58	CODE	エラーで止まった(証拠でない)→値ごとの再検査[UNCHANGED から1変数ずつ外して別の値に]: 72通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, JudgeFailsBounded, JudgeFailsTracksReplies…)	OTHER_ERROR:Successor state is not completely specified by action UserAbort of the next-stat	OTHER_ERROR:Successor state is not completely specified by action UserAbort of the next-stat
+and->or#218@21769	L489	OTHER_ERROR:Successor state is not completely specified by action Next of the next-state rel	264	242	CODE	エラーで止まった(証拠でない)→意味の通る書き換え[終了状態の一歩で、1変数ずつ別の値に変える]: 89通りすべて性質違反で kill(BudgetAccounting, CountersBoundedByOps, CountersChangeOnlyBySteps, DecisionsWithinCap, DomainRecordAccurate, DoneWhenChangesOnlyByExecutionOrAdvance, ExitReasonMatchesPhase, JudgeFailsBounded…)	OTHER_ERROR:Successor state is not completely specified by action Next of the next-state rel	OTHER_ERROR:Successor state is not completely specified by action Next of the next-state rel
+and->or#219@22028	L499	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#220@22042	L499	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#221@22204	L503	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#222@22218	L503	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#223@22272	L504	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#224@22467	L508	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#225@22491	L508	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#226@22604	L510	ACTION:StageAdvancePreempts	53	53	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+and->or#227@22744	L512	ACTION:GoalPreempts	57	57	CODE		ACTION:GoalPreempts	ACTION:GoalPreempts
+and->or#228@22859	L514	ACTION:StageAdvancePreempts	11	11	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+and->or#229@23000	L518	INV:ExploreGoalOnlyWhenAllExplored			CODE		INV:ExploreGoalOnlyWhenAllExplored	INV:ExploreGoalOnlyWhenAllExplored
+and->or#230@23058	L518	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#231@23207	L522	INV:ScenarioGoalOnlyAtLastStage			CODE		INV:ScenarioGoalOnlyAtLastStage	INV:ScenarioGoalOnlyAtLastStage
+and->or#232@23262	L522	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#233@23698	L534	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#234@23773	L535	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#235@23820	L536	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#236@23907	L537	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#237@23966	L538	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#238@24022	L539	INV:ExitReasonMatchesPhase	60	60	CODE		INV:ExitReasonMatchesPhase	INV:ExitReasonMatchesPhase
+and->or#239@24298	L547	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#240@24441	L551	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#241@24460	L551	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#242@24733	L560	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#243@24760	L560	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#244@24780	L560	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#245@24794	L560	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#246@25076	L572	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#247@25129	L573	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#248@25554	L585	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#249@25695	L589	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#250@26125	L601	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#251@26446	L611	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#252@26501	L612	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#253@26558	L613	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#254@26590	L613	INV:ProposalWellFormed	11	11	CODE		INV:ProposalWellFormed	PASS
+and->or#255@26661	L614	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#256@26690	L614	INV:ProposalWellFormed	13	13	CODE		INV:ProposalWellFormed	INV:ProposalWellFormed
+and->or#257@26747	L615	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#258@26776	L615	INV:ProposalWellFormed	23	23	CODE		INV:ProposalWellFormed	INV:ProposalWellFormed
+and->or#259@26837	L616	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#260@27000	L621	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#261@27045	L621	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#262@27193	L625	ACTION:GoalPreempts	7	7	CODE		ACTION:GoalPreempts	ACTION:GoalPreempts
+and->or#263@27230	L625	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#264@27400	L629	ACTION:StageAdvancePreempts	11	11	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+and->or#265@27438	L629	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#266@27601	L633	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#267@27617	L633	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#268@27639	L633	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#269@27882	L638	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#270@27898	L638	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#271@27920	L638	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#272@27953	L638	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#273@28023	L639	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#274@28227	L644	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#275@28243	L644	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#276@28265	L644	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#277@28306	L645	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#278@28339	L645	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#279@28406	L646	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#280@28443	L646	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#281@28574	L650	ACTION:FreezePreemptsDecision	11	11	CODE		ACTION:FreezePreemptsDecision	ACTION:FreezePreemptsDecision
+and->or#282@28800	L655	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#283@28839	L656	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#284@28861	L657	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#285@28886	L657	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#286@28914	L658	ACTION:SafeProposalProceeds	7	7	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+and->or#287@28987	L658	ACTION:SafeProposalProceeds	219	217	CODE		ACTION:SafeProposalProceeds	ACTION:SafeProposalProceeds
+and->or#288@29220	L664	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#289@29252	L664	ACTION:AwaitingOnlyByDecision	56	56	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+and->or#290@29332	L665	ACTION:AwaitingOnlyByDecision	56	56	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+and->or#291@29420	L666	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#292@29488	L667	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#293@29507	L667	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#294@29712	L672	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#295@29762	L673	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#296@29818	L674	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#297@30021	L678	ACTION:ActingOnlyAfterGuardrails	7	7	CODE		ACTION:ActingOnlyAfterGuardrails	ACTION:ActingOnlyAfterGuardrails
+and->or#298@30210	L682	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#299@30226	L682	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#300@30248	L682	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#301@30280	L682	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#302@30479	L686	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#303@30634	L690	ACTION:PaywallForcesBack	159	159	CODE		ACTION:PaywallForcesBack	ACTION:PaywallForcesBack
+and->or#304@30671	L690	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#305@31101	L699	ACTION:IdleCounterTracksScreen	5821	3313	CODE		ACTION:IdleCounterTracksScreen	ACTION:IdleCounterTracksScreen
+and->or#306@31500	L709	ACTION:StuckCounterTracksNewElements	55	55	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+and->or#307@31570	L710	ACTION:StuckCounterTracksNewElements	1200	1032	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+and->or#308@31844	L715	ACTION:RefusalCountsStuck	153	153	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+and->or#309@31936	L716	ACTION:RefusalCountsStuck	217	217	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+and->or#310@31966	L716	ACTION:RefusalCountsStuck	607	578	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+and->or#311@32168	L721	ACTION:NoDecisionOutsideDomain	804	714	CODE		ACTION:NoDecisionOutsideDomain	ACTION:NoDecisionOutsideDomain
+and->or#312@32406	L727	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#313@32424	L727	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#314@32443	L727	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#315@32459	L727	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#316@32493	L728	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#317@32513	L728	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#318@33022	L744	ACTION:TimeElapsesAlone	7	7	CODE		ACTION:TimeElapsesAlone	ACTION:TimeElapsesAlone
+and->or#319@33863	L757	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#320@33912	L758	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#321@33943	L758	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#322@33956	L758	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#323@33996	L759	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#324@34226	L764	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#325@34292	L765	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#326@34373	L766	ACTION:CountersChangeOnlyBySteps	9	9	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+and->or#327@34466	L767	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#328@34735	L772	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#329@34771	L773	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#330@34802	L773	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#331@34821	L773	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#332@34858	L774	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#333@34886	L774	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#334@34903	L774	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#335@34992	L775	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#336@35011	L775	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#337@35170	L780	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#338@35227	L780	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#339@35254	L781	ACTION:ObservationChangesOnlyByExecution	7	7	CODE		ACTION:ObservationChangesOnlyByExecution	ACTION:ObservationChangesOnlyByExecution
+and->or#340@35312	L782	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#341@35364	L782	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#342@35385	L782	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#343@35535	L786	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#344@35552	L786	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	9	9	CODE		ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance
+and->or#345@35591	L786	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#346@35641	L787	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	9	9	CODE		ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance
+and->or#347@35657	L787	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	9	9	CODE		ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance
+and->or#348@35833	L791	ACTION:TerminationKeepsState	7	7	CODE		ACTION:TerminationKeepsState	ACTION:TerminationKeepsState
+and->or#349@36423	L802	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+and->or#350@36441	L802	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#351@36454	L802	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#352@36470	L802	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#353@36481	L802	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#354@36508	L803	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#355@36527	L803	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#356@36547	L803	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#357@36566	L803	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#358@36608	L804	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#359@36641	L804	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#360@36672	L804	PARSE_ERROR			CODE	invalid(構文エラー): 性質側(TypeOK/性質の定義)の変異で、Init・Next・Spec は原本と同一。再検査しない	PARSE_ERROR	PARSE_ERROR
+and->or#361@36989	L815	PARSE_ERROR			CODE	invalid(構文エラー): Spec の [][Next]_vars の連言。外すと次状態関係が無くなり TLC で検査できない(未検査)	PARSE_ERROR	PARSE_ERROR
+and->or#362@37019	L816	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#363@37047	L816	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#364@37078	L816	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#365@37119	L817	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#366@37219	L818	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#367@37266	L819	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#368@37299	L819	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#369@37346	L820	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#370@37376	L820	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#371@37421	L821	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#372@37446	L821	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#373@37473	L821	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#374@37510	L822	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#375@37545	L822	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+and->or#376@37578	L822	PARSE_ERROR			CODE	invalid(構文エラー)→意味の通る書き換え[この連言が縛らなくなる: ガードは外し、代入は値ごとに]: 1通りすべて性質違反で kill(TEMPORAL)	PARSE_ERROR	PARSE_ERROR
+plus->minus#0@7985	L198	INV:TypeOK	11	11	CODE		INV:TypeOK	INV:TypeOK
+plus->minus#1@8075	L200	INV:TypeOK	11	11	CODE		INV:TypeOK	INV:TypeOK
+plus->minus#2@8554	L210	INV:TypeOK	99	99	CODE		INV:TypeOK	INV:TypeOK
+plus->minus#3@9833	L232	INV:TypeOK	219	219	CODE		INV:TypeOK	INV:TypeOK
+plus->minus#4@12048	L275	INV:TypeOK	1347	1066	CODE		INV:TypeOK	INV:TypeOK
+plus->minus#5@12201	L280	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+plus->minus#6@12209	L280	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+plus->minus#7@12514	L289	INV:TypeOK	1201	1032	CODE		INV:TypeOK	INV:TypeOK
+plus->minus#8@12831	L295	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+plus->minus#9@13473	L311	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+plus->minus#10@13488	L311	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+plus->minus#11@14628	L338	PASS	1879594	560893	COMMENT	equivalent: コメント内の字面	PASS	PASS
+plus->minus#12@17140	L387	INV:TypeOK	57	57	CODE		INV:TypeOK	INV:TypeOK
+plus->minus#13@25094	L572	INV:BudgetAccounting	11	11	CODE		INV:BudgetAccounting	INV:BudgetAccounting
+plus->minus#14@25146	L573	INV:BudgetAccounting	11	11	CODE		INV:BudgetAccounting	INV:BudgetAccounting
+plus->minus#15@27456	L629	ACTION:StageAdvancePreempts	57	57	CODE		ACTION:StageAdvancePreempts	ACTION:StageAdvancePreempts
+plus->minus#16@29320	L664	ACTION:AwaitingOnlyByDecision	11	11	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+plus->minus#17@29367	L665	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+plus->minus#18@29535	L667	ACTION:AwaitingOnlyByDecision	99	99	CODE		ACTION:AwaitingOnlyByDecision	ACTION:AwaitingOnlyByDecision
+plus->minus#19@29746	L672	ACTION:JudgeFailsTracksReplies	11	11	CODE		ACTION:JudgeFailsTracksReplies	ACTION:JudgeFailsTracksReplies
+plus->minus#20@29890	L674	ACTION:JudgeFailsTracksReplies	99	99	CODE		ACTION:JudgeFailsTracksReplies	ACTION:JudgeFailsTracksReplies
+plus->minus#21@31190	L700	ACTION:IdleCounterTracksScreen	1200	1032	CODE		ACTION:IdleCounterTracksScreen	ACTION:IdleCounterTracksScreen
+plus->minus#22@31625	L710	ACTION:StuckCounterTracksNewElements	1346	1066	CODE		ACTION:StuckCounterTracksNewElements	ACTION:StuckCounterTracksNewElements
+plus->minus#23@32041	L717	ACTION:RefusalCountsStuck	160	160	CODE		ACTION:RefusalCountsStuck	ACTION:RefusalCountsStuck
+plus->minus#24@32477	L727	ACTION:StageAdvanceResetsCounters	57	57	CODE		ACTION:StageAdvanceResetsCounters	ACTION:StageAdvanceResetsCounters
+plus->minus#25@34361	L765	ACTION:CountersChangeOnlyBySteps	5934	3422	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+plus->minus#26@34504	L767	ACTION:CountersChangeOnlyBySteps	6480	3688	CODE		ACTION:CountersChangeOnlyBySteps	ACTION:CountersChangeOnlyBySteps
+plus->minus#27@35629	L786	PASS	1879594	560893	CODE	equivalent: 性質側(TypeOK/性質/性質側の定義)の変異。Init・Next・Spec の字面は原本と同一で到達グラフも同一、性質を弱めるだけ	PASS	PASS
+plus->minus#28@35694	L787	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	57	57	CODE		ACTION:DoneWhenChangesOnlyByExecutionOrAdvance	ACTION:DoneWhenChangesOnlyByExecutionOrAdvance

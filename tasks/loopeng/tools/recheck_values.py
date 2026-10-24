@@ -30,7 +30,7 @@ open(os.path.join(work, "R.cfg"), "w").write(cfg_src)
 
 S = lambda *xs: ['"%s"' % x for x in xs]
 DOM = {
-    "mode": S("scenario", "explore"), "stage": ["1", "2"],
+    "mode": S("scenario", "explore", "interview"), "stage": ["1", "2"],
     "phase": S("idle", "awaiting_decision", "acting", "done", "stuck", "frozen_recovered",
                "error_exit", "timed_out", "aborted"),
     "proposedOp": S("click", "back", "done", "stuck", "none"),
@@ -38,9 +38,9 @@ DOM = {
     "visited": ["{}", "{e1}", "{e2}", "{e3}", "{e1, e2}", "{e1, e3}", "{e2, e3}", "{e1, e2, e3}"],
     "idleCounter": list("0123"), "stuckCounter": list("0123"),
     "decisionBudget": list("012345"), "decisionsMade": list("012345"),
-    "requestBudget": list("0123"), "requestsInWindow": list("0123"),
+    "requestBudget": list("0123"), "requestsInWindow": list("0123"), "judgeFails": list("0123"),
     "exitReason": S("none", "goal_achieved", "reported_done", "stuck", "budget_exceeded",
-                    "time_exceeded", "user_aborted"),
+                    "judge_unavailable", "time_exceeded", "user_aborted"),
 }
 for b in ["proposedLowConf", "isPaywall", "targetExists", "screenChanged", "newSeen", "doneWhenMet",
           "inAllowedDomain", "pageOutside", "timeUp"]:
