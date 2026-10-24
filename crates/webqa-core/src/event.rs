@@ -191,6 +191,8 @@ pub enum TrialEnding {
     TimeUp,
     /// The user's interruption cut the trial.
     Interrupted,
+    /// The judge's failures in a row cut the trial.
+    JudgeDown,
 }
 
 /// The fields of an anomaly line, as serde writes the anomaly.

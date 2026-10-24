@@ -74,17 +74,19 @@ fn notes() -> Vec<Note> {
         Note::Rejected(Rejection::Replaced),
         Note::Issue(left),
         Note::Anomaly(Anomaly::Judge(JudgeError::Exhausted)),
+        Note::Anomaly(Anomaly::Judge(JudgeError::Api)),
         not_an_option(QuestionId::operation()),
         not_an_option(QuestionId::target()),
     ]
 }
 
-const REASONS: [ExitReason; 5] = [
+const REASONS: [ExitReason; 6] = [
     ExitReason::Stuck(StuckKind::NoProgress),
     ExitReason::Stuck(StuckKind::Declared),
     ExitReason::BudgetExceeded,
     ExitReason::TimeExceeded,
     ExitReason::ReportedDone,
+    ExitReason::JudgeUnavailable,
 ];
 
 fn noted(note: Note) -> Row {

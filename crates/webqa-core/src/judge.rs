@@ -230,6 +230,13 @@ impl JudgeError {
         serde_json::json!(self)
     }
 
+    /// Whether the judge could not be reached: an API error, a timeout or a
+    /// failed bridge. A broken or used-up answer is not such a failure.
+    #[must_use]
+    pub const fn unreachable(&self) -> bool {
+        matches!(self, Self::Api | Self::Timeout | Self::Bridge)
+    }
+
     /// The id of the question whose answer could not be used, if that is the
     /// failure.
     #[must_use]

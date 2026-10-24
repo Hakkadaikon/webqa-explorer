@@ -1,11 +1,11 @@
-//! The decision budget and the time window.
+//! The decision budget, the time window and the judge's failures in a row.
 
-use webqa_core::machine::State;
+use webqa_core::machine::{JUDGE_FAILURES, State};
 
 use super::view::{Property, Transition, asks};
 
 /// The caps hold, and only questions and accesses use them up.
-pub static LIMITS: [Property; 3] = [
+pub static LIMITS: [Property; 5] = [
     Property {
         name: "the budget and the window stay within their caps",
         holds: within_caps,
@@ -17,6 +17,14 @@ pub static LIMITS: [Property; 3] = [
     Property {
         name: "only a browser operation counts in the window",
         holds: counts_accesses,
+    },
+    Property {
+        name: "the judge's failures in a row stay within their limit",
+        holds: |t| t.after().failing() <= JUDGE_FAILURES,
+    },
+    Property {
+        name: "answers restart the judge's failures in a row",
+        holds: |t| t.op.is_none() || t.after().failing() == 0,
     },
 ];
 

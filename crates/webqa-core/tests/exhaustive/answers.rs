@@ -1,7 +1,6 @@
 //! The replies the judge may give.
 
 use std::collections::BTreeMap;
-use std::iter;
 
 use webqa_core::judge::{Answers, JudgeError, QuestionId, Usage};
 use webqa_core::machine::{Facts, Heard};
@@ -58,15 +57,21 @@ fn combinations() -> Vec<(&'static str, f64, &'static str)> {
         .collect()
 }
 
-/// The 42 replies with answers, then the judge failing.
-pub fn replies() -> Vec<Choice> {
-    let failed = Choice {
-        facts: Facts::Outside(Heard::Answered(Err(JudgeError::Exhausted))),
+/// The judge failing with `error`.
+const fn failed(error: JudgeError) -> Choice {
+    Choice {
+        facts: Facts::Outside(Heard::Answered(Err(error))),
         op: None,
-    };
+    }
+}
+
+/// The 42 replies with answers, then the judge out of answers, then the
+/// judge out of reach.
+pub fn replies() -> Vec<Choice> {
+    let failures = [JudgeError::Exhausted, JudgeError::Api].map(failed);
     combinations()
         .into_iter()
         .map(reply)
-        .chain(iter::once(failed))
+        .chain(failures)
         .collect()
 }

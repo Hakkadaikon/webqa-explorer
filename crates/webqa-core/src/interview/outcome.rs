@@ -45,6 +45,8 @@ pub enum Cut {
     TimeUp,
     /// The user interrupted the run (`user_aborted`).
     Interrupted,
+    /// The judge failed too many times in a row (`judge_unavailable`).
+    JudgeDown,
 }
 
 /// How a trial ended, as the ledger records it.

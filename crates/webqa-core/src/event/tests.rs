@@ -31,7 +31,7 @@ const ADDED: [&str; 14] = [
 ];
 
 /// Every way a trial ends and its name in the log.
-const ENDINGS: [(TrialEnding, &str); 7] = [
+const ENDINGS: [(TrialEnding, &str); 8] = [
     (TrialEnding::GoalMet, "goal_met"),
     (TrialEnding::Done, "done"),
     (TrialEnding::GaveUp, "gave_up"),
@@ -39,6 +39,7 @@ const ENDINGS: [(TrialEnding, &str); 7] = [
     (TrialEnding::BudgetSpent, "budget_spent"),
     (TrialEnding::TimeUp, "time_up"),
     (TrialEnding::Interrupted, "interrupted"),
+    (TrialEnding::JudgeDown, "judge_down"),
 ];
 
 #[test]
@@ -128,6 +129,10 @@ fn finished_names_reason_and_stuck() {
         ),
         (ExitReason::TimeExceeded, finished("time_exceeded", None)),
         (ExitReason::UserAborted, finished("user_aborted", None)),
+        (
+            ExitReason::JudgeUnavailable,
+            finished("judge_unavailable", None),
+        ),
     ];
     for (reason, event) in cases {
         assert_eq!(Event::finished(reason), event, "{reason:?}");

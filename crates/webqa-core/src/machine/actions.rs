@@ -5,6 +5,8 @@ mod answer_tests;
 #[cfg(test)]
 mod explore_tests;
 #[cfg(test)]
+mod failure_tests;
+#[cfg(test)]
 mod page_tests;
 #[cfg(test)]
 mod refuse_tests;
@@ -136,10 +138,21 @@ pub(super) fn touched(mut state: State, phase: Phase, touch: Touch, now: Duratio
 }
 
 /// Takes the judge's reply: a proposal to stop, finish with, or pass on.
-fn decide(state: State, reply: &Result<Answers, JudgeError>, now: Duration) -> Next {
+fn decide(mut state: State, reply: &Result<Answers, JudgeError>, now: Duration) -> Next {
+    state.failing = failing(state.failing, reply);
     match hear(reply, &state) {
         Ok(proposal) => judged(state, proposal, now),
         Err(anomaly) => idle(state.noted(Note::Anomaly(anomaly))),
+    }
+}
+
+/// The judge's failures in a row after `reply`: one more for a failure to
+/// reach the judge, none after any other reply.
+fn failing(count: u32, reply: &Result<Answers, JudgeError>) -> u32 {
+    if reply.as_ref().err().is_some_and(JudgeError::unreachable) {
+        count.saturating_add(1)
+    } else {
+        0
     }
 }
 

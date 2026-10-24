@@ -18,7 +18,7 @@ const fn flags(ended: Outcome) -> (bool, bool) {
     (ended.finished(), ended.unreached())
 }
 
-const CUTS: [Cut; 2] = [Cut::TimeUp, Cut::Interrupted];
+const CUTS: [Cut; 3] = [Cut::TimeUp, Cut::Interrupted, Cut::JudgeDown];
 
 #[test]
 fn cut_trials_not_counted() {
