@@ -52,7 +52,10 @@ fn one_operation_is_one_line_after_the_screen_text() {
 #[test]
 fn an_operation_without_target_and_without_change() {
     let got = shown(&[past("back", None, After::Unchanged)]);
-    let want = format!("{}\n\n{HEAD}\n1. back なし → 画面は変わらなかった", cart());
+    let want = format!(
+        "{}\n\n{HEAD}\n1. back 対象なし → 画面は変わらなかった",
+        cart()
+    );
     assert_eq!(got, want);
 }
 
@@ -62,7 +65,7 @@ fn five_operations_are_all_kept_oldest_first() {
         .map(|n| past(&format!("op{n}"), None, After::Shown))
         .collect();
     let lines: Vec<String> = (1..=5)
-        .map(|n| format!("{n}. op{n} なし → 同じページで表示が変わった"))
+        .map(|n| format!("{n}. op{n} 対象なし → 同じページで表示が変わった"))
         .collect();
     let want = format!("{}\n\n{HEAD}\n{}", cart(), lines.join("\n"));
     assert_eq!(shown(&all), want);
@@ -74,7 +77,7 @@ fn the_sixth_operation_drops_the_oldest() {
         .map(|n| past(&format!("op{n}"), None, After::Shown))
         .collect();
     let lines: Vec<String> = (1..=5)
-        .map(|n| format!("{n}. op{} なし → 同じページで表示が変わった", n + 1))
+        .map(|n| format!("{n}. op{} 対象なし → 同じページで表示が変わった", n + 1))
         .collect();
     let want = format!("{}\n\n{HEAD}\n{}", cart(), lines.join("\n"));
     assert_eq!(shown(&all), want);
@@ -122,10 +125,10 @@ fn a_repeated_operation_is_counted() {
     let want = [
         "直近の操作",
         "1. click 「検索」 → 別のページに移った",
-        "2. scroll_down なし → 同じページで表示が変わった",
-        "3. scroll_down なし → 同じページで表示が変わった",
-        "4. scroll_down なし → 同じページで表示が変わった",
-        "直前の操作 scroll_down なし が3回続いている",
+        "2. scroll_down 対象なし → 同じページで表示が変わった",
+        "3. scroll_down 対象なし → 同じページで表示が変わった",
+        "4. scroll_down 対象なし → 同じページで表示が変わった",
+        "直前の操作(scroll_down、対象なし)を3回続けて選んでいる",
     ];
     assert_eq!(got, Some(want.join("\n")));
 }
@@ -147,10 +150,10 @@ fn a_single_operation_has_no_count() {
 #[test]
 fn the_count_runs_beyond_the_five_lines() {
     let all = vec![past("scroll_down", None, After::Unchanged); 7];
-    let line = "scroll_down なし → 画面は変わらなかった";
+    let line = "scroll_down 対象なし → 画面は変わらなかった";
     let lines: Vec<String> = (1..=5).map(|n| format!("{n}. {line}")).collect();
     let want = format!(
-        "直近の操作\n{}\n直前の操作 scroll_down なし が7回続いている",
+        "直近の操作\n{}\n直前の操作(scroll_down、対象なし)を7回続けて選んでいる",
         lines.join("\n")
     );
     assert_eq!(section(&all), Some(want));
@@ -169,11 +172,11 @@ fn a_stopped_operation_is_told_as_stopped() {
     let want = [
         "直近の操作",
         "1. click 「検索」 → 別のページに移った",
-        "2. back なし → 止められた(禁止の要素)",
-        "3. back なし → 止められた(確信度が低い)",
-        "4. back なし → 止められた(要素が見つからない)",
-        "5. back なし → 止められた(別の要素に替わった)",
-        "直前の操作 back なし が4回続いている",
+        "2. back 対象なし → 止められた(禁止の要素)",
+        "3. back 対象なし → 止められた(確信度が低い)",
+        "4. back 対象なし → 止められた(要素が見つからない)",
+        "5. back 対象なし → 止められた(別の要素に替わった)",
+        "直前の操作(back、対象なし)を4回続けて選んでいる",
     ];
     assert_eq!(section(&all), Some(want.join("\n")));
 }

@@ -68,7 +68,7 @@ fn line(n: usize, done: &Past) -> String {
 /// The element of `done` as a line names it.
 fn target(done: &Past) -> String {
     done.target.as_ref().map_or_else(
-        || "なし".to_owned(),
+        || "対象なし".to_owned(),
         |id| format!("「{}」", escaped(&id.name)),
     )
 }
@@ -103,7 +103,7 @@ fn repeated(past: &[Past]) -> Option<String> {
         .count()
         .saturating_add(1);
     let line = format!(
-        "直前の操作 {} {} が{times}回続いている",
+        "直前の操作({}、{})を{times}回続けて選んでいる",
         last.op,
         target(last)
     );

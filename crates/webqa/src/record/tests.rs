@@ -157,7 +157,7 @@ fn told_starts_at_the_operation_given() {
         acts: vec![act("back", None, true), act("scroll_down", None, false)],
         ..Record::default()
     };
-    let want = "\n\n直近の操作\n1. scroll_down なし → 画面は変わらなかった";
+    let want = "\n\n直近の操作\n1. scroll_down 対象なし → 画面は変わらなかった";
     assert_eq!(told(&record, 1, &Redactor::default()), want);
     assert_eq!(told(&record, 2, &Redactor::default()), "");
     assert_eq!(told(&record, 3, &Redactor::default()), "", "past the end");
@@ -183,7 +183,7 @@ fn a_change_within_the_page_is_told_as_shown() {
         acts: vec![act("scroll_down", None, true)],
         ..Record::default()
     };
-    let want = "\n\n直近の操作\n1. scroll_down なし → 同じページで表示が変わった";
+    let want = "\n\n直近の操作\n1. scroll_down 対象なし → 同じページで表示が変わった";
     assert_eq!(told(&record, 0, &Redactor::default()), want);
 }
 
@@ -213,9 +213,9 @@ fn told_puts_the_stopped_proposals_among_the_operations_by_step() {
         "",
         "",
         "直近の操作",
-        "1. back なし → 止められた(確信度が低い)",
+        "1. back 対象なし → 止められた(確信度が低い)",
         "2. click 「次へ」 → 画面は変わらなかった",
-        "3. back なし → 止められた(確信度が低い)",
+        "3. back 対象なし → 止められた(確信度が低い)",
     ];
     assert_eq!(text.as_inner().as_str(), want.join("\n"));
 }
