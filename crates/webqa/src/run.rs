@@ -197,6 +197,19 @@ impl<'a> Ports<'a> {
             .await
     }
 
+    /// `next`, keeping `kept`, the state before the step, when the browser
+    /// failed in it.
+    fn kept_on_break(
+        &mut self,
+        next: Result<Step, RunError>,
+        kept: State,
+    ) -> Result<Step, RunError> {
+        if let Err(RunError::Browser(_)) = next {
+            self.last = Some(Box::new(kept));
+        }
+        next
+    }
+
     /// `written`, remembering a failure so that nothing is written after it.
     pub(super) fn kept(&mut self, written: Result<(), StoreError>) -> Result<(), RunError> {
         self.journal.kept(written)
@@ -256,7 +269,7 @@ pub async fn run(
                     biased;
                     () = interrupt.wait() => return Ok(machine::abort(kept)),
                     next = advance(*state, effect, ports) => {
-                        step = next.inspect_err(|_| ports.last = Some(Box::new(kept)))?;
+                        step = ports.kept_on_break(next, kept)?;
                     }
                 }
             }
