@@ -122,15 +122,21 @@ async fn went_back(world: &mut InterviewWorld) {
     );
 }
 
+#[given(
+    expr = "止めた引き返しも行き詰まりに数えるので、インタビューのモードの行き詰まりの閾値は {int} 回に設定されている"
+)]
+const fn stuck_above_the_calls(world: &mut InterviewWorld, threshold: u32) {
+    world.scene.interview_stuck = Some(threshold);
+}
+
 #[when(expr = "1回の試行で {int} 回判断する")]
 async fn calls_the_judge(world: &mut InterviewWorld, calls: usize) {
     let scene = &mut world.scene;
     scene.start = page("/");
     // A back that the judge is not sure of stops the step: it uses one call
-    // and nothing else. Each stop is a step without progress, so the stuck
-    // threshold is above the calls.
+    // and nothing else. Each stop is a step without progress, so the
+    // scenario sets the stuck threshold above the calls.
     let unsure = (0..calls).map(|_| step("back", 0.2, Some("目的を果たす")));
-    scene.interview_stuck = u32::try_from(calls + 1).ok();
     reset(scene);
     say(scene, unsure);
     settle(scene);
