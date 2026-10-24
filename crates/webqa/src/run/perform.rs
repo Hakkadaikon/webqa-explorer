@@ -92,7 +92,9 @@ async fn touched(touch: &Touch, state: &State, ports: &mut Ports<'_>) -> Result<
     let cause = state.cause().unwrap_or(Cause::Judge);
     announce(touch, cause, state, ports).await?;
     let (after, timings) = act(touch, ports).await?;
-    let changed = screen::changed(&state.last().screen, &after.screen, after.viewport);
+    let before = &state.last().screen;
+    let changed = screen::changed(before, &after.screen, after.viewport);
+    let moved = before.as_inner().url != after.screen.as_inner().url;
     ports
         .log(Event::Executed {
             changed,
@@ -106,6 +108,7 @@ async fn touched(touch: &Touch, state: &State, ports: &mut Ports<'_>) -> Result<
         p: probability(touch, cause),
         cause,
         changed,
+        moved,
         act: timings.0,
         settle: timings.1,
     });

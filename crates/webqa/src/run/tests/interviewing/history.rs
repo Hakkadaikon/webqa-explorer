@@ -102,7 +102,7 @@ async fn a_page_that_changed_is_told_as_changed() {
     let want = format!(
         "{ELEMENTS}\n\n直近の操作\n{}\n{}",
         "1. click 「保存」 → 画面は変わらなかった",
-        "2. click 「[[メールアドレス]] に送る」 → 画面が変わった"
+        "2. click 「[[メールアドレス]] に送る」 → 別のページに移った"
     );
     assert_eq!(last, &want, "the second click moved the page to /next");
 }

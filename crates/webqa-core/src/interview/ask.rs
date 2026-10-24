@@ -4,7 +4,7 @@ mod history;
 mod mismatch;
 mod persona;
 
-pub use history::{Past, RECENT, recent_section, with_section};
+pub use history::{After, Past, RECENT, recent_section, with_section};
 pub use mismatch::{DIFFERENT, MismatchQuestion, SAME, Trial, Visit, mismatch_questions};
 pub use persona::preamble;
 

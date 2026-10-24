@@ -6,7 +6,7 @@ mod tests;
 
 use std::time::Duration;
 
-use webqa_core::interview::ask::{Past, recent_section, with_section};
+use webqa_core::interview::ask::{After, Past, recent_section, with_section};
 use webqa_core::issue::{Issue, has_confirmed};
 use webqa_core::judge::{Answers, JudgeError, Usage};
 use webqa_core::machine::Cause;
@@ -50,6 +50,8 @@ pub struct Act {
     pub cause: Cause,
     /// Whether the screen changed by it: the URL or the viewport's text differs.
     pub changed: bool,
+    /// Whether the URL differs after it.
+    pub moved: bool,
     /// How long the operation took.
     pub act: Duration,
     /// How long the page took to be observed after it.
@@ -97,7 +99,7 @@ impl Record {
         let past = acts.iter().map(|act| Past {
             op: act.op.clone(),
             target: act.target.clone(),
-            changed: act.changed,
+            after: after(act),
         });
         past.collect()
     }
@@ -113,6 +115,17 @@ impl Record {
     #[must_use]
     pub fn knows(&self, issue: &Issue) -> bool {
         self.found.iter().any(|f| same(&f.issue, issue))
+    }
+}
+
+/// What came of `act`, as the judge is told it.
+const fn after(act: &Act) -> After {
+    if act.moved {
+        After::Moved
+    } else if act.changed {
+        After::Shown
+    } else {
+        After::Unchanged
     }
 }
 

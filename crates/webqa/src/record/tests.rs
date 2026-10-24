@@ -114,6 +114,7 @@ fn act(op: &str, name: Option<&str>, changed: bool) -> Act {
         p: 1.0,
         cause: Cause::Judge,
         changed,
+        moved: false,
         act: Duration::ZERO,
         settle: Duration::ZERO,
     }
@@ -146,7 +147,7 @@ fn told_passes_the_section_through_the_redactor() {
         acts: vec![act("click", Some("test@example.test"), true)],
         ..Record::default()
     };
-    let want = "\n\n直近の操作\n1. click 「[[メールアドレス]]」 → 画面が変わった";
+    let want = "\n\n直近の操作\n1. click 「[[メールアドレス]]」 → 同じページで表示が変わった";
     assert_eq!(told(&record, 0, &redactor), want);
 }
 
@@ -160,4 +161,28 @@ fn told_starts_at_the_operation_given() {
     assert_eq!(told(&record, 1, &Redactor::default()), want);
     assert_eq!(told(&record, 2, &Redactor::default()), "");
     assert_eq!(told(&record, 3, &Redactor::default()), "", "past the end");
+}
+
+#[test]
+fn a_change_of_url_is_told_as_another_page() {
+    let moved = Act {
+        moved: true,
+        ..act("click", Some("次へ"), true)
+    };
+    let record = Record {
+        acts: vec![moved],
+        ..Record::default()
+    };
+    let want = "\n\n直近の操作\n1. click 「次へ」 → 別のページに移った";
+    assert_eq!(told(&record, 0, &Redactor::default()), want);
+}
+
+#[test]
+fn a_change_within_the_page_is_told_as_shown() {
+    let record = Record {
+        acts: vec![act("scroll_down", None, true)],
+        ..Record::default()
+    };
+    let want = "\n\n直近の操作\n1. scroll_down なし → 同じページで表示が変わった";
+    assert_eq!(told(&record, 0, &Redactor::default()), want);
 }
