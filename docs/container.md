@@ -18,10 +18,17 @@ macOSのChromiumはOSのライブラリを別に求めないので、`sh scripts
 - rustupと、`rust-toolchain.toml`のtoolchain
 - aquaと、`.config/aqua/aqua.yaml`のツール
 - ビルドに要るCのコンパイラとOpenSSL(`build-essential`、`libssl-dev`、`pkg-config`)
+- `bridge/`の橋渡しを動かすPython(`python3`)
 
 gitのフック、`.config/npm`のNodeのツール、uvで入れるPythonは入れない。
 コミットと文書の検査は、コンテナの外で行う。
-`bridge/`の橋渡しはイメージにあるOSのPython(`python3`)で動く。
+`bridge/`の橋渡しはuvの3.14ではなく、Ubuntu nobleの`python3`(3.12)で動く。
+手元で通るPythonのコードでも、3.13以降の機能を使うとコンテナの中では動かない。
+
+判断モデルへの経路は、HTTPのゲートウェイだけが使える。
+`bridge/jev.py`がVercel AI Gatewayへ送る経路である。
+橋渡しの`--text-claude`(`bridge/claude_cli.py`)は、手元の`claude`のCLIとそのログイン情報を使う。
+コンテナの中にはどちらも無いので、`--text-claude`は使えない。
 
 ## イメージを作る
 
@@ -64,19 +71,45 @@ docker run --rm -it \
 | 探索 | `cargo run -p webqa -- explore --config <設定>` |
 | シェルに入る | `bash` |
 
+### ファイルの持ち主
+
 コンテナはrootで動く。
-rootで動くDockerでは、作業ディレクトリに書いた実行の記録(`.webqa/`など)の持ち主がrootになる。
-マウントの先として、空の`.aqua/`と`target/`のディレクトリも作業ディレクトリにできる。
+rootで動くDockerでは、コンテナが作業ディレクトリに作ったファイルの持ち主がrootになる。
+
+`.aqua/`と`target/`が手元に無いまま回すと、Dockerがマウントの先としてこの2つをrootの持ち主で作る。
+そのあと手元で`sh scripts/setup.sh`や`cargo`を回すと、この2つに書けずに失敗する。
+一度もsetupしていない機械では、初めて回す前にリポジトリの直下で次を実行する。
+
+```sh
+mkdir -p .aqua target
+```
+
+実行の記録(`.webqa/`)の持ち主もrootになる。
+持ち主は`sudo chown -R "$(id -u):$(id -g)" .webqa`で戻せる。
 
 ## APIキーの渡し方
 
 キーはイメージに焼き込まず、回すときに渡す。
 `webqa`は起動のときに作業ディレクトリの`.env`を読む([設定](arch/config.md)の「環境変数」)。
 マウントした作業ディレクトリに`.env`があれば、コンテナの中でも手元と同じように読まれる。
-`.env`を使わずに渡すなら、`docker run`に`-e WEBQA_JUDGE_API_KEY`のように変数の名前だけを書く。
-名前だけなら、手元の環境変数の値がコンテナに渡り、コマンドの履歴に値が残らない。
+`.env`を使わずに渡すなら、`docker run`に`-e <名前>`の形で書く。
+名前は、設定の`judge.api_key`が指す変数の名前である。
+[設定](arch/config.md)の例なら`-e JEV_API_KEY`になる。
+値を書かずに名前だけを書くと、手元の環境変数の値がコンテナに渡り、コマンドの履歴に値が残らない。
 
-## Playwrightの版を上げるとき
+## イメージを作り直すとき
+
+次のファイルを変えたら、イメージを作り直す。
+
+- `docker/Dockerfile`。Playwrightの版を上げたときも含む
+- `rust-toolchain.toml`
+- `.config/aqua/`
+
+`rust-toolchain.toml`と`.config/aqua/`の中身はイメージを作るときに入れる。
+作り直さなくても回るが、イメージに無いtoolchainとツールを回すたびに入れ直すので遅い。
+入れたものは、`--rm`でコンテナごと消えるためである。
+
+### Playwrightの版
 
 イメージの版は、playwright-rsが使うPlaywrightの版に合わせる。
 版がずれると、driverが求める版のChromiumがイメージに無く、ブラウザを起動できない。
