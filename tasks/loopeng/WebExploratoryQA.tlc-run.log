@@ -234,3 +234,11 @@ Model checking completed. No error has been found.
 The depth of the complete state graph search is 14.
 The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 31 and the 95th percentile is 3).
 Finished in 03s at (2026-10-24 18:27:19)
+
+# 2026-10-24: 往復確認の気になった点24の確かめ。WebExploratoryQA.cfg の Operations を {"done"} に替えた一時の設定(探索モードで ProposableOps が空)。
+# 設定は残していない。違反なしの行と状態数だけを写す。
+$ tlc -workers 2 -deadlock -config <Operations = {"done"} に替えた WebExploratoryQA.cfg> WebExploratoryQA.tla
+Progress(14) at 2026-10-24 18:39:37: 51,340 states generated, 23,331 distinct states found, 0 states left on queue.
+Model checking completed. No error has been found.
+51340 states generated, 23331 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 14.
