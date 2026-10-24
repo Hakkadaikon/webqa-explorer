@@ -8,8 +8,7 @@ use webqa_core::config::persona::Persona;
 use webqa_core::effect::Questions;
 use webqa_core::interview::answer::{Reply, read_expectation, read_step, read_without_expectation};
 use webqa_core::interview::ask::{
-    EXPECTATION, HARD_TO_SEE, HESITATION, PURPOSE_GUESS, Step, attached, elements,
-    expectation_question, questions, send,
+    EXPECTATION, Step, attached, elements, expectation_question, questions, send,
 };
 use webqa_core::issue::probe_questions;
 use webqa_core::judge::{Answers, Image, JudgeError, Question, QuestionId, Unusable};
@@ -17,7 +16,11 @@ use webqa_core::machine::{State, chosen};
 use webqa_core::redact::Redacted;
 use webqa_core::screen::{Screen, ScreenText, Viewport};
 
+mod added;
+
 use super::Ports;
+use crate::record::Refused;
+use added::unless_added_failed;
 
 /// A step of the interview that asked the judge.
 #[derive(Debug, Clone)]
@@ -46,6 +49,9 @@ pub struct Interviewing {
     /// How many operations the run had done before the trial.
     acts_from: usize,
     steps: Vec<Taken>,
+    /// The proposals of the trial the guardrails stopped while waiting for
+    /// the judge, to tell the judge of them.
+    refused: Vec<Refused>,
 }
 
 impl Interviewing {
@@ -68,6 +74,7 @@ impl Interviewing {
             trial,
             acts_from,
             steps: Vec::new(),
+            refused: Vec::new(),
         }
     }
 
@@ -83,7 +90,8 @@ impl Interviewing {
         ports: &Ports<'_>,
         screen: &Redacted<ScreenText>,
     ) -> Redacted<ScreenText> {
-        ports.record.told(self.acts_from, screen, ports.redactor)
+        let record = &ports.record;
+        record.told(self.acts_from, &self.refused, screen, ports.redactor)
     }
 
     /// The steps kept so far, which are no longer kept.
@@ -234,29 +242,6 @@ fn join(
     first.and_then(|first| second.reply.clone().map(|later| first.joined(later)))
 }
 
-/// The ids of the questions the first call adds to the core's.
-const ADDED: [&str; 3] = [HESITATION, HARD_TO_SEE, PURPOSE_GUESS];
-
-/// `reply`, or [`JudgeError::Unreadable`] when `read` failed on an answer to
-/// an added question.
-fn unless_added_failed(
-    reply: Result<Answers, JudgeError>,
-    read: Option<&Result<Reply, Unusable>>,
-) -> Result<Answers, JudgeError> {
-    let failed = read.and_then(|read| read.as_ref().err());
-    failed.and_then(added).map_or(reply, |question| {
-        Err(JudgeError::Unreadable {
-            question: question.to_owned(),
-        })
-    })
-}
-
-/// The id of the added question the problem is with, if it is one.
-fn added(unusable: &Unusable) -> Option<&str> {
-    let (Unusable::Missing(id) | Unusable::NotAnOption(id) | Unusable::OutOfRange(id)) = unusable;
-    ADDED.contains(&id.as_str()).then(|| id.as_str())
-}
-
 /// Asks the judge: the interview's questions when the ports interview,
 /// otherwise the core's, then the semantic findings.
 pub(super) async fn call(questions: Questions, state: &State, ports: &mut Ports<'_>) -> Asked {
@@ -274,6 +259,8 @@ pub(super) async fn call(questions: Questions, state: &State, ports: &mut Ports<
     };
     let told = interview.told(ports, &questions.screen);
     let asked = interview.ask(ports, &told, (state, extra)).await;
+    let refused = Refused::of(ports.step, &asked.reply, state);
+    interview.refused.extend(refused);
     ports.interview = Some(interview);
     asked
 }

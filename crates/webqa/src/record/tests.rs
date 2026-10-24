@@ -135,7 +135,7 @@ fn empty_text(redactor: &Redactor) -> Redacted<ScreenText> {
 }
 
 fn told(record: &Record, from: usize, redactor: &Redactor) -> String {
-    let text = record.told(from, &empty_text(redactor), redactor);
+    let text = record.told(from, &[], &empty_text(redactor), redactor);
     text.as_inner().as_str().to_owned()
 }
 

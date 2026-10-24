@@ -37,7 +37,7 @@ use crate::screen::{Screen, Viewport};
 use crate::window::RequestWindow;
 use actions::{Action, MISMATCH, Next, Now};
 
-pub use chosen::{Chosen, Pointed, chosen};
+pub use chosen::{Chosen, Pointed, chosen, stopped};
 pub use material::Material;
 pub use note::{Anomaly, Note, Rejection};
 pub use rules::Rules;

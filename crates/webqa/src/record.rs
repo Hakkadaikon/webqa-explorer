@@ -9,7 +9,7 @@ use std::time::Duration;
 use webqa_core::interview::ask::{After, Past, recent_section, with_section};
 use webqa_core::issue::{Issue, has_confirmed};
 use webqa_core::judge::{Answers, JudgeError, Usage};
-use webqa_core::machine::Cause;
+use webqa_core::machine::{Cause, Rejection, State, stopped};
 use webqa_core::redact::{Redacted, Redactor};
 use webqa_core::screen::{ElementId, ScreenText};
 
@@ -58,6 +58,34 @@ pub struct Act {
     pub settle: Duration,
 }
 
+/// A proposal of the judge the guardrails stopped, kept to tell the judge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Refused {
+    /// The step it belongs to.
+    pub step: u64,
+    /// The operation, as the browser knows it.
+    pub op: String,
+    /// The element it was on, if any. Its name is redacted.
+    pub target: Option<ElementId>,
+    /// Why it was stopped.
+    pub why: Rejection,
+}
+
+impl Refused {
+    /// The proposal of `reply` at step `step`, if the guardrails stop it in
+    /// `state`.
+    #[must_use]
+    pub fn of(step: u64, reply: &Result<Answers, JudgeError>, state: &State) -> Option<Self> {
+        let (touch, why) = stopped(reply, state)?;
+        Some(Self {
+            step,
+            op: touch.op,
+            target: touch.target,
+            why,
+        })
+    }
+}
+
 /// One issue and the screenshot saved for it.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Found {
@@ -80,28 +108,43 @@ impl Record {
             .fold(Usage::default(), |total, answers| add(total, answers.usage))
     }
 
-    /// `screen` and the latest operations from the `from`th on, the section
-    /// passed through `redactor`.
+    /// `screen` and the latest operations from the `from`th on, with the
+    /// proposals `refused` among them by step, the section passed through
+    /// `redactor`.
     #[must_use]
     pub fn told(
         &self,
         from: usize,
+        refused: &[Refused],
         screen: &Redacted<ScreenText>,
         redactor: &Redactor,
     ) -> Redacted<ScreenText> {
-        let section = recent_section(&self.past(from));
+        let section = recent_section(&self.past(from, refused));
         let with = |text: String| with_section(screen, &redactor.text(&text));
         section.map_or_else(|| screen.clone(), with)
     }
 
-    fn past(&self, from: usize) -> Vec<Past> {
+    fn past(&self, from: usize, refused: &[Refused]) -> Vec<Past> {
         let acts = self.acts.get(from..).unwrap_or_default();
-        let past = acts.iter().map(|act| Past {
-            op: act.op.clone(),
-            target: act.target.clone(),
-            after: after(act),
+        let done = acts.iter().map(|act| {
+            let past = Past {
+                op: act.op.clone(),
+                target: act.target.clone(),
+                after: after(act),
+            };
+            (act.step, past)
         });
-        past.collect()
+        let stopped = refused.iter().map(|refused| {
+            let past = Past {
+                op: refused.op.clone(),
+                target: refused.target.clone(),
+                after: After::Stopped(refused.why),
+            };
+            (refused.step, past)
+        });
+        let mut past: Vec<(u64, Past)> = done.chain(stopped).collect();
+        past.sort_by_key(|(step, _)| *step);
+        past.into_iter().map(|(_, past)| past).collect()
     }
 
     /// Whether a confirmed issue was found.
