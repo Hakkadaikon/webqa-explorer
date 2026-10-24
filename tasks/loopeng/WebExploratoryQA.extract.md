@@ -130,6 +130,8 @@
       → IF 入力に`secret: false`が設定されているとき、システムはその値をイベントログの操作の記録に書いてはならない。伏せ字を外すのは判断モデルに送る画面状態だけである。【親】#76(unwanted)
 - [x] S-046 (設計の決定) 「判断モデルに届かないまま判断予算を使い切ると、何も確かめずに終わる」
       → IF 判断モデルの呼び出しがAPIのエラー、タイムアウト、橋渡しの失敗のどれかで3回続けて失敗したとき、システムは判断予算と制限時間が残っていても、実行を判断モデルの停止(judge_unavailable)として記録して終了しなければならない。形の崩れた応答や使えない応答は失敗に数えず、失敗の数を0に戻す。終了コードは3とする。【親】#85(unwanted)
+- [x] S-047 (設計の決定) 「ブラウザが失敗すると、そこまでの記録が残らない」
+      → IF ブラウザを開けなかったとき、またはブラウザの操作か画面の観測が失敗したとき、システムは探索の記憶、終了のイベント(終了理由error)、実行結果の順に、そこまでの記録を書いてから、終了コード3で終えなければならない。最初の画面を観測する前に失敗したときは、探索の記憶を書かない。【親】#67(unwanted)
 
 ## トレーサビリティ・マトリクス(全ループ共通の消し込み台帳)
 
@@ -146,7 +148,7 @@
 | S-009    | ubiquitous | モデル外(送信データ形式)     | 「判断モデルに送る画面状態はアクセシビリティ情報のテキストで、操作可能要素の一覧を含む」、「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」、「判断モデルに送る操作可能要素の一覧は、表示領域の中の要素だけにする」 |
 | S-010    | unwanted   | Next: ApplyGuardrails / Inv: LowConfidenceBackNeverActed / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「確信度の低い「戻る」は実行しない」、「確信度が欠けた応答の「戻る」は低確信度として扱い、実行しない」 |
 | S-011    | unwanted   | Next: ExecuteNoChange(観測のみ。選択自体はモデル外) / Inv: NoChangeObservedOnlyAfterOps / Prop: ObservationChangesOnlyByExecution | 「画面が変わらないのに同じ要素を選んだら、次に確信度の高い候補へ切り替える」 |
-| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「購入・削除・退会・サインインに当たる要素は操作しない」、「禁止要素は未操作のまま残っていても、探索の候補に入れない」、「ページに禁止要素があれば、操作種別の選択肢に enter を含めない」。設定の操作種別が enter だけの組み合わせは設定で弾き、単体テストで確かめる |
+| S-012    | unwanted   | Next: ApplyGuardrails / Inv: NeverOperatesForbidden, DirectOpActedOnlyOnSafeTarget / Prop: SafeProposalProceeds, ActingOnlyAfterGuardrails。抽象化の空洞は設計メモ8 | 「購入・削除・退会・サインインに当たる要素は操作しない」、「禁止要素は未操作のまま残っていても、探索の候補に入れない」、「ページに禁止要素があれば、操作種別の選択肢に enter を含めない」。設定の操作種別が enter だけの組み合わせは設定で弾き、単体テストで確かめる、「許可リストに一致する要素は、禁止のキーワードを含んでも操作する」 |
 | S-013    | unwanted   | Next: ApplyGuardrails(paywall分岐) / Prop: PaywallForcesBack, ActingOnlyAfterGuardrails, ProposalChangesOnlyByDecision。抽象化の空洞は設計メモ8 | 「課金画面が出たら判断モデルに問い合わせず、既定の離脱操作をする」、「通常のページを課金画面と取り違えない」、「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」 |
 | S-014    | ubiquitous | Next: FinishNormally/FinishByProposalDone / Inv: ScenarioGoalOnlyAtLastStage, ReportedDoneOnlyWithoutDoneWhen / Prop: GoalPreempts, DoneWhenChangesOnlyByExecutionOrAdvance | 「done_when を満たしたら、判断モデルに問い合わせずにゴール達成で終了する」、「done_when を満たさないまま判断モデルが done を返したら、未検証の終了として記録する」 |
 | S-015    | optional/event(×2) | Next: AdvanceStage/Execute*(done_whenの観測) / Inv: ScenarioGoalOnlyAtLastStage, StagesOnlyInScenario / Prop: StageAdvancePreempts, StageAdvanceResetsCounters, BudgetSharedAcrossStages, CountersChangeOnlyBySteps, DoneWhenChangesOnlyByExecutionOrAdvance, GoalPreempts, StartsFresh。段階の定義(YAML)はモデル外 | 「テスト対象・入力値・段階を YAML の設定で定義して実行する」、「最後でない段階の done_when を満たしたら、判断モデルに問い合わせずに次の段階へ進む」、「最後の段階の done_when を満たしたら、ゴール達成で終了する」、「後の段階の done_when だけを満たしても、段階を飛ばさずゴール達成にもしない」、「段階を進めたら、固まりと行き詰まりの回数を0に戻す」、「段階を進めても、判断予算・時間窓の操作回数・探索の記憶は引き継ぐ」、「done_when に宣言が複数あれば、すべて成り立ったときだけ満たしたとみなす」、「done_when の要素とテキストは、表示領域の外にあっても成り立つ」、「実行を開始した時点で最初の段階の done_when を満たしていれば、操作せずに段階を進める」、「段階を進めた時点で次の段階の done_when も満たしていれば、操作せずにさらに進む」 |
@@ -181,11 +183,12 @@
 | S-044    | event(×4)/state(×2) | Next: FinishNormally/AdvanceStage/FinishByProposalDone/FinishByProposalStuck/FinishStuck/FinishJudgeUnavailable/ExceedDecisionBudget/FinishTimeUp/UserAbort / Inv: ExploreGoalOnlyWhenAllExplored, ScenarioGoalOnlyAtLastStage, ReportedDoneOnlyWithoutDoneWhen, ExploreNeverReportedDone, ExitReasonMatchesPhase / Prop: GoalPreempts, StageAdvancePreempts, StuckPreempts, JudgeDownStops, LimitStops, ProposalOutcome, TerminationKeepsState, EventuallyTerminates, TerminalAbsorbing。中断時の書き出しはモデル外 | 「done_when を満たしたら、判断モデルに問い合わせずにゴール達成で終了する」、「done_when を満たさないまま判断モデルが done を返したら、未検証の終了として記録する」、「判断モデルが stuck を返したら行き詰まりで終了する」、「探索済みの要素が増えず、未操作の要素も新しく見えない操作が3回続けば、次のステップの前に行き詰まりで終了する」、「探索済みの要素が増えず、未操作の要素も新しく見えない操作が閾値の1回手前までなら終了しない」、「判断モデルの呼び出しが上限の1回手前なら、まだ問い合わせる」、「終了の条件が重なったら、ゴール達成、行き詰まり、判断予算切れの順に1つだけ採る」、「行き詰まりと判断予算切れが重なったら行き詰まりで終了する」、「固まりと判断予算切れが重なったら、ページを開き直さずに判断予算切れで終了する」、「判断モデルの呼び出しが上限に達したら実行を止める」、「終了した実行はそれ以上ステップを進めない」、「画面が3回続けて変化しなければ、ページを開き直して探索を続け、探索の記憶は残す」、「課金画面から離脱しても消えないまま3回続いたら、行き詰まりで終了する」、「最後の段階の done_when を満たしたら、ゴール達成で終了する」、「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」、「探索モードで判断モデルが done を返しても、未検証の終了にせず応答の異常として扱う」、「スクロールで未操作の要素が新しく見えたら、行き詰まりの数え直しになる」、「判断予算切れと時間切れが重なったら、どちらか1つの終了理由で終了する」、「時間切れとゴール達成や行き詰まりが重なったら、ゴール達成や行き詰まりを採る」、「待っている間に中断したら、記憶・終了のイベント・実行結果を書いてから中断で終了する」、「ブラウザ操作の途中で中断したら、ページの応答を待たずに記録を書いて中断で終了する」、「中断で終了した実行は、それ以上状態を変えない」、「ほかの理由で終了したあとに中断しても、終了理由は変わらない」、「中断で終わったときの終了コードは、確定の問題の有無で0か1になる」、「記録を書いている間に2回目の中断を受けたら、書き終わりを待たずに終了コード3で終わる」、「確定の問題を見つけずに終わったら、終了コードは0になる」、「確定の問題を1件でも見つけて終わったら、終了コードは1になる」、「参考情報だけを記録して終わったら、終了コードは0になる」、「記録の書き込みに失敗したら、実行を止めて終了コード3で終わる」 |
 | S-045    | optional/ubiquitous/unwanted(×2) | モデル外(送信データのマスキング、設定ファイル定義) | 「secret を false にした入力の値は、判断モデルに送る画面状態で伏せない」、「secret を書かない入力の値は、判断モデルに送る画面状態で伏せる」、「判断モデルの API キーの設定に secret が書かれていたら設定エラーにする」、「secret を false にした入力の値も、イベントログの操作の記録には書かない」 |
 | S-046    | unwanted   | Next: RequestDecision(判断モデルに届かない失敗)/FinishJudgeUnavailable / Inv: JudgeUnavailableOnlyAfterFailures, JudgeFailsBounded, ExitReasonMatchesPhase / Prop: JudgeDownStops, JudgeFailsTracksReplies, AwaitingOnlyByDecision, LimitStops, TerminationKeepsState, StartsFresh, EventuallyTerminates, TerminalAbsorbing。使えない答えは要素番号の無い直接操作として表す。失敗の閾値は検査では2(実装は3)。終了コードはモデル外 | 「判断モデルの失敗が3回続いたら、予算を使い切る前に終了コード3で終わる」 |
+| S-047    | unwanted   | 状態機械の外(実行ループ。ブラウザの失敗は中核の遷移の外で、終了理由errorは実行ループが付ける。docs/arch/core.md の対応表の最後の行) | 「ブラウザの操作に失敗したら、そこまでの記録を書いて終了コード3で終わる」(T-124) |
 
 ## 閉じる前のチェック
 
 - [x] 全IDが`[x]`(未チェックなし)
-- [x] S-001から連番に欠番なし(S-001〜S-046、46件。照合のコマンドと出力は、末尾の「照合の記録」に貼った。IDを追加・変更した際は貼り直す)
+- [x] S-001から連番に欠番なし(S-001〜S-047、47件。照合のコマンドと出力は、末尾の「照合の記録」に貼った。IDを追加・変更した際は貼り直す)
 - [x] 仕様の目次/章立てと突き合わせ、拾い残した単位がないこと(記事(A)の全11節+まとめを§ごとに走査。詳細は設計メモ4・5参照)
 - [x] 信頼境界: (1) 判断モデルAPI境界(ローカルのテストエージェント ⇔ Jev/LLM等外部判断モデルサービス) (2) テスト対象Web境界(テストエージェント ⇔ 操作対象のWebアプリ) (3) 設定/実行環境境界(YAML設定ファイル・環境変数 ⇔ 秘密情報)
 - [x] STRIDE を信頼境界ごとに当てた
@@ -266,7 +269,9 @@ awk '/^## 台帳$/{f=1;next} /^## /{f=0} f' WebExploratoryQA.extract.md | grep -
 出力:
 
 ```text
-46
-IDの行 46 件、欠番や順の乱れ 0 件
+47
+IDの行 47 件、欠番や順の乱れ 0 件
 0
 ```
+
+2026-10-24に、#67(ブラウザの失敗)のS-047を足して回し直した。
