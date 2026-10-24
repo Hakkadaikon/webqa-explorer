@@ -54,6 +54,10 @@ fn the_end_is_named_as_the_report_names_it() {
         named(ExitReason::TimeExceeded),
         "終了理由 time_exceeded、記録 runs/x"
     );
+    assert_eq!(
+        named(ExitReason::JudgeUnavailable),
+        "終了理由 judge_unavailable、記録 runs/x"
+    );
 }
 
 #[test]

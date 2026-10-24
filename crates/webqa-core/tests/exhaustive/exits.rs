@@ -2,7 +2,7 @@
 
 use webqa_core::event::Mode;
 use webqa_core::judge::QuestionId;
-use webqa_core::machine::{ExitReason, Phase, StuckKind};
+use webqa_core::machine::{ExitReason, JUDGE_FAILURES, Phase, StuckKind};
 
 use super::candidates::{STOP, TWO};
 use super::rows::not_an_option;
@@ -12,7 +12,7 @@ const DECLARED: ExitReason = ExitReason::Stuck(StuckKind::Declared);
 const NO_PROGRESS: ExitReason = ExitReason::Stuck(StuckKind::NoProgress);
 
 /// Each reason is backed by the state or by the answer.
-pub static REASONS: [Property; 9] = [
+pub static REASONS: [Property; 10] = [
     BUDGET_BACKED,
     TIME_BACKED,
     Property {
@@ -21,6 +21,15 @@ pub static REASONS: [Property; 9] = [
             implies(
                 t.reason() == Some(NO_PROGRESS),
                 t.after().counters().is_stuck(TWO),
+            )
+        },
+    },
+    Property {
+        name: "the judge unavailable only at the limit of failures in a row",
+        holds: |t| {
+            implies(
+                t.reason() == Some(ExitReason::JudgeUnavailable),
+                t.after().failing() >= JUDGE_FAILURES,
             )
         },
     },
@@ -114,8 +123,9 @@ fn going_on(t: &Transition) -> bool {
     all(&[phase != Phase::Idle, t.after().ended().is_none()])
 }
 
-/// Ended out of budget, at the time limit, neither on the goal nor stuck,
-/// and not on an answer that ends the run by itself.
+/// Ended out of budget, at the time limit, neither on the goal, stuck nor
+/// with the judge out of reach, and not on an answer that ends the run by
+/// itself.
 pub fn tied(t: &Transition) -> bool {
     let after = t.after();
     all(&[
@@ -124,6 +134,7 @@ pub fn tied(t: &Transition) -> bool {
         after.budget().exhausted(),
         t.at >= STOP,
         !after.counters().is_stuck(TWO),
+        after.failing() < JUDGE_FAILURES,
         !matches!(t.op, Some("stuck" | "done")),
     ])
 }

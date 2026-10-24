@@ -4,25 +4,31 @@ use super::*;
 use crate::config::raw::{DoneWhen, Stage};
 use crate::stage::{self, Page};
 use Goal::{Achieved, Unmet};
-use Pick::{Achieve, Ask, Leave, OutOfBudget, Reload, Return, Stuck, TimeUp, WaitWindow};
+use Pick::{
+    Achieve, Ask, JudgeDown, Leave, OutOfBudget, Reload, Return, Stuck, TimeUp, WaitWindow,
+};
 
-const STUCK: u8 = 1;
-const BUDGET: u8 = 1 << 1;
-const TIME: u8 = 1 << 2;
-const WINDOW: u8 = 1 << 3;
-const FROZEN: u8 = 1 << 4;
-const OUTSIDE: u8 = 1 << 5;
-const PAYWALL: u8 = 1 << 6;
+pub(super) const STUCK: u8 = 1;
+pub(super) const BUDGET: u8 = 1 << 1;
+pub(super) const TIME: u8 = 1 << 2;
+pub(super) const WINDOW: u8 = 1 << 3;
+pub(super) const FROZEN: u8 = 1 << 4;
+pub(super) const OUTSIDE: u8 = 1 << 5;
+pub(super) const PAYWALL: u8 = 1 << 6;
+pub(super) const JUDGE: u8 = 1 << 7;
 
-/// The waiting state of `goal` and the seven flags in `bits`.
-fn waiting_of(goal: Goal, bits: u8) -> Waiting {
+/// The waiting state of `goal` and the eight flags in `bits`.
+pub(super) fn waiting_of(goal: Goal, bits: u8) -> Waiting {
     let flag = |bit: u8| bits & bit != 0;
     Waiting {
         goal,
         ends: Ends {
             stuck: flag(STUCK),
-            out_of_budget: flag(BUDGET),
-            time_up: flag(TIME),
+            limits: Limits {
+                judge_down: flag(JUDGE),
+                out_of_budget: flag(BUDGET),
+                time_up: flag(TIME),
+            },
         },
         delays: Delays {
             window_full: flag(WINDOW),
@@ -35,7 +41,7 @@ fn waiting_of(goal: Goal, bits: u8) -> Waiting {
     }
 }
 
-fn picks(goal: Goal, cases: &[(u8, Pick)]) {
+pub(super) fn picks(goal: Goal, cases: &[(u8, Pick)]) {
     for &(bits, want) in cases {
         let w = waiting_of(goal, bits);
         assert_eq!(choose(&w), want, "{w:?}");
@@ -152,6 +158,7 @@ fn each_condition_alone_picks_its_row() {
         Unmet,
         &[
             (STUCK, Stuck),
+            (JUDGE, JudgeDown),
             (BUDGET, OutOfBudget),
             (TIME, TimeUp),
             (WINDOW, WaitWindow),
@@ -176,51 +183,4 @@ fn window_full_comes_before_page_trouble() {
             (WINDOW | PAYWALL | TIME, TimeUp),
         ],
     );
-}
-
-/// The tier of each row.
-const TIERS: [(Pick, u8); 10] = [
-    (Pick::Advance, 1),
-    (Achieve, 1),
-    (Stuck, 2),
-    (OutOfBudget, 3),
-    (TimeUp, 3),
-    (WaitWindow, 4),
-    (Reload, 4),
-    (Return, 4),
-    (Leave, 4),
-    (Ask, 5),
-];
-
-fn tier(pick: Pick) -> u8 {
-    TIERS.iter().find(|(p, _)| *p == pick).unwrap().1
-}
-
-/// The rows whose condition holds, in table order.
-fn enabled(w: Waiting) -> Vec<Pick> {
-    ROWS.iter()
-        .filter(|row| (row.when)(&w))
-        .map(|row| row.pick)
-        .collect()
-}
-
-fn holds_one_tier(w: Waiting) {
-    let rows = enabled(w);
-    let tiers: Vec<u8> = rows.iter().copied().map(tier).collect();
-    let first = *tiers.first().unwrap();
-    assert!(tiers.iter().all(|t| *t == first), "{rows:?} for {w:?}");
-    let pick = choose(&w);
-    assert!(rows.contains(&pick), "{pick:?} is not enabled for {w:?}");
-    assert_eq!(tier(pick), first, "tier of {pick:?} for {w:?}");
-    let last = *rows.last().unwrap();
-    assert_eq!(tier(last), first, "reversed rows for {w:?}");
-}
-
-#[test]
-fn rows_enable_exactly_one_tier() {
-    for goal in [Unmet, Goal::Advance, Achieved] {
-        for bits in 0..128 {
-            holds_one_tier(waiting_of(goal, bits));
-        }
-    }
 }

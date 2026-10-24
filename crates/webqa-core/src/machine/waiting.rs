@@ -7,10 +7,10 @@ use super::counters::Counters;
 use super::guards::exploring;
 use super::offer::questions;
 use super::proposal::Proposal;
-use super::state::{ExitReason, Phase, State, StuckKind};
+use super::state::{ExitReason, JUDGE_FAILURES, Phase, State, StuckKind};
 use crate::effect::{Effect, Outside, Touch, Wake};
 use crate::event::Mode;
-use crate::plan::{Delays, Ends, Goal, Pick, Trouble, Waiting, choose, explore_goal};
+use crate::plan::{Delays, Ends, Goal, Limits, Pick, Trouble, Waiting, choose, explore_goal};
 use crate::stage;
 use crate::window::wake_at;
 
@@ -26,8 +26,11 @@ pub(super) fn waiting(state: &State, now: Duration) -> Waiting {
         goal: goal(state),
         ends: Ends {
             stuck: state.counters.is_stuck(state.rules.stuck_threshold),
-            out_of_budget: state.budget.exhausted(),
-            time_up: state.rules.max_duration.is_some_and(|limit| now >= limit),
+            limits: Limits {
+                judge_down: state.failing >= JUDGE_FAILURES,
+                out_of_budget: state.budget.exhausted(),
+                time_up: state.rules.max_duration.is_some_and(|limit| now >= limit),
+            },
         },
         delays: Delays {
             window_full: state.window.full(now),
@@ -67,7 +70,7 @@ struct Move {
 }
 
 /// What each pick of waiting does.
-static MOVES: [Move; 10] = [
+static MOVES: [Move; 11] = [
     Move {
         pick: Pick::Advance,
         fire: |state, _| advance(state),
@@ -79,6 +82,10 @@ static MOVES: [Move; 10] = [
     Move {
         pick: Pick::Stuck,
         fire: |state, _| finish(state, ExitReason::Stuck(StuckKind::NoProgress)),
+    },
+    Move {
+        pick: Pick::JudgeDown,
+        fire: |state, _| finish(state, ExitReason::JudgeUnavailable),
     },
     Move {
         pick: Pick::OutOfBudget,

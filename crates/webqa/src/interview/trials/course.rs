@@ -7,6 +7,7 @@ use tokio::task::yield_now;
 
 use webqa_core::event::Event;
 use webqa_core::interview::schedule::{Next, RunState, Schedule, next_trial};
+use webqa_core::machine::ExitReason;
 use webqa_core::ports::{Clock, Judge, Store};
 use webqa_core::redact::Redactor;
 use webqa_core::window::RequestWindow;
@@ -106,6 +107,14 @@ impl Course<'_> {
 
     /// Starts a trial, waits, or says why no more trials start.
     async fn step(&mut self) -> Result<Option<Stopped>, Halt> {
+        if self.judge_down() {
+            return Ok(Some(Stopped::JudgeDown));
+        }
+        self.scheduled().await
+    }
+
+    /// Does what the schedule says next.
+    async fn scheduled(&mut self) -> Result<Option<Stopped>, Halt> {
         match self.next() {
             Next::Stop(stop) => Ok(Some(stop.into())),
             Next::Wait(at) => {
@@ -114,6 +123,13 @@ impl Course<'_> {
             }
             Next::Start(cap) => self.trial(cap).await.map(|()| None),
         }
+    }
+
+    /// Whether the judge's failures in a row cut the last trial. No trial
+    /// starts after that: the judge is likely still out of reach.
+    fn judge_down(&self) -> bool {
+        let last = self.trials.last().map(|trial| trial.reason);
+        last == Some(ExitReason::JudgeUnavailable)
     }
 
     /// Writes `event` as the next line of the log.

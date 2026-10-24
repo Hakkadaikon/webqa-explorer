@@ -27,6 +27,7 @@ mod ends;
 mod findings;
 mod given;
 mod groups;
+mod judge_down;
 mod ledger_shots;
 mod opening;
 mod purposes;
@@ -34,6 +35,7 @@ mod record;
 mod records;
 mod reset_ends;
 mod resets;
+mod scripts;
 mod shots;
 mod stubs;
 mod trials;
@@ -44,6 +46,7 @@ mod windows;
 mod launch;
 
 use self::launch::FakeLaunch;
+use self::scripts::{answering, done, expecting, hesitating, script};
 use self::stubs::{FIXTURES, Fires, Never, Stalled, head, scratch, stuck, var, watched};
 use super::*;
 use crate::run::fakes::{self, FakeBrowser, FakeClock, MemoryStore, RecordingJudge};
@@ -82,6 +85,7 @@ fn settings(trials: u32) -> Interview {
         trials: nz(trials),
         hesitation_threshold: 0.5,
         confidence_threshold: 0.5,
+        back_confidence: 0.3,
         stuck_threshold: nz(5),
         requests_per_hour: nz(100),
         max_natural_questions: nz(10),
@@ -106,36 +110,6 @@ fn plan(trials: u32) -> Plan {
         inputs: Vec::new(),
         price: None,
     }
-}
-
-/// The judge chooses the operations `ops` in turn, on the first element,
-/// without hesitating.
-fn script(ops: &[&str]) -> Scripted {
-    hesitating(ops, 0.0)
-}
-
-/// As [`script`], with the probability `hesitation` that the judge hesitated.
-fn hesitating(ops: &[&str], hesitation: f64) -> Scripted {
-    expecting(ops, hesitation, "保存される")
-}
-
-/// As [`hesitating`], with the judge expecting `expectation` at each step.
-fn expecting(ops: &[&str], hesitation: f64, expectation: &str) -> Scripted {
-    ops.iter().fold(Scripted::default(), |script, &op| {
-        script
-            .then(QuestionId::operation(), [(op, 0.9)])
-            .then(QuestionId::target(), [("1", 0.8)])
-            .then(QuestionId::error_shown(), [("true", 0.0)])
-            .then(QuestionId::goal_reached(), [("true", 0.0)])
-            .then(QuestionId::new(HESITATION), [("true", hesitation)])
-            .then_text(QuestionId::new(EXPECTATION), expectation)
-            .then_text(QuestionId::new(PURPOSE_GUESS), GUESS)
-    })
-}
-
-/// The judge says the purpose is reached after the first look, `times` times.
-fn done(times: usize) -> Scripted {
-    script(&vec!["done"; times])
 }
 
 /// A browser that shows the top page forever.

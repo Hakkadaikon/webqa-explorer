@@ -5,24 +5,25 @@ use std::str::FromStr;
 use webqa_core::machine::{ExitReason, StuckKind};
 
 /// The feature's name of each exit reason.
-const NAMES: [(&str, ExitReason); 6] = [
+const NAMES: [(&str, ExitReason); 7] = [
     ("ゴール達成", ExitReason::GoalAchieved),
     ("未検証の終了", ExitReason::ReportedDone),
     ("行き詰まり", ExitReason::Stuck(StuckKind::NoProgress)),
     ("判断予算切れ", ExitReason::BudgetExceeded),
     ("時間切れ", ExitReason::TimeExceeded),
     ("利用者による中断", ExitReason::UserAborted),
+    ("判断モデルの停止", ExitReason::JudgeUnavailable),
 ];
 
 /// An exit reason as the feature names it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, cucumber::Parameter)]
 #[param(
     name = "reason",
-    regex = "ゴール達成|未検証の終了|行き詰まり|判断予算切れ|時間切れ|利用者による中断"
+    regex = "ゴール達成|未検証の終了|行き詰まり|判断予算切れ|時間切れ|利用者による中断|判断モデルの停止"
 )]
 pub struct Named(pub ExitReason);
 
-/// A name that is not one of the six.
+/// A name that is not one of the seven.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[error("{0} is not an exit reason of the feature")]
 pub struct Unknown(pub String);
@@ -48,7 +49,7 @@ impl Named {
     }
 }
 
-/// Checks the six names and an unknown one.
+/// Checks the seven names and an unknown one.
 pub fn check() {
     let names: Vec<_> = NAMES
         .iter()

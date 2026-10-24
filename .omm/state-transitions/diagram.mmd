@@ -16,7 +16,7 @@ graph LR
     idle -->|"画面が固まった"| recovering
     idle -->|"許可ドメインの外に出た"| returning
     idle -->|"課金画面から抜ける"| acting
-    idle -->|"目標、行き詰まり、予算、時間"| ended
+    idle -->|"目標、行き詰まり、判断モデルの停止、予算、時間"| ended
     awaiting -->|"異常か却下"| idle
     awaiting -->|"要素を操作する提案"| confirming
     awaiting -->|"要素の無い提案"| acting

@@ -21,7 +21,7 @@ pub fn knows(report: &Report, step: &Step, at: Duration) -> bool {
         .contains(&key(candidates, state, &marks, step.effect(), at))
 }
 
-/// What tells states apart: the counts, where the run is, the stage, the
+/// What tells states apart: the counts, the judge's failures in a row, where the run is, the stage, the
 /// start screen, the element passed over, the memory, the time and the last
 /// effect with the element it points at. Not the notes, which only grow.
 ///
@@ -37,9 +37,10 @@ pub fn key(
     let window = state.window();
     let memory = state.memory();
     format!(
-        "{:?} {:?} {} {} {} {} {:?} {} {:?} {:?} {} {} {marks:?} {at:?} {effect:?} {:?}",
+        "{:?} {:?} {} {} {} {} {} {:?} {} {:?} {:?} {} {} {marks:?} {at:?} {effect:?} {:?}",
         state.phase(),
         state.counters(),
+        state.failing(),
         state.budget().used(),
         window.index(),
         window.used(at),

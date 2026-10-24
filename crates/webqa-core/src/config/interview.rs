@@ -30,6 +30,9 @@ pub struct Interview {
     pub hesitation_threshold: f64,
     /// Confidence below which a step counts as hesitant. In `(0, 1]`.
     pub confidence_threshold: f64,
+    /// The confidence a `back` the judge chose needs in a trial, apart from
+    /// `limits`. In `(0, 1]`.
+    pub back_confidence: f64,
     /// Steps without progress that count as stuck, from `interview` or else
     /// `limits`.
     pub stuck_threshold: NonZeroU32,
@@ -75,6 +78,7 @@ impl Settings {
             trials: self.trials,
             hesitation_threshold: self.hesitation_threshold,
             confidence_threshold: self.confidence_threshold,
+            back_confidence: self.back_confidence,
             stuck_threshold: self.stuck_threshold,
             requests_per_hour: self.requests_per_hour,
             max_natural_questions: self.max_natural_questions,

@@ -5,9 +5,15 @@ mod answer_tests;
 #[cfg(test)]
 mod explore_tests;
 #[cfg(test)]
+mod failure_tests;
+#[cfg(test)]
 mod page_tests;
 #[cfg(test)]
+mod refuse_tests;
+#[cfg(test)]
 mod repeat_tests;
+#[cfg(test)]
+mod reveal_tests;
 #[cfg(test)]
 mod stage_tests;
 #[cfg(test)]
@@ -19,7 +25,7 @@ use std::time::Duration;
 
 use super::guards::{answered, rejection, seen};
 use super::note::{Note, Rejection};
-use super::observe::{arrived, executed, settled};
+use super::observe::{arrived, executed, refused, settled};
 use super::proposal::{Proposal, hear};
 use super::state::{ExitReason, Phase, State};
 use super::{Facts, Outcome, Seen, Step, abort};
@@ -132,17 +138,28 @@ pub(super) fn touched(mut state: State, phase: Phase, touch: Touch, now: Duratio
 }
 
 /// Takes the judge's reply: a proposal to stop, finish with, or pass on.
-fn decide(state: State, reply: &Result<Answers, JudgeError>, now: Duration) -> Next {
+fn decide(mut state: State, reply: &Result<Answers, JudgeError>, now: Duration) -> Next {
+    state.failing = failing(state.failing, reply);
     match hear(reply, &state) {
         Ok(proposal) => judged(state, proposal, now),
         Err(anomaly) => idle(state.noted(Note::Anomaly(anomaly))),
     }
 }
 
+/// The judge's failures in a row after `reply`: one more for a failure to
+/// reach the judge, none after any other reply.
+fn failing(count: u32, reply: &Result<Answers, JudgeError>) -> u32 {
+    if reply.as_ref().err().is_some_and(JudgeError::unreachable) {
+        count.saturating_add(1)
+    } else {
+        0
+    }
+}
+
 /// Stops the proposal, or else finishes with it or passes it on.
 fn judged(state: State, proposal: Proposal, now: Duration) -> Next {
     match rejection(&state, &proposal) {
-        Some(why) => idle(state.noted(Note::Rejected(why))),
+        Some(why) => idle(refused(state.noted(Note::Rejected(why)))),
         None => pass(state, proposal, now),
     }
 }
@@ -181,7 +198,7 @@ fn confirm(state: State, seen: Seen, now: Duration) -> Next {
         .map_or(Err(Rejection::Missing), |p| verdict(p, &seen));
     match checked {
         Ok(touch) => touched(state, Phase::Acting, touch, now),
-        Err(why) => idle(settled(state.noted(Note::Rejected(why)), seen)),
+        Err(why) => idle(refused(settled(state.noted(Note::Rejected(why)), seen))),
     }
 }
 

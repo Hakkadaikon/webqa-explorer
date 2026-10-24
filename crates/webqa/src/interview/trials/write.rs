@@ -79,7 +79,8 @@ pub(super) async fn records(closing: Closing<'_>, stopped: Stopped) -> Result<Cl
         clock: &mut *closing.clock,
         done: &mut closing.kept.record,
     };
-    let found = findings(&mut asker, closing.plan, &run).await;
+    let down = stopped == Stopped::JudgeDown;
+    let found = findings(&mut asker, closing.plan, &run, down).await;
     let compared = compare(
         ledger(closing.plan, &run, found),
         closing.plan.previous.as_ref(),
@@ -198,12 +199,13 @@ fn reason_of(closing: &Closing<'_>, stopped: Stopped) -> ExitReason {
 const RESET_FAILED: ExitReason = ExitReason::Stuck(StuckKind::NoProgress);
 
 /// Why the report says the run ended: the reset command's failure before any
-/// trial, the time limit, the interruption, or the last trial's end.
+/// trial, the time limit, the interruption, or the last trial's end, which
+/// is the judge's failures when they stopped the trials.
 fn reason(stopped: Stopped, nowhere: bool, last: Option<ExitReason>) -> ExitReason {
     match (nowhere, stopped) {
         (true, _) => RESET_FAILED,
         (false, Stopped::TimeUp) => ExitReason::TimeExceeded,
         (false, Stopped::Interrupted) => ExitReason::UserAborted,
-        (false, Stopped::Completed) => last.unwrap_or(ExitReason::UserAborted),
+        (false, Stopped::Completed | Stopped::JudgeDown) => last.unwrap_or(ExitReason::UserAborted),
     }
 }

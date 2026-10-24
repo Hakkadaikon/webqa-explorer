@@ -168,6 +168,31 @@ fn console_error_is_issue() {
 }
 
 #[test]
+fn network_outage_console_errors_are_not_issues() {
+    let errors: Vec<Redacted<String>> = [
+        "Failed to load resource: net::ERR_INTERNET_DISCONNECTED",
+        "GET https://app.example.test/a.js net::ERR_NETWORK_CHANGED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "TypeError: x is undefined",
+    ]
+    .into_iter()
+    .map(ev)
+    .collect();
+    let expected: Vec<Issue> = [
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "TypeError: x is undefined",
+    ]
+    .into_iter()
+    .map(|s| issue(IssueKind::ConsoleError, Some(s), None, None))
+    .collect();
+    assert_eq!(
+        console_issues(&errors),
+        expected,
+        "only the outage is dropped"
+    );
+}
+
+#[test]
 fn judge_only_detection_is_reference() {
     let findings = [
         finding("わかりにくい表示", Some(0.9)),

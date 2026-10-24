@@ -11,8 +11,10 @@ use crate::record::Act;
 
 use super::super::fakes;
 use super::super::*;
-use super::{Fakes, limited, script, url};
+use super::{Fakes, limited, page, script, url};
 
+/// An operation of step 1. The pages of these tests change only by their
+/// URL, so the URL changed when the screen did.
 fn act(op: &str, target: Option<ElementId>, (p, cause): (f64, Cause), changed: bool) -> Act {
     Act {
         step: 1,
@@ -22,6 +24,7 @@ fn act(op: &str, target: Option<ElementId>, (p, cause): (f64, Cause), changed: b
         cause,
         act: Duration::ZERO,
         changed,
+        moved: changed,
         settle: Duration::ZERO,
     }
 }
@@ -107,4 +110,29 @@ async fn nothing_is_written_after_a_failed_screenshot() {
     assert_eq!(again, Err(StoreError.into()), "refused after the shot");
     drop(ports);
     assert_eq!(fakes.store.writes, 1, "only the screenshot was written");
+}
+
+#[tokio::test]
+async fn an_operation_records_whether_the_url_changed() {
+    let mut clicked = Fakes::new();
+    let _ = clicked.explore().await;
+    let mut scrolled = Fakes::new();
+    scrolled.judge.script = script(&[("scroll_down", 0.9, "1")]);
+    scrolled.rules = limited(&[Op::Click, Op::ScrollDown], 1, 10);
+    let below = fakes::page(&url("/"), &[("button", "送信")]);
+    scrolled.browser.pages = [page("/"), below].into_iter().collect();
+    let _ = scrolled.explore().await;
+    let after = |fakes: &Fakes| {
+        fakes
+            .record
+            .acts
+            .iter()
+            .map(|a| (a.changed, a.moved))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(
+        (after(&clicked), after(&scrolled)),
+        (vec![(true, true)], vec![(true, false)]),
+        "to /done the URL changed; a scroll only changed what shows"
+    );
 }

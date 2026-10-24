@@ -21,6 +21,8 @@ pub struct RawInterview {
     /// Confidence below which a step counts as hesitant. 0.5 when omitted.
     #[serde(default = "default_confidence")]
     pub confidence_threshold: f64,
+    /// The confidence a `back` the judge chose needs. 0.3 when omitted.
+    pub back_confidence: Option<f64>,
     /// Steps without progress that count as stuck. `limits` when omitted.
     pub stuck_threshold: Option<u32>,
     /// The most operations in an hour. `limits` when omitted.

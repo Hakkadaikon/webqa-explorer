@@ -75,6 +75,11 @@ const fn confidence_is(world: &mut InterviewWorld, threshold: f64) {
     world.scene.confidence = threshold;
 }
 
+#[given(expr = "設定の 引き返しに要る確信度 が {float} である")]
+const fn back_confidence_is(world: &mut InterviewWorld, confidence: f64) {
+    world.scene.back_confidence = Some(confidence);
+}
+
 #[given(expr = "設定の インタビューのモードの行き詰まりの閾値 が {int} である")]
 const fn interview_stuck_is(world: &mut InterviewWorld, threshold: u32) {
     world.scene.interview_stuck = Some(threshold);

@@ -9,6 +9,7 @@ use super::counters::{Counters, Progress};
 use super::material::forbidden_indices;
 use super::note::left;
 use super::state::State;
+use crate::event::Mode;
 use crate::explore::{ElementOp, ScreenKey};
 use crate::guard::domain::is_allowed;
 use crate::screen::{ElementId, changed, element_ids, in_viewport};
@@ -104,6 +105,17 @@ pub(super) fn settled(state: State, seen: Seen) -> State {
     state
 }
 
+/// `state` after the guardrails stopped its proposal. An interview counts it
+/// as a step without progress, so that a persona whose proposals keep being
+/// stopped ends stuck instead of spending the budget; other modes change
+/// nothing. A step that landed outside is counted already, once a step.
+pub(super) fn refused(mut state: State) -> State {
+    if interviewing(&state) && !state.outside {
+        state.counters = stalled(state.counters);
+    }
+    state
+}
+
 /// The counters with one more step without progress, the freeze count kept.
 fn stalled(counters: Counters) -> Counters {
     counted(counters.freeze(), counters.stuck().saturating_add(1))
@@ -141,7 +153,7 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
     state.counters = state.counters.after_touch(Progress {
         changed: taken.changed,
         explored,
-        revealed: taken.revealed,
+        revealed: taken.revealed && !interviewing(&state),
     });
     state.unmoved = state
         .proposal
@@ -149,6 +161,12 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
         .and_then(|p| p.element.clone())
         .filter(|_| !taken.changed);
     idle(state)
+}
+
+/// Whether the run is an interview. An interview does not count an element
+/// a scroll shows as progress: a persona that keeps scrolling is stuck.
+fn interviewing(state: &State) -> bool {
+    state.rules.mode == Mode::Interview
 }
 
 /// The kind of operation to record for the proposal, judged on the page it

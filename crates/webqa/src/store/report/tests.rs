@@ -42,6 +42,7 @@ fn act(step: u64, op: &str, target: Option<ElementId>, cause: Cause, ms: [u64; 2
         cause,
         act: Duration::from_millis(act),
         changed: false,
+        moved: false,
         settle: Duration::from_millis(settle),
     }
 }

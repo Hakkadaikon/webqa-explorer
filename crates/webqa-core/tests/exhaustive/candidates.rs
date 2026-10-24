@@ -33,9 +33,9 @@ pub const STOP: Duration = Duration::from_secs(5000);
 pub const TIMES: [Duration; 3] = [Duration::from_secs(10), Duration::from_secs(3600), STOP];
 
 /// The facts in the order of [`choices`]: the replies, the pages, waking up.
-const REPLIES: Range<usize> = 0..43;
-const PAGES: Range<usize> = 43..50;
-const WOKE: Range<usize> = 50..51;
+const REPLIES: Range<usize> = 0..44;
+const PAGES: Range<usize> = 44..51;
+const WOKE: Range<usize> = 51..52;
 
 /// One fact of each kind: a reply, a page and waking up. An ended run
 /// takes in no fact, so one of each stands for the others of its kind.
@@ -125,6 +125,15 @@ pub fn staged_rules() -> Rules {
 pub fn explore_rules() -> Rules {
     Rules {
         mode: Mode::Explore,
+        ..rules()
+    }
+}
+
+/// The rules of an interview: a scenario that counts a stopped proposal and
+/// not an element a scroll shows.
+pub fn interview_rules() -> Rules {
+    Rules {
+        mode: Mode::Interview,
         ..rules()
     }
 }

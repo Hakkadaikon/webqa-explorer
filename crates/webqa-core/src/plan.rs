@@ -4,6 +4,8 @@
 mod limit_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod tier_tests;
 
 /// The first tier: the result of the goal check of the mode.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -20,8 +22,17 @@ pub enum Goal {
 /// The second and third tiers: conditions that end the run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Ends {
-    /// The stuck count has reached its threshold.
+    /// The second tier: the stuck count has reached its threshold.
     pub stuck: bool,
+    /// The third tier.
+    pub limits: Limits,
+}
+
+/// The third tier: the limits the run reaches.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Limits {
+    /// The judge has failed too many times in a row.
+    pub judge_down: bool,
     /// The decision budget is used up.
     pub out_of_budget: bool,
     /// The time limit is reached.
@@ -68,6 +79,8 @@ pub enum Pick {
     Achieve,
     /// Finish: stuck.
     Stuck,
+    /// Finish: the judge has failed too many times in a row.
+    JudgeDown,
     /// Finish: the decision budget is used up.
     OutOfBudget,
     /// Finish: the time limit is reached.
@@ -91,7 +104,7 @@ struct Row {
 }
 
 /// The rows in priority order.
-const ROWS: [Row; 10] = [
+const ROWS: [Row; 11] = [
     Row {
         pick: Pick::Advance,
         when: |w| w.goal == Goal::Advance,
@@ -105,12 +118,16 @@ const ROWS: [Row; 10] = [
         when: |w| going_on(*w) && w.ends.stuck,
     },
     Row {
+        pick: Pick::JudgeDown,
+        when: |w| running(*w) && w.ends.limits.judge_down,
+    },
+    Row {
         pick: Pick::OutOfBudget,
-        when: |w| running(*w) && w.ends.out_of_budget,
+        when: |w| running(*w) && w.ends.limits.out_of_budget,
     },
     Row {
         pick: Pick::TimeUp,
-        when: |w| running(*w) && w.ends.time_up,
+        when: |w| running(*w) && w.ends.limits.time_up,
     },
     Row {
         pick: Pick::WaitWindow,
@@ -151,12 +168,17 @@ fn running(w: Waiting) -> bool {
 
 /// Neither the budget nor the time is used up.
 const fn in_time(w: Waiting) -> bool {
-    !w.ends.out_of_budget && !w.ends.time_up
+    !w.ends.limits.out_of_budget && !w.ends.limits.time_up
+}
+
+/// The judge answers, and neither the budget nor the time is used up.
+const fn served(w: Waiting) -> bool {
+    in_time(w) && !w.ends.limits.judge_down
 }
 
 /// The run goes on past the third tier.
 fn active(w: Waiting) -> bool {
-    running(w) && in_time(w)
+    running(w) && served(w)
 }
 
 /// The time window is open.
