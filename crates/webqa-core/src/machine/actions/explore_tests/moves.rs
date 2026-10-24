@@ -3,6 +3,7 @@
 
 use super::{all_clicked, not_an_option, options, refused, top_tall, waiting_with};
 use crate::config::raw::Op;
+use crate::effect::{Effect, Outside};
 use crate::judge::QuestionId;
 use crate::machine::Rules;
 use crate::machine::testing::{
@@ -41,4 +42,15 @@ fn explore_moves_offer_back_and_scrolls() {
     let unnarrowed = waiting_with(clicks, &all_clicked());
     let expected = ask_with(&top_tall(), asked_for(&[Op::Click], 2, None));
     assert_eq!(unnarrowed.effect(), Some(&expected), "clicks still");
+}
+
+#[test]
+fn explore_moves_ask_no_element() {
+    let empty = page(&format!("{APP}/empty"), &[]);
+    let asked = started(explore(), &empty);
+    let Some(Effect::Outside(Outside::Ask(sent))) = asked.effect() else {
+        panic!("asks");
+    };
+    let ids: Vec<&str> = sent.questions.iter().map(|q| q.id().as_str()).collect();
+    assert_eq!(ids, ["operation", "error_shown"], "no element to choose");
 }

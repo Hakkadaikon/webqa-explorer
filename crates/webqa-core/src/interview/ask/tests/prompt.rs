@@ -164,15 +164,16 @@ fn target_options_are_all_viewport_elements() {
 
 #[test]
 fn no_element_asks_no_target() {
-    let none = questions(&Step {
-        elements: 0,
-        ..step(None)
-    });
-    let target = QuestionId::target();
-    assert!(
-        none.iter().all(|q| *q.id() != target),
-        "no element, no question"
-    );
+    let ids = |elements| -> Vec<QuestionId> {
+        let asked = questions(&Step {
+            elements,
+            ..step(None)
+        });
+        asked.iter().map(|q| q.id().clone()).collect()
+    };
+    let mut want = ids(2);
+    want.retain(|id| *id != QuestionId::target());
+    assert_eq!(ids(0), want, "only the question about the element goes");
 }
 
 /// The question of the element when the screen text has `elements` lines.

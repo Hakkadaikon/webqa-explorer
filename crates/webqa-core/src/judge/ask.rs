@@ -43,15 +43,17 @@ pub fn questions(ask: &Ask<'_>) -> Vec<Question> {
         prompt: "画面にエラーの表示があるか".to_owned(),
     });
     questions.extend(ask.goal.map(goal_question));
-    questions.retain(asks_something);
+    questions.retain(not_an_empty_target);
     questions
 }
 
-/// Whether `question` is sent. The question about the element is not when
-/// it has no element to offer: the judge refuses a choice of nothing, and
-/// the operation kinds left need no element.
+/// Whether `question` is sent.
+///
+/// All are but the question about the element when it has no element to
+/// offer, since the judge refuses a choice of nothing. An operation kind that needs an element is still read as before: chosen
+/// without an element to answer, it is an unusable answer.
 #[must_use]
-pub fn asks_something(question: &Question) -> bool {
+pub fn not_an_empty_target(question: &Question) -> bool {
     !matches!(question, Question::Choice { id, options, .. }
         if *id == QuestionId::target() && options.is_empty())
 }

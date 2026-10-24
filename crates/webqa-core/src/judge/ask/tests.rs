@@ -104,15 +104,13 @@ fn step_asks_op_target_error_goal() {
 
 #[test]
 fn no_element_asks_no_target() {
-    let none = questions(&Ask {
-        elements: 0,
-        ..ASK8
-    });
-    let target = QuestionId::target();
-    assert!(
-        none.iter().all(|q| *q.id() != target),
-        "no element, no question"
-    );
+    let ids = |elements| -> Vec<QuestionId> {
+        let asked = questions(&Ask { elements, ..ASK8 });
+        asked.iter().map(|q| q.id().clone()).collect()
+    };
+    let mut want = ids(2);
+    want.retain(|id| *id != QuestionId::target());
+    assert_eq!(ids(0), want, "only the question about the element goes");
 }
 
 #[test]
