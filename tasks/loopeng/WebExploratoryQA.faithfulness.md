@@ -13,9 +13,9 @@ v6では、対象を取らない操作の対象を`"none"`にし、click/input�
 
 v6の入力も、`.tla`からコメントと区切り線を除いたものと行ごとに一致することを確かめた(違いはモジュールの見出し行だけ)。
 v6の入力を、v5とは別のfresh contextの読み手に渡して、全項目を言い直させ直した。
-読み手の言い直しの全文は、この文書の末尾の付録に写した(v6のspecに対するもの)。
+v6の読み手の言い直しの全文は、v6の判定のときに末尾の付録に写した。今の付録はv7の読み手のもので、v6の全文は`git log`で辿れる(`678289a`で付録を差し替える前の版)。
 v6で変えた定義に関わる5行(S-005、S-006、S-012、S-016の探索モード、S-028の存在確認)は、言い直しの欄をv6の読み手の言葉に改めた。
-ほかの行の言い直しは、v6の読み手もv5と同じ内容を返したことを付録で確かめ、欄はそのままにした。
+ほかの行の言い直しは、v6の読み手もv5と同じ内容を返したことを、当時の付録(v6の全文)で確かめ、欄はそのままにした。
 「読み手が気になった18点の分類」は、v6の読み手の18点で書き直した。
 `WebExploratoryQA.paraphrase.md`はv4のspecに対する言い直しで、この判定には使っていない。
 
@@ -51,9 +51,9 @@ v7の入力を、v6とは別のfresh contextの読み手(general-purposeのsubag
 v7で判定し直したのは次の行で、言い直しの欄をv7の読み手の言葉に改めた。
 
 - 新しい行: S-046、InterviewMode S-011(止めた提案を数える)、InterviewMode S-047(見えた要素を数えない)
-- 式が変わった行: S-005、S-015の段階の切り替えと入った時点のdone_when、S-021のドメイン外と行き詰まり、S-027、S-028の存在確認、S-033、S-041、S-044の優先順位と終了状態
+- 式が変わった行: S-005、S-011(`ObservationChangesOnlyByExecution`)、S-015の段階の切り替えと入った時点のdone_when、S-021のドメイン外と行き詰まり、S-027、S-028の存在確認、S-033、S-041、S-044の優先順位と終了状態
 
-ほかの行は、v7の読み手もv6と同じ内容を返したことを付録で確かめ、欄はそのままにした。
+上に挙げていない行は、v7の読み手もv6と同じ内容を返したことを付録で確かめ、欄はそのままにした。
 「読み手が気になった26点の分類」は、v7の読み手の26点で書き直した。
 `WebExploratoryQA.paraphrase.md`はv4の言い直しのままで、v7の判定には使えない。
 
@@ -70,7 +70,7 @@ P63(インタビューの応答の異常は数えない)は`WebExploratoryQA.emp
 | S-005 | `RequestDecision`、`ProposalWellFormed`、`AwaitingOnlyByDecision`、`JudgeFailsTracksReplies` | 「ガードはContinuing、idleCounter < IdleThreshold、requestBudget > 0、inAllowedDomain。どちらの分岐でも予算を1ずつ減らす。成功の分岐はawaiting_decisionへ進んでjudgeFailsを0にし、opはProposableOpsから、tはProposalTargets(op)から非決定に選ぶ。失敗の分岐はphaseと提案を変えずにjudgeFailsを1増やす」「awaiting_decisionに入る遷移ではdecisionsMadeが1増える。decisionsMadeが1増える遷移は、awaiting_decisionに入るか、idleのままjudgeFailsが1増えるかのどちらか」 | partial | 問い合わせ(API呼び出し)そのものはモデル外で、どんな値が返っても扱えることを非決定の選択で表す。v6で、操作可能な要素が1つも無い画面でも問い合わせが起きるようにした。v7で、判断モデルに届かない失敗の分岐を足した(S-046の行)。前件到達はP15、P23、P46、P55。 |
 | S-006 | `RequestDecision`、`ProposalTargets`、`ProposalWellFormed` | 「opがclickかinputで、Elementsが空でなければ、対象の候補は全要素(禁止要素も含む)。それ以外は対象なし(none)だけ」「targetExistsは、直接操作で対象がnoneのときだけ偽に固定」「awaitingで直接操作でなければtargetはnone。直接操作でtargetがnoneなら対象は存在しない。直接操作でElementsが空でなければtargetはElementsに属する」 | partial | S-005と同じ理由。言い直しはv6の`ProposalTargets`と`ProposalWellFormed`の意図(model.mdの`proposedTarget`の行)と一致する。v5は対象を取らない操作にも要素を持たせていたので、要素が無い画面を表せなかった。v6は`ProposalTargets`で、click/inputで要素があれば要素、それ以外は`"none"`を対象にする。`ProposalWellFormed`は、問い合わせの直後に対象を取らない操作の対象が`"none"`であること、click/inputの対象が`"none"`なら存在しない扱いであることを検査する。前件到達はP50(click/inputに要素番号が無い応答)、P51(対象を取らない操作の対象なし)。 |
 | S-010 | `ApplyGuardrails`、`LowConfidenceBackNeverActed`、`SafeProposalProceeds` | 「ペイウォールでなく、低確信のbackなら却下してidleへ」「actingで、ペイウォールでなくbackなら低確信ではない」「安全な提案はactingへ進む」 | full | 却下する側と、却下しすぎない側の両方を検査している。ペイウォールの強制backを前件から外すのは、S-013による意図どおりの扱い。0.7の閾値は真偽値に丸めた(設計メモ8)。前件到達はP1、P21。 |
-| S-011 | `ExecuteNoChange`、`IdleCounterTracksScreen`、`ObservationChangesOnlyByExecution` | 「画面が変わらなければidleCounterを1増やす」「screenChangedとnewSeenが変わるのは実行の完了だけ」 | partial | 画面が変わらなかったことの観測は表している。次に確信度の高い候補へ切り替える選択は、`RequestDecision`の非決定の選択に吸収され、モデル外。受け入れシナリオ「画面が変わらないのに同じ要素を選んだら…」で確かめる。前件到達はP28e、P37。 |
+| S-011 | `ExecuteNoChange`、`IdleCounterTracksScreen`、`ObservationChangesOnlyByExecution` | 「ExecuteNoChangeでscreenChanged' = FALSE、idleCounterが1増える」「screenChangedが変わるのは、actingからidleへの遷移だけ」「newSeenが変わるのは、actingからidleへの遷移か、『awaiting_decisionで¬inAllowedDomain'かつ¬newSeen'』の遷移」 | partial | 画面が変わらなかったことの観測は表している。v7で、確かめ直しで許可ドメインの外に着いたら新しく見えた要素が無くなる(B4でnewSeenが偽になる)ことを足した。画面の変化の観測(固まり)には触れない。次に確信度の高い候補へ切り替える選択は、`RequestDecision`の非決定の選択に吸収され、モデル外。受け入れシナリオ「画面が変わらないのに同じ要素を選んだら…」で確かめる。前件到達はP28e、P37。 |
 | S-012 | `ApplyGuardrails`、`NeverOperatesForbidden`、`DirectOpActedOnlyOnSafeTarget`、`SafeProposalProceeds` | 「禁止要素への直接操作は退けてidleに戻る」「訪れた要素に禁止要素は含まれない」「ペイウォールでないactingで直接操作なら、対象は存在し、Explorableに属する」 | full | 一致する。v6の`DirectOpActedOnlyOnSafeTarget`は、対象が`Explorable`(要素で、禁止要素でない)にあることを求め、`"none"`への操作も除く。禁止要素の分類ロジックの正しさは、設計メモ8とmodel.mdの`ForbiddenElements`節のとおり実装で確かめる。前件到達はP2、P21。 |
 | S-013 | `ApplyGuardrails`のペイウォール分岐、`PaywallForcesBack`、`ProposalChangesOnlyByDecision` | 「ペイウォールなら操作をbackに差し替えてactingへ。doneやstuckの提案もbackになる」 | partial | 判断モデルの提案と無関係に既定の離脱操作をする点は一致する。specはペイウォールの観測が問い合わせの応答と同時に届くので、ペイウォールでも問い合わせて予算を1ずつ使う。「問い合わせない」は検査していない。予算を多めに使う側へのずれで、安全性には影響しない。実装は問い合わせの前に課金画面を判定して問い合わせを省く。受け入れシナリオ「課金画面が出たら判断モデルに問い合わせず…」「課金画面から離脱しても消えないまま3回続いたら…」で確かめる。前件到達はP22、P34。 |
 | S-014 | `FinishNormally`、`FinishByProposalDone`、`ExploreGoalOnlyWhenAllExplored`、`ScenarioGoalOnlyAtLastStage`、`ReportedDoneOnlyWithoutDoneWhen`、`GoalPreempts`、`DoneWhenChangesOnlyByExecutionOrAdvance` | 「探索でgoal_achievedなら全部訪問済みで判断1回以上」「シナリオでgoal_achievedなら最後の段でdoneWhenMetが真」「reported_doneならExploreDoneもScenarioStageDoneも偽」「doneWhenMetが偽から真になるのは実行の完了か段の前進」 | full | ゴール達成は完了条件だけで決まり、判断モデルのdoneは未検証の終了として分けて記録する。前件到達はP3、P4、P5、P16a、P16b、P38a、P38b。 |
@@ -84,13 +84,13 @@ P63(インタビューの応答の異常は数えない)は`WebExploratoryQA.emp
 | S-017 | `RecoverFromFreeze`/`ResumeAfterRecovery`、`RecoveryResetsPageState`、`RecoveryOnlyAfterFreeze`、`FreezePreemptsDecision`、`FreezeRecoveryRecorded`、`MemoryNeverShrinks` | 「Continuingで固まりの閾値以上ならfrozen_recoveredへ。idleCounterだけ0にする」「frozen_recoveredならidleCounterは0で許可ドメイン内」「固まりの閾値以上ならawaiting_decisionへ移らない」「訪問済みは減らない」 | partial | 復旧がページの状態だけを戻し、探索の記憶を残すことは検査している。固まりを検出したら必ず復旧することは性質として書いていない。問い合わせは禁止され、弱公平性の下でいずれ復旧か終了が起きるが、これは推論で検査していない。ドメイン外は復帰で、行き詰まりは終了で扱う(設計メモ2。行き詰まりで終えるのはS-044の優先順位による)。「ページが応答しない」は画面が変化しなかった1ケースとして固まりカウンタに合流させた(設計メモ9)。前件到達はP14、P20、P25。 |
 | S-021(固まり) | `RecoverFromFreeze`のガード、`IdleCounterTracksScreen`、`CountersBoundedByOps`、`CountersChangeOnlyBySteps` | 「idleCounterが閾値以上」「実行で画面が変われば0、変わらなければ1増える」 | full | 一致する。「一定時間」は操作の回数で数える(設計メモ9)。前件到達はP28a、P28e、P35a。 |
 | S-021(ドメイン外) | `ExecuteOutOfDomain`、`ApplyGuardrails`のB4(`Refuse(TRUE)`)、`DomainRecordAccurate`、`DomainChangesOnlyByNavigation` | 「ExecuteOutOfDomainでpageOutside真、inAllowedDomain偽」「存在しない通常要素への直接操作はB4でドメイン外へ出て拒否でき、モードにかかわらずstuckCounterが増える」「inAllowedDomainは常にpageOutsideの否定」「ドメインの2変数が変わるのは、actingからidle、B4の条件のawaitingからidle、inAllowedDomain'が真のidleからidleだけ」 | full | 記録が実際のページ位置と一致することを検査する。v7で、確かめ直しのために見たページが外だった場合(実装の確認中の観測)を足した。判定ロジック(URLの比較)の正しさは設計メモ8。前件到達はP36、P61、P62。 |
-| S-021(行き詰まり) | `FinishStuck`のガード、`StuckAfterOp`、`Refuse`、`StuckCounterTracksNewElements`、`RefusalCountsStuck`、`StuckPreempts`、`NewSeenOnlyOnChangedAllowedPage` | 「StuckAfterOp: VisitedAfterOpがvisitedと変わらず、かつ『modeがinterviewであるかnewSeen'が偽』ならstuckCounter + 1、それ以外は0」「Refuse: outsideが真か、interviewで『直接操作で対象がnone』でないとき1増える。それ以外は据え置き」「awaitingからidleの遷移で、stuckCounter'はRefuseと同じ式(outsideの代わりに¬inAllowedDomain')」「idleで¬DoneWhenかつ閾値以上なら、次はstuckか環境事象」「newSeenが真なら、画面が変わり、許可ドメイン内で、判断1回以上」 | full | 探索済みの集合が増えず、未操作の要素も新しく見えない、という定義と一致する。許可ドメイン外の要素を新しく見えた要素に数えないこと(設計メモ10の1)も検査している。決め打ちシナリオと探索モードで却下された提案を数えないのは設計メモ9のとおり。インタビューの数え方の違い(InterviewMode S-011、S-047)は下の2行で判定する。前件到達はP10、P18、P28b、P28c、P28d、P35b、P59〜P66。 |
+| S-021(行き詰まり) | `FinishStuck`のガード、`StuckAfterOp`、`Refuse`、`StuckCounterTracksNewElements`、`RefusalCountsStuck`、`StuckPreempts`、`NewSeenOnlyOnChangedAllowedPage` | 「StuckAfterOp: VisitedAfterOpがvisitedと変わらず、かつ『modeがinterviewであるかnewSeen'が偽』ならstuckCounter + 1、それ以外は0」「Refuse: outsideが真か、interviewで『直接操作で対象がnone』でないとき1増える。それ以外は据え置き」「awaitingからidleの遷移で、stuckCounter'はRefuseと同じ式(outsideの代わりに¬inAllowedDomain')」「idleで¬DoneWhenかつ閾値以上なら、次はstuckか環境事象」「newSeenが真なら、画面が変わり、許可ドメイン内で、判断1回以上」 | full | 探索済みの集合が増えず、未操作の要素も新しく見えない、という定義と一致する。許可ドメイン外の要素を新しく見えた要素に数えないこと(設計メモ10の1)も検査している。決め打ちシナリオと探索モードでは、ガードレールで止めた提案そのものは数えない(設計メモ9)。ただし確かめ直しのために見たページが許可ドメインの外なら、どのモードでもそのステップを1回数える(S-033の2行目、v7で足したEARS)。この2つはB1〜B3とB4の違いとして式に出ている。インタビューの数え方の違い(InterviewMode S-011、S-047)は下の2行で判定する。前件到達はP10、P18、P28b、P28c、P28d、P35b、P59〜P66。 |
 | S-022 | `VisitedAfterOp`、`MemoryNeverShrinks`、`VisitedOnlyByOps`、`VisitedChangesOnlyByExecution` | 「click/inputなら対象を訪問済みに足す」「訪問済みは減らない。段が進んでも減らない」「訪問済みの要素数は判断数以下」 | partial | 1回の実行の中で記憶が失われないことは検査している。グラフ構造は単一の集合で近似し(model.mdの簡略化)、実行をまたぐ永続化は状態変数の外。受け入れシナリオ「探索の記憶を次の実行に引き継ぐ」などで確かめる。何も起きなかった input(入力欄でない対象、値の無い入力欄)は、モデルでは対象の無い実行(wait 相当)として扱う。記憶に足さず、行き詰まりの数は進む。検査する cfg の Operations に input は無い。前件到達はP26。 |
 | S-023 | `RequestDecision`の非決定の選択 | 「提案の操作と対象をすべて非決定に選ぶ」 | partial | 優先順位の規則は非決定の選択に吸収した(model.mdの「捨てた領域」)。受け入れシナリオ「未操作の要素を…先に選ぶ」ほか3本で確かめる。 |
 | S-027 | `Init`の`mode`、`ModeFixed` | 「modeは3つのモードから非決定に選び、変わらない」 | full | 3つのモードを同じ状態機械で扱う。モードの指定方法はモデル外だが、要件はそれを求めていない。前件到達はP4(シナリオ)、P6(探索)、P67(インタビュー)。 |
 | S-028(存在確認) | `ApplyGuardrails`のB3・B4、`DirectOpActedOnlyOnSafeTarget`、`SafeProposalProceeds` | 「B3: 直接操作でtargetExistsが偽ならRefuse(FALSE)」「B4: 直接操作でtargetExistsが偽で、対象が禁止要素でもnoneでもなければRefuse(TRUE)。存在しない通常要素にはB3とB4の両方が取れ、どちらになるかは非決定」「ペイウォールでないactingで直接操作なら、targetExistsが真で、対象はExplorableに入る」 | full | 一致する。要素が無い画面でclick/inputが返った場合も、対象`"none"`で存在しない扱い(応答の異常)になり、却下される。v7で、確かめ直しのために見たページが許可ドメインの外の場合(B4)を足した。存在の判定(ノードの同一性)は設計メモ8。前件到達はP2、P21、P50、P61。 |
 | S-028(決済導線) | `ApplyGuardrails`、`NeverOperatesForbidden` | 「禁止要素へのclick/inputは却下」「訪問済みに禁止要素は含まれない」 | partial | specは判断モデルが禁止要素を提案しうるとして、ガードで操作を止めることを検査する。要件の「選択してはならない」(探索の候補に入れない)は非決定の選択に吸収され、モデル外。設計メモ9のとおり、実装は禁止要素全体を候補から外す。受け入れシナリオ「禁止要素は未操作のまま残っていても、探索の候補に入れない」「探索モードでも決済導線の要素は選ばない」で確かめる。 |
-| S-033 | `ExecuteOutOfDomain`/`ReturnToAllowedDomain`、`ApplyGuardrails`のB4、`RequestDecision`のガード、`DomainRecordAccurate`、`NoDecisionOutsideDomain`、`DomainChangesOnlyByNavigation` | 「外へ出たことを記録する(ExecuteOutOfDomainとB4)」「idleからawaiting_decisionへ移るとき、pageOutsideは偽」「Continuingで外にいるなら内へ戻る。RequestDecisionはinAllowedDomainを要求するので、先に戻る」 | full | 遷移の記録と、ドメイン外で探索しないことの両方を検査している。前件到達はP29、P36、P61。 |
+| S-033 | `ExecuteOutOfDomain`/`ReturnToAllowedDomain`、`ApplyGuardrails`のB4、`RequestDecision`のガード、`DomainRecordAccurate`、`NoDecisionOutsideDomain`、`DomainChangesOnlyByNavigation` | 「外へ出たことを記録する(ExecuteOutOfDomainとB4)」「idleからawaiting_decisionへ移るとき、pageOutsideは偽」「Continuingで外にいるなら内へ戻る。RequestDecisionはinAllowedDomainを要求するので、先に戻る」 | full | 遷移の記録と、ドメイン外で探索しないことの両方を検査している。2行目(確かめ直しで中止して外に着いたら、どのモードでも記録して行き詰まりを1回数える。インタビューで止めた分と重なっても1回)は、B4と`RefusalCountsStuck`の「¬inAllowedDomain'なら1増える」に当たり、言い直しと一致する。前件到達はP29、P36、P61、P62。 |
 | S-041 | `RequestDecision`/`ExceedDecisionBudget`/`FinishTimeUp`、`DecisionsWithinCap`、`BudgetAccounting`、`BudgetExceededOnlyWhenSpent`、`DecisionBudgetNeverRestored`、`LimitStops`、`TerminalAbsorbing`、`EventuallyTerminates` | 「decisionsMade ≤ MaxDecisions」「decisionBudget + decisionsMade = MaxDecisions」「idleで¬DoneWhen、stuckCounter < StuckThreshold、judgeFails < MaxJudgeFailures、かつ予算切れか時間切れなら、次は対応する終端か環境事象」「decisionBudgetは増えない」「いずれphaseが終端になる。TimeElapsesとUserAbortが起きなくても、決定予算が減っていくことだけで成り立つ」 | full | 呼び出し回数は上限を超えず、上限か制限時間に達したら次の待機状態で止まり、再開しない。上位の終了条件(ゴール達成、行き詰まり、判断モデルの停止)が先に採られるのは、承認済みの優先順位のとおり。判断モデルに届かない失敗も1回に数えるのは、実装が問い合わせの前に予算を使うのと同じ(気になった点7)。前件到達はP13、P19a、P19b、P19c、P58。 |
 | S-042 | `RequestDecision`/`ResetRequestWindow`、`RequestsWithinWindowCap`、`BudgetAccounting`、`BudgetSharedAcrossStages` | 「リクエスト予算が残っているときだけ問い合わせる」「Continuingなら時間の条件なしでウィンドウを戻せる」「ウィンドウ内のリクエスト数はMaxRequests以下」 | partial | 1つの窓で上限を超えないことは検査している。窓が時間の条件なしで満了するのは、要件の「どの時点でも満了しうる」のとおり(設計メモ7)。1窓の実時間の長さはモデル外。数える単位もずれる。specは問い合わせごとに数えるが、実装は対象サーバへのアクセス(ブラウザ操作、課金画面の離脱、固まり復旧の再読み込み、許可ドメインへの戻り)を数え、ガードで止めた提案は数えない(設計メモ9でユーザーが承認)。受け入れシナリオ「ページの再読み込みや許可ドメインへの戻りも…」「時間窓の操作回数が上限に達していたら…」「ガードレールで止めて…」で確かめる。前件到達はP31。 |
 | S-044(ゴール達成) | `FinishNormally`、`GoalPreempts`、`ExploreGoalOnlyWhenAllExplored`、`ScenarioGoalOnlyAtLastStage`、`ExitReasonMatchesPhase` | 「idleでGoalReachedなら、次はdone・goal_achievedか環境事象」 | full | 完了条件の観測が成り立てば、他の終了理由や継続に先取りされずゴール達成で終わる。v4でpartialにした理由(最後の段に入った直後と開始時に観測しない)は、v5の`Init`と`AdvanceStage`の観測で解消した。前件到達はP3、P4、P16a、P16b、P43。 |
@@ -99,7 +99,7 @@ P63(インタビューの応答の異常は数えない)は`WebExploratoryQA.emp
 | S-044(中断) | `UserAbort`、`ExitReasonMatchesPhase`、`TerminationKeepsState` | 「終端でなければaborted・user_abortedで終わる」「終端へ入る遷移では段階と終了理由のほかは変わらない」 | partial | どの時点でも中断を受け付け、中断として記録して終わることは検査している。記憶・終了のイベント・実行結果の書き出しはモデル外(設計メモ10の3)。受け入れシナリオで確かめる。前件到達はP7e、P39a、P39b。 |
 | S-044(終了状態) | `TerminalAbsorbing`、`Next`の最後の選択肢、`TerminationKeepsState` | 「終端にいるなら変数は何も変わらない」「終端へ入る遷移では段階と終了理由のほかは変わらない」 | full | 中断を含め、終了後は状態が変わらない。`TimeElapses`と`UserAbort`も終端では起きない。v7で足した判断モデルの停止(`error_exit`、`judge_unavailable`)も同じ終端に入る(`ExitReasonMatchesPhase`の「error_exitならbudget_exceededかjudge_unavailable」)。前件到達はP39a、P40、P52。 |
 | S-044(優先順位) | `Exploring`/`Running`/`Continuing`の各ガード、`GoalPreempts`、`StageAdvancePreempts`、`StuckPreempts`、`JudgeDownStops`、`LimitStops`、`FreezePreemptsDecision`、`NoDecisionOutsideDomain`、`EnvEvent` | 読み手は「phaseがidleのときの優先順位(式から読めるもの)」を並べた(付録の4節)。「1. DoneWhenが真ならAdvanceStageかFinishNormallyだけ」「2. 次に閾値以上ならFinishStuckだけ」「3. 次にjudgeFails ≥ MaxJudgeFailuresならFinishJudgeUnavailableだけ。予算切れや時間切れより先」「4. 次に予算切れか時間切れ。両方なら非決定」「5. 残りはContinuingで、固まりなら復旧、外なら復帰、ResetRequestWindowは並んで取れる」「TimeElapsesとUserAbortは終端でなければ割り込める」 | full | 要件の順序と一致する。判断モデルの停止は3段目の先頭で、予算切れと時間切れより先(S-046、実装の`plan.rs`)。予算切れと時間切れが同時に成り立てばどちらでもよいことも、要件の文面どおり(設計メモ10の2)。前件到達はP16a、P16b、P17、P18、P19a〜c、P20、P29、P41、P42、P53、P54a、P54b。 |
-| S-046 | `RequestDecision`の失敗の分岐、`FinishJudgeUnavailable`、`JudgeDownStops`、`JudgeFailsTracksReplies`、`JudgeUnavailableOnlyAfterFailures`、`JudgeFailsBounded`、`ExitReasonMatchesPhase` | 「失敗の分岐: judgeFailsが1増え、phaseと提案は変わらずidleのまま。成功の分岐ではjudgeFails' = 0」「FinishJudgeUnavailableのガードはRunningとjudgeFails ≥ MaxJudgeFailures。予算や時間は確かめない」「idleで¬DoneWhen、stuckCounter < StuckThreshold、judgeFails ≥ MaxJudgeFailuresなら、次はerror_exitかつjudge_unavailableか環境事象」「judgeFailsかdecisionsMadeが変わる遷移では、decisionsMadeが1増え、awaiting_decisionならjudgeFails'は0、idleなら1増える」「judge_unavailableならjudgeFails ≥ MaxJudgeFailures」 | partial | 失敗が閾値の回数続いたら、判断予算と制限時間が残っていても判断モデルの停止として終えることは一致する(P54c)。答えが届けば使えない答えでも0に戻るのは、要件の「形の崩れた応答や使えない応答は失敗に数えず、失敗の数を0に戻す」のとおり。使えない答えは要素番号の無い直接操作として表した。partialの理由は3つ。失敗の種類(APIのエラー、タイムアウト、橋渡しの失敗)の区別はモデル外。終了コード3はモデル外。閾値は検査では2で、実装の3では回していない。前件到達はP52〜P58。 |
+| S-046 | `RequestDecision`の失敗の分岐、`FinishJudgeUnavailable`、`JudgeDownStops`、`JudgeFailsTracksReplies`、`JudgeUnavailableOnlyAfterFailures`、`JudgeFailsBounded`、`ExitReasonMatchesPhase` | 「失敗の分岐: judgeFailsが1増え、phaseと提案は変わらずidleのまま。成功の分岐ではjudgeFails' = 0」「FinishJudgeUnavailableのガードはRunningとjudgeFails ≥ MaxJudgeFailures。予算や時間は確かめない」「idleで¬DoneWhen、stuckCounter < StuckThreshold、judgeFails ≥ MaxJudgeFailuresなら、次はerror_exitかつjudge_unavailableか環境事象」「judgeFailsかdecisionsMadeが変わる遷移では、decisionsMadeが1増え、awaiting_decisionならjudgeFails'は0、idleなら1増える」「judge_unavailableならjudgeFails ≥ MaxJudgeFailures」 | partial | 失敗が閾値の回数続いたら、判断予算と制限時間が残っていても判断モデルの停止として終えることは一致する(P54c)。答えが届けば使えない答えでも0に戻るのは、要件の「形の崩れた応答や使えない応答は失敗に数えず、失敗の数を0に戻す」のとおり。使えない答えは要素番号の無い直接操作として表した。partialの理由は3つで、どれもT-123で担保する。失敗の種類(APIのエラー、タイムアウト、橋渡しの失敗)の区別はモデル外で、単体`three_judge_failures_in_a_row_end_the_run`(3種とも数える)と`unusable_answers_are_not_judge_failures`(使えない答えは0に戻す)で確かめる。終了コード3はモデル外で、単体`judge_unavailable_exits_3`と受け入れシナリオ「判断モデルの失敗が3回続いたら、予算を使い切る前に終了コード3で終わる」で確かめる。閾値は検査では2で、実装の3は同じ受け入れシナリオ(問い合わせ回数が3回)と`three_judge_failures_in_a_row_end_the_run`で確かめる。抽象化の記録は抽出台帳の設計メモ8。前件到達はP52〜P58。 |
 | InterviewMode S-011(止めた提案を数える) | `ApplyGuardrails`のB1〜B4、`Refuse`、`RefusalCountsStuck`、`CountersChangeOnlyBySteps`、`CountersBoundedByOps` | 「interviewでは拒否(Refuse(FALSE))でもstuckを数える。scenarioとexploreでは数えず、idleCounterも変えない」「interviewの例外: 直接操作で対象がnoneなら数えない。効くのはElementsが空のときだけ」「B4ではモードにかかわらずstuckCounterが増え、両方が成り立っても1回」「stuckCounterが変わるのは、actingかawaiting_decisionからidleへの遷移か、stageが1増える遷移」「stuckCounter ≤ decisionsMade」 | full | インタビューでガードレールが止めた提案と確かめ直しでの中止を行き詰まりに1回数え、固まりの回数は変えない、という#92の決定と一致する。応答の異常を数えないのは実装の`refused`が止めた提案だけに掛かるため。要素の参照を持たない提案も存在の確かめ直しに合流させたのはmodel.mdの「簡略化の明示」のとおりで、数え方は変わらない。前件到達はP59、P60、P62、P63、P66、P70。 |
 | InterviewMode S-047(見えた要素を数えない) | `StuckAfterOp`、`StuckCounterTracksNewElements` | 「interviewでは、実行後はnewSeenを見ずにstuckを数える」「VisitedAfterOpがvisitedと変わらなければ、interviewならnewSeen'によらず1増える。visitedが増えれば0」 | full | スクロールで新しく見えた未操作の要素を進展に数えず、未操作の要素を操作したときは今までどおり0に戻す、という#86の決定と一致する。探索モードと決め打ちシナリオは変えていない(P28c)。前件到達はP65。 |
 
@@ -282,27 +282,36 @@ v6では`EventuallyTerminates`の前提だったが、v7では無くても終わ
 
 ## 空成立の証跡(含意・前提付きの式)
 
-`WebExploratoryQA.reach.log`の「v6」節(P1〜P51、68本)に、v6のspecに対する前件ごとの結果を追記してある。
-各節に`NotPx`の定義をそのまま書き、68本すべてで反例(前件が成り立つ到達状態または一歩)が出ている。
-v5で足したのは次の5本。
+`WebExploratoryQA.reach.log`の「v7」節(P1〜P70、89本)に、v7のspecに対する前件ごとの結果を追記してある。
+各節に`NotPx`の定義をそのまま書き、89本すべてで反例(前件が成り立つ到達状態または一歩)が出ている。
+P1〜P51(68本)はv6節と同じ前件をv7のspecで回し直したもの。v5とv6で足した前件は次のとおり。
 
 - P41: 開始時に最初の段のdone_whenを満たしている状態(`StartsFresh`、`StageAdvancePreempts`)
 - P42: 段を進めた直後に次の段のdone_whenを満たしている一歩(`DoneWhenChangesOnlyByExecutionOrAdvance`、`StageAdvanceResetsCounters`)
 - P43: 判断0回でゴール達成になる一歩(`ScenarioGoalOnlyAtLastStage`)
 - P44: 探索してよい要素が空で、問い合わせる前のidle(`ExploreGoalOnlyWhenAllExplored`、`GoalPreempts`)
 - P45: 探索してよい要素が空のときのゴール達成(`ExploreGoalOnlyWhenAllExplored`)
+- P46〜P51: 操作可能な要素が無い場合の問い合わせ、ゴール達成、対象を取らない操作の実行、要素番号の無い応答(v6。P46〜P50は`WebExploratoryQA.empty.cfg`)
 
-v6で足したのは次の6本。P46〜P50は`WebExploratoryQA.empty.cfg`で回した。
+v7で足したのは次の21本。P63は`WebExploratoryQA.empty.cfg`で回した。
 
-- P46: 操作可能な要素が無いときの問い合わせ(`ProposalWellFormed`)
-- P47: 操作可能な要素が無い探索モードのゴール達成(`ExploreGoalOnlyWhenAllExplored`)
-- P48: 操作可能な要素が無い決め打ちシナリオのゴール達成(`ScenarioGoalOnlyAtLastStage`)
-- P49: 操作可能な要素が無く、対象を取らない操作を実行する状態(`SafeProposalProceeds`)
-- P50: click/inputに要素番号が無い応答を受けた状態(`DirectOpActedOnlyOnSafeTarget`、`ProposalWellFormed`)
-- P51: 要素がある画面で、対象を取らない操作の対象が`"none"`の状態(`ProposalWellFormed`)
+- P52: 判断モデルの停止での終了(`JudgeUnavailableOnlyAfterFailures`、`ExitReasonMatchesPhase`)
+- P53、P54a、P54b: `JudgeDownStops`の前件と、判断予算の最後の1回や時間切れと同時の場合
+- P54c: 判断予算が残っているのに停止で終わる状態(`JudgeUnavailableOnlyAfterFailures`)
+- P55、P56: 判断モデルに届かない一歩と、失敗の後に答えが届いて0に戻る一歩(`AwaitingOnlyByDecision`、`JudgeFailsTracksReplies`)
+- P57: 失敗が閾値に達した状態(`JudgeFailsBounded`)
+- P58: 失敗を挟んだ判断予算切れ(`LimitStops`)
+- P59、P60: インタビューとほかのモードでガードレールが止めた一歩(`RefusalCountsStuck`)
+- P61、P62: 確かめ直しで許可ドメインの外に着いた一歩と、それがインタビューの場合(`RefusalCountsStuck`、`DomainChangesOnlyByNavigation`)
+- P63: インタビューの応答の異常(数えない)(`RefusalCountsStuck`)
+- P64: 外に着いて新しく見えた要素が無くなる一歩(`ObservationChangesOnlyByExecution`)
+- P65: インタビューで新しく見えた要素を数えない一歩(`StuckCounterTracksNewElements`)
+- P66: 止めた提案で行き詰まりの閾値に届く一歩(`StuckPreempts`)
+- P67〜P69: インタビューのゴール達成、段階の切り替え、申告による終了(`ScenarioGoalOnlyAtLastStage`、`StageAdvancePreempts`、`ReportedDoneOnlyWithoutDoneWhen`)
+- P70: インタビューで行き詰まりの数が判断の数に並ぶ状態(`CountersBoundedByOps`)
 
 前件を持たない式(`NeverOperatesForbidden`、`BudgetAccounting`、`MemoryNeverShrinks`、`ModeFixed`、`DecisionBudgetNeverRestored`、`EventuallyTerminates`など)は対象外である。
-同ログのv5以前の節は旧spec向けで、この判定には使っていない。
+同ログのv6以前の節は旧spec向けで、この判定には使っていない。
 
 ## 定数の前提
 
