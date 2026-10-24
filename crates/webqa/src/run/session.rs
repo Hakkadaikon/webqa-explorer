@@ -7,7 +7,8 @@ mod tests;
 use serde_json::Value;
 use webqa_core::event::Event;
 use webqa_core::explore::Memory;
-use webqa_core::machine::{ExitReason, Outcome, Rules};
+use webqa_core::machine::{ExitReason, Outcome, Rules, State};
+use webqa_core::ports::BrowserError;
 
 use super::{Ports, RunError, explore};
 use crate::interrupt::{Interrupt, guard};
@@ -45,9 +46,11 @@ pub enum Ending {
         /// Whether a confirmed issue was found.
         confirmed: bool,
     },
+    /// The browser failed, and the records so far are written.
+    Broke(BrowserError),
     /// The user interrupted again while the records were being written.
     Abandoned,
-    /// The browser failed or a record could not be written.
+    /// A record could not be written.
     Failed(RunError),
 }
 
@@ -71,8 +74,27 @@ pub async fn conduct(
     rules: Rules,
     plan: &Plan,
 ) -> Ending {
-    match run_loop(ports, interrupt, rules, plan).await {
-        Ok((outcome, started)) => finish(ports, interrupt, outcome, started, plan).await,
+    let memory = match begin(ports, plan).await {
+        Ok(memory) => memory,
+        Err(error) => return Ending::Failed(error),
+    };
+    let started = ports.redactor.json(memory.to_json(&plan.origin));
+    let explored = explore(ports, interrupt, rules, memory).await;
+    close(ports, interrupt, explored, &started.into_inner(), plan).await
+}
+
+/// Writes the records of the loop that ended as `explored` says, from the
+/// memory `started` the run started from.
+async fn close(
+    ports: &mut Ports<'_>,
+    interrupt: &mut dyn Interrupt,
+    explored: Result<Outcome, RunError>,
+    started: &Value,
+    plan: &Plan,
+) -> Ending {
+    match explored {
+        Ok(outcome) => finish(ports, interrupt, outcome, started, plan).await,
+        Err(RunError::Browser(error)) => broke(ports, interrupt, error, started, plan).await,
         Err(error) => Ending::Failed(error),
     }
 }
@@ -82,36 +104,66 @@ async fn finish(
     ports: &mut Ports<'_>,
     interrupt: &mut dyn Interrupt,
     outcome: Outcome,
-    started: Value,
+    started: &Value,
     plan: &Plan,
 ) -> Ending {
-    // The interruption that ended the run is spent; any other end can take one.
-    let allowance = u8::from(outcome.reason != ExitReason::UserAborted);
-    let written = guard(
-        write_records(ports, &outcome, &started, plan),
-        interrupt,
-        allowance,
-    );
-    let done = written.await;
-    done.map_or(Ending::Abandoned, |result| {
-        result.map_or_else(Ending::Failed, |()| {
-            Ending::finished(outcome, ports.record())
-        })
-    })
+    let ended = Ended {
+        reason: outcome.reason,
+        memory: Some(outcome.state.memory()),
+        started,
+    };
+    match written(ports, interrupt, ended, plan).await {
+        Ok(()) => Ending::finished(outcome, ports.record()),
+        Err(ending) => ending,
+    }
 }
 
-/// Starts the log and the memory, then runs the loop. Gives the outcome and
-/// the memory the run started from, as a memory file through the redactor.
-async fn run_loop(
+/// Writes the records of the run the browser failed in, from the state
+/// before the failing step.
+async fn broke(
     ports: &mut Ports<'_>,
     interrupt: &mut dyn Interrupt,
-    rules: Rules,
+    error: BrowserError,
+    started: &Value,
     plan: &Plan,
-) -> Result<(Outcome, Value), RunError> {
-    let memory = begin(ports, plan).await?;
-    let started = ports.redactor.json(memory.to_json(&plan.origin));
-    let outcome = explore(ports, interrupt, rules, memory).await?;
-    Ok((outcome, started.into_inner()))
+) -> Ending {
+    let last = ports.last.take();
+    let ended = Ended {
+        reason: ExitReason::Error,
+        memory: last.as_deref().map(State::memory),
+        started,
+    };
+    match written(ports, interrupt, ended, plan).await {
+        Ok(()) => Ending::Broke(error),
+        Err(ending) => ending,
+    }
+}
+
+/// What the records of a run that ended are written from.
+struct Ended<'a> {
+    /// Why it ended.
+    reason: ExitReason,
+    /// The memory to keep: `None` when no page was seen.
+    memory: Option<&'a Memory>,
+    /// The memory the run started from, as a memory file.
+    started: &'a Value,
+}
+
+/// Writes the records of `ended`, unless the user interrupts again; the
+/// ending when they are not all written.
+async fn written(
+    ports: &mut Ports<'_>,
+    interrupt: &mut dyn Interrupt,
+    ended: Ended<'_>,
+    plan: &Plan,
+) -> Result<(), Ending> {
+    // The interruption that ended the run is spent; any other end can take one.
+    let allowance = u8::from(ended.reason != ExitReason::UserAborted);
+    let writing = write_records(ports, ended, plan);
+    let done = guard(writing, interrupt, allowance).await;
+    done.map_or(Err(Ending::Abandoned), |result| {
+        result.map_err(Ending::Failed)
+    })
 }
 
 /// Writes the first line and gets the memory: the one given, or the stored one.
@@ -137,21 +189,19 @@ async fn stored(ports: &mut Ports<'_>, origin: &str) -> Result<Memory, RunError>
     Ok(loaded.memory)
 }
 
-/// Writes the memory (unless one was given), the last line and the report,
-/// in this order, and nothing after a failure.
+/// Writes the memory (unless one was given or none was kept), the last
+/// line and the report, in this order, and nothing after a failure.
 async fn write_records(
     ports: &mut Ports<'_>,
-    outcome: &Outcome,
-    started: &Value,
+    ended: Ended<'_>,
     plan: &Plan,
 ) -> Result<(), RunError> {
-    if matches!(plan.start, Start::Stored) {
-        let origin = &plan.origin;
-        memory::save(ports.store, origin, outcome.state.memory(), ports.redactor).await?;
+    if let (Start::Stored, Some(memory)) = (&plan.start, ended.memory) {
+        memory::save(ports.store, &plan.origin, memory, ports.redactor).await?;
     }
-    ports.log(Event::finished(outcome.reason)).await?;
+    ports.log(Event::finished(ended.reason)).await?;
     let (record, meta) = (&ports.record, &plan.meta);
-    let report = report::build(record, outcome.reason, meta, started, ports.redactor);
+    let report = report::build(record, ended.reason, meta, ended.started, ports.redactor);
     ports.store.write_report(&report).await?;
     Ok(())
 }

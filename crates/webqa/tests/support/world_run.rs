@@ -50,15 +50,7 @@ impl Fakes {
     pub fn of(scene: &Scene) -> Self {
         let gate = Arc::new(Notify::new());
         let now = Arc::new(AtomicU64::new(millis(scene.clock_start)));
-        let origin = scene.origin();
-        let build = |page: &PageSpec| page.build(&origin);
-        let mut browser = SceneBrowser::new(
-            build(&scene.start),
-            scene.after.iter().map(build).collect(),
-            scene.looks.iter().map(build).collect(),
-            Arc::clone(&gate),
-        );
-        browser.stall_touch = scene.stall == Stall::Touch;
+        let browser = browser_of(scene, &gate);
         Self {
             judge: SceneJudge::new(
                 scene.replies.clone(),
@@ -138,6 +130,21 @@ impl Fakes {
             given_steps: given,
         }
     }
+}
+
+/// The browser of `scene`, tied to `gate`.
+fn browser_of(scene: &Scene, gate: &Arc<Notify>) -> SceneBrowser {
+    let origin = scene.origin();
+    let build = |page: &PageSpec| page.build(&origin);
+    let mut browser = SceneBrowser::new(
+        build(&scene.start),
+        scene.after.iter().map(build).collect(),
+        scene.looks.iter().map(build).collect(),
+        Arc::clone(gate),
+    );
+    browser.stall_touch = scene.stall == Stall::Touch;
+    browser.fail_touch = scene.fail_touch;
+    browser
 }
 
 /// The rules, the redaction and the error confidence of the scene: from its

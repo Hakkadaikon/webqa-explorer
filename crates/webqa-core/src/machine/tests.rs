@@ -75,7 +75,7 @@ fn mismatched_facts_return_to_idle() {
 }
 
 /// Every exit reason with its JSON, whether it is stuck, and the kind.
-fn reasons() -> [(ExitReason, Value, bool, Option<StuckKind>); 7] {
+fn reasons() -> [(ExitReason, Value, bool, Option<StuckKind>); 8] {
     let declared = StuckKind::Declared;
     let no_progress = StuckKind::NoProgress;
     [
@@ -121,6 +121,7 @@ fn reasons() -> [(ExitReason, Value, bool, Option<StuckKind>); 7] {
             false,
             None,
         ),
+        (ExitReason::Error, json!({"reason": "error"}), false, None),
     ]
 }
 

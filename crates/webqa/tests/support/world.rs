@@ -108,7 +108,7 @@ impl QaWorld {
         let ending = self.ran().ending.as_ref();
         ending.and_then(|ending| match ending {
             Ending::Finished { outcome, .. } => Some(outcome),
-            Ending::Abandoned | Ending::Failed(_) => None,
+            Ending::Broke(_) | Ending::Abandoned | Ending::Failed(_) => None,
         })
     }
 
