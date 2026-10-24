@@ -76,7 +76,7 @@ fn judge_messages_carry_no_answer() {
     ];
     assert_eq!(shown, want, "fixed messages with the question's name");
     let errors = [
-        JudgeError::Api,
+        JudgeError::Api { detail: None },
         JudgeError::Timeout,
         JudgeError::Malformed,
         JudgeError::Bridge,

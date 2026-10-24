@@ -15,7 +15,7 @@ pub const READY: &[&str] =
 
 /// The failures as the feature names them.
 const FAILURES: [(&str, JudgeError); 2] = [
-    ("API のエラー", JudgeError::Api),
+    ("API のエラー", JudgeError::Api { detail: None }),
     ("タイムアウト", JudgeError::Timeout),
 ];
 

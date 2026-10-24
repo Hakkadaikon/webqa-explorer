@@ -104,6 +104,7 @@ async fn anomaly_and_rejection_are_logged() {
     let anomaly = |cause: &str, question: Option<&str>| Event::Anomaly {
         cause: cause.to_owned(),
         question: question.map(str::to_owned),
+        detail: None,
     };
     let why = Rejection::LowConfidence;
     let expected = [

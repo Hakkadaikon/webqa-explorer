@@ -177,6 +177,41 @@ fn judge_error_message_carries_no_value() {
 }
 
 #[test]
+fn every_failure_is_named_as_the_logs_write_it() {
+    let api = JudgeError::Api {
+        detail: Some("http 500".to_owned()),
+    };
+    let unreadable = JudgeError::Unreadable {
+        question: "hard_to_see".to_owned(),
+    };
+    let failures = [
+        JudgeError::Exhausted,
+        api.clone(),
+        JudgeError::Timeout,
+        JudgeError::Malformed,
+        unreadable,
+        JudgeError::Bridge,
+    ];
+    let names = failures.map(|error| error.cause());
+    let expected = [
+        "exhausted",
+        "api",
+        "timeout",
+        "malformed",
+        "malformed",
+        "bridge",
+    ];
+    assert_eq!(names, expected.map(serde_json::Value::from));
+    assert_eq!(api.detail(), Some("http 500"), "the detail of an API error");
+    assert_eq!(JudgeError::Timeout.detail(), None, "no detail elsewhere");
+    assert_eq!(
+        api.to_string(),
+        "判断モデルの API がエラーを返した",
+        "not in the message"
+    );
+}
+
+#[test]
 fn question_ids_are_named() {
     assert_eq!(
         (

@@ -67,7 +67,7 @@ async fn stale_answer_after_timeout_is_skipped() {
 #[tokio::test]
 async fn bridge_errors_become_judge_errors() {
     let cases = [
-        ("api_error", JudgeError::Api),
+        ("api_error", JudgeError::Api { detail: None }),
         ("timeout_error", JudgeError::Timeout),
         ("unknown_error", JudgeError::Malformed),
         ("garbage", JudgeError::Malformed),

@@ -48,12 +48,42 @@ type Table = BTreeMap<String, Vec<(String, Option<f64>)>>;
 /// One judge call of the report.
 #[derive(Deserialize)]
 struct CallEntry {
-    error: Option<JudgeError>,
+    error: Option<Failure>,
     /// The question of an unusable answer; reports before it was kept have none.
     #[serde(default)]
     question: Option<String>,
     answers: Option<Table>,
     usage: Option<UsageEntry>,
+}
+
+/// A failure of a call, by the name the report writes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum Failure {
+    Exhausted,
+    Api,
+    Timeout,
+    Malformed,
+    Bridge,
+}
+
+/// The failure of the judge each name stands for. The report keeps no
+/// detail of an API error.
+const FAILURES: [(Failure, JudgeError); 5] = [
+    (Failure::Exhausted, JudgeError::Exhausted),
+    (Failure::Api, JudgeError::Api { detail: None }),
+    (Failure::Timeout, JudgeError::Timeout),
+    (Failure::Malformed, JudgeError::Malformed),
+    (Failure::Bridge, JudgeError::Bridge),
+];
+
+impl Failure {
+    /// The failure of the judge this name stands for.
+    fn error(self) -> JudgeError {
+        // The table has a row for every name; the default keeps it total.
+        let row = FAILURES.iter().find(|(name, _)| *name == self);
+        row.map_or(JudgeError::Malformed, |(_, error)| error.clone())
+    }
 }
 
 /// The tokens of one call.
@@ -94,14 +124,14 @@ impl CallEntry {
     }
 }
 
-/// `error`, or [`JudgeError::Unreadable`] when `question` names the one whose
+/// The failure `failure` names, or [`JudgeError::Unreadable`] when `question` names the one whose
 /// answer could not be used. A replay is never given a result of the
 /// interview mode, so reading `question` back only keeps the result's round
 /// trip symmetric.
-fn failed(error: JudgeError, question: Option<String>) -> JudgeError {
-    match (error, question) {
-        (JudgeError::Malformed, Some(question)) => JudgeError::Unreadable { question },
-        (error, _) => error,
+fn failed(failure: Failure, question: Option<String>) -> JudgeError {
+    match (failure, question) {
+        (Failure::Malformed, Some(question)) => JudgeError::Unreadable { question },
+        (failure, _) => failure.error(),
     }
 }
 

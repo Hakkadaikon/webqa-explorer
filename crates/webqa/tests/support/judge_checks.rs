@@ -115,11 +115,17 @@ async fn check_table() {
 /// A reply that fails stays a failure, whatever is added to it.
 async fn check_failure() {
     let (failed, _) = once(
-        Reply::Fail(JudgeError::Api).on("x").at(Duration::ZERO),
+        Reply::Fail(JudgeError::Api { detail: None })
+            .on("x")
+            .at(Duration::ZERO),
         Duration::ZERO,
     )
     .await;
-    assert_eq!(failed.err(), Some(JudgeError::Api), "a failure stays one");
+    assert_eq!(
+        failed.err(),
+        Some(JudgeError::Api { detail: None }),
+        "a failure stays one"
+    );
 }
 
 /// The shared clock moves by the thinking, and up to `at`, never back.

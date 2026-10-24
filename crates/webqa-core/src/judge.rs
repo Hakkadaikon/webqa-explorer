@@ -18,7 +18,7 @@ pub use verdict::{Unusable, Verdict, read_answers};
 
 use std::collections::BTreeMap;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// Names a question, so that its answer can be found.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
@@ -192,15 +192,18 @@ const fn borrowed((option, p): &(String, f64)) -> (&str, f64) {
 }
 
 /// Why the judge model gave no answers. No variant carries page strings.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, thiserror::Error)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum JudgeError {
     /// The judge has no more answers, such as a script that ran out.
     #[error("判断モデルの答えが尽きた")]
     Exhausted,
     /// The judge model's API returned an error.
     #[error("判断モデルの API がエラーを返した")]
-    Api,
+    Api {
+        /// What the bridge said of the error, kept only when it is short
+        /// and plain enough to hold no secret or page string.
+        detail: Option<String>,
+    },
     /// No answer came within the time allowed.
     #[error("判断モデルの答えが待ち時間内に返らなかった")]
     Timeout,
@@ -224,17 +227,42 @@ impl JudgeError {
     /// added question is `malformed`; [`Self::question`] names the question.
     #[must_use]
     pub fn cause(&self) -> serde_json::Value {
-        if self.question().is_some() {
-            return serde_json::json!("malformed");
+        serde_json::json!(self.name())
+    }
+
+    /// The name of the failure, as the logs write it.
+    const fn name(&self) -> &'static str {
+        match self {
+            Self::Api { .. } => "api",
+            Self::Timeout => "timeout",
+            Self::Bridge => "bridge",
+            Self::Exhausted | Self::Malformed | Self::Unreadable { .. } => self.unanswered(),
         }
-        serde_json::json!(self)
+    }
+
+    /// The name of a failure that is not about reaching the judge.
+    const fn unanswered(&self) -> &'static str {
+        if matches!(self, Self::Exhausted) {
+            "exhausted"
+        } else {
+            "malformed"
+        }
+    }
+
+    /// What the bridge said of an API error, if it kept anything.
+    #[must_use]
+    pub fn detail(&self) -> Option<&str> {
+        let Self::Api { detail } = self else {
+            return None;
+        };
+        detail.as_deref()
     }
 
     /// Whether the judge could not be reached: an API error, a timeout or a
     /// failed bridge. A broken or used-up answer is not such a failure.
     #[must_use]
     pub const fn unreachable(&self) -> bool {
-        matches!(self, Self::Api | Self::Timeout | Self::Bridge)
+        matches!(self, Self::Api { .. } | Self::Timeout | Self::Bridge)
     }
 
     /// The id of the question whose answer could not be used, if that is the

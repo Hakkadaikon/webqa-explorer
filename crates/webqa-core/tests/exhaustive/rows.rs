@@ -74,7 +74,7 @@ fn notes() -> Vec<Note> {
         Note::Rejected(Rejection::Replaced),
         Note::Issue(left),
         Note::Anomaly(Anomaly::Judge(JudgeError::Exhausted)),
-        Note::Anomaly(Anomaly::Judge(JudgeError::Api)),
+        Note::Anomaly(Anomaly::Judge(JudgeError::Api { detail: None })),
         not_an_option(QuestionId::operation()),
         not_an_option(QuestionId::target()),
     ]

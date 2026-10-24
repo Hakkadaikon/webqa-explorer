@@ -13,13 +13,14 @@ const DOCUMENTED: [&str; 4] = [
 ];
 
 /// One line of each kind added after the documented ones.
-const ADDED: [&str; 14] = [
+const ADDED: [&str; 15] = [
     r#"{"seq":1,"elapsed_ms":0,"kind":"memory_reset","cause":"unreadable"}"#,
     r#"{"seq":2,"elapsed_ms":1200,"step":1,"kind":"asked","input_tokens":120,"output_tokens":3,"think_ms":1200}"#,
     r#"{"seq":3,"elapsed_ms":1300,"step":2,"kind":"recovered","op":"reload","cause":"frozen"}"#,
     r#"{"seq":4,"elapsed_ms":1400,"step":2,"kind":"rejected","why":"low_confidence"}"#,
     r#"{"seq":5,"elapsed_ms":1500,"step":2,"kind":"anomaly","cause":"not_an_option","question":"operation"}"#,
     r#"{"seq":6,"elapsed_ms":1600,"step":2,"kind":"anomaly","cause":"timeout"}"#,
+    r#"{"seq":6,"elapsed_ms":1650,"step":3,"kind":"anomaly","cause":"api","detail":"http 500"}"#,
     r#"{"seq":7,"elapsed_ms":1700,"step":5,"kind":"issue","issue":"error_display","class":"confirmed","evidence":null,"label":null,"p":0.9,"screenshot":"ISSUE_error_display_step5.png"}"#,
     r#"{"seq":7,"elapsed_ms":1750,"step":5,"kind":"issue","issue":"console_error","class":"confirmed","evidence":"boom","label":null,"p":null}"#,
     r#"{"seq":8,"elapsed_ms":1800,"step":5,"kind":"stage_advanced","stage":1,"name":"投稿"}"#,
@@ -143,13 +144,27 @@ fn anomaly(cause: &str, question: Option<&str>) -> Event {
     Event::Anomaly {
         cause: cause.to_owned(),
         question: question.map(str::to_owned),
+        detail: None,
     }
 }
 
 #[test]
 fn anomaly_and_issue_events() {
     let cases = [
-        (Anomaly::Judge(JudgeError::Api), anomaly("api", None)),
+        (
+            Anomaly::Judge(JudgeError::Api { detail: None }),
+            anomaly("api", None),
+        ),
+        (
+            Anomaly::Judge(JudgeError::Api {
+                detail: Some("http 500".to_owned()),
+            }),
+            Event::Anomaly {
+                cause: "api".to_owned(),
+                question: None,
+                detail: Some("http 500".to_owned()),
+            },
+        ),
         (
             Anomaly::Judge(JudgeError::Unreadable {
                 question: "hard_to_see".to_owned(),

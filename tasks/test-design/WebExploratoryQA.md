@@ -195,7 +195,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-055 WebExploratoryQA.feature:58(1ステップの問い合わせと実行) [boundary] 「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `empty_screen_allows_only_untargeted_ops` / issue: #13
 - [x] T-056 WebExploratoryQA.feature:66(1ステップの問い合わせと実行) [unwanted] 「判断モデルの応答が使えないときは操作せず、応答の異常として記録して次のステップへ進む」(Examples の各行を1ケースとする)
-      → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `rejects_unusable_answers`、契約 `webqa-judge/tests/command.rs` の `timeout_becomes_judge_error` / issue: #7
+      → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `rejects_unusable_answers`、契約 `webqa-judge/tests/command.rs` の `timeout_becomes_judge_error`、単体 `webqa-judge::command::wire` の `an_api_error_keeps_a_plain_message`、単体 `webqa-judge::command::wire` の `a_message_with_other_characters_is_dropped`、単体 `webqa-judge::command::wire` の `a_long_message_is_dropped` / issue: #7、#85
 - [x] T-057 WebExploratoryQA.feature:285(終了の判定) [boundary] 「判断モデルの呼び出しが上限の1回手前なら、まだ問い合わせる」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_one_left_still_asks` / issue: #12
 - [x] T-058 WebExploratoryQA.feature:292(終了の判定) [boundary] 「探索済みの要素が増えず、未操作の要素も新しく見えない操作が閾値の1回手前までなら終了しない」
@@ -394,7 +394,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-053 | unwanted | 同値分割(blackbox-partition) | `counts_each_access_kind` | #12 | [x] | [ ] | 要 |
 | T-054 | boundary | 同値分割(blackbox-partition) | `rejected_proposal_uses_no_access` | #12 | [x] | [ ] | 要 |
 | T-055 | boundary | 境界値分析(blackbox-partition) | `empty_screen_allows_only_untargeted_ops` | #13 | [x] | [ ] | — |
-| T-056 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `rejects_unusable_answers`、`timeout_becomes_judge_error` | #7 | [x] | [ ] | 要 |
+| T-056 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `rejects_unusable_answers`、`timeout_becomes_judge_error`、`an_api_error_keeps_a_plain_message`、`a_message_with_other_characters_is_dropped`、`a_long_message_is_dropped` | #7、#85 | [x] | [ ] | 要 |
 | T-057 | boundary | 境界値分析(blackbox-partition) | `budget_one_left_still_asks` | #12 | [x] | [ ] | 要 |
 | T-058 | boundary | 境界値分析(blackbox-partition) | `stuck_below_threshold_continues` | #12 | [x] | [ ] | 要 |
 | T-059 | unwanted | 禁止仕様からの導出(blackbox-state) | `no_question_while_frozen` | #12 | [x] | [ ] | 要 |

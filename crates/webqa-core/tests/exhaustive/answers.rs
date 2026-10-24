@@ -68,7 +68,7 @@ const fn failed(error: JudgeError) -> Choice {
 /// The 42 replies with answers, then the judge out of answers, then the
 /// judge out of reach.
 pub fn replies() -> Vec<Choice> {
-    let failures = [JudgeError::Exhausted, JudgeError::Api].map(failed);
+    let failures = [JudgeError::Exhausted, JudgeError::Api { detail: None }].map(failed);
     combinations()
         .into_iter()
         .map(reply)

@@ -62,11 +62,17 @@ pub struct Reply {
     usage: ReplyUsage,
 }
 
-/// The error the bridge reports. Its message is never read.
+/// The error the bridge reports. Its message is kept only when it is plain.
 #[derive(Deserialize)]
 pub struct ReplyError {
     kind: String,
+    /// Any JSON: a message that is not a string is dropped, not malformed.
+    #[serde(default)]
+    message: Option<serde_json::Value>,
 }
+
+/// The longest message of a bridge's error that is kept.
+const MAX_DETAIL: usize = 64;
 
 /// One option with its probability, which may be missing.
 #[derive(Deserialize)]
@@ -82,10 +88,6 @@ pub struct ReplyUsage {
     input_tokens: u64,
     output_tokens: u64,
 }
-
-/// The errors a bridge may name. Any other kind is malformed.
-const ERRORS: [(&str, JudgeError); 2] =
-    [("api", JudgeError::Api), ("timeout", JudgeError::Timeout)];
 
 /// Reads an answer line to the request `seq`. `None` for a late answer to
 /// an earlier request, which the caller skips. A line that is not UTF-8 is
@@ -131,12 +133,29 @@ impl Reply {
 }
 
 impl ReplyError {
+    /// The error the bridge names. Any other kind is malformed.
     fn into_judge_error(self) -> JudgeError {
-        ERRORS
-            .into_iter()
-            .find(|(kind, _)| *kind == self.kind)
-            .map_or(JudgeError::Malformed, |(_, error)| error)
+        match self.kind.as_str() {
+            "api" => JudgeError::Api {
+                detail: self.detail(),
+            },
+            "timeout" => JudgeError::Timeout,
+            _ => JudgeError::Malformed,
+        }
     }
+
+    /// The message, when it is a plain string.
+    fn detail(&self) -> Option<String> {
+        let message = self.message.as_ref()?.as_str()?;
+        plain(message).then(|| message.to_owned())
+    }
+}
+
+/// Whether `message` is short and only of letters, digits, spaces and
+/// `._:-`, so that it holds no secret or page string worth hiding.
+fn plain(message: &str) -> bool {
+    let allowed = |c: char| c.is_ascii_alphanumeric() || " ._:-".contains(c);
+    (1..=MAX_DETAIL).contains(&message.len()) && message.chars().all(allowed)
 }
 
 /// A missing probability becomes NaN.
@@ -148,5 +167,7 @@ fn row((id, options): (String, Vec<Probability>)) -> (QuestionId, Vec<(String, f
     (QuestionId::new(&id), options)
 }
 
+#[cfg(test)]
+mod read_tests;
 #[cfg(test)]
 mod tests;

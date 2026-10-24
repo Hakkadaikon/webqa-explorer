@@ -107,7 +107,11 @@ fn failing_second(failure: JudgeError) -> Spy {
 
 #[tokio::test]
 async fn failed_second_call_reaches_the_core_as_it_failed() {
-    let cases = [JudgeError::Timeout, JudgeError::Api, JudgeError::Bridge];
+    let cases = [
+        JudgeError::Timeout,
+        JudgeError::Api { detail: None },
+        JudgeError::Bridge,
+    ];
     for failure in cases {
         let mut fakes = Fakes::new();
         let judge = failing_second(failure.clone());

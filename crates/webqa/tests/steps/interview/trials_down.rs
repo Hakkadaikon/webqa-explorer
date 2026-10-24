@@ -14,7 +14,7 @@ fn second_judge_down(world: &mut InterviewWorld, failures: usize) {
     first(scene, 0, End::GaveUp);
     let call = course(scene, 0, End::Cut);
     for reply in scene.replies.iter_mut().skip(call).take(failures) {
-        *reply = Err(JudgeError::Api);
+        *reply = Err(JudgeError::Api { detail: None });
     }
     fill(scene);
 }

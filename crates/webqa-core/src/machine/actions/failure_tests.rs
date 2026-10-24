@@ -31,14 +31,16 @@ fn replied(
 /// The state after `n` API failures from waiting on the start page.
 fn failed(state: State, n: usize) -> State {
     (0..n).fold(state, |s, _| {
-        heard(&s, Err(JudgeError::Api)).state().clone()
+        heard(&s, Err(JudgeError::Api { detail: None }))
+            .state()
+            .clone()
     })
 }
 
 #[test]
 fn three_judge_failures_in_a_row_end_the_run() {
     let failures = vec![
-        Err(JudgeError::Api),
+        Err(JudgeError::Api { detail: None }),
         Err(JudgeError::Timeout),
         Err(JudgeError::Bridge),
     ];
@@ -46,7 +48,10 @@ fn three_judge_failures_in_a_row_end_the_run() {
     let ended = Some(ExitReason::JudgeUnavailable);
     let seen = replied(state.clone(), failures);
     assert_eq!(seen, vec![(1, None), (2, None), (3, ended)]);
-    let second = heard(&failed(state.clone(), 1), Err(JudgeError::Api));
+    let second = heard(
+        &failed(state.clone(), 1),
+        Err(JudgeError::Api { detail: None }),
+    );
     let asks = asking(&budgeted(20), &top());
     assert_eq!(second.effect(), Some(&asks), "asks again after two");
     assert_eq!(failed(state, 3).budget().used(), 3, "three decisions used");
@@ -61,11 +66,17 @@ fn answered(state: &State) -> Step {
 #[test]
 fn an_answer_restarts_the_failure_count() {
     let state = ask_top(budgeted(20));
-    let twice = replied(state.clone(), vec![Err(JudgeError::Api); 2]);
+    let twice = replied(
+        state.clone(),
+        vec![Err(JudgeError::Api { detail: None }); 2],
+    );
     assert_eq!(twice, vec![(1, None), (2, None)]);
     let again = answered(&failed(state, 2));
     assert_eq!(again.state().failing(), 0, "restarted");
-    let seen = replied(again.state().clone(), vec![Err(JudgeError::Api); 2]);
+    let seen = replied(
+        again.state().clone(),
+        vec![Err(JudgeError::Api { detail: None }); 2],
+    );
     assert_eq!(seen, vec![(1, None), (2, None)], "goes on");
 }
 
@@ -84,10 +95,10 @@ fn unusable_answers_are_not_judge_failures() {
     }
     let state = ask_top(budgeted(20));
     let mixed = vec![
-        Err(JudgeError::Api),
-        Err(JudgeError::Api),
+        Err(JudgeError::Api { detail: None }),
+        Err(JudgeError::Api { detail: None }),
         Err(JudgeError::Malformed),
-        Err(JudgeError::Api),
+        Err(JudgeError::Api { detail: None }),
     ];
     assert_eq!(
         replied(state, mixed),
@@ -97,10 +108,16 @@ fn unusable_answers_are_not_judge_failures() {
 
 #[test]
 fn judge_failures_come_before_the_budget() {
-    let seen = replied(ask_top(budgeted(3)), vec![Err(JudgeError::Api); 3]);
+    let seen = replied(
+        ask_top(budgeted(3)),
+        vec![Err(JudgeError::Api { detail: None }); 3],
+    );
     let ended = Some(ExitReason::JudgeUnavailable);
     assert_eq!(seen, vec![(1, None), (2, None), (3, ended)]);
-    let short = replied(ask_top(budgeted(2)), vec![Err(JudgeError::Api); 2]);
+    let short = replied(
+        ask_top(budgeted(2)),
+        vec![Err(JudgeError::Api { detail: None }); 2],
+    );
     let spent = Some(ExitReason::BudgetExceeded);
     assert_eq!(
         short,

@@ -15,7 +15,7 @@ impl Judge for Down {
         _: &'a Redacted<ScreenText>,
         _: &'a [Question],
     ) -> Pending<'a, Result<Answers, JudgeError>> {
-        Box::pin(future::ready(Err(JudgeError::Api)))
+        Box::pin(future::ready(Err(JudgeError::Api { detail: None })))
     }
 }
 
