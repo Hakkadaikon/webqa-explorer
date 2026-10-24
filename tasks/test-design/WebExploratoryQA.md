@@ -3,8 +3,8 @@
 対象: Web サービスの探索的テストエージェント(判断モデルの問い合わせ、ガードレール、ブラウザ操作、終了判定、段階、探索の記憶、負荷制御、問題の記録、設定、中断、終了コード)
 走査アンカー: 受け入れ条件(`tasks/loopeng/WebExploratoryQA.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
-転記元の版: コミット 7871ee84d83088815071c7b1217c3a84813c32ea の `tasks/loopeng/WebExploratoryQA.feature`(確定)に、issue #4 の決定(許可リストは禁止より優先する)と issue #62〜#64 の決定(探索モードで対象に合わない操作を外し、記憶にも数えない)と issue #70 の決定(キーを押す操作 enter を足す)と、入力の値ごとに伏せ字を外せる決定(S-045)と、`secret` を書かない入力の値は伏せ、`judge.api_key` に `secret` を書くと設定エラーにする決定(S-045。T-120、T-121 を足し、行番号を合わせた)と、`secret: false` の入力の値をイベントログの操作の記録に書かない決定(S-045。T-122 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
-転記元の sha256: 04a723b50c5bebdceb7da24b1fd0b32cfd7d8296cfe20b48f85655173a512499
+転記元の版: コミット 7871ee84d83088815071c7b1217c3a84813c32ea の `tasks/loopeng/WebExploratoryQA.feature`(確定)に、issue #4 の決定(許可リストは禁止より優先する)と issue #62〜#64 の決定(探索モードで対象に合わない操作を外し、記憶にも数えない)と issue #70 の決定(キーを押す操作 enter を足す)と、入力の値ごとに伏せ字を外せる決定(S-045)と、`secret` を書かない入力の値は伏せ、`judge.api_key` に `secret` を書くと設定エラーにする決定(S-045。T-120、T-121 を足し、行番号を合わせた)と、`secret: false` の入力の値をイベントログの操作の記録に書かない決定(S-045。T-122 を足し、行番号を合わせた)と、issue #67 の決定(ブラウザの操作に失敗しても、そこまでの記録を書いて終了コード3で終わる。T-123 を足した)を反映した版。出典欄の行番号はこの版の行を指す。
+転記元の sha256: 4bea318484889b1fac6f4435e95a70d710aee92abd9f3524ddff093ea7492479
 内ループで feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py` は、この値と実物の feature の sha256 が違えば失敗する。
 
 各 ID は「テストすべき振る舞い」1つ。test-catalog で全行に手法とテスト名を割り当てた。
@@ -328,10 +328,12 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
       → 手法: セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `literal_api_key_rejected_without_value`(`NOT_ENV_REF` の `secret: false` の行) / issue: #76
 - [x] T-122 WebExploratoryQA.feature:835(設定と外部境界) [unwanted] 「secret を false にした入力の値も、イベントログの操作の記録には書かない」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::event` の `event_lines_match_documented_jsonl`(操作の記録の形に値の項目が無いこと) / issue: #76
+- [x] T-123 WebExploratoryQA.feature:1024(終了コード) [unwanted] 「ブラウザの操作に失敗したら、そこまでの記録を書いて終了コード3で終わる」
+      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `browser_failure_writes_records_so_far`、単体 `webqa::run` の `browser_failure_records_written_in_order`、単体 `webqa::run` の `browser_failure_before_first_page_writes_no_memory`、単体 `webqa::run` の `store_failure_after_browser_failure_ends_failed`、単体 `webqa::exit` の `browser_failure_exits_three` / issue: #67
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
-mutation 列は、ガードレール・終了・固まりとドメイン外・記憶と優先順位・負荷の各 Rule と、機密情報・API キー・TLS・認証・応答の異常の行を「要」にした。終了コードの行(T-101、T-103〜T-107)も「要」にした。
+mutation 列は、ガードレール・終了・固まりとドメイン外・記憶と優先順位・負荷の各 Rule と、機密情報・API キー・TLS・認証・応答の異常の行を「要」にした。終了コードの行(T-101、T-103〜T-107、T-123)も「要」にした。
 「—」は、問い合わせの形と送る一覧(T-001〜T-004、T-055、T-072)、問題の記録と実行結果の形(T-037〜T-042、T-064)、設定の読み込みとモード(T-043、T-044)、判断モデルの差し替え(T-050)、計測(T-051)の行で、セキュリティ・状態遷移・終了コードに当たらない。
 `webqa-core/tests/tlc_traces.rs` はどの行にも対応させていない。TLC の遷移の列と中核を突き合わせる仕様との回帰で、受け入れ条件の1つを受け持つテストではないためである。
 
@@ -459,6 +461,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-120 | ubiquitous | セキュリティテスト(nonfunctional-attributes)、同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`redactor_keeps_not_secret_values_and_hides_the_rest` | #76 | [x] | [ ] | 要 |
 | T-121 | unwanted | セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) | `literal_api_key_rejected_without_value` | #76 | [x] | [ ] | 要 |
 | T-122 | unwanted | セキュリティテスト(nonfunctional-attributes) | `event_lines_match_documented_jsonl`(型に値の項目が無い。受け入れが確かめる) | #76 | [x] | [ ] | 要 |
+| T-123 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles) | `browser_failure_writes_records_so_far`、`browser_failure_records_written_in_order`、`browser_failure_before_first_page_writes_no_memory`、`store_failure_after_browser_failure_ends_failed`、`browser_failure_exits_three` | #67 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
@@ -474,7 +477,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 - T-081、T-084(探索モードのゴール・done を選ばせない): T-082(禁止要素だけが残る)、T-083(ほかの画面に未操作の要素が残る)、T-085(探索モードで返った done)、T-108(探索してよい要素が無くても最初の問い合わせの前はゴールにしない)、T-109(探索してよい要素が無いときのゴール)
 - T-086、T-087、T-089、T-090、T-110、T-111(段階の切り替え、開始時と進めた直後の done_when): T-088(後の段階の done_when だけが成り立つ)、T-091(宣言の一部だけが成り立つ)、T-092(表示領域の外の宣言)
 - T-097、T-101(中断): T-098(操作の途中)、T-099(終了後に状態を変えない)、T-100(終了後の中断)、T-102(2回目の中断)
-- T-103、T-104(終了コード): T-105(参考情報だけ)、T-106(設定エラー)、T-107(記録の書き込み失敗)
+- T-103、T-104(終了コード): T-105(参考情報だけ)、T-106(設定エラー)、T-107(記録の書き込み失敗)、T-123(ブラウザの操作の失敗)
 - T-025、T-026、T-093(固まり、スクロールによる変化): T-059(固まり中に問い合わせない)、T-060(ページが応答しない)、T-069(操作が起きないステップは数えない)、T-094(ページの一番下でのスクロール)
 - T-096(ページ全体で画面を識別): T-095(スクロールで別の画面にしない)
 - T-030〜T-032(優先順位): T-033(途中のボタンを探索し終えたとしない)、T-034(決済導線を選ばない)、T-070(禁止要素を候補に入れない)
@@ -506,7 +509,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | 要素の範囲(送る一覧、画面の変化、画面の識別) | T-072、T-093〜T-096 |
 | 制限時間の実時間と時間窓の待ちとの関係 | T-075〜T-080 |
 | 中断時の記録の書き出しと終了コード | T-097〜T-102 |
-| 終了コード | T-101〜T-107 |
+| 終了コード | T-101〜T-107、T-123 |
 | 時間窓の実時間と数える単位 | T-035、T-036、T-053、T-054、T-071 |
 | 判断モデルの応答の多様さ | T-003、T-005〜T-007、T-056 |
 | 実行の結果の各分岐(変化なし・変化・ドメイン外) | T-003、T-025、T-026、T-027 |
