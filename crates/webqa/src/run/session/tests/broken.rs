@@ -10,21 +10,36 @@ const PAGES: usize = 3;
 /// Runs the script of [`clicks`] on a browser that shows the top page
 /// `pages` times and then fails, writing into `store`.
 async fn broken(pages: usize, store: &mut dyn Store) -> Ending {
-    let mut browser = FakeBrowser {
-        pages: iter::repeat_n(top(), pages).collect(),
-        ..FakeBrowser::default()
+    let mut user = Counting {
+        calls: 0,
+        fire_on: BTreeSet::new(),
     };
+    run_broken(&mut shown(&top(), pages), &mut user, &plan(), store).await
+}
+
+/// A browser that shows `page` `pages` times and then fails.
+pub fn shown(page: &Observation, pages: usize) -> FakeBrowser {
+    FakeBrowser {
+        pages: iter::repeat_n(page.clone(), pages).collect(),
+        ..FakeBrowser::default()
+    }
+}
+
+/// Runs the script of [`clicks`] on `browser` as `plan` says, interrupted
+/// by `user`, writing into `store`.
+pub async fn run_broken(
+    browser: &mut FakeBrowser,
+    user: &mut dyn Interrupt,
+    plan: &Plan,
+    store: &mut dyn Store,
+) -> Ending {
     let mut judge = RecordingJudge {
         script: clicks(),
         ..RecordingJudge::default()
     };
     let (mut clock, redactor) = (FakeClock::default(), Redactor::default());
-    let mut user = Counting {
-        calls: 0,
-        fire_on: BTreeSet::new(),
-    };
-    let mut ports = Ports::new(&mut browser, &mut judge, &mut clock, store, &redactor);
-    conduct(&mut ports, &mut user, rules(100), &plan()).await
+    let mut ports = Ports::new(browser, &mut judge, &mut clock, store, &redactor);
+    conduct(&mut ports, user, rules(100), plan).await
 }
 
 #[tokio::test]

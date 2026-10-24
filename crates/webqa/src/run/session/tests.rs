@@ -20,6 +20,7 @@ use webqa_core::screen::ElementId;
 use webqa_judge::scripted::Scripted;
 
 mod broken;
+mod broken_ends;
 mod failures;
 mod fakes;
 mod records;
