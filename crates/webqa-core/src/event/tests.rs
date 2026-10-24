@@ -128,6 +128,7 @@ fn finished_names_reason_and_stuck() {
         ),
         (ExitReason::TimeExceeded, finished("time_exceeded", None)),
         (ExitReason::UserAborted, finished("user_aborted", None)),
+        (ExitReason::Error, finished("error", None)),
     ];
     for (reason, event) in cases {
         assert_eq!(Event::finished(reason), event, "{reason:?}");

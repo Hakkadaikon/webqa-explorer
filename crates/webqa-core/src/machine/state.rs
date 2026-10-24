@@ -49,6 +49,8 @@ pub enum ExitReason {
     TimeExceeded,
     /// The user interrupted the run.
     UserAborted,
+    /// The browser failed. The run loop sets it; the core never does.
+    Error,
 }
 
 /// How the run got stuck.
