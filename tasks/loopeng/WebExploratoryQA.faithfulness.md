@@ -33,6 +33,31 @@ P44とP45は`WebExploratoryQA.noexplorable.cfg`(要素1つで、それが禁止�
 - 探索モードで、表示中に値のある入力欄が無ければ`enter`を外すことも、モデルの外とする。提案の操作は非決定に選ぶので、外した選択肢はその部分集合として含まれる。
 - `ASSUME`を変えたので、TLCを3つの cfg で回し直した。結果は変更前と同じ(違反なし、状態数も同じ)。数字は`WebExploratoryQA.tlc-run.log`の末尾にある。
 
+## インタビューと判断モデルの失敗の連続(2026-10-24、v7)
+
+実装に入った3つの変更に、仕様を合わせた。実装を正とした。
+
+- #86: `Modes`に`"interview"`を足した。段階とdone_whenは決め打ちシナリオと同じに扱う(`DoneWhenObservations`、`ScenarioStageDone`、`ScenarioGoalOnlyAtLastStage`を`mode # "explore"`にした)。インタビューでは、スクロールで見えた要素(`newSeen'`)で行き詰まりを数え直さない(`StuckAfterOp`、`StuckCounterTracksNewElements`)。InterviewMode S-047の「判定の方法は変えない」は、利用者の決定で#86によりインタビューで覆した。
+- #92: ガードレールで止めた提案を、インタビューでは行き詰まりに1回数える(`ApplyGuardrails`の`Refuse`)。要素番号の無い応答の異常は止めたのではないので数えない。確かめ直しで見たページが許可ドメインの外なら、どのモードでも1回数えて外に出たことを記録する。両方が成り立っても1ステップに1回だけ数える(実装の`refused(settled(..))`)。性質`RefusalCountsStuck`を足し、`CountersChangeOnlyBySteps`、`DomainChangesOnlyByNavigation`、`ObservationChangesOnlyByExecution`を直した。カウンタが判断の数を超えない(`CountersBoundedByOps`)は変えずに成り立つ。
+- #85: 判断モデルに届かない失敗を`RequestDecision`の非決定の結果に足した(`judgeFails`、`MaxJudgeFailures`)。失敗で1増え、答えが届けば使えない答えでも0に戻る。閾値に達したら`FinishJudgeUnavailable`(`error_exit`、`judge_unavailable`)で終える。待機の優先順位では、行き詰まりの次、判断予算切れと時間切れより先に採る(実装の`plan.rs`の`Pick::JudgeDown`)。性質`JudgeDownStops`、`JudgeFailsTracksReplies`、`JudgeUnavailableOnlyAfterFailures`、`JudgeFailsBounded`を足し、`AwaitingOnlyByDecision`、`LimitStops`、`ExitReasonMatchesPhase`を直した。検査の閾値は2にした(実装は3)。インタビューでその試行を打ち切り、以後の試行を始めないこと(InterviewMode S-105)は試行の外のループで、このspecの範囲の外。
+
+`WebExploratoryQA.faithfulness-input.md`は、`tools/faithfulness_input.py`でv7の`.tla`から作り直した。
+
+読み手の言い直しは、まだ取っていない。
+仕様を直した担当は、読み手のsubagentを起こさない決まりなので、呼び出し元に任せた。
+v7の入力を新しい読み手に渡し、次の行を判定し直す必要がある。
+
+- 新しい行: S-046、InterviewMode S-011(止めた提案を数える)、InterviewMode S-047(見えた要素を数えない)
+- 式が変わった行: S-005(`RequestDecision`の失敗の枝、`AwaitingOnlyByDecision`)、S-021の行き詰まりとドメイン外(`StuckAfterOp`、`Refuse`)、S-027(モードが3つ)、S-028の存在確認(確かめ直しで外に着く)、S-033(`DomainChangesOnlyByNavigation`)、S-041(`LimitStops`)、S-044の優先順位と終了状態(`JudgeDownStops`、`ExitReasonMatchesPhase`)、S-015の段階の行(インタビューも段階を持つ)
+
+下の判定表のうち、この2つに当たる行は、読み手の言い直しが届くまで「v6の判定」として読む。
+`WebExploratoryQA.paraphrase.md`はv4の言い直しのままで、v7の判定には使えない。
+
+前件到達は`WebExploratoryQA.reach.log`の「v7」節にある。
+v6のP1〜P51(68本)をv7のspecで回し直し、v7で足したP52〜P70(21本)を加えた。89本すべてで、前件が成り立つ到達状態または一歩が見つかった。
+P63(インタビューの応答の異常は数えない)は`WebExploratoryQA.empty.cfg`で回した。要素がある画面では、直接操作の要素番号が無い応答が起きないからである。
+足した前件は、判断モデルの停止(P52)、`JudgeDownStops`の前件(P53)と、判断予算の最後の1回や時間切れとの同時(P54a、P54b)、予算が残ったままの停止(P54c)、失敗の一歩(P55)と0に戻る一歩(P56)、閾値に達した状態(P57)、失敗を挟んだ予算切れ(P58)、インタビューで止めた提案(P59)とそれ以外のモード(P60)、確かめ直しで外に着く一歩(P61、P62)、インタビューの応答の異常(P63)、外に着いて見えた要素が無くなる一歩(P64)、インタビューで見えた要素を数えない一歩(P65)、止めた提案で行き詰まりに届く一歩(P66)、インタビューのゴール達成(P67)、段階の切り替え(P68)、申告による終了(P69)、行き詰まりの数が判断の数に並ぶ状態(P70)である。
+
 ## 判定表
 
 | 要件 | 式 | 読み手の言い直し | 判定 | 理由 / 直し方 |
@@ -260,6 +285,25 @@ v6で足したのは次の6本。P46〜P50は`WebExploratoryQA.empty.cfg`で回�
 検査に使う`WebExploratoryQA.cfg`は、`Operations`がclickを含み空でなく、`IdleThreshold`(2)が`MaxDecisions`(4)以下なので、固まり復旧の前件にも届く(P14、P25)。
 `WebExploratoryQA.noexplorable.cfg`は要素1つでそれが禁止要素の場合、`WebExploratoryQA.empty.cfg`は操作可能な要素が1つも無い場合を検査する。
 実装では、設定値の検査で0以下の閾値、空の操作種別、探索モードでclickもinputも無い操作種別を拒否する。
+
+## 変異の検査(v7のspec)
+
+691件の変異を、3つの設定で回した。全件の結果は`WebExploratoryQA.mutants-v7.tsv`(列はv6と同じ)、再検査は`WebExploratoryQA.mutants-v7-recheck.tsv`にある。
+手元のマシンで、TLCはワーカー2、ヒープ1GBで回した。
+
+- 性質違反でkilledになったもの: 239件。主の設定で225件、`StartsFresh`の初期状態での違反10件、主の設定では緑で`WebExploratoryQA.noexplorable.cfg`か`WebExploratoryQA.empty.cfg`で捕まったもの4件。
+- 評価時のエラーか構文エラーで止まり、`Init`・`Next`・`Spec`側にあるもの: 再検査した。224件はすべての書き換えが性質違反になった。値ごとの書き換え(`tools/recheck_values.py`のeq、drop、item)で2306通り、連言を外すと代入が欠ける6件は状態を変えない書き換えか片方の枝だけにする書き換え7通りで回した。
+- 構文エラーで止まった性質側の変異: 92件。`Init`・`Next`・`Spec`が原本と同じなので再検査していない。
+- `Spec`の`[][Next]_vars`の連言1件: 外すと次状態関係が無くなりTLCで検査できないので、未検査のまま残る(v6と同じ)。
+- equivalent: 111件。性質側の変異57件、連言リストの先頭の`/\`が1項の`\/`になるもの30件、コメント内の字面15件、再検査で`.cfg`の定数と同じ値になる書き換え6件、冪等な自己ループが増えるだけの書き換え3件(時間窓の巻き戻しのガード2件、許可ドメインへの戻りのガード1件。どれもdistinctの到達状態数が原本と同じ560893)。
+- abstraction-limited: 24件。どれも要件が許す環境側の振る舞いを減らすだけで、誤った振る舞いを足さない。判断モデルの応答や画面・done_whenの観測を1つの値に固定する書き換え、実行の結果の1つを起こらなくする書き換え、時刻の経過を起こらなくする書き換えに加えて、v7では判断モデルに届かない失敗を起こらなくする(または常に起こす)書き換えと、確かめ直しで外に着く結果を起こらなくする書き換えが入った。
+
+到達状態を変えるのに緑のまま残った本物のsurvivorは0件。
+239 + 224 + 92 + 1 + 111 + 24 = 691件。
+
+abstraction-limitedのうち、`RequestDecision`の`op \in DirectOps /\ t = "none"`を`\/`にする変異(`and->or#65`)と、対象の存在の観測を偽に固定する変異(`eq->neq#38`、`and->or#70`)は、直接操作が一度も実行されないspecになるのに、どの性質も破れない。
+性質はどれも「起きたら正しい」を言い、「安全な直接操作が実行されうる」を言わないからである。前件到達のP2、P21、P26がこの可能性を別に確かめている。
+v6の同じ変異(`and->or#60`)は、到達状態が82744に減っていたのに「箇条の先頭」のequivalentに分類されていた。v7でabstraction-limitedに直した。
 
 ## 変異の検査(v6のspec)
 
