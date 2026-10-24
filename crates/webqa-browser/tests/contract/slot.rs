@@ -21,6 +21,10 @@ static TAKEN: Mutex<usize> = Mutex::new(0);
 static FREED: Condvar = Condvar::new();
 
 /// One of the [`SLOTS`], given back when dropped.
+///
+/// A test holds at most one slot at a time, so that every holder ends
+/// without waiting for another slot: two tests each holding one and waiting
+/// for a second could wait for ever.
 pub struct Slot;
 
 impl Slot {
@@ -74,10 +78,26 @@ pub async fn opened(
     })
 }
 
-/// With every slot taken, the next take waits until one is given back.
+/// How long the test of the slots waits for the other tests to give theirs
+/// back; each holds a browser for some seconds.
+const LIMIT: Duration = Duration::from_secs(60);
+
+/// With every slot taken, the next take waits until one is given back. The
+/// slots are taken on threads of their own and the test waits on them up to
+/// [`LIMIT`], so it fails instead of hanging; dropping `release`, also when
+/// it fails, gives them back. It is the only holder of more than one slot,
+/// and the others give theirs back without waiting, so the taking ends.
 #[test]
 fn take_waits_while_every_slot_is_taken() {
-    let held: Vec<Slot> = (0..SLOTS).map(|_| Slot::take()).collect();
+    let (held, all_held) = channel();
+    let (release, released) = channel::<()>();
+    thread::spawn(move || {
+        let slots: Vec<Slot> = (0..SLOTS).map(|_| Slot::take()).collect();
+        held.send(()).ok();
+        released.recv().ok();
+        drop(slots);
+    });
+    assert_eq!(all_held.recv_timeout(LIMIT), Ok(()), "every slot taken");
     let (took, waited) = channel();
     thread::spawn(move || {
         let _slot = Slot::take();
@@ -87,8 +107,8 @@ fn take_waits_while_every_slot_is_taken() {
     assert_eq!(
         waited.recv_timeout(short),
         Err(RecvTimeoutError::Timeout),
-        "every slot taken"
+        "waits while every slot is taken"
     );
-    drop(held);
-    assert_eq!(waited.recv(), Ok(()), "a slot given back");
+    drop(release);
+    assert_eq!(waited.recv_timeout(LIMIT), Ok(()), "a slot given back");
 }

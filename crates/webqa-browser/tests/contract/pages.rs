@@ -46,6 +46,7 @@ async fn storage_state_opens_logged_in_page() {
     let mut browser = launch(options, 0).await.unwrap();
     let o = seen(&mut browser).await.unwrap();
     assert_eq!(kinds(&o), [("button", "ログアウト")], "logged in");
+    drop(browser);
     let mut browser = launch(at("/account").unwrap(), 0).await.unwrap();
     let o = seen(&mut browser).await.unwrap();
     assert_eq!(kinds(&o), [("button", "ログイン")], "not logged in");
