@@ -137,7 +137,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-026 WebExploratoryQA.feature:555(固まりとドメイン外からの復帰) [state] 「画面が変化すれば固まりの数え直しになる」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::counters` の `screen_change_resets_freeze` / issue: #12
 - [x] T-027 WebExploratoryQA.feature:574(固まりとドメイン外からの復帰) [unwanted] 「操作の結果ドメイン外に出たら記録して許可ドメインへ戻り、ドメイン外では問い合わせない」
-      → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `outside_domain_returns_without_asking` / issue: #12
+      → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `outside_domain_returns_without_asking`、単体 `webqa-core::plan` の `landing_outside_after_abort_or_reload_counts` / issue: #12、#92
 - [x] T-028 WebExploratoryQA.feature:583(固まりとドメイン外からの復帰) [boundary] 「許可ドメインかどうかは、最終的な遷移先のオリジンの完全一致で判定する」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard::domain` の `origin_must_match_exactly` / issue: #4
 - [x] T-029 WebExploratoryQA.feature:607(探索の記憶と優先順位) [ubiquitous] 「探索の記憶を次の実行に引き継ぐ」
@@ -367,7 +367,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-024 | unwanted | 禁止仕様からの導出(blackbox-state)、モデルベーステスト(oracle-model-based) | `finished_is_absorbing` | #12 | [x] | [ ] | 要 |
 | T-025 | state | 状態遷移テスト(blackbox-state) | `reload_after_freeze_keeps_memory` | #12 | [x] | [ ] | 要 |
 | T-026 | state | 状態遷移テスト(blackbox-state) | `screen_change_resets_freeze` | #12 | [x] | [ ] | 要 |
-| T-027 | unwanted | 状態遷移テスト(blackbox-state) | `outside_domain_returns_without_asking` | #12 | [x] | [ ] | 要 |
+| T-027 | unwanted | 状態遷移テスト(blackbox-state) | `outside_domain_returns_without_asking`、`landing_outside_after_abort_or_reload_counts` | #12、#92 | [x] | [ ] | 要 |
 | T-028 | boundary | 同値分割(blackbox-partition)、境界値分析(blackbox-partition) | `origin_must_match_exactly` | #4 | [x] | [ ] | 要 |
 | T-029 | ubiquitous | CRUD/ライフサイクルテスト(blackbox-state) | `memory_round_trips_across_runs` | #14 | [x] | [ ] | 要 |
 | T-030 | state | デシジョンテーブル(blackbox-partition) | `untouched_before_unfinished_branch` | #10 | [x] | [ ] | 要 |
