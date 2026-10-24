@@ -59,7 +59,8 @@ pub(super) async fn records(closing: Closing<'_>, stopped: Stopped) -> Result<Cl
         clock: &mut *closing.clock,
         done: &mut closing.kept.record,
     };
-    let found = findings(&mut asker, closing.plan, &run).await;
+    let down = stopped == Stopped::JudgeDown;
+    let found = findings(&mut asker, closing.plan, &run, down).await;
     let compared = compare(
         ledger(closing.plan, &run, found),
         closing.plan.previous.as_ref(),

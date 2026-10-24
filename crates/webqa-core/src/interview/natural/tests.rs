@@ -84,6 +84,17 @@ fn mismatch_counts(n: u32, count: usize) -> (usize, usize, usize) {
 }
 
 #[test]
+fn a_spent_cap_asks_nothing() {
+    let mut cap = Quota::spent();
+    let (asked, over) = natural_round(&mut cap, unranked());
+    assert_eq!(
+        (asked.len(), over.len(), cap.left()),
+        (0, 3, 0),
+        "all unchecked"
+    );
+}
+
+#[test]
 fn mismatch_questions_take_cap_before_natural() {
     let screens = three_purposes();
     let mut cap = quota(2);
