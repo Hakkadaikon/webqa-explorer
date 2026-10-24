@@ -147,7 +147,8 @@ async fn run_with_failing_second() -> (Vec<u64>, usize) {
 async fn both_calls_are_kept_when_the_second_failed() {
     assert_eq!(
         run_with_failing_second().await,
-        (vec![1, 1, 2, 2, 3, 3, 4, 4, 5, 5], 10),
-        "two calls for each step, though the second always failed"
+        (vec![1, 1, 2, 2, 3, 3], 6),
+        "two calls for each step, though the second always failed, until \
+         the third failure in a row ends the run"
     );
 }

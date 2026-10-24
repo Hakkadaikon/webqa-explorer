@@ -47,7 +47,7 @@ pub(super) struct Step {
 }
 
 /// How each exit reason of the core reads as the end of a trial.
-const ENDS: [(ExitReason, Ended, TrialEnding); 7] = [
+const ENDS: [(ExitReason, Ended, TrialEnding); 8] = [
     (
         ExitReason::GoalAchieved,
         Ended::Finished(Finish::GoalMet),
@@ -82,6 +82,11 @@ const ENDS: [(ExitReason, Ended, TrialEnding); 7] = [
         ExitReason::UserAborted,
         Ended::Cut(Cut::Interrupted),
         TrialEnding::Interrupted,
+    ),
+    (
+        ExitReason::JudgeUnavailable,
+        Ended::Cut(Cut::JudgeDown),
+        TrialEnding::JudgeDown,
     ),
 ];
 

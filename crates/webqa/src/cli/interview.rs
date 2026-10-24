@@ -187,6 +187,7 @@ const fn reason(stopped: Stopped) -> &'static str {
         Stopped::Completed => "completed",
         Stopped::TimeUp => "time_up",
         Stopped::Interrupted => "interrupted",
+        Stopped::JudgeDown => "judge_down",
     }
 }
 

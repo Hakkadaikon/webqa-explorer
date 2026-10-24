@@ -81,6 +81,8 @@ pub enum Stopped {
     TimeUp,
     /// The user interrupted the run.
     Interrupted,
+    /// The judge failed too many times in a row in the last trial.
+    JudgeDown,
 }
 
 impl From<Stop> for Stopped {

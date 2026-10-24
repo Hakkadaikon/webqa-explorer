@@ -134,3 +134,17 @@ fn only_the_latest_operations_are_kept() {
     let want: Vec<_> = (3..=RECENT + 2).map(|n| u64::try_from(n).ok()).collect();
     assert_eq!(steps, want);
 }
+
+#[test]
+fn a_run_ended_by_the_judge_failing_shows_its_reason() {
+    let state = folded(&[
+        r#"{"seq":1,"elapsed_ms":1,"kind":"trial_started","trial":1}"#,
+        r#"{"seq":2,"elapsed_ms":2,"step":1,"kind":"anomaly","cause":"api"}"#,
+        r#"{"seq":3,"elapsed_ms":3,"kind":"trial_finished","trial":1,"ending":"judge_down"}"#,
+        r#"{"seq":4,"elapsed_ms":4,"kind":"run_finished","reason":"judge_unavailable"}"#,
+    ]);
+    assert_eq!(
+        (state.trials_ended, state.finished.as_deref()),
+        (1, Some("judge_unavailable"))
+    );
+}

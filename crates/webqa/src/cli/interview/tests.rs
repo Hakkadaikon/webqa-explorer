@@ -52,14 +52,20 @@ fn interview_endings_are_described() {
         confirmed: false,
     };
     let line = |ending| describe(ending, dir);
-    let said = [Stopped::Completed, Stopped::TimeUp, Stopped::Interrupted]
-        .map(|stopped| line(wrote(stopped)));
+    let said = [
+        Stopped::Completed,
+        Stopped::TimeUp,
+        Stopped::Interrupted,
+        Stopped::JudgeDown,
+    ]
+    .map(|stopped| line(wrote(stopped)));
     assert_eq!(
         said,
         [
             "終了理由 completed、台帳 runs/x/ledger.md",
             "終了理由 time_up、台帳 runs/x/ledger.md",
             "終了理由 interrupted、台帳 runs/x/ledger.md",
+            "終了理由 judge_down、台帳 runs/x/ledger.md",
         ]
     );
     let reset = Ending::ResetFailed(ResetError::TimedOut);
