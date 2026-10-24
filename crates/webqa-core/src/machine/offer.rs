@@ -195,6 +195,7 @@ pub(super) fn questions(state: &State) -> Questions {
             .iter_mut()
             .filter_map(target_options)
             .for_each(|options| options.clone_from(&names));
+        questions.retain(judge::asks_something);
     }
     let last = &state.last;
     Questions {

@@ -226,9 +226,6 @@ target/debug/webqa watch .webqa/runs/<実行ID>
 
 最初からやり直すときは、新しい`--out`を渡すか、出力先の`memory/`にある対象のオリジンのファイル(手本では`https%3A%2F%2Fdemo.playwright.dev.json`)を消す。
 
-すべての要素を操作済みの記憶で回すと、既知の不具合に当たる。
-`http 400`の応答の異常が1回出て、そのまま`goal_achieved`で終わる([#103](https://github.com/Hakkadaikon/webqa-explorer/issues/103))。
-
 ## 再実行
 
 `webqa replay`は`report.json`に記録した判断モデルの答えで、同じ実行をやり直す。

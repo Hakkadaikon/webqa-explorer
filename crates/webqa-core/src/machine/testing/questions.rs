@@ -2,7 +2,7 @@
 
 use crate::config::raw::Op;
 use crate::effect::{Effect, Outside, Questions};
-use crate::judge::{Ask, Question, QuestionId, questions};
+use crate::judge::{Ask, Question, QuestionId, asks_something, questions};
 use crate::machine::Rules;
 use crate::machine::material::forbidden_indices;
 use crate::machine::ops::offered;
@@ -52,7 +52,8 @@ pub fn asked(rules: &Rules, elements: usize) -> Vec<Question> {
     asked_for(&ops, elements, None)
 }
 
-/// The questions without a goal, offering only the element `numbers`.
+/// The questions without a goal, offering only the element `numbers`. With
+/// no numbers, the question about the element is not asked.
 pub fn asked_only(ops: &[Op], elements: usize, numbers: &[usize]) -> Vec<Question> {
     let mut questions = asked_for(ops, elements, None);
     for question in &mut questions {
@@ -62,6 +63,7 @@ pub fn asked_only(ops: &[Op], elements: usize, numbers: &[usize]) -> Vec<Questio
             *options = numbers.iter().map(ToString::to_string).collect();
         }
     }
+    questions.retain(asks_something);
     questions
 }
 
