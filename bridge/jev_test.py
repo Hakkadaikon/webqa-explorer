@@ -19,14 +19,37 @@ from fake import (
 
 class DeclarationTest(unittest.TestCase):
     def test_declaration_by_model(self):
+        self.assertEqual(jev.declaration(options()), {"version": 2, "images": True})
         self.assertEqual(
-            jev.declaration(options().model), {"version": 2, "images": True}
+            jev.declaration(options(model="typesafe-ai/jev-1.13.0")),
+            {"version": 2, "images": True},
         )
         self.assertEqual(
-            jev.declaration("typesafe-ai/jev-1.13.0"), {"version": 2, "images": True}
+            jev.declaration(options(model="typesafe-ai/jev")),
+            {"version": 2, "images": False},
+        )
+
+    def test_text_model_without_text_images_declares_no_images(self):
+        self.assertEqual(
+            jev.declaration(options(text_model="m")), {"version": 2, "images": False}
+        )
+
+    def test_text_model_with_text_images_declares_by_jev(self):
+        self.assertEqual(
+            jev.declaration(options(text_model="m", text_images=True)),
+            {"version": 2, "images": True},
         )
         self.assertEqual(
-            jev.declaration("typesafe-ai/jev"), {"version": 2, "images": False}
+            jev.declaration(
+                options(model="typesafe-ai/jev", text_model="m", text_images=True)
+            ),
+            {"version": 2, "images": False},
+        )
+
+    def test_text_claude_declares_by_jev(self):
+        self.assertEqual(
+            jev.declaration(options(text_claude="haiku")),
+            {"version": 2, "images": True},
         )
 
 
