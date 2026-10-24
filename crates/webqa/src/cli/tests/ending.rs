@@ -7,9 +7,10 @@ use std::time::Duration;
 
 use tokio::runtime::Builder;
 use webqa_core::machine::ExitReason;
-use webqa_core::ports::StoreError;
+use webqa_core::ports::{BrowserError, StoreError};
 
 use super::super::*;
+use crate::interview::trials::Ending as Interview;
 use crate::run::RunError;
 use crate::run::session::Ending;
 
@@ -52,5 +53,24 @@ fn the_end_is_named_as_the_report_names_it() {
     assert_eq!(
         named(ExitReason::TimeExceeded),
         "終了理由 time_exceeded、記録 runs/x"
+    );
+    assert_eq!(
+        named(ExitReason::JudgeUnavailable),
+        "終了理由 judge_unavailable、記録 runs/x"
+    );
+}
+
+#[test]
+fn broken_run_names_error_and_dir() {
+    let dir = Path::new("runs/x");
+    let run = app::describe(&Ending::Broke(BrowserError), dir);
+    let broke = Interview::Broke(BrowserError);
+    let interview = super::super::interview::describe(broke, dir);
+    assert_eq!(
+        (run.as_str(), interview.as_str()),
+        (
+            "ブラウザを操作できない、記録 runs/x",
+            "ブラウザを操作できない、台帳 runs/x/ledger.md"
+        )
     );
 }

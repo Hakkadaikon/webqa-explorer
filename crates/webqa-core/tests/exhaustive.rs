@@ -1,8 +1,8 @@
 //! The state machine searched through with small constants: from the
 //! start pages, every fitting fact at every later time is passed to every
 //! state reached, telling states apart by a key of what decides the next
-//! steps. Three searches: a scenario without stages, a scenario with
-//! stages, and explore mode.
+//! steps. Four searches: a scenario without stages, a scenario with
+//! stages, explore mode, and an interview.
 //!
 //! A failure shows how many transitions broke the property, and the facts
 //! and times passed from the start to the first few.
@@ -41,7 +41,7 @@ use webqa_core::machine::{ExitReason, step};
 use key::knows;
 use report::{Broken, group, traced};
 use walk::MAX;
-use walks::{explored, report, staged, started, walks};
+use walks::{explored, interviewed, report, staged, started, walks};
 
 /// No failures.
 const NONE: Broken = (0, Vec::new());
@@ -101,12 +101,14 @@ fn memory_and_notes_only_grow() {
 }
 
 #[test]
-fn stages_and_explore_mode_keep_the_shared_properties() {
-    for report in [staged(), explored()] {
+fn stages_explore_mode_and_interviews_keep_the_shared_properties() {
+    for report in [staged(), explored(), interviewed()] {
         for group in SHARED {
             assert_eq!(report.broken(group), NONE, "group {group}");
         }
     }
+    let missed = interviewed().missed();
+    assert_eq!(missed, Vec::<&str>::new(), "every row in an interview");
 }
 
 #[test]

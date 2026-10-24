@@ -81,6 +81,8 @@ pub enum Stopped {
     TimeUp,
     /// The user interrupted the run.
     Interrupted,
+    /// The judge failed too many times in a row in the last trial.
+    JudgeDown,
 }
 
 impl From<Stop> for Stopped {
@@ -105,9 +107,11 @@ pub enum Ending {
     },
     /// The reset command failed. The ledger of the trials before is written.
     ResetFailed(ResetError),
+    /// A browser failed. The ledger of the trials before is written.
+    Broke(BrowserError),
     /// The previous ledger's persona or purpose differs from this run's.
     Mismatch(Mismatch),
-    /// A browser or a record failed.
+    /// A record failed.
     Failed(RunError),
     /// The user interrupted again while the records were being written.
     Abandoned,

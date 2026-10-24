@@ -7,12 +7,13 @@ use tokio::task::yield_now;
 
 use webqa_core::event::Event;
 use webqa_core::interview::schedule::{Next, RunState, Schedule, next_trial};
+use webqa_core::machine::ExitReason;
 use webqa_core::ports::{Clock, Judge, Store};
 use webqa_core::redact::Redactor;
 use webqa_core::window::RequestWindow;
 
 use super::record::Trial;
-use super::write::{Closed, Closing, records};
+use super::write::{Closed, Closing, Failure, records};
 use super::{Ending, Launch, Plan, Stopped};
 use crate::interrupt::{Interrupt, guard};
 use crate::interview::reset::ResetError;
@@ -73,7 +74,8 @@ pub(super) async fn conduct<'a>(
     };
     match course.go().await {
         Ok(stopped) => course.finish(stopped, None).await,
-        Err(Halt::Reset(error)) => course.finish(Stopped::Completed, Some(error)).await,
+        Err(Halt::Reset(error)) => course.broken(Failure::Reset(error)).await,
+        Err(Halt::Run(RunError::Browser(error))) => course.broken(Failure::Browser(error)).await,
         Err(Halt::Run(error)) => Ending::Failed(error),
     }
 }
@@ -105,6 +107,14 @@ impl Course<'_> {
 
     /// Starts a trial, waits, or says why no more trials start.
     async fn step(&mut self) -> Result<Option<Stopped>, Halt> {
+        if self.judge_down() {
+            return Ok(Some(Stopped::JudgeDown));
+        }
+        self.scheduled().await
+    }
+
+    /// Does what the schedule says next.
+    async fn scheduled(&mut self) -> Result<Option<Stopped>, Halt> {
         match self.next() {
             Next::Stop(stop) => Ok(Some(stop.into())),
             Next::Wait(at) => {
@@ -113,6 +123,13 @@ impl Course<'_> {
             }
             Next::Start(cap) => self.trial(cap).await.map(|()| None),
         }
+    }
+
+    /// Whether the judge's failures in a row cut the last trial. No trial
+    /// starts after that: the judge is likely still out of reach.
+    fn judge_down(&self) -> bool {
+        let last = self.trials.last().map(|trial| trial.reason);
+        last == Some(ExitReason::JudgeUnavailable)
     }
 
     /// Writes `event` as the next line of the log.
@@ -153,9 +170,14 @@ impl Course<'_> {
         self.interrupted |= interrupted;
     }
 
+    /// Writes the records of the trials before `failed` stopped the loop.
+    async fn broken(&mut self, failed: Failure) -> Ending {
+        self.finish(Stopped::Completed, Some(failed)).await
+    }
+
     /// Writes the records, unless the user interrupts again. `failed` is the
-    /// reset command's failure that stopped the loop, if one did.
-    async fn finish(&mut self, stopped: Stopped, failed: Option<ResetError>) -> Ending {
+    /// failure that stopped the loop, if one did.
+    async fn finish(&mut self, stopped: Stopped, failed: Option<Failure>) -> Ending {
         let allowance = u8::from(stopped != Stopped::Interrupted);
         let closing = Closing {
             judge: &mut *self.parts.judge,
@@ -165,7 +187,7 @@ impl Course<'_> {
             kept: &mut self.kept,
             trials: &self.trials,
             plan: self.plan,
-            reset_failed: failed.is_some(),
+            failed,
         };
         let closed = guard(records(closing, stopped), &mut *self.interrupt, allowance);
         match closed.await {
@@ -173,7 +195,7 @@ impl Course<'_> {
             Some(Err(error)) => Ending::Failed(error),
             Some(Ok(Closed::Mismatch(mismatch))) => Ending::Mismatch(mismatch),
             Some(Ok(Closed::Wrote { confirmed })) => {
-                failed.map_or(Ending::Wrote { stopped, confirmed }, Ending::ResetFailed)
+                failed.map_or(Ending::Wrote { stopped, confirmed }, Failure::ending)
             }
         }
     }

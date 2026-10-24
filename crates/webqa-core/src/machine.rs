@@ -37,11 +37,11 @@ use crate::screen::{Screen, Viewport};
 use crate::window::RequestWindow;
 use actions::{Action, MISMATCH, Next, Now};
 
-pub use chosen::{Chosen, Pointed, chosen};
+pub use chosen::{Chosen, Pointed, chosen, stopped};
 pub use material::Material;
 pub use note::{Anomaly, Note, Rejection};
 pub use rules::Rules;
-pub use state::{Cause, ExitReason, Phase, State, StuckKind};
+pub use state::{Cause, ExitReason, JUDGE_FAILURES, Phase, State, StuckKind};
 pub use whole::Whole;
 
 /// A redacted observation of the page, with the material of the guardrails.

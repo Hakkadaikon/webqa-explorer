@@ -14,6 +14,8 @@ mod images;
 mod modes;
 #[path = "questions_replies.rs"]
 pub mod replies;
+#[path = "questions_stopped.rs"]
+mod stopped;
 #[path = "questions_unusable.rs"]
 mod unusable;
 
@@ -37,4 +39,5 @@ pub const READY: &[&str] = &[
     "操作の対象は候補を絞らず、表示領域の操作可能要素から判断モデルに選ばせる",
     "インタビューのモードでは、操作種別の選択肢に done を入れる",
     "判断モデルへの画面の文に、直近の操作(最大5回)と画面が変わったかが入る",
+    "直近の操作の節で、別のページに移ったことと止められたことを書き分け、同じ操作が続いた回数を添える",
 ];

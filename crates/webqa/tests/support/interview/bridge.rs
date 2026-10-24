@@ -109,7 +109,7 @@ fn table_of(answers: &Answers) -> Map<String, Value> {
 /// `Bridge` come back as `Malformed` through the bridge.
 const fn kind(error: &JudgeError) -> &'static str {
     match error {
-        JudgeError::Api => "api",
+        JudgeError::Api { .. } => "api",
         JudgeError::Timeout => "timeout",
         JudgeError::Exhausted
         | JudgeError::Malformed

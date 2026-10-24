@@ -154,6 +154,26 @@ fn interrupted_exit_code_by_confirmed_issues() {
 }
 
 #[test]
+fn judge_unavailable_exits_3() {
+    let reason = ExitReason::JudgeUnavailable;
+    let codes = [
+        exit_of(reason, &[]),
+        exit_of(reason, &[IssueKind::ErrorDisplay]),
+    ];
+    assert_eq!(
+        codes,
+        [3, 3],
+        "explore and scenario, with or without issues"
+    );
+    let down = |confirmed| Interview::Wrote {
+        stopped: Stopped::JudgeDown,
+        confirmed,
+    };
+    let interview = [down(false), down(true)].map(|ending| interview_code(&ending));
+    assert_eq!(interview, [3, 3], "interview");
+}
+
+#[test]
 fn runtime_error_exits_three() {
     let failures = [
         Ending::Failed(RunError::Store(StoreError)),
@@ -182,4 +202,11 @@ fn interview_issues_exit_zero() {
         endings.map(|ending| interview_code(&ending)),
         [0, 1, 2, 3, 3, 3]
     );
+}
+
+#[test]
+fn browser_failure_exits_three() {
+    let run = code(&Ending::Broke(BrowserError));
+    let interview = interview_code(&Interview::Broke(BrowserError));
+    assert_eq!((run, interview), (3, 3));
 }

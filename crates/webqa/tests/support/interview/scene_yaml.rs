@@ -80,6 +80,7 @@ impl Scene {
         let purpose = self.purpose_text.as_ref().map(|_| PURPOSE_PATH);
         [
             entry("purpose", purpose),
+            entry("back_confidence", self.back_confidence),
             entry("stuck_threshold", self.interview_stuck),
             entry("requests_per_hour", self.interview_requests),
             entry("reset", self.reset.as_ref().map(reset_json)),

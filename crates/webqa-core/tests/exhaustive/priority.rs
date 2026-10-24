@@ -31,8 +31,9 @@ fn reachable(state: &State) -> bool {
 }
 
 /// The reasons of the second and third tiers.
-const LATER_TIERS: [ExitReason; 3] = [
+const LATER_TIERS: [ExitReason; 4] = [
     ExitReason::Stuck(StuckKind::NoProgress),
+    ExitReason::JudgeUnavailable,
     ExitReason::BudgetExceeded,
     ExitReason::TimeExceeded,
 ];

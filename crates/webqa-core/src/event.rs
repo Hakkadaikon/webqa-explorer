@@ -36,8 +36,8 @@ pub enum Mode {
     /// Interviewing: trials of one purpose. It is treated twice on purpose:
     /// the check of the configuration reads it as `Explore`
     /// (`config/mode.rs`), while the core runs the trials as a `Scenario`
-    /// (its `Interview` arms in `machine/offer.rs` and `machine/waiting.rs`
-    /// are never reached from a real run).
+    /// with one stage (`machine/offer.rs` and `machine/waiting.rs`), apart
+    /// from how it counts steps without progress.
     Interview,
 }
 
@@ -115,6 +115,9 @@ pub enum Event {
         /// The question whose answer was wrong, if one was.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         question: Option<String>,
+        /// What the bridge said of an API error, if it kept anything.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        detail: Option<String>,
     },
     /// An issue was found.
     Issue {
@@ -191,6 +194,8 @@ pub enum TrialEnding {
     TimeUp,
     /// The user's interruption cut the trial.
     Interrupted,
+    /// The judge's failures in a row cut the trial.
+    JudgeDown,
 }
 
 /// The fields of an anomaly line, as serde writes the anomaly.
@@ -199,6 +204,8 @@ struct AnomalyFields {
     cause: String,
     #[serde(default)]
     question: Option<String>,
+    #[serde(default)]
+    detail: Option<String>,
 }
 
 impl Event {
@@ -231,7 +238,11 @@ impl Event {
     pub fn anomaly(anomaly: &Anomaly) -> Self {
         let named = match anomaly {
             Anomaly::Judge(error) => {
-                serde_json::json!({ "cause": error.cause(), "question": error.question() })
+                serde_json::json!({
+                    "cause": error.cause(),
+                    "question": error.question(),
+                    "detail": error.detail(),
+                })
             }
             Anomaly::Unusable(unusable) => serde_json::to_value(unusable).unwrap_or_default(),
         };
@@ -239,6 +250,7 @@ impl Event {
         Self::Anomaly {
             cause: fields.cause,
             question: fields.question,
+            detail: fields.detail,
         }
     }
 }

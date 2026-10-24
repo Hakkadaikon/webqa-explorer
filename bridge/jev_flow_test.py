@@ -136,6 +136,34 @@ class MainTest(unittest.TestCase):
             answers, [(1, ["error_shown", "purpose_guess"]), (2, ["expectation"])]
         )
 
+    def test_main_loop_sends_the_screenshot_with_both_calls_of_a_step(self):
+        image = {"media_type": "image/png", "data": "iVBORw=="}
+        lines = [
+            request([NOUL, GUESS], seq=1, image=image) + "\n",
+            request([EXPECT], seq=2, image=image) + "\n",
+        ]
+        argv = [
+            "--model",
+            "typesafe-ai/jev-1.14.0",
+            "--text-model",
+            "some/llm",
+            "--text-images",
+        ]
+        http = FakeHttp(JEV_REPLY, CHAT_REPLY, CHAT_REPLY)
+        out = io.StringIO()
+        with (
+            mock.patch.object(gateway, "urlopen", http),
+            mock.patch.object(sys, "stdin", io.StringIO("".join(lines))),
+            mock.patch.object(sys, "stdout", out),
+        ):
+            jev.main(argv)
+        self.assertEqual(
+            json.loads(out.getvalue().splitlines()[0]), {"version": 2, "images": True}
+        )
+        for n in (1, 2):
+            content = http.body(n)["messages"][1]["content"]
+            self.assertEqual(content[1]["type"], "image_url")
+
     def test_running_the_script_writes_the_declaration(self):
         out = io.StringIO()
         saved, sys.argv = sys.argv, ["jev.py", "--timeout", "5"]

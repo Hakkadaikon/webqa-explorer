@@ -96,6 +96,7 @@ fn interview(case: &Case) -> Interview {
         trials: nz(case.trials),
         hesitation_threshold: 0.5,
         confidence_threshold: 0.5,
+        back_confidence: 0.3,
         stuck_threshold: nz(5),
         requests_per_hour: nz(case.accesses),
         max_natural_questions: nz(10),

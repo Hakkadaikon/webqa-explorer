@@ -23,7 +23,7 @@ PR の前にすること: diff-review を6観点(design、test、security、docs
 
 ### 残りの課題
 
-- #67(失敗で終わったときも実行結果を書く)、#71(Linux のコンテナ)。
+- #67、#71、#83、#84、#85、#86、#92 は、統合用のブランチ issues-rest の PR で直した。
 - 探索モードの使い方の文書(TodoMVC を手本に)。worktree `docs-usage` を用意してある。
 
 ## 決めたことと注意
@@ -36,7 +36,7 @@ PR の前にすること: diff-review を6観点(design、test、security、docs
 
 - PATH の先頭に `$HOME/.cargo/bin` を置く。Homebrew の Rust 1.86 が先に見つかると、ビルドもフックも落ちる。rustup の入れ直しは親が1回だけ行う(担当が同時に回すと壊れる)。
 - `rust-code-analysis-cli` は `~/.cargo/bin` にある。Chromium は `~/.cache/ms-playwright`(`PLAYWRIGHT_BROWSERS_PATH` で渡す)。
-- 環境変数: `CARGO_BUILD_JOBS=2`、`CARGO_PROFILE_DEV_DEBUG=line-tables-only`、`RUSTFLAGS="-C link-arg=-fuse-ld=lld"`、`RUST_TEST_THREADS=4`、`RUSTC_WRAPPER=sccache`(置き場を `--target-dir` で渡すとき)。
+- 環境変数: `CARGO_BUILD_JOBS=2`、`CARGO_PROFILE_DEV_DEBUG=line-tables-only`、`RUSTFLAGS="-C link-arg=-fuse-ld=lld"`、`RUSTC_WRAPPER=sccache`(置き場を `--target-dir` で渡すとき)。
 - ビルドの置き場は worktree ごとに1つ(worktree の中の `target/`)。worktree をまたいで共有すると、同じ名前のクレートの成果物が上書きし合ってビルドが落ちる。
 - ディスクが一度埋まって全部止まった(置き場の溜めすぎ)。空きを見張り、15GB を切ったら担当を起こさない。main に入った worktree は `git worktree remove --force` で片づける(先に `git status --porcelain` で変更が無いことを確かめる)。`rm -rf` は権限で止められる。
 - メモリは 16GB。重いビルドは同時に3本まで。swap は `sysctl vm.swapusage` で見る。

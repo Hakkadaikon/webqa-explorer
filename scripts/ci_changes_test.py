@@ -46,6 +46,7 @@ class Decide(unittest.TestCase):
             "share/skills/writing-persona-purpose/SKILL.md",
             "docs/arch/config.md",
             "eval/truth.yaml",
+            "docker/Dockerfile",
             "tasks/loopeng/InterviewMode.feature",
             ".github/workflows/ci.yml",
             "skills/writing-persona-purpose/SKILL.md",

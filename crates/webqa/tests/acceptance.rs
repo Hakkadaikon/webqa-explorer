@@ -46,6 +46,8 @@ mod ending;
 mod ending_budget;
 #[path = "steps/ending_explore.rs"]
 mod ending_explore;
+#[path = "steps/ending_judge.rs"]
+mod ending_judge;
 #[path = "steps/ending_stuck.rs"]
 mod ending_stuck;
 #[path = "steps/ending_time.rs"]
@@ -109,6 +111,7 @@ fn ready() -> Vec<&'static str> {
         ending_budget::READY,
         ending_time::READY,
         ending_explore::READY,
+        ending_judge::READY,
         explore_input::READY,
         stages::READY,
         recovery::READY,

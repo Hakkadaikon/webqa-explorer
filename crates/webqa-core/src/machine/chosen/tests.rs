@@ -1,9 +1,10 @@
 //! The operation chosen is the one the core carries out.
 
-use super::{Chosen, Pointed, chosen};
+use super::{Chosen, Pointed, chosen, stopped};
+use crate::effect::Touch;
 use crate::judge::{Answers, JudgeError};
-use crate::machine::State;
 use crate::machine::testing::{answer, ask_top, id, ranked, rules, showed, told, top, touch};
+use crate::machine::{Rejection, State};
 
 fn pointed(number: usize, name: &str) -> Pointed {
     Pointed {
@@ -62,4 +63,21 @@ fn the_element_passed_over_for_being_unmoved_is_the_one_named() {
         element: Some(pointed(2, "ヘルプ")),
     };
     assert_eq!(of(unchanged.state(), ranks()), Some(next), "the next one");
+}
+
+#[test]
+fn stopped_names_the_operation_and_why() {
+    let state = ask_top(rules());
+    let back = Ok(answer("back", Some(0.5), None));
+    let back_touch = Touch {
+        op: "back".to_owned(),
+        target: None,
+        confidence: 0.5,
+    };
+    let why = Some((back_touch, Rejection::LowConfidence));
+    assert_eq!(stopped(&back, &state), why, "a doubtful back");
+    let scroll = Ok(answer("scroll_down", Some(0.9), None));
+    assert_eq!(stopped(&scroll, &state), None, "carried out");
+    let failed = stopped(&Err(JudgeError::Exhausted), &state);
+    assert_eq!(failed, None, "no answers");
 }

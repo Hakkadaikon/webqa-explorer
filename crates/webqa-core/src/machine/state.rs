@@ -47,9 +47,17 @@ pub enum ExitReason {
     BudgetExceeded,
     /// The time limit is reached.
     TimeExceeded,
+    /// The judge failed [`JUDGE_FAILURES`] times in a row.
+    JudgeUnavailable,
     /// The user interrupted the run.
     UserAborted,
+    /// The browser failed. Set outside the core: by the run loop, and by
+    /// the interview's trials when a trial's browser fails.
+    Error,
 }
+
+/// How many failures of the judge in a row end the run.
+pub const JUDGE_FAILURES: u32 = 3;
 
 /// How the run got stuck.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -122,6 +130,9 @@ pub struct State {
     /// The element of the last operation, when the screen did not change
     /// after it. Cleared by every observation taken in.
     pub(super) unmoved: Option<ElementId>,
+    /// The judge's failures in a row: API errors, timeouts and bridge
+    /// failures. Any other reply restarts it.
+    pub(super) failing: u32,
 }
 
 impl State {
@@ -145,6 +156,7 @@ impl State {
             stage: 0,
             origin: None,
             unmoved: None,
+            failing: 0,
         };
         take(blank, seen).0
     }
@@ -221,6 +233,12 @@ impl State {
     #[must_use]
     pub const fn unmoved(&self) -> Option<&ElementId> {
         self.unmoved.as_ref()
+    }
+
+    /// The judge's failures in a row.
+    #[must_use]
+    pub const fn failing(&self) -> u32 {
+        self.failing
     }
 
     /// Why the run ended, if it has.

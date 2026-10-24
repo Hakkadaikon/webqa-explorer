@@ -108,16 +108,18 @@ impl Course<'_> {
         }
     }
 
-    /// The rules of a trial: scenario mode with the purpose as its one stage.
+    /// The rules of a trial: the interview, run as a scenario with the
+    /// purpose as its one stage.
     fn rules(&self) -> Rules {
         let interview = &self.plan.interview;
         Rules {
-            mode: Mode::Scenario,
+            mode: Mode::Interview,
             ops: with_done(&self.plan.rules.ops),
             // The time limit is the plan's, from the start of the run.
             max_duration: self.plan.max_duration,
             stages: vec![interview.purpose.stage()],
             stuck_threshold: interview.stuck_threshold,
+            back_confidence: interview.back_confidence,
             ..self.plan.rules.clone()
         }
     }

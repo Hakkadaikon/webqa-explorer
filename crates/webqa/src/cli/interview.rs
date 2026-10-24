@@ -167,6 +167,7 @@ fn written(ending: Ending, ledger: &Path) -> Option<String> {
             ledger.display()
         )),
         Ending::ResetFailed(error) => Some(format!("{error}、台帳 {}", ledger.display())),
+        Ending::Broke(error) => Some(format!("{error}、台帳 {}", ledger.display())),
         Ending::Mismatch(_) | Ending::Failed(_) | Ending::Abandoned => None,
     }
 }
@@ -177,7 +178,9 @@ fn unwritten(ending: Ending) -> String {
     match ending {
         Ending::Mismatch(mismatch) => mismatch.to_string(),
         Ending::Failed(error) => error.to_string(),
-        Ending::Wrote { .. } | Ending::ResetFailed(_) | Ending::Abandoned => ABANDONED.to_owned(),
+        Ending::Wrote { .. } | Ending::ResetFailed(_) | Ending::Broke(_) | Ending::Abandoned => {
+            ABANDONED.to_owned()
+        }
     }
 }
 
@@ -187,6 +190,7 @@ const fn reason(stopped: Stopped) -> &'static str {
         Stopped::Completed => "completed",
         Stopped::TimeUp => "time_up",
         Stopped::Interrupted => "interrupted",
+        Stopped::JudgeDown => "judge_down",
     }
 }
 

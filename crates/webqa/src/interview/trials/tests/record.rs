@@ -66,6 +66,7 @@ fn act(step: u64, target: Option<ElementId>, cause: Cause) -> Act {
         cause,
         act: Duration::ZERO,
         changed: false,
+        moved: false,
         settle: Duration::ZERO,
     }
 }

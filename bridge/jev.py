@@ -46,6 +46,8 @@ def parse_args(argv):
     text = parser.add_mutually_exclusive_group()
     text.add_argument("--text-model")
     text.add_argument("--text-claude")
+    # Only with --text-model: says that model reads images.
+    parser.add_argument("--text-images", action="store_true")
     parser.add_argument("--timeout", type=seconds, default=30.0)
     return parser.parse_args(argv)
 
@@ -59,8 +61,17 @@ def seconds(text):
     return value
 
 
-def declaration(model):
-    return {"version": VERSION, "images": model in IMAGE_MODELS}
+def text_reads_images(opts):
+    """Whether the model of the free-text questions reads images. With no text
+    model there is none to ask, so JEV alone decides."""
+    if opts.text_model:
+        return opts.text_images
+    return True
+
+
+def declaration(opts):
+    images = opts.model in IMAGE_MODELS and text_reads_images(opts)
+    return {"version": VERSION, "images": images}
 
 
 def has_image(request):
@@ -119,15 +130,15 @@ def ask_jev(request, opts, budget):
     return answers, (usage["input_tokens"], usage["output_tokens"])
 
 
-def text_image(request, question):
-    """The screenshot, which goes only with the hard-to-see question."""
-    return request.get("image") if question["id"] == HARD_TO_SEE else None
+def text_image(request):
+    """The screenshot, which goes with every free-text question of the line."""
+    return request.get("image")
 
 
 def text_content(request, question):
     """The user message of the gateway's language model."""
     text = question_text(request, question)
-    image = text_image(request, question)
+    image = text_image(request)
     if image is None:
         return text
     url = f"data:{image['media_type']};base64,{image['data']}"
@@ -148,7 +159,7 @@ def text_system(question):
 def ask_claude(request, question, opts, budget):
     text, used = claude_cli.ask(
         question_text(request, question),
-        text_image(request, question),
+        text_image(request),
         opts.text_claude,
         text_system(question),
         budget,
@@ -236,7 +247,7 @@ def write(text):
 
 def main(argv):
     opts = parse_args(argv)
-    write(dump(declaration(opts.model)))
+    write(dump(declaration(opts)))
     for line in sys.stdin:
         out = handle(line, opts)
         if out is not None:

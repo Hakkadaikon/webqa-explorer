@@ -1,5 +1,5 @@
-//! The three searches: a scenario without stages, a scenario with stages,
-//! and explore mode. Each runs once for all the tests.
+//! The four searches: a scenario without stages, a scenario with stages,
+//! explore mode and an interview. Each runs once for all the tests.
 
 use std::sync::OnceLock;
 use std::time::Duration;
@@ -8,7 +8,7 @@ use webqa_core::explore::Memory;
 use webqa_core::machine::{Rules, Seen, Step, start};
 
 use super::candidates::pages::{CART, EMPTY, SETTINGS, TOP};
-use super::candidates::{explore_rules, rules, staged_rules};
+use super::candidates::{explore_rules, interview_rules, rules, staged_rules};
 use super::explore::explored_rows;
 use super::priority::staged_rows;
 use super::report::Report;
@@ -53,9 +53,21 @@ pub fn explored() -> &'static Report {
     })
 }
 
+/// The search of an interview without stages from the start page.
+pub fn interviewed() -> &'static Report {
+    static REPORT: OnceLock<Report> = OnceLock::new();
+    REPORT.get_or_init(|| {
+        search(Walk {
+            rules: interview_rules(),
+            starts: vec![TOP],
+            rows: rows(),
+        })
+    })
+}
+
 /// Every search.
-pub fn walks() -> [&'static Report; 3] {
-    [report(), staged(), explored()]
+pub fn walks() -> [&'static Report; 4] {
+    [report(), staged(), explored(), interviewed()]
 }
 
 /// The first step: started on `seen` under `rules` at 0 seconds.

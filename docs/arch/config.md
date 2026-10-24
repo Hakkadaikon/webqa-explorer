@@ -15,7 +15,7 @@ target:
   allowed_origins: ["https://app.example.test", "https://*.app.example.test"]
 judge:
   kind: command
-  command: ["./bridge/jev.py", "--text-model", "<言語モデルの名前>", "--timeout", "25"]
+  command: ["./bridge/jev.py", "--text-model", "<言語モデルの名前>", "--text-images", "--timeout", "25"]
   api_key: { env: JEV_API_KEY }
   timeout_secs: 30
   pricing: { input_per_1k: 0.0, output_per_1k: 0.0 }
@@ -118,7 +118,7 @@ YAMLはserde-saphyrで読む。
 | `limits.requests_per_hour` | 必須 | 1時間の時間窓で対象へアクセスする回数の上限 |
 | `limits.page_timeout_secs` | 必須 | 画面の読み込みと操作を待つ秒数 |
 | `limits.max_duration_secs` | 任意 | 実行の時間の上限(秒)。書かなければ時間切れにならない |
-| `limits.back_confidence` | 必須 | 判断モデルが選んだ`back`の操作に要る確信度 |
+| `limits.back_confidence` | 必須 | 判断モデルが選んだ`back`の操作に要る確信度。インタビューのモードでは`interview.back_confidence`を使う |
 | `limits.error_confidence` | 必須 | エラー表示と意味の判断が要る検出を、問題として記録する確信度 |
 
 回数と秒数は1以上の整数にする。

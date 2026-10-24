@@ -37,7 +37,7 @@ fn malformed(world: &mut QaWorld) {
 
 #[given(expr = "判断モデルの応答が API のエラー応答 である")]
 fn api_error(world: &mut QaWorld) {
-    with_button(world, Reply::Fail(JudgeError::Api));
+    with_button(world, Reply::Fail(JudgeError::Api { detail: None }));
 }
 
 #[given(expr = "判断モデルの応答が 設定の待ち時間内に返らないタイムアウト である")]

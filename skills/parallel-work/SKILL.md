@@ -54,7 +54,6 @@ description: >
 | `CARGO_BUILD_JOBS` | `2` | 並列の担当とメモリを取り合わない |
 | `CARGO_PROFILE_DEV_DEBUG` | `line-tables-only` | ビルドのメモリとディスクが減る |
 | `RUSTFLAGS` | `-C link-arg=-fuse-ld=lld` | リンクが速くなる |
-| `RUST_TEST_THREADS` | `4` | 契約テストの Chromium が負荷で時間切れにならない |
 | `RUSTC_WRAPPER` | `sccache` | 新しい置き場でも、依存のコンパイル結果を使い回す |
 
 - デバッグ情報を減らしても、カバレッジの結果は変わらない。

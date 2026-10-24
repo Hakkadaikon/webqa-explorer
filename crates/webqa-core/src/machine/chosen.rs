@@ -2,8 +2,10 @@
 //! chosen the way the core chooses them.
 
 use super::guards::rejection;
+use super::note::Rejection;
 use super::proposal::{Proposal, hear};
 use super::state::State;
+use crate::effect::Touch;
 use crate::judge::{Answers, JudgeError};
 
 #[cfg(test)]
@@ -40,6 +42,15 @@ pub fn chosen(reply: &Result<Answers, JudgeError>, state: &State) -> Option<Chos
         op: row.name,
         element: pointed(proposal),
     })
+}
+
+/// The operation the guardrails stop on `reply` in `state`, and why: the
+/// other side of [`chosen`]. `None` when the reply is unusable or nothing
+/// stops it.
+#[must_use]
+pub fn stopped(reply: &Result<Answers, JudgeError>, state: &State) -> Option<(Touch, Rejection)> {
+    let proposal = hear(reply, state).ok()?;
+    rejection(state, &proposal).map(|why| (proposal.touch(), why))
 }
 
 /// The element of the proposal, with its number.

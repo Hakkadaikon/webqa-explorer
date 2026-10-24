@@ -7,7 +7,7 @@ use webqa::exit;
 use webqa::run::RunError;
 use webqa::run::session::Ending;
 use webqa_core::machine::{ExitReason, Step};
-use webqa_core::ports::StoreError;
+use webqa_core::ports::{BrowserError, StoreError};
 
 use super::run::Fakes;
 use super::{Beat, QaWorld, beat_of};
@@ -119,6 +119,7 @@ async fn check_configured() {
         "nothing ran"
     );
     for ending in [
+        Ending::Broke(BrowserError),
         Ending::Abandoned,
         Ending::Failed(RunError::Store(StoreError)),
     ] {

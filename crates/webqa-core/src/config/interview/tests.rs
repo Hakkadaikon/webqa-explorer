@@ -57,6 +57,22 @@ fn stuck_threshold_overrides_for_interview() {
     assert_eq!(requests, 600, "limits requests");
 }
 
+#[test]
+fn interview_back_confidence_out_of_range_names_the_field() {
+    let want = "interview.back_confidence は 0 より大きく 1 以下の値にする";
+    for value in ["0", "1.5", ".nan"] {
+        let extra = format!("  back_confidence: {value}\n");
+        assert_eq!(rejected(&extra), want, "{value}");
+    }
+}
+
+#[test]
+fn interview_back_confidence_defaults_to_three_tenths() {
+    assert_eq!(loaded("").unwrap().back_confidence, 0.3, "omitted");
+    let written = loaded("  back_confidence: 0.9\n").unwrap();
+    assert_eq!(written.back_confidence, 0.9, "written");
+}
+
 /// `n` as a non-zero count.
 fn count(n: u32) -> NonZeroU32 {
     NonZeroU32::new(n).unwrap()
@@ -70,6 +86,7 @@ fn interview_defaults() {
         trials: count(3),
         hesitation_threshold: 0.6,
         confidence_threshold: 0.5,
+        back_confidence: 0.3,
         stuck_threshold: count(3),
         requests_per_hour: count(600),
         max_natural_questions: count(50),

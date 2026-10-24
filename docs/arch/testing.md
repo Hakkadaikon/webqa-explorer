@@ -13,7 +13,7 @@ webqaのテストを層に分け、それぞれの置き場所、対象、実行
 | 契約 | `webqa-browser/tests/contract.rs`、`webqa-judge/tests/command.rs`、`webqa/tests/reset.rs`、`webqa/tests/reset_stop.rs` | アダプタが材料を正しく集めて操作すること。橋渡しと初期化のコマンドの起動 | Chromium、fixtureのページ、試験用のコマンド |
 | 保存 | `webqa/tests/store.rs`、`webqa-tui/tests/ledger_file.rs` | 記憶と実行結果のファイルの読み書き。台帳の書き戻しと、外での書き換えの検出 | `CARGO_TARGET_TMPDIR`の下の一時ディレクトリ |
 | 性質 | `webqa/tests/trials_props.rs` | 試行の外のループの安全性(実行全体の窓、期限、試行の数) | 偽の時計と偽の部品。乱数のseedと回数を固定する |
-| 文書 | `webqa/tests/guide.rs` | 配布する手引きの形 | なし |
+| 文書 | `webqa/tests/guide.rs`、`webqa-browser/tests/container.rs` | 配布する手引きの形。コンテナのイメージのPlaywrightの版 | なし |
 | 受け入れ | `webqa/tests/acceptance.rs`、`webqa/tests/interview_acceptance.rs` | 探索モードと決め打ちシナリオモードの受け入れシナリオ、インタビューのモードの受け入れシナリオ | 偽の部品 |
 | 実行ファイル | `webqa/tests/cli.rs`、`webqa/tests/watch.rs`、`webqa/tests/dotenv.rs` | 起動、設定エラー、終了コード、`.env`の読み込み、`watch`、端末の無い`ledger` | Chromium |
 
@@ -24,7 +24,7 @@ webqaのテストを層に分け、それぞれの置き場所、対象、実行
 ## 全状態の探索
 
 中核の状態機械は純粋なので、小さな定数を与えれば全状態を探索できる。
-探索は3通りで、段階の無いシナリオ、段階のあるシナリオ、探索モードである。
+探索は4通りで、段階の無いシナリオ、段階のあるシナリオ、探索モード、インタビューである。
 到達した状態ごとに、仕様の不変条件をRustの述語として確かめる。
 遷移ごとに、優先順位や終了の吸収などの性質も確かめる。
 乱数を使わないので、毎回同じ結果になる。
@@ -132,6 +132,10 @@ HTTPの3xxの転送先への要求は`route`に来ない。
 そこで3xxの転送先だけは、テストの中で127.0.0.1のソケットを開いて返す。
 オリジンが別になるので、許可ドメインの試験にもそのまま使える。
 
+1つのテストのプロセスで同時に開くブラウザは、4つまでにしている。
+これより多いと、Chromiumの負荷でスナップショットがページの待ちの上限の1秒を超えることがある。
+枠は`webqa-browser/tests/contract/slot.rs`にあり、スレッドの数を絞らずに回せる。
+
 橋渡しの契約テストは、`webqa-judge/tests/fixtures/bridge.sh`を相手に回す。
 初期化のコマンドの契約テストは、`webqa/tests/fixtures/reset/`のスクリプトを起動する。
 どちらも、書き出すファイルを`CARGO_TARGET_TMPDIR`の下にテストごとの名前で置く。
@@ -153,6 +157,7 @@ OSのライブラリを入れるときは、パッケージ管理のためにsud
 そのため`just setup`は、Chromiumだけを入れる。
 CIのrunnerはパスワード無しでsudoできるので、OSのライブラリも入れる。
 手元でライブラリが足りなければ、開発者が`just install-browsers-with-deps`を手で実行する。
+OSにライブラリを入れたくなければ、[コンテナ](../container.md)の中で回す。
 
 `examples/`のプログラムは、`clippy --all-targets`と複雑度の検査の対象になる。
 カバレッジの計測とmutationの対象には入らない。

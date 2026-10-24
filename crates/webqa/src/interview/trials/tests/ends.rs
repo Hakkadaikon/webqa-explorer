@@ -45,6 +45,11 @@ fn every_exit_reason_reads_as_the_end_of_a_trial() {
             Ended::Cut(Cut::Interrupted),
             TrialEnding::Interrupted,
         ),
+        (
+            ExitReason::JudgeUnavailable,
+            Ended::Cut(Cut::JudgeDown),
+            TrialEnding::JudgeDown,
+        ),
     ];
     for (reason, ended, ending) in rows {
         assert_eq!(ends(reason), (ended, ending), "{reason:?}");

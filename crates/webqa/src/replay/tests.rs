@@ -14,7 +14,7 @@ use crate::record::Call;
 use crate::store::report::build;
 use crate::store::report::tests::{first_answers, meta, record, report, start_memory};
 
-fn screen() -> Redacted<ScreenText> {
+pub(super) fn screen() -> Redacted<ScreenText> {
     let screen = Screen {
         url: Url::parse("https://app.example.test/").unwrap(),
         elements: Vec::new(),
