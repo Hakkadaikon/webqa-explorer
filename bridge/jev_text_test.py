@@ -1,6 +1,5 @@
 """Tests for jev.py: the free-text questions that go to the language model."""
 
-import json
 import unittest
 
 import jev
@@ -78,27 +77,21 @@ class TextTest(unittest.TestCase):
             self.assertIn(rule, lines)
 
     def test_every_text_question_carries_the_screenshot(self):
-        http = FakeHttp(CHAT_REPLY, CHAT_REPLY)
         hard = {**TEXT, "id": "hard_to_see", "prompt": "見えにくい要素"}
-        ask(request([TEXT, hard], image=IMAGE), http, options(text_model="m"))
-        for n, prompt in enumerate(("何を期待したか", "見えにくい要素")):
-            self.assertEqual(
-                http.body(n)["messages"][1]["content"],
-                [
-                    {"type": "text", "text": prompt + "\n\n画面:\n" + SCREEN},
-                    {"type": "image_url", "image_url": {"url": DATA_URL}},
-                ],
-            )
-
-    def test_purpose_guess_carries_the_screenshot(self):
-        http = FakeHttp(CHAT_REPLY)
-        ask(request([GUESS], image=IMAGE), http, options(text_model="m"))
-        self.assertIn(DATA_URL, json.dumps(http.body()["messages"][1]["content"]))
-
-    def test_expectation_carries_the_screenshot(self):
-        http = FakeHttp(CHAT_REPLY)
-        ask(request([EXPECT], image=IMAGE), http, options(text_model="m"))
-        self.assertIn(DATA_URL, json.dumps(http.body()["messages"][1]["content"]))
+        for question in (TEXT, GUESS, hard):
+            with self.subTest(id=question["id"]):
+                http = FakeHttp(CHAT_REPLY)
+                ask(request([question], image=IMAGE), http, options(text_model="m"))
+                self.assertEqual(
+                    http.body()["messages"][1]["content"],
+                    [
+                        {
+                            "type": "text",
+                            "text": question["prompt"] + "\n\n画面:\n" + SCREEN,
+                        },
+                        {"type": "image_url", "image_url": {"url": DATA_URL}},
+                    ],
+                )
 
     def test_hard_to_see_without_image_is_plain_text(self):
         http = FakeHttp(CHAT_REPLY)

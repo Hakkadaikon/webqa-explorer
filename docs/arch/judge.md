@@ -254,8 +254,10 @@ JEVの問いは1回の呼び出しにまとめ、`text`の問いは1つずつ別
 中身は作り変えない。
 行に画像があれば、自由な文の問い(`expectation`、`purpose_guess`、`hard_to_see`)のすべてに、画面の文と並べて画像も送る。
 画像は、chat completionsの`image_url`にdata URLで入れる。
-画像を扱えない言語モデルを`--text-model`に選ぶと、その問いはGatewayの失敗(`api`)になりうる。
-そのため、画像を読める言語モデルには`--text-images`を付ける(下の引数の表)。
+`--text-model`の言語モデルに画像を送るには、`--text-images`を付ける(下の引数の表)。
+付けなければ申告が偽になり、中核は画像を添えず、見えにくい要素も問わない。
+視認性の課題も出なくなる。
+Gatewayの失敗(`api`)になりうるのは、画像を読めない言語モデルに`--text-images`を付けたときである。
 Gatewayへの送信、時間の予算、送り直し、リダイレクトの扱いは`bridge/gateway.py`にまとめてある。
 
 ### `claude -p`で答える
