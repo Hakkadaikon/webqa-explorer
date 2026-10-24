@@ -12,6 +12,7 @@ use webqa_core::screen::Rect;
 use super::port::{at, id, kinds, launch, options, seen, touch};
 use super::serve::{closed_port, outside_server};
 use super::session::Res;
+use super::slot::{Opened, Slot, opened};
 
 #[tokio::test]
 async fn collects_console_errors() {
@@ -45,13 +46,14 @@ async fn storage_state_opens_logged_in_page() {
     let mut browser = launch(options, 0).await.unwrap();
     let o = seen(&mut browser).await.unwrap();
     assert_eq!(kinds(&o), [("button", "ログアウト")], "logged in");
+    drop(browser);
     let mut browser = launch(at("/account").unwrap(), 0).await.unwrap();
     let o = seen(&mut browser).await.unwrap();
     assert_eq!(kinds(&o), [("button", "ログイン")], "not logged in");
 }
 
 /// Launches on `/storage` with the stored login of [`state_file`].
-async fn launch_storage() -> Res<PlaywrightBrowser> {
+async fn launch_storage() -> Res<Opened> {
     let mut options = at("/storage")?;
     options.storage_state = Some(state_file("fresh")?);
     launch(options, 0).await
@@ -130,11 +132,11 @@ async fn answer_whole(route: Route) -> playwright_rs::Result<()> {
 }
 
 /// Launches on [`WHOLE`].
-async fn launch_whole() -> Res<PlaywrightBrowser> {
+async fn launch_whole() -> Res<Opened> {
     let launched = PlaywrightBrowser::launch_with(at("/whole")?, |context| async move {
         context.route("**/*", answer_whole).await
     });
-    Ok(launched.await?)
+    opened(launched).await
 }
 
 /// The boxes of the headings named `name` in the whole page.
@@ -165,6 +167,7 @@ async fn observes_whole_page_for_done_when() {
 #[tokio::test]
 async fn unreachable_start_fails_launch() {
     let start = format!("http://127.0.0.1:{}/", closed_port().unwrap());
+    let _slot = Slot::take();
     let launched = PlaywrightBrowser::launch(options(&start).unwrap()).await;
     assert_eq!(launched.err(), Some(LaunchError::Other), "refused");
 }

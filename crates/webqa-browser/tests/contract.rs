@@ -14,6 +14,7 @@ mod contract {
     pub mod serve;
     pub mod session;
     pub mod settle;
+    pub mod slot;
 }
 
 use contract::port::{at, launch};

@@ -5,6 +5,7 @@ use webqa_browser::PlaywrightBrowser;
 
 use super::port::{at, id, seen, touch};
 use super::session::Res;
+use super::slot::{Opened, opened};
 
 /// A button and a link both named after the configured input.
 const NOT_FIELDS: &str = r#"<!doctype html>
@@ -25,11 +26,11 @@ async fn answer(route: Route) -> playwright_rs::Result<()> {
 }
 
 /// Launches on [`NOT_FIELDS`].
-async fn launch_not_fields() -> Res<PlaywrightBrowser> {
+async fn launch_not_fields() -> Res<Opened> {
     let launched = PlaywrightBrowser::launch_with(at("/not-fields")?, |context| async move {
         context.route("**/*", answer).await
     });
-    Ok(launched.await?)
+    opened(launched).await
 }
 
 #[tokio::test]
@@ -72,11 +73,11 @@ async fn answer_enter(route: Route) -> playwright_rs::Result<()> {
 }
 
 /// Launches on [`ENTER_PAGE`].
-async fn launch_enter() -> Res<PlaywrightBrowser> {
+async fn launch_enter() -> Res<Opened> {
     let launched = PlaywrightBrowser::launch_with(at("/enter")?, |context| async move {
         context.route("**/*", answer_enter).await
     });
-    Ok(launched.await?)
+    opened(launched).await
 }
 
 /// Presses Enter, then the names of the links the page shows.

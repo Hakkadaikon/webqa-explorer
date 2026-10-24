@@ -17,6 +17,7 @@ use webqa_core::screen::{Element, ElementId, Viewport};
 
 use super::serve::answer;
 use super::session::{ORIGIN, Res};
+use super::slot::{Opened, opened};
 
 /// A configuration whose only input is `メールアドレス`, read from `TEST_EMAIL`.
 const CONFIG: &str = r#"
@@ -89,13 +90,13 @@ pub fn at(path: &str) -> Res<LaunchOptions> {
 
 /// Launches with every request answered by [`answer`]. `/go` redirects to
 /// the port `redirect` of 127.0.0.1.
-pub async fn launch(options: LaunchOptions, redirect: u16) -> Res<PlaywrightBrowser> {
+pub async fn launch(options: LaunchOptions, redirect: u16) -> Res<Opened> {
     let launched = PlaywrightBrowser::launch_with(options, move |context| async move {
         context
             .route("**/*", move |route| answer(route, redirect))
             .await
     });
-    Ok(launched.await?)
+    opened(launched).await
 }
 
 /// The element `nth` 0 with `role` and `name`.
