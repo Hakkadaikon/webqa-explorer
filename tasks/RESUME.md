@@ -28,12 +28,15 @@
 - 利用者が数字を見て、インタビューのモードを作り込み続けるかを決める(判断の線は先に決めない)。
 - 通信を待つ間 DOM が動かない画面の切り替えには、静まりの待ちが効かない。
 - PR #87 と #91 の本文に書いた、直さずに残した作りの整理。
+- PR #90 の、文書だけの PR で `check` と `mutants` が飛ぶ経路の確かめ(2026-10-25 の文書の PR で見る)。
+- ブランチ notes-1020(手元と origin)は、中身をこの文書と `tasks/decisions.md` に移したので、文書の PR が main に入ったら消す。
 
 ### ra-jit
 
 `just ra-jit [引数]` で 0.1.0 を使う。
 このマシン(Intel の Mac)では組み直しで失敗するので、Linux と Apple シリコンの Mac のほかでは止まる。
-2026-10-24 に、GitHub の main(69aa229)を CI の Linux で 0.1.0 と比べた(1回ずつ)。
+2026-10-24 に、ra-jit の GitHub の main(69aa229)を CI の Linux で 0.1.0 と比べた(1回ずつ)。
+ワークフロー `ra-jit` の実行は、0.1.0 が 40094067240、ra-jit の main が 40094064773(一時ブランチ ra-jit-main。最後の検査は、2つの版を同じ環境に入れたので失敗した)。
 
 | 組み方 | 冷えた状態から | 書き換え1 | 書き換え2 | 書き換え3 |
 |---|---|---|---|---|
@@ -57,10 +60,10 @@ crates.io に次の版が出るまで 0.1.0 のままにする。
 手元で mutation を回すには、`AQUA_POLICY_CONFIG=<本体>/.config/aqua/policy.yaml` を渡して `cargo mutants -p <crate> --in-diff <diff>`。
 push の前に回すと、CI で初めて生き残りが見つかる回り道を防げる。
 
-## 実物での確かめ(it-trend.jp、インタビューのモード)
+## 実物での確かめ(it-trend.jp)
 
 - 利用者の許可で回してよい。負荷をかけないことだけ守る(1時間のアクセスの上限60、判断の上限は1試行20)。JEV と言語モデルは好きなだけ呼んでよい(利用者)。
-- 設定と台帳は scratchpad の `ittrend/`(セッションごとに scratchpad が変わる。前のセッションの `/private/tmp/claude-501/<プロジェクト>/<セッション>/scratchpad/ittrend` を探して写す)。要点:
+- 設定と台帳は scratchpad の `ittrend/`(セッションごとに scratchpad が変わる。前のセッションの scratchpad の `ittrend/` を探して写す)。要点:
   - 判断モデルは `bridge/jev.py --model typesafe-ai/jev-1.14.0 --text-model anthropic/claude-haiku-5.5 --timeout 60`、`timeout_secs: 70`。`--text-model` が無いと、インタビューの自由な文の問いが毎回 `api` の失敗になる。
   - ペルソナは中小企業の総務担当者(勤怠管理システムを比べたい)。目的は書かずに推測させる。試行2回。
   - 検索欄の値は `inputs: { "例）社員の勤怠を管理したい": { env: WEBQA_SEARCH, secret: false } }` と環境変数で渡す(値の直書きは設定エラー)。値は「勤怠管理」。
@@ -89,9 +92,9 @@ push の前に回すと、CI で初めて生き残りが見つかる回り道を
 - `zsh` では `for t in "-p a --lib" ...; do cargo test $t` の `$t` が単語に分かれず、テストが走らないまま空の出力になる。1本ずつ書く。
 - 担当に `git add -A` をさせない。同じ worktree で別の担当が直しているファイルが混ざる(55aaf51 で起きた)。
 
-## 実物での確かめ
+## 実物での確かめ(共通)
 
-- 判断モデルのキーは本体の checkout の `.env` の `WEBQA_JUDGE_API_KEY`(git の管理外)。CLI は作業ディレクトリの `.env` を読むので、本体の checkout の直下で回す。費用は利用者の許可で合計10ドルまで。ここまでの使用は 0.001 ドル未満。
+- 判断モデルのキーは本体の checkout の `.env` の `WEBQA_JUDGE_API_KEY`(git の管理外)。CLI は作業ディレクトリの `.env` を読むので、本体の checkout の直下で回す。費用は利用者の許可で合計10ドルまで。分かっている使用は、2026-10-21 の Sonnet の測定が上限で約3.3ドル、2026-10-24 の5回の測定が上限で約0.14ドル。ほかの実行の累計は数えていない。
 - 対象は Playwright の TodoMVC デモ(`https://demo.playwright.dev/todomvc/`)と it-trend.jp(負荷をかけない範囲で、利用者の許可あり)。
 - 2026-10-20: 決め打ちシナリオ(`ops: [input, enter]`、`done_when: { text: "1 item left" }`)と、input のあと enter を答える台本の判断モデルで、enter で ToDo を追加できることを確かめた。JEV 1.14.0 は2回とも enter を選ばなかった(探索ではリンクをクリック、シナリオでは input を繰り返した)。
 - JEV の API の形は `tasks/jev-api.md`、判断モデルと橋渡しの設計は `docs/arch/judge.md`。
