@@ -297,7 +297,7 @@ TLA+の仕様は`tasks/loopeng/WebExploratoryQA.tla`にある。
 
 | 仕様のアクション | 実装の行 | ずれ |
 |---|---|---|
-| `RequestDecision` | 待機の5段目と、判断待ちで答えを受ける行 | 時間窓に数えない。課金画面の観測を含まない |
+| `RequestDecision` | 待機の5段目と、判断待ちで答えを受ける行 | 時間窓に数えない。課金画面の観測を含まない。判断モデルに届かない失敗は、判断待ちを通らずに待機へ戻る1歩にした |
 | `ApplyGuardrails` | 判断待ちの行と、確認中の2行 | 課金画面の判定は待機の4段目にある。要素の存在と同一性は確認中で確かめる |
 | `ExecuteNoChange`、`ExecuteChange`、`ExecuteOutOfDomain` | 実行で観測を受ける1行 | 3つの結果を観測で分け、1行にまとめた |
 | `FinishByProposalDone`、`FinishByProposalStuck` | 判断待ちのdoneとstuckの行 | 実行の状態を通らずに終わる |
@@ -305,10 +305,10 @@ TLA+の仕様は`tasks/loopeng/WebExploratoryQA.tla`にある。
 | `RecoverFromFreeze`、`ResumeAfterRecovery` | 待機の4段目の開き直す行と、復旧で観測を受ける行 | 時間窓に数える |
 | `ResetRequestWindow` | 行にしない。窓の番号を経過時間から求める | 上限の間は窓待ちの行で待つ |
 | `FinishNormally` | 待機の1段目のゴール達成の行 | なし |
-| `FinishStuck` | 待機の2段目 | スクロールで新しく見えた要素でも数え直す。インタビューのモードでは数え直さない |
+| `FinishStuck` | 待機の2段目 | なし |
+| `FinishJudgeUnavailable` | 待機の3段目の、判断モデルの停止で終える行 | 失敗の回数の閾値は、仕様では小さな定数にした |
 | `ExceedDecisionBudget` | 待機の3段目 | なし |
 | `FinishTimeUp` | 待機の3段目 | 判断予算切れと同じ段に置く |
-| (なし) | 待機の3段目の、判断モデルの停止で終える行 | 判断モデルの失敗の連続を仕様はまだ持たない |
 | `AdvanceStage` | 待機の1段目の、次の段階へ進む行 | なし |
 | `TimeElapses` | 行にしない。渡された経過時間が制限時間に達したかで判定する | なし |
 | `UserAbort` | `machine::abort` | 記録を書いてから終わる処理は実行ループが受け持つ |
