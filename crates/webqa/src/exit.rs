@@ -12,12 +12,12 @@ pub const CONFIG_ERROR: u8 = 2;
 pub const RUNTIME_ERROR: u8 = 3;
 
 /// The exit code of a run: 0 without a confirmed issue, 1 with one, 3 when
-/// it failed or was abandoned.
+/// the browser broke, it failed or was abandoned.
 #[must_use]
 pub fn code(ending: &Ending) -> u8 {
     match ending {
         Ending::Finished { confirmed, .. } => u8::from(*confirmed),
-        Ending::Abandoned | Ending::Failed(_) => RUNTIME_ERROR,
+        Ending::Broke(_) | Ending::Abandoned | Ending::Failed(_) => RUNTIME_ERROR,
     }
 }
 

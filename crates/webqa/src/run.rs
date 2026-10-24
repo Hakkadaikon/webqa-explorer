@@ -78,6 +78,9 @@ pub struct Ports<'a> {
     /// The interview's questions in place of the core's: `None` for the
     /// other modes.
     interview: Option<Interviewing>,
+    /// The state before the step the browser failed in: `None` until then,
+    /// and when it failed on the first page.
+    last: Option<Box<State>>,
 }
 
 /// What a run keeps from one browser to the next: the log's counters, what
@@ -114,6 +117,7 @@ impl<'a> Ports<'a> {
             record: Record::default(),
             shots: BTreeSet::new(),
             interview: None,
+            last: None,
         }
     }
 
@@ -251,7 +255,9 @@ pub async fn run(
                 tokio::select! {
                     biased;
                     () = interrupt.wait() => return Ok(machine::abort(kept)),
-                    next = advance(*state, effect, ports) => step = next?,
+                    next = advance(*state, effect, ports) => {
+                        step = next.inspect_err(|_| ports.last = Some(Box::new(kept)))?;
+                    }
                 }
             }
             Step::Finished(outcome) => return Ok(outcome),

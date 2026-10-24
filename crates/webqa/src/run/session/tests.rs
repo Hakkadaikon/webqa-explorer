@@ -19,6 +19,7 @@ use webqa_core::redact::Redactor;
 use webqa_core::screen::ElementId;
 use webqa_judge::scripted::Scripted;
 
+mod broken;
 mod failures;
 mod fakes;
 mod records;

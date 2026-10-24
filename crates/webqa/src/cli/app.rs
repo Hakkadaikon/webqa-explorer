@@ -153,6 +153,7 @@ async fn finish(mut parts: Parts) -> Done {
 pub(crate) fn describe(ending: &Ending, dir: &Path) -> String {
     match ending {
         Ending::Finished { outcome, .. } => finished_line(outcome.reason, dir),
+        Ending::Broke(error) => format!("{error}、記録 {}", dir.display()),
         Ending::Abandoned => ABANDONED.to_owned(),
         Ending::Failed(error) => error.to_string(),
     }

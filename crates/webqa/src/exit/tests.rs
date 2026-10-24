@@ -183,3 +183,8 @@ fn interview_issues_exit_zero() {
         [0, 1, 2, 3, 3, 3]
     );
 }
+
+#[test]
+fn browser_failure_exits_three() {
+    assert_eq!(code(&Ending::Broke(BrowserError)), 3);
+}
