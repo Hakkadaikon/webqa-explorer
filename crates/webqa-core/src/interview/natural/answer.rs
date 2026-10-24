@@ -1,21 +1,31 @@
 //! Reading the answers to the naturalness questions.
 
-use super::{Judgement, NATURAL, NO, PERSONA_TRAIT, PersonaTrait, TRAITS, YES};
+use super::{Judgement, NATURAL, NO, PERSONA_TRAIT, PersonaTrait, TRAITS, YES, asks_natural};
 use crate::config::persona::Persona;
+use crate::interview::issue::Issue;
 use crate::judge::{Answers, QuestionId, Unusable};
 
 /// The options of the naturalness question with what each means.
 const NATURALNESS: [(bool, &str); 2] = [(true, YES), (false, NO)];
 
-/// Reads the answers to the naturalness questions.
+/// Reads the answers to the naturalness questions about `issue`. An issue
+/// not asked whether it is natural is natural.
 ///
 /// # Errors
 ///
 /// The first problem found, the naturalness question first: as
 /// [`read_mismatch`](crate::interview::answer::read_mismatch) checks its
 /// question. The caller places the issue as unchecked.
-pub fn read_natural(answers: &Answers, persona: &Persona) -> Result<Judgement, Unusable> {
-    let natural = choice(answers, &QuestionId::new(NATURAL), &NATURALNESS)?;
+pub fn read_natural(
+    answers: &Answers,
+    persona: &Persona,
+    issue: &Issue,
+) -> Result<Judgement, Unusable> {
+    let natural = if asks_natural(issue) {
+        choice(answers, &QuestionId::new(NATURAL), &NATURALNESS)?
+    } else {
+        true
+    };
     let which = choice(answers, &QuestionId::new(PERSONA_TRAIT), &TRAITS)?;
     Ok(Judgement {
         natural,

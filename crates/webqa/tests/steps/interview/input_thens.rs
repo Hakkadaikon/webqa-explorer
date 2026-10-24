@@ -6,7 +6,7 @@ use serde_json::Value;
 use webqa_core::interview::ask::PURPOSE_MATCH;
 use webqa_core::interview::issue::Kind;
 use webqa_core::interview::ledger::{Entry, Ledger};
-use webqa_core::interview::natural::NATURAL;
+use webqa_core::interview::natural::{NATURAL, PERSONA_TRAIT};
 use webqa_core::judge::Question;
 
 use crate::judge::Asked;
@@ -128,8 +128,10 @@ fn first_question<'a>(world: &'a InterviewWorld, id: &str) -> &'a Question {
     found(call.questions.first(), "the call has a question")
 }
 
-#[then(expr = "ずれの問いのあとに、その目的のずれの課題について自然さの問いが1回聞かれている")]
-async fn natural_after_mismatch(world: &mut InterviewWorld) {
+#[then(
+    expr = "ずれの問いのあとに、その目的のずれの課題についてペルソナの性質の問いだけが1回聞かれている"
+)]
+async fn trait_after_mismatch(world: &mut InterviewWorld) {
     world.run().await;
     let all = &world.ran().judge.asked;
     let at = |id: &str| {
@@ -137,13 +139,23 @@ async fn natural_after_mismatch(world: &mut InterviewWorld) {
             .position(|a| a.questions.iter().any(|q| q.id().as_str() == id))
     };
     let mismatch = found(at(PURPOSE_MATCH), "the mismatch question was asked");
-    let natural = found(at(NATURAL), "the naturalness question was asked");
-    assert_eq!(natural, mismatch + 1, "right after");
-    assert_eq!(asks(world, NATURAL).len(), 1, "asked once");
+    let asked = found(at(PERSONA_TRAIT), "the trait question was asked");
+    assert_eq!(asked, mismatch + 1, "right after");
+    assert_eq!(asks(world, PERSONA_TRAIT).len(), 1, "asked once");
+    assert!(asks(world, NATURAL).is_empty(), "no naturalness question");
+    assert_eq!(
+        about_mismatch(world, PERSONA_TRAIT),
+        1,
+        "about the mismatch"
+    );
+}
+
+/// How many lines of the first question `id` name the written pattern as
+/// the screen of the issue.
+fn about_mismatch(world: &InterviewWorld, id: &str) -> usize {
     let written = world.scene.purpose.screens.first();
     let pattern = found(written, "a purpose is written").pattern.as_str();
     let place = format!("画面: URL の型 {pattern}");
-    let text = prompt(first_question(world, NATURAL));
-    let about = text.lines().filter(|line| *line == place);
-    assert_eq!(about.count(), 1, "the question is about the mismatch issue");
+    let text = prompt(first_question(world, id));
+    text.lines().filter(|line| *line == place).count()
 }

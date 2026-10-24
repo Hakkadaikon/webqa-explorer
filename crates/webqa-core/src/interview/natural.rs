@@ -10,7 +10,7 @@ pub use question::{describe, natural_questions};
 pub use quota::{Quota, mismatch_round, natural_round};
 
 use crate::config::persona::Persona;
-use crate::interview::issue::Issue;
+use crate::interview::issue::{Issue, Kind};
 
 /// The id of the naturalness question.
 pub const NATURAL: &str = "natural";
@@ -24,7 +24,9 @@ pub const NO: &str = "自然でない";
 /// Where an issue goes in the ledger, in the ledger's order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Section {
-    /// The judge said the issue is natural for the persona.
+    /// The judge said the issue is natural for the persona, or the issue
+    /// is a mismatch, not asked the naturalness question, whose trait the
+    /// judge named.
     Body,
     /// Not checked: the answer was unusable, or the cap was used up.
     Unchecked,
@@ -66,7 +68,8 @@ pub struct PersonaTrait {
 /// What the judge answered to the naturalness questions.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Judgement {
-    /// Whether the persona would think and act so.
+    /// Whether the persona would think and act so: `true` for an issue not
+    /// asked the naturalness question ([`asks_natural`]).
     pub natural: bool,
     /// The trait the issue came from.
     pub persona_trait: PersonaTrait,
@@ -109,6 +112,14 @@ impl Trait {
 fn joined(items: &[String]) -> String {
     let trimmed: Vec<&str> = items.iter().map(String::as_str).map(str::trim).collect();
     trimmed.join("、")
+}
+
+/// Whether `issue` gets the naturalness question. A mismatch does not: the
+/// further the guesses are from what the persona wants, the more it is a
+/// mismatch, and the less natural the judge finds it.
+#[must_use]
+pub fn asks_natural(issue: &Issue) -> bool {
+    issue.kind() != Kind::Mismatch
 }
 
 /// The section of `issue` from the judgement, `None` when the issue was

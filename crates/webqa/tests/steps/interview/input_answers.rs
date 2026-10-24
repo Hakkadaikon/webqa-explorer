@@ -45,11 +45,11 @@ fn answer_is_neither(world: &mut InterviewWorld) {
 }
 
 #[given(
-    expr = "URL の型 {string} のずれの問いで、判断モデルが同じことを指さないと答え、目的のずれの課題が出る"
+    expr = "URL の型 {string} のずれの問いで、判断モデルが同じことを指さないと答え、目的のずれの課題が出る\\(台本は、自然かを問われれば自然でないと答える\\)"
 )]
 fn mismatch_issue_comes_out(world: &mut InterviewWorld, pattern: String) {
     written(&mut world.scene, &pattern, "この画面で目的を果たす");
-    // The naturalness question about that issue is answered too: not natural.
+    // The judge would also call that issue not natural, were it asked.
     let answers = vec![mismatch_answer(DIFFERENT), natural_answer(NO)];
     asked_gets(world, answers);
     drop(pattern);

@@ -6,12 +6,14 @@ use std::num::NonZeroU32;
 
 use fixture::{
     GOAL, MISMATCH, expected_questions, ids_of, mismatch_of, numbers, patterns, persona, quota,
-    three_purposes, unnatural,
+    three_purposes,
 };
 
 use super::*;
 use crate::interview::issue::tests::fixture::products;
-use crate::interview::issue::tests::sample::{mismatch_sample, sample, unreached_sample};
+use crate::interview::issue::tests::sample::{
+    mismatch_sample, sample, unreached_sample, visibility_sample,
+};
 use crate::interview::issue::{Issue, UncheckedPurpose};
 
 #[test]
@@ -21,12 +23,13 @@ fn asks_once_per_issue_outside_budget() {
         sample("I-00000001", 2, 3),
         sample("I-00000002", 1, 3),
         unreached_sample(),
+        visibility_sample(),
     ];
     let (asked, over) = natural_round(&mut cap, issues);
-    let expected = ["I-00000001", "I-00000002", "I-47871971"];
+    let expected = ["I-00000001", "I-00000002", "I-39E24428", "I-47871971"];
     assert_eq!(numbers(&asked), expected, "by rate, then number");
     assert_eq!(over, vec![], "none over the cap");
-    assert_eq!(cap.left(), 47, "one question per issue");
+    assert_eq!(cap.left(), 46, "one question per issue");
     for issue in &asked {
         let both = ["natural", "persona_trait"].map(str::to_owned).to_vec();
         assert_eq!(ids_of(issue), (both, vec![]), "{:?}", issue.number);
@@ -119,7 +122,7 @@ fn mismatch_questions_take_cap_before_natural() {
 }
 
 #[test]
-fn mismatch_issue_also_gets_natural_question() {
+fn mismatch_issue_gets_only_trait_question() {
     let screens = [products()];
     let mut cap = quota(50);
     let (asked, _) = mismatch_round(&mut cap, mismatch_of(&screens));
@@ -132,18 +135,8 @@ fn mismatch_issue_also_gets_natural_question() {
     assert_eq!(over, vec![], "none over the cap");
     assert_eq!(cap.left(), 47, "one question per issue");
     let questions = natural_questions(&persona(), GOAL, &mismatch_sample());
-    assert_eq!(questions, expected_questions(MISMATCH), "the two questions");
-    let placed = place(mismatch_sample(), Some(unnatural()));
-    assert_eq!(placed, off_persona(mismatch_sample()), "not natural");
-}
-
-/// `issue` off the persona, from IT literacy.
-fn off_persona(issue: Issue) -> Placed {
-    Placed {
-        issue,
-        section: Section::OffPersona,
-        persona_trait: Some(unnatural().persona_trait),
-    }
+    let trait_only = expected_questions(MISMATCH).split_off(1);
+    assert_eq!(questions, trait_only, "the trait question alone");
 }
 
 #[test]
