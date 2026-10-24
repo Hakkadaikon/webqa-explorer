@@ -52,6 +52,12 @@ webqa-explorerは、Webサービスの探索的テストエージェントであ
 
 ## 文書
 
+### 使い方
+
+| 文書 | 内容 |
+|---|---|
+| [`docs/explore-usage.md`](docs/explore-usage.md) | 探索モードを1回回して結果を読むまで。TodoMVCのデモを手本にする |
+
 ### 設計
 
 | 文書 | 内容 |
