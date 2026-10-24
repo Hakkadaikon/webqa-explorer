@@ -46,6 +46,7 @@ def parse_args(argv):
     text = parser.add_mutually_exclusive_group()
     text.add_argument("--text-model")
     text.add_argument("--text-claude")
+    # Only with --text-model: says that model reads images.
     parser.add_argument("--text-images", action="store_true")
     parser.add_argument("--timeout", type=seconds, default=30.0)
     return parser.parse_args(argv)

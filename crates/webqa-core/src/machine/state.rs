@@ -51,7 +51,8 @@ pub enum ExitReason {
     JudgeUnavailable,
     /// The user interrupted the run.
     UserAborted,
-    /// The browser failed. The run loop sets it; the core never does.
+    /// The browser failed. Set outside the core: by the run loop, and by
+    /// the interview's trials when a trial's browser fails.
     Error,
 }
 

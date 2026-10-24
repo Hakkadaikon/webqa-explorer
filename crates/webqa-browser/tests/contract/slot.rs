@@ -11,7 +11,8 @@ use webqa_browser::{LaunchError, PlaywrightBrowser};
 
 use super::session::Res;
 
-/// The thread count of CI: more Chromiums at once make a snapshot outlast the 1 s page timeout (#83).
+/// The thread count of CI, whose default is the runner's 4 vCPUs: more
+/// Chromiums at once can make a snapshot outlast the 1 s page timeout (#83).
 const SLOTS: usize = 4;
 
 /// How many slots are taken.
