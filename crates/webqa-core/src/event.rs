@@ -36,8 +36,8 @@ pub enum Mode {
     /// Interviewing: trials of one purpose. It is treated twice on purpose:
     /// the check of the configuration reads it as `Explore`
     /// (`config/mode.rs`), while the core runs the trials as a `Scenario`
-    /// (its `Interview` arms in `machine/offer.rs` and `machine/waiting.rs`
-    /// are never reached from a real run).
+    /// with one stage (`machine/offer.rs` and `machine/waiting.rs`), apart
+    /// from how it counts steps without progress.
     Interview,
 }
 

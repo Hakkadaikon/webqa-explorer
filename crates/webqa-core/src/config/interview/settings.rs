@@ -10,6 +10,10 @@ use super::{InterviewError, RawInterview, RawReset, Reset};
 /// The most trials in a run.
 const MAX_TRIALS: u32 = 100;
 
+/// The confidence a `back` needs when `interview.back_confidence` is omitted.
+/// Not `limits`: a persona that goes back unsure is what an interview looks for.
+const BACK_CONFIDENCE: f64 = 0.3;
+
 /// The checked values of the `interview` section, with the limits it leaves
 /// to `limits` resolved.
 pub struct Settings {
@@ -19,6 +23,8 @@ pub struct Settings {
     pub hesitation_threshold: f64,
     /// Confidence below which a step counts as hesitant.
     pub confidence_threshold: f64,
+    /// The confidence a `back` needs.
+    pub back_confidence: f64,
     /// Steps without progress that count as stuck.
     pub stuck_threshold: NonZeroU32,
     /// The most operations in an hour.
@@ -54,7 +60,13 @@ fn nonzero(field: &'static str, value: u32) -> Result<NonZeroU32, InterviewError
 
 fn thresholds(raw: &RawInterview) -> Result<(), ConfigError> {
     confidence("interview.hesitation_threshold", raw.hesitation_threshold)?;
-    confidence("interview.confidence_threshold", raw.confidence_threshold)
+    confidence("interview.confidence_threshold", raw.confidence_threshold)?;
+    confidence("interview.back_confidence", back_confidence(raw))
+}
+
+/// The confidence a `back` needs, as written or else the default.
+fn back_confidence(raw: &RawInterview) -> f64 {
+    raw.back_confidence.unwrap_or(BACK_CONFIDENCE)
 }
 
 /// A finite value in `(0, 1]`, as for the thresholds of `limits`.
@@ -79,6 +91,7 @@ fn resolve(
         trials,
         hesitation_threshold: raw.hesitation_threshold,
         confidence_threshold: raw.confidence_threshold,
+        back_confidence: back_confidence(raw),
         stuck_threshold,
         requests_per_hour,
         max_natural_questions: natural,

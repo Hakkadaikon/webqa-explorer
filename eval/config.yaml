@@ -25,3 +25,4 @@ interview:
   persona: eval/persona.yaml
   purpose: eval/purpose.yaml
   trials: 3
+  back_confidence: 0.3

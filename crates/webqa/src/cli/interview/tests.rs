@@ -88,6 +88,7 @@ fn interview(purpose: Purpose) -> Interview {
         trials: one,
         hesitation_threshold: 0.6,
         confidence_threshold: 0.5,
+        back_confidence: 0.3,
         stuck_threshold: one,
         requests_per_hour: one,
         max_natural_questions: one,

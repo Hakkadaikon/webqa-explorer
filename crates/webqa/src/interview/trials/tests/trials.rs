@@ -76,3 +76,17 @@ async fn abort_mid_trial_skips_rest() {
         "the cut trial is not finished, and no third trial starts"
     );
 }
+
+#[tokio::test]
+async fn a_trial_uses_the_interview_back_confidence() {
+    let mut world = World::new(1);
+    world.judge.script = answering(&[("back", 0.59), ("done", 0.9)], 0.0, "戻る");
+    world.plan.rules.ops = vec![Op::Click, Op::Back];
+    world.run().await;
+    let back = world.plan.rules.back_confidence;
+    assert_eq!(
+        (back, world.picked(&["rejected", "executed"])),
+        (0.7, vec!["executed".to_owned()]),
+        "a back of 0.59 runs under the interview's 0.3, not the limits' 0.7"
+    );
+}

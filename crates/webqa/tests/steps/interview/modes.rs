@@ -105,8 +105,10 @@ async fn calls_the_judge(world: &mut InterviewWorld, calls: usize) {
     let scene = &mut world.scene;
     scene.start = page("/");
     // A back that the judge is not sure of stops the step: it uses one call
-    // and nothing else.
-    let unsure = (0..calls).map(|_| step("back", 0.5, Some("目的を果たす")));
+    // and nothing else. Each stop is a step without progress, so the stuck
+    // threshold is above the calls.
+    let unsure = (0..calls).map(|_| step("back", 0.2, Some("目的を果たす")));
+    scene.interview_stuck = u32::try_from(calls + 1).ok();
     reset(scene);
     say(scene, unsure);
     settle(scene);
