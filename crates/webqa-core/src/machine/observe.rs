@@ -9,6 +9,7 @@ use super::counters::{Counters, Progress};
 use super::material::forbidden_indices;
 use super::note::left;
 use super::state::State;
+use crate::event::Mode;
 use crate::explore::{ElementOp, ScreenKey};
 use crate::guard::domain::is_allowed;
 use crate::screen::{ElementId, changed, element_ids, in_viewport};
@@ -141,7 +142,7 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
     state.counters = state.counters.after_touch(Progress {
         changed: taken.changed,
         explored,
-        revealed: taken.revealed,
+        revealed: taken.revealed && !interviewing(&state),
     });
     state.unmoved = state
         .proposal
@@ -149,6 +150,12 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
         .and_then(|p| p.element.clone())
         .filter(|_| !taken.changed);
     idle(state)
+}
+
+/// Whether the run is an interview. An interview does not count an element
+/// a scroll shows as progress: a persona that keeps scrolling is stuck.
+pub(super) fn interviewing(state: &State) -> bool {
+    state.rules.mode == Mode::Interview
 }
 
 /// The kind of operation to record for the proposal, judged on the page it

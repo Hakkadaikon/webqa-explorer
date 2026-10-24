@@ -46,7 +46,12 @@ fn paywall_leaves_without_asking() {
 
 /// Passes the answer `op` on `target`, then the pages until the touch is
 /// observed on `then`, and returns the counts.
-fn after(state: &State, op: &str, target: Option<&str>, then: &Screen) -> (State, (u32, u32)) {
+pub(super) fn after(
+    state: &State,
+    op: &str,
+    target: Option<&str>,
+    then: &Screen,
+) -> (State, (u32, u32)) {
     let mut step: Step = told(state, answer(op, Some(0.9), target));
     if target.is_some() {
         step = showed(step.state(), &first());
@@ -64,12 +69,12 @@ fn after(state: &State, op: &str, target: Option<&str>, then: &Screen) -> (State
 }
 
 /// The start page with "通知設定" below the viewport.
-fn first() -> Screen {
+pub(super) fn first() -> Screen {
     with(top(), below("link", "通知設定"))
 }
 
 /// The same page scrolled so that "通知設定" is inside the viewport.
-fn scrolled() -> Screen {
+pub(super) fn scrolled() -> Screen {
     with(top(), inside("link", "通知設定"))
 }
 

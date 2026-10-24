@@ -90,3 +90,38 @@ async fn a_trial_uses_the_interview_back_confidence() {
         "a back of 0.59 runs under the interview's 0.3, not the limits' 0.7"
     );
 }
+
+/// A world of one trial whose judge scrolls down, each scroll showing a
+/// button not seen before, with a stuck threshold of 3. Digits in a name
+/// are normalized away, so the names have none.
+fn scrolling() -> World {
+    let mut world = World::new(1);
+    world.judge.script = script(&["scroll_down"; 10]);
+    world.plan.rules.ops = vec![Op::Click, Op::ScrollDown];
+    world.plan.interview.stuck_threshold = nz(3);
+    let url = Url::parse(ORIGIN).unwrap();
+    let names = [
+        "料金", "機能", "事例", "会社", "採用", "導入", "支援", "特長",
+    ];
+    let shown = names.map(|name| fakes::page(&url, &[("button", name)]));
+    world.launch.browsers[0].pages = iter::once(top()).chain(shown).collect();
+    world
+}
+
+/// How the first trial ended, as the log says.
+fn ending(world: &World) -> Option<serde_json::Value> {
+    let mut lines = world.store.lines.iter();
+    let ended = lines.find(|line| line["kind"] == "trial_finished");
+    ended.map(|line| line["ending"].clone())
+}
+
+#[tokio::test]
+async fn scrolling_without_operating_ends_the_trial_stuck() {
+    let mut world = scrolling();
+    world.run().await;
+    assert_eq!(
+        (ending(&world), world.picked(&["decided"]).len()),
+        (Some("no_progress".into()), 3),
+        "stuck after three scrolls, well before the budget"
+    );
+}

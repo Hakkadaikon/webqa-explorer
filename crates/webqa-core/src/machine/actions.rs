@@ -9,6 +9,8 @@ mod page_tests;
 #[cfg(test)]
 mod repeat_tests;
 #[cfg(test)]
+mod reveal_tests;
+#[cfg(test)]
 mod stage_tests;
 #[cfg(test)]
 mod stop_tests;
