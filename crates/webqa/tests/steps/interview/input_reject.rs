@@ -51,7 +51,7 @@ type Setting = fn(&Scene) -> Option<f64>;
 
 /// For each item and value that the configuration rejects: the setting, the
 /// value, and the sentence.
-const SETTINGS: [(Setting, f64, &str); 9] = [
+const SETTINGS: [(Setting, f64, &str); 11] = [
     (
         |scene| Some(f64::from(scene.trials)),
         0.0,
@@ -76,6 +76,16 @@ const SETTINGS: [(Setting, f64, &str); 9] = [
         |scene| Some(scene.confidence),
         1.5,
         "interview.confidence_threshold は 0 より大きく 1 以下の値にする",
+    ),
+    (
+        |scene| scene.back_confidence,
+        0.0,
+        "interview.back_confidence は 0 より大きく 1 以下の値にする",
+    ),
+    (
+        |scene| scene.back_confidence,
+        1.5,
+        "interview.back_confidence は 0 より大きく 1 以下の値にする",
     ),
     (
         |scene| scene.interview_stuck.map(f64::from),
