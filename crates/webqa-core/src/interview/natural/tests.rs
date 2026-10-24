@@ -11,7 +11,9 @@ use fixture::{
 
 use super::*;
 use crate::interview::issue::tests::fixture::products;
-use crate::interview::issue::tests::sample::{mismatch_sample, sample, unreached_sample};
+use crate::interview::issue::tests::sample::{
+    mismatch_sample, sample, unreached_sample, visibility_sample,
+};
 use crate::interview::issue::{Issue, UncheckedPurpose};
 
 #[test]
@@ -21,12 +23,13 @@ fn asks_once_per_issue_outside_budget() {
         sample("I-00000001", 2, 3),
         sample("I-00000002", 1, 3),
         unreached_sample(),
+        visibility_sample(),
     ];
     let (asked, over) = natural_round(&mut cap, issues);
-    let expected = ["I-00000001", "I-00000002", "I-47871971"];
+    let expected = ["I-00000001", "I-00000002", "I-39E24428", "I-47871971"];
     assert_eq!(numbers(&asked), expected, "by rate, then number");
     assert_eq!(over, vec![], "none over the cap");
-    assert_eq!(cap.left(), 47, "one question per issue");
+    assert_eq!(cap.left(), 46, "one question per issue");
     for issue in &asked {
         let both = ["natural", "persona_trait"].map(str::to_owned).to_vec();
         assert_eq!(ids_of(issue), (both, vec![]), "{:?}", issue.number);

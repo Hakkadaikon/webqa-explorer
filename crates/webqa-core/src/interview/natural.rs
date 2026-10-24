@@ -24,7 +24,8 @@ pub const NO: &str = "自然でない";
 /// Where an issue goes in the ledger, in the ledger's order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Section {
-    /// The judge said the issue is natural for the persona.
+    /// The judge said the issue is natural for the persona, or the issue
+    /// is a mismatch, not asked so, whose trait the judge named.
     Body,
     /// Not checked: the answer was unusable, or the cap was used up.
     Unchecked,
@@ -66,7 +67,8 @@ pub struct PersonaTrait {
 /// What the judge answered to the naturalness questions.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Judgement {
-    /// Whether the persona would think and act so.
+    /// Whether the persona would think and act so: `true` for an issue not
+    /// asked so ([`asks_natural`]).
     pub natural: bool,
     /// The trait the issue came from.
     pub persona_trait: PersonaTrait,

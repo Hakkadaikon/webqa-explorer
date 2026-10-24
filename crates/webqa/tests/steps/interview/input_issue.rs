@@ -136,7 +136,7 @@ async fn budget_is_not_spent(world: &mut InterviewWorld) {
     );
 }
 
-#[then(expr = "判断モデルが自然でないと答えても、その課題は台帳の本体に入る")]
+#[then(expr = "判断モデルの台本が自然でないと答える内容でも、その課題は台帳の本体に入る")]
 async fn mismatch_in_body(world: &mut InterviewWorld) {
     world.run().await;
     let ledger = ledger_of(world);
