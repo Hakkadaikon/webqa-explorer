@@ -15,6 +15,9 @@ PythonとRustのtoolchain、gitのフックもあわせて入れる。
 git worktreeで作業するときは、worktreeの中で`just worktree-tools`を1回実行する。
 本体のcheckoutが入れたツールを、シンボリックリンクで借りられる。
 
+LinuxでChromiumが要るOSのライブラリを手元に入れたくなければ、コンテナで回せる。
+手順は[`docs/container.md`](docs/container.md)にまとめた。
+
 ## コミットする前に
 
 コミットすると、lefthookが整形、静的解析、複雑度の判定、文書とスペルの検査を走らせる。
@@ -45,6 +48,7 @@ Claude Codeで開発するときの役割分担は[`docs/agents.md`](docs/agents
 crates/   Rust のワークスペース(実装)
 scripts/  開発用ツール(複雑度の判定、コミットメッセージの検査)
 bridge/   判断モデルの橋渡しのコマンド
+docker/   Linux で回すコンテナのイメージ
 docs/     設計と規約の文書
 skills/   エージェント向けの参照スキル(.claude/skills と .agents/skills からリンク)
 agents/   Claude Code のサブエージェント(.claude/agents からリンク)

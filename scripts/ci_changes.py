@@ -23,6 +23,7 @@ CODE = [
     "bridge/*",
     "share/*",
     "eval/*",
+    "docker/*",
     ".github/workflows/*",
     "Cargo.toml",
     "Cargo.lock",
