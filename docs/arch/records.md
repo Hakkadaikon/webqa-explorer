@@ -48,6 +48,9 @@
 この名前は問いの側で決め、画面の文字列を含めない。
 `accessible_name`は、表示の範囲の外の要素も含めて、画面のすべての要素を調べる。
 `console_error`は、1回の観測で同じ文のエラーが続いても1つにまとめる。
+`net::ERR_INTERNET_DISCONNECTED`と`net::ERR_NETWORK_CHANGED`を含むエラーは、問題にしない。
+手元の回線が切れたときに出るエラーで、ページの不具合ではないからである。
+`net::ERR_NAME_NOT_RESOLVED`のような、ほかの通信のエラーは問題として残す。
 
 ## スクリーンショット
 
