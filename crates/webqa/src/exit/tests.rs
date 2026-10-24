@@ -186,5 +186,7 @@ fn interview_issues_exit_zero() {
 
 #[test]
 fn browser_failure_exits_three() {
-    assert_eq!(code(&Ending::Broke(BrowserError)), 3);
+    let run = code(&Ending::Broke(BrowserError));
+    let interview = interview_code(&Interview::Broke(BrowserError));
+    assert_eq!((run, interview), (3, 3));
 }

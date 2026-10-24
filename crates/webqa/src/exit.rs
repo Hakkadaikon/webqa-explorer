@@ -25,12 +25,16 @@ pub fn code(ending: &Ending) -> u8 {
 ///
 /// 0 or 1 when its records are written: 1 only for a confirmed issue, and
 /// the issues of the ledger do not count. 2 when the previous ledger does
-/// not match, 3 when it failed or was abandoned.
+/// not match, 3 when the reset command or a browser broke it, it failed or
+/// was abandoned.
 #[must_use]
 pub fn interview_code(ending: &Interview) -> u8 {
     match ending {
         Interview::Wrote { confirmed, .. } => u8::from(*confirmed),
         Interview::Mismatch(_) => CONFIG_ERROR,
-        Interview::ResetFailed(_) | Interview::Failed(_) | Interview::Abandoned => RUNTIME_ERROR,
+        Interview::ResetFailed(_)
+        | Interview::Broke(_)
+        | Interview::Failed(_)
+        | Interview::Abandoned => RUNTIME_ERROR,
     }
 }

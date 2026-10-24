@@ -64,7 +64,7 @@ async fn close(world: &mut World, trial: &Trial) -> bool {
         kept: &mut kept,
         trials: slice::from_ref(trial),
         plan: &world.plan,
-        reset_failed: false,
+        failed: None,
     };
     records(closing, Stopped::Completed).await.is_ok()
 }

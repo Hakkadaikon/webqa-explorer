@@ -33,6 +33,10 @@ const SCRIPTS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/reset
 /// How many pages a trial's browser shows at most: the last one stays.
 pub const PAGES: usize = 30;
 
+/// How many pages a broken browser shows: the first page, and the looks
+/// before and after the first operation.
+pub const BROKEN_PAGES: usize = 3;
+
 /// The first item of `items`. Nothing there fails the scenario with `what`.
 pub fn found<T>(items: impl IntoIterator<Item = T>, what: &str) -> T {
     let mut items: Vec<T> = items.into_iter().collect();
@@ -122,6 +126,9 @@ pub struct Scene {
     pub reset_hangs_from: Option<usize>,
     /// The trial whose browser never finishes opening, from 1.
     pub hang_launch: Option<usize>,
+    /// The trial whose browser shows its first [`BROKEN_PAGES`] pages and
+    /// then fails, from 1.
+    pub broken_trial: Option<usize>,
     /// The memory files by origin before the run.
     pub memories: BTreeMap<String, String>,
     /// The trial a step means by "the trial", from 1.
@@ -172,6 +179,7 @@ impl Default for Scene {
             thinks: VecDeque::new(),
             stall_sleep: false,
             hang_launch: None,
+            broken_trial: None,
             reset_hangs_from: None,
             memories: BTreeMap::new(),
             trial: 1,

@@ -10,13 +10,14 @@ use webqa_core::interview::issue::{Record, Run, Seen};
 use webqa_core::interview::ledger::{Goal, Head, Ledger, inferred_goal, write};
 use webqa_core::interview::outcome::{Outcome, tally};
 use webqa_core::machine::{ExitReason, StuckKind};
-use webqa_core::ports::{Clock, Judge, Store};
+use webqa_core::ports::{BrowserError, Clock, Judge, Store};
 use webqa_core::redact::Redactor;
 
 use super::after::{Asker, Findings, findings};
 use super::record::{self, Trial};
 use super::shots::write_shots;
-use super::{Plan, Stopped};
+use super::{Ending, Plan, Stopped};
+use crate::interview::reset::ResetError;
 use crate::run::{Kept, RunError};
 use crate::store::report::{self, Meta};
 
@@ -29,8 +30,27 @@ pub(super) struct Closing<'a> {
     pub(super) kept: &'a mut Kept,
     pub(super) trials: &'a [Trial],
     pub(super) plan: &'a Plan,
-    /// Whether the reset command failed, which stopped the loop.
-    pub(super) reset_failed: bool,
+    /// The failure that stopped the loop, if one did.
+    pub(super) failed: Option<Failure>,
+}
+
+/// What stopped the loop before its trials were done.
+#[derive(Debug, Clone, Copy)]
+pub(super) enum Failure {
+    /// The reset command failed.
+    Reset(ResetError),
+    /// A browser failed.
+    Browser(BrowserError),
+}
+
+impl Failure {
+    /// How the run ends once the records of the trials before are written.
+    pub(super) const fn ending(self) -> Ending {
+        match self {
+            Self::Reset(error) => Ending::ResetFailed(error),
+            Self::Browser(error) => Ending::Broke(error),
+        }
+    }
 }
 
 /// What came of writing the records.
@@ -165,8 +185,11 @@ async fn conclude(closing: Closing<'_>, reason: ExitReason) -> Result<bool, RunE
 /// `stopped`.
 fn reason_of(closing: &Closing<'_>, stopped: Stopped) -> ExitReason {
     let last = closing.trials.last().map(|trial| trial.reason);
-    let nowhere = closing.reset_failed && closing.trials.is_empty();
-    reason(stopped, nowhere, last)
+    match closing.failed {
+        Some(Failure::Browser(_)) => ExitReason::Error,
+        Some(Failure::Reset(_)) => reason(stopped, closing.trials.is_empty(), last),
+        None => reason(stopped, false, last),
+    }
 }
 
 /// What the report says of a run whose reset command failed before any

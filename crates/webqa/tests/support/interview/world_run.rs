@@ -25,7 +25,7 @@ use crate::judge::SceneJudge;
 use crate::launch::{Openings, SceneLaunch};
 use crate::page::PageSpec;
 use crate::run_clock::TrialClock;
-use crate::scene::{PAGES, Scene, found};
+use crate::scene::{BROKEN_PAGES, PAGES, Scene, found};
 use crate::start::{Started, start};
 use env::{clock_of, environment, reset_out};
 
@@ -41,6 +41,8 @@ fn browsers(scene: &Scene) -> VecDeque<FakeBrowser> {
             let mut pages: VecDeque<_> = iter::once(&scene.start).chain(after).map(build).collect();
             let last = found(pages.back().cloned(), "a trial has a start page");
             pages.extend(iter::repeat_n(last, PAGES.saturating_sub(pages.len())));
+            let broken = scene.broken_trial == Some(trial + 1);
+            pages.truncate(if broken { BROKEN_PAGES } else { usize::MAX });
             FakeBrowser {
                 pages,
                 ..FakeBrowser::default()
