@@ -1,5 +1,6 @@
 """Tests for jev.py: the free-text questions that go to the language model."""
 
+import json
 import unittest
 
 import jev
@@ -17,6 +18,9 @@ from fake import (
     options,
     request,
 )
+
+IMAGE = {"media_type": "image/png", "data": "iVBORw=="}
+DATA_URL = "data:image/png;base64,iVBORw=="
 
 
 class TextTest(unittest.TestCase):
@@ -73,23 +77,28 @@ class TextTest(unittest.TestCase):
         ):
             self.assertIn(rule, lines)
 
-    def test_hard_to_see_carries_the_screenshot(self):
+    def test_every_text_question_carries_the_screenshot(self):
         http = FakeHttp(CHAT_REPLY, CHAT_REPLY)
-        image = {"media_type": "image/png", "data": "iVBORw=="}
         hard = {**TEXT, "id": "hard_to_see", "prompt": "見えにくい要素"}
-        ask(request([TEXT, hard], image=image), http, options(text_model="m"))
-        plain = http.body(0)["messages"][1]["content"]
-        self.assertEqual(plain, "何を期待したか\n\n画面:\n" + SCREEN)
-        self.assertEqual(
-            http.body(1)["messages"][1]["content"],
-            [
-                {"type": "text", "text": "見えにくい要素\n\n画面:\n" + SCREEN},
-                {
-                    "type": "image_url",
-                    "image_url": {"url": "data:image/png;base64,iVBORw=="},
-                },
-            ],
-        )
+        ask(request([TEXT, hard], image=IMAGE), http, options(text_model="m"))
+        for n, prompt in enumerate(("何を期待したか", "見えにくい要素")):
+            self.assertEqual(
+                http.body(n)["messages"][1]["content"],
+                [
+                    {"type": "text", "text": prompt + "\n\n画面:\n" + SCREEN},
+                    {"type": "image_url", "image_url": {"url": DATA_URL}},
+                ],
+            )
+
+    def test_purpose_guess_carries_the_screenshot(self):
+        http = FakeHttp(CHAT_REPLY)
+        ask(request([GUESS], image=IMAGE), http, options(text_model="m"))
+        self.assertIn(DATA_URL, json.dumps(http.body()["messages"][1]["content"]))
+
+    def test_expectation_carries_the_screenshot(self):
+        http = FakeHttp(CHAT_REPLY)
+        ask(request([EXPECT], image=IMAGE), http, options(text_model="m"))
+        self.assertIn(DATA_URL, json.dumps(http.body()["messages"][1]["content"]))
 
     def test_hard_to_see_without_image_is_plain_text(self):
         http = FakeHttp(CHAT_REPLY)
