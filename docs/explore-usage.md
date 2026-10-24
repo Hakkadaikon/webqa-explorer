@@ -2,7 +2,9 @@
 
 この文書は探索モードを初めて使う人に向けて、1回回して結果を読むまでを案内する。
 手本の対象はPlaywrightのTodoMVCのデモ(<https://demo.playwright.dev/todomvc/>)である。
-数字と出力は、このデモを実際に回したときのものである。
+数字と出力は、2026-10-25にこのデモを1回回したときのものである。
+版はmainのc9d2d94である。
+判断モデルの選び方で操作の順番が変わるので、回すたびに結果も変わる。
 探索モードの仕組みは[探索モード](arch/explore-mode.md)に、設定の項目の全体は[設定](arch/config.md)にある。
 
 ## 用意
@@ -18,15 +20,16 @@ cargo build -p webqa
 
 `scripts/setup.sh`は`just install-browsers`でChromiumも入れる。
 実行ファイルは`target/debug/webqa`にできる。
-手本の実行ではChromiumの場所を環境変数`PLAYWRIGHT_BROWSERS_PATH`で渡した。
+Chromiumを既定の場所以外に入れたときだけ、その場所を環境変数`PLAYWRIGHT_BROWSERS_PATH`で渡す。
 
 ### 判断モデルのキー
 
 次の操作は判断モデルが選ぶ。
 手本ではリポジトリの`bridge/jev.py`を橋渡しにして、JEVの判断モデルを使う。
-橋渡しはVercel AI Gatewayへ送るので、Gatewayのキーが要る。
+JEVは、選択肢から1つを選ぶ問いに確率つきで答える判断モデルである。
+橋渡しはVercel AI Gatewayへ送るので、JEVを使えるGatewayのキーが要る。
 
-キーは作業ディレクトリの`.env`に`WEBQA_JUDGE_API_KEY`として書く。
+キーはリポジトリの直下の`.env`に`WEBQA_JUDGE_API_KEY`として書く。
 
 ```sh
 WEBQA_JUDGE_API_KEY=<キー>
@@ -40,7 +43,7 @@ WEBQA_JUDGE_API_KEY=<キー>
 ## 設定ファイル
 
 リポジトリの直下に、次の設定を`todomvc.yaml`として置く。
-手本の実行で、このまま動いた設定である。
+2026-10-25の手本の実行で、このまま動いた設定である。
 
 ```yaml
 target:
@@ -75,7 +78,7 @@ inputs:
 | `judge.kind`、`judge.command` | 判断モデルへの橋渡しのコマンド。`./bridge/jev.py`は作業ディレクトリからの相対パスである |
 | `judge.api_key` | キーを持つ環境変数の名前 |
 | `judge.timeout_secs` | 判断モデルの答えを待つ秒数。橋渡しの`--timeout`より長くする |
-| `judge.pricing` | 実行結果のコストの計算に使う単価。手本では0にした |
+| `judge.pricing` | 実行結果のコストの計算に使う単価。手本では0にしたが、Gatewayの利用料はかかる |
 | `limits.max_decisions` | 判断モデルに問う回数の上限。手本では15回で止める |
 | `limits.max_duration_secs` | 実行の時間の上限(秒) |
 | `limits.requests_per_hour` | 1時間に対象へアクセスする回数の上限 |
@@ -109,7 +112,8 @@ target/debug/webqa explore --config todomvc.yaml --out .webqa
 
 実行中の様子は、別の端末から`webqa watch`で見られる。
 渡すのは出力先の`runs/`の下にできた実行のディレクトリである。
-実行IDは開始の時刻で、`20261024T174730.617Z`のような形になる。
+実行IDは開始の時刻(UTC)で、`20261024T174730.617Z`のような形になる。
+実行を始めたら、`ls .webqa/runs/`でいちばん新しいディレクトリを選ぶ。
 
 ```sh
 target/debug/webqa watch .webqa/runs/<実行ID>
@@ -134,16 +138,11 @@ target/debug/webqa watch .webqa/runs/<実行ID>
 
 ### 終了コード
 
-| コード | 意味 |
-|---|---|
-| 0 | 終了理由を記録して終わり、確定の問題を見つけなかった |
-| 1 | 終了理由を記録して終わり、確定の問題を見つけた |
-| 2 | 設定エラーか引数の誤りで、実行を始めなかった |
-| 3 | 実行時エラーで止まったか、判断モデルへの問いが3回続けて失敗して終わった |
-
+確定の問題を見つけなければ0、見つければ1で終わる。
+設定の誤りは2、実行時エラーと判断モデルの失敗は3である。
 手本の終了コードは1だった。
 確定の問題を見つけたためで、中身は[TodoMVCで見つかった問題](#todomvcで見つかった問題)に書いた。
-細かな決まりは[コマンド](arch/cli.md#終了コード)にある。
+細かな決まりと例外は[コマンド](arch/cli.md#終了コード)にある。
 
 ### 出力先の構成
 
@@ -198,9 +197,9 @@ target/debug/webqa watch .webqa/runs/<実行ID>
 
 外へ出たリンクは<https://todomvc.com/>と<https://github.com/remojansen/>の2つである。
 どちらも確定の問題`outside_domain`として記録された。
-確定の問題があるので、終了コードは1になる。
+確定の問題があるので、この実行の終了コードは1だった。
 
-外へ出るたびに、中核は判断モデルに問わずに許可ドメインへ戻り、探索を続けた。
+外へ出るたびに、中核は判断モデルに問わずに開始のURLを開き直し、探索を続けた。
 イベントログには、このときの操作が`recovered`の行として、`cause`を`outside`にして残る。
 
 ### 外へのリンクを問題にしないには
@@ -209,13 +208,15 @@ target/debug/webqa watch .webqa/runs/<実行ID>
 どちらも手本では試していない。
 
 - `target.allowed_origins`にリンク先のオリジンを足す。
-  足したオリジンは外でなくなるが、探索する範囲にも入る。
+  一覧が空でなくなると開始のURLのオリジンは自動では許されないので、`https://demo.playwright.dev`も書く。
+  足したオリジンは探索する範囲にも入り、そのサイトにもアクセスする。
+  許しを得ていない相手のサイトは足さない。
 - `guard.forbidden.selectors`に外へのリンクのCSSセレクタを書く。
   当たった要素は禁止要素になり、探索の候補から外れる。
   ただし、禁止要素のある画面では、操作の種類から`enter`が外れる。
   同じ画面の入力欄では、打った値をEnterで送れなくなる。
 
-禁止要素と許可ドメインの決まりは、[ガードレール、負荷制御、機密情報](arch/safety.md)にある。
+禁止要素と許可ドメインの決まりは、[ガードレール、負荷制御、機密情報](arch/safety.md#許可ドメイン)にある。
 
 ## 続けて回す
 
@@ -223,7 +224,7 @@ target/debug/webqa watch .webqa/runs/<実行ID>
 前回までに操作した要素は後回しになる。
 手本の2回目は外へのリンクから選び、未操作の要素が無くなって`goal_achieved`で終わった。
 
-最初からやり直すときは、新しい`--out`を渡すか、出力先の`memory/`にある該当のファイルを消す。
+最初からやり直すときは、新しい`--out`を渡すか、出力先の`memory/`にある対象のオリジンのファイル(手本では`https%3A%2F%2Fdemo.playwright.dev.json`)を消す。
 
 すべての要素を操作済みの記憶で回すと、既知の不具合に当たる。
 `http 400`の応答の異常が1回出て、そのまま`goal_achieved`で終わる([#103](https://github.com/Hakkadaikon/webqa-explorer/issues/103))。
@@ -232,6 +233,8 @@ target/debug/webqa watch .webqa/runs/<実行ID>
 
 `webqa replay`は`report.json`に記録した判断モデルの答えで、同じ実行をやり直す。
 入力欄の値は、渡した設定の`inputs`から補う。
+
+再実行も対象のサイトにアクセスし、結果は出力先の`runs/`に新しい実行IDで書く。
 
 ```sh
 target/debug/webqa replay .webqa/runs/<実行ID>/report.json --config todomvc.yaml --out .webqa
