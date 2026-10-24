@@ -14,6 +14,8 @@ use crate::world::InterviewWorld;
 mod claimed;
 #[path = "endings_goal.rs"]
 mod goal;
+#[path = "endings_stopped.rs"]
+mod stopped;
 #[path = "endings_unreached.rs"]
 mod unreached;
 
@@ -27,6 +29,8 @@ pub const READY: &[&str] = &[
     "打ち切りでない試行のうち、ゴール達成と申告による終了と判断予算切れのほかで終わった試行は、目的に届かない試行に数える",
     "ゴール達成や申告による終了で終わった試行は、目的に届かない試行に数えない",
     "判断予算切れで終わった試行は、試行の数に数えるが、目的に届かない課題にしない",
+    "ガードレールに止められた引き返しが続いたら、判断予算切れでなく行き詰まりとして試行を終える",
+    "スクロールで新しい要素が見えても、操作せずにスクロールを続けたら行き詰まりとして試行を終える",
 ];
 
 /// The name of the button the written purpose waits for.
