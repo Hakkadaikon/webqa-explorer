@@ -3,10 +3,8 @@
 対象: Web サービスの探索的テストエージェント(判断モデルの問い合わせ、ガードレール、ブラウザ操作、終了判定、段階、探索の記憶、負荷制御、問題の記録、設定、中断、終了コード)
 走査アンカー: 受け入れ条件(`tasks/loopeng/WebExploratoryQA.feature` の Scenario 1件 = T-ID 1行で転記)
 テスト対象: crates/*
-転記元の版: コミット 7871ee84d83088815071c7b1217c3a84813c32ea の `tasks/loopeng/WebExploratoryQA.feature`(確定)に、issue #4 の決定(許可リストは禁止より優先する)と issue #62〜#64 の決定(探索モードで対象に合わない操作を外し、記憶にも数えない)と issue #70 の決定(キーを押す操作 enter を足す)と、入力の値ごとに伏せ字を外せる決定(S-045)と、`secret` を書かない入力の値は伏せ、`judge.api_key` に `secret` を書くと設定エラーにする決定(S-045。T-120、T-121 を足し、行番号を合わせた)と、`secret: false` の入力の値をイベントログの操作の記録に書かない決定(S-045。T-122 を足し、行番号を合わせた)と、issue #67 の決定(ブラウザの操作に失敗しても、そこまでの記録を書いて終了コード3で終わる。T-123 を足した)を反映した版。出典欄の行番号はこの版の行を指す。
-転記元の sha256: 4bea318484889b1fac6f4435e95a70d710aee92abd9f3524ddff093ea7492479
-転記元の版: コミット 7871ee84d83088815071c7b1217c3a84813c32ea の `tasks/loopeng/WebExploratoryQA.feature`(確定)に、issue #4 の決定(許可リストは禁止より優先する)と issue #62〜#64 の決定(探索モードで対象に合わない操作を外し、記憶にも数えない)と issue #70 の決定(キーを押す操作 enter を足す)と、入力の値ごとに伏せ字を外せる決定(S-045)と、`secret` を書かない入力の値は伏せ、`judge.api_key` に `secret` を書くと設定エラーにする決定(S-045。T-120、T-121 を足し、行番号を合わせた)と、`secret: false` の入力の値をイベントログの操作の記録に書かない決定(S-045。T-122 を足し、行番号を合わせた)と、issue #85 の決定(判断モデルの失敗が3回続いたら終了コード3で終える。T-123 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
-転記元の sha256: 6f5f4d08bae91b7e1d015fd4c084b1275ec0e87078fdcb832e037204a9b5050e
+転記元の版: コミット 7871ee84d83088815071c7b1217c3a84813c32ea の `tasks/loopeng/WebExploratoryQA.feature`(確定)に、issue #4 の決定(許可リストは禁止より優先する)と issue #62〜#64 の決定(探索モードで対象に合わない操作を外し、記憶にも数えない)と issue #70 の決定(キーを押す操作 enter を足す)と、入力の値ごとに伏せ字を外せる決定(S-045)と、`secret` を書かない入力の値は伏せ、`judge.api_key` に `secret` を書くと設定エラーにする決定(S-045。T-120、T-121 を足し、行番号を合わせた)と、`secret: false` の入力の値をイベントログの操作の記録に書かない決定(S-045。T-122 を足し、行番号を合わせた)と、issue #85 の決定(判断モデルの失敗が3回続いたら終了コード3で終える。T-123 を足し、行番号を合わせた)と、issue #67 の決定(ブラウザの操作に失敗しても、そこまでの記録を書いて終了コード3で終わる。T-124 を足し、行番号を合わせた)を反映した版。出典欄の行番号はこの版の行を指す。
+転記元の sha256: 2cd0758a7aee86278b5d051563ad0d04fe7f538830267ff6f73d2b7251db1f09
 内ループで feature が変わったら、台帳の行を追従させてから、この sha256 を新しい版の値に書き換える。`tasks/test-design/tools/check_ledger.py` は、この値と実物の feature の sha256 が違えば失敗する。
 
 各 ID は「テストすべき振る舞い」1つ。test-catalog で全行に手法とテスト名を割り当てた。
@@ -197,7 +195,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-055 WebExploratoryQA.feature:58(1ステップの問い合わせと実行) [boundary] 「操作可能な要素が無いページでも問い合わせ、要素を対象にしない操作だけを実行する」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `empty_screen_allows_only_untargeted_ops` / issue: #13
 - [x] T-056 WebExploratoryQA.feature:66(1ステップの問い合わせと実行) [unwanted] 「判断モデルの応答が使えないときは操作せず、応答の異常として記録して次のステップへ進む」(Examples の各行を1ケースとする)
-      → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `rejects_unusable_answers`、契約 `webqa-judge/tests/command.rs` の `timeout_becomes_judge_error`、単体 `webqa-judge::command::wire` の `an_api_error_keeps_a_plain_message`、単体 `webqa-judge::command::wire` の `a_message_with_other_characters_is_dropped`、単体 `webqa-judge::command::wire` の `a_long_message_is_dropped` / issue: #7、#85
+      → 手法: 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `rejects_unusable_answers`、契約 `webqa-judge/tests/command.rs` の `timeout_becomes_judge_error`、単体 `webqa-judge::command::wire` の `an_api_error_keeps_a_plain_message`、単体 `webqa-judge::command::wire` の `a_message_with_other_characters_is_dropped`、単体 `webqa-judge::command::wire` の `a_long_message_is_dropped`、単体 `webqa-judge::command::wire` の `a_message_of_only_spaces_is_dropped` / issue: #7、#85
 - [x] T-057 WebExploratoryQA.feature:285(終了の判定) [boundary] 「判断モデルの呼び出しが上限の1回手前なら、まだ問い合わせる」
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_one_left_still_asks` / issue: #12
 - [x] T-058 WebExploratoryQA.feature:292(終了の判定) [boundary] 「探索済みの要素が増えず、未操作の要素も新しく見えない操作が閾値の1回手前までなら終了しない」
@@ -330,14 +328,14 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
       → 手法: セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::config::raw` の `literal_api_key_rejected_without_value`(`NOT_ENV_REF` の `secret: false` の行) / issue: #76
 - [x] T-122 WebExploratoryQA.feature:847(設定と外部境界) [unwanted] 「secret を false にした入力の値も、イベントログの操作の記録には書かない」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::event` の `event_lines_match_documented_jsonl`(操作の記録の形に値の項目が無いこと) / issue: #76
-- [x] T-123 WebExploratoryQA.feature:1024(終了コード) [unwanted] 「ブラウザの操作に失敗したら、そこまでの記録を書いて終了コード3で終わる」
-      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run::session` の `browser_failure_writes_records_so_far`、単体 `webqa::run::session` の `browser_failure_records_written_in_order`、単体 `webqa::run::session` の `browser_failure_before_first_page_writes_no_memory`、単体 `webqa::run::session` の `store_failure_after_browser_failure_ends_failed`、単体 `webqa::run::session` の `failure_in_a_replay_writes_no_memory`、単体 `webqa::run::session` の `second_interrupt_while_writing_after_failure_abandons`、単体 `webqa::exit` の `browser_failure_exits_three` / issue: #67
 - [x] T-123 WebExploratoryQA.feature:310(終了の判定) [unwanted] 「判断モデルの失敗が3回続いたら、予算を使い切る前に終了コード3で終わる」(Examples の各行を1ケースとする)
-      → 手法: 状態遷移テスト(blackbox-state)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `three_judge_failures_in_a_row_end_the_run`、単体 `webqa-core::machine::actions` の `an_answer_restarts_the_failure_count`、単体 `webqa-core::machine::actions` の `unusable_answers_are_not_judge_failures`、単体 `webqa-core::machine::actions` の `judge_failures_come_before_the_budget`、単体 `webqa::exit` の `judge_unavailable_exits_3` / issue: #85
+      → 手法: 状態遷移テスト(blackbox-state)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `three_judge_failures_in_a_row_end_the_run`、単体 `webqa-core::machine::actions` の `an_answer_restarts_the_failure_count`、単体 `webqa-core::machine::actions` の `unusable_answers_are_not_judge_failures`、単体 `webqa-core::machine::actions` の `judge_failures_come_before_the_budget`、単体 `webqa::exit` の `judge_unavailable_exits_3`、単体 `webqa-core::plan` の `judge_failures_come_before_the_budget_and_the_time`、単体 `webqa-core::plan` の `rows_enable_exactly_one_tier`、単体 `webqa-core::judge` の `every_failure_is_named_as_the_logs_write_it`、単体 `webqa::replay` の `each_failure_name_reads_back_as_its_judge_error`、単体 `webqa::replay` の `an_unknown_failure_name_is_not_a_report`、単体 `webqa-tui::view` の `a_run_ended_by_the_judge_failing_shows_its_reason` / issue: #85
+- [x] T-124 WebExploratoryQA.feature:1036(終了コード) [unwanted] 「ブラウザの操作に失敗したら、そこまでの記録を書いて終了コード3で終わる」
+      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run::session` の `browser_failure_writes_records_so_far`、単体 `webqa::run::session` の `browser_failure_records_written_in_order`、単体 `webqa::run::session` の `browser_failure_before_first_page_writes_no_memory`、単体 `webqa::run::session` の `store_failure_after_browser_failure_ends_failed`、単体 `webqa::run::session` の `failure_in_a_replay_writes_no_memory`、単体 `webqa::run::session` の `second_interrupt_while_writing_after_failure_abandons`、単体 `webqa::exit` の `browser_failure_exits_three` / issue: #67
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
-mutation 列は、ガードレール・終了・固まりとドメイン外・記憶と優先順位・負荷の各 Rule と、機密情報・API キー・TLS・認証・応答の異常の行を「要」にした。終了コードの行(T-101、T-103〜T-107、T-123)も「要」にした。
+mutation 列は、ガードレール・終了・固まりとドメイン外・記憶と優先順位・負荷の各 Rule と、機密情報・API キー・TLS・認証・応答の異常の行を「要」にした。終了コードの行(T-101、T-103〜T-107、T-124)も「要」にした。
 「—」は、問い合わせの形と送る一覧(T-001〜T-004、T-055、T-072)、問題の記録と実行結果の形(T-037〜T-042、T-064)、設定の読み込みとモード(T-043、T-044)、判断モデルの差し替え(T-050)、計測(T-051)の行で、セキュリティ・状態遷移・終了コードに当たらない。
 `webqa-core/tests/tlc_traces.rs` はどの行にも対応させていない。TLC の遷移の列と中核を突き合わせる仕様との回帰で、受け入れ条件の1つを受け持つテストではないためである。
 
@@ -398,7 +396,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-053 | unwanted | 同値分割(blackbox-partition) | `counts_each_access_kind` | #12 | [x] | [ ] | 要 |
 | T-054 | boundary | 同値分割(blackbox-partition) | `rejected_proposal_uses_no_access` | #12 | [x] | [ ] | 要 |
 | T-055 | boundary | 境界値分析(blackbox-partition) | `empty_screen_allows_only_untargeted_ops` | #13 | [x] | [ ] | — |
-| T-056 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `rejects_unusable_answers`、`timeout_becomes_judge_error`、`an_api_error_keeps_a_plain_message`、`a_message_with_other_characters_is_dropped`、`a_long_message_is_dropped` | #7、#85 | [x] | [ ] | 要 |
+| T-056 | unwanted | 非決定的出力システムのテスト(ai-nondeterministic)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `rejects_unusable_answers`、`timeout_becomes_judge_error`、`an_api_error_keeps_a_plain_message`、`a_message_with_other_characters_is_dropped`、`a_long_message_is_dropped`、`a_message_of_only_spaces_is_dropped` | #7、#85 | [x] | [ ] | 要 |
 | T-057 | boundary | 境界値分析(blackbox-partition) | `budget_one_left_still_asks` | #12 | [x] | [ ] | 要 |
 | T-058 | boundary | 境界値分析(blackbox-partition) | `stuck_below_threshold_continues` | #12 | [x] | [ ] | 要 |
 | T-059 | unwanted | 禁止仕様からの導出(blackbox-state) | `no_question_while_frozen` | #12 | [x] | [ ] | 要 |
@@ -465,8 +463,8 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-120 | ubiquitous | セキュリティテスト(nonfunctional-attributes)、同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`redactor_keeps_not_secret_values_and_hides_the_rest` | #76 | [x] | [ ] | 要 |
 | T-121 | unwanted | セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) | `literal_api_key_rejected_without_value` | #76 | [x] | [ ] | 要 |
 | T-122 | unwanted | セキュリティテスト(nonfunctional-attributes) | `event_lines_match_documented_jsonl`(型に値の項目が無い。受け入れが確かめる) | #76 | [x] | [ ] | 要 |
-| T-123 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles) | `browser_failure_writes_records_so_far`、`browser_failure_records_written_in_order`、`browser_failure_before_first_page_writes_no_memory`、`store_failure_after_browser_failure_ends_failed`、`failure_in_a_replay_writes_no_memory`、`second_interrupt_while_writing_after_failure_abandons`、`browser_failure_exits_three` | #67 | [x] | [ ] | 要 |
-| T-123 | unwanted | 状態遷移テスト(blackbox-state)、境界値分析(blackbox-partition) | `three_judge_failures_in_a_row_end_the_run`、`an_answer_restarts_the_failure_count`、`unusable_answers_are_not_judge_failures`、`judge_failures_come_before_the_budget`、`judge_unavailable_exits_3` | #85 | [x] | [ ] | 要 |
+| T-123 | unwanted | 状態遷移テスト(blackbox-state)、境界値分析(blackbox-partition) | `three_judge_failures_in_a_row_end_the_run`、`an_answer_restarts_the_failure_count`、`unusable_answers_are_not_judge_failures`、`judge_failures_come_before_the_budget`、`judge_unavailable_exits_3`、`judge_failures_come_before_the_budget_and_the_time`、`rows_enable_exactly_one_tier`、`every_failure_is_named_as_the_logs_write_it`、`each_failure_name_reads_back_as_its_judge_error`、`an_unknown_failure_name_is_not_a_report`、`a_run_ended_by_the_judge_failing_shows_its_reason` | #85 | [x] | [ ] | 要 |
+| T-124 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles) | `browser_failure_writes_records_so_far`、`browser_failure_records_written_in_order`、`browser_failure_before_first_page_writes_no_memory`、`store_failure_after_browser_failure_ends_failed`、`failure_in_a_replay_writes_no_memory`、`second_interrupt_while_writing_after_failure_abandons`、`browser_failure_exits_three` | #67 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
@@ -482,7 +480,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 - T-081、T-084(探索モードのゴール・done を選ばせない): T-082(禁止要素だけが残る)、T-083(ほかの画面に未操作の要素が残る)、T-085(探索モードで返った done)、T-108(探索してよい要素が無くても最初の問い合わせの前はゴールにしない)、T-109(探索してよい要素が無いときのゴール)
 - T-086、T-087、T-089、T-090、T-110、T-111(段階の切り替え、開始時と進めた直後の done_when): T-088(後の段階の done_when だけが成り立つ)、T-091(宣言の一部だけが成り立つ)、T-092(表示領域の外の宣言)
 - T-097、T-101(中断): T-098(操作の途中)、T-099(終了後に状態を変えない)、T-100(終了後の中断)、T-102(2回目の中断)
-- T-103、T-104(終了コード): T-105(参考情報だけ)、T-106(設定エラー)、T-107(記録の書き込み失敗)、T-123(ブラウザの操作の失敗)
+- T-103、T-104(終了コード): T-105(参考情報だけ)、T-106(設定エラー)、T-107(記録の書き込み失敗)、T-124(ブラウザの操作の失敗)
 - T-025、T-026、T-093(固まり、スクロールによる変化): T-059(固まり中に問い合わせない)、T-060(ページが応答しない)、T-069(操作が起きないステップは数えない)、T-094(ページの一番下でのスクロール)
 - T-096(ページ全体で画面を識別): T-095(スクロールで別の画面にしない)
 - T-030〜T-032(優先順位): T-033(途中のボタンを探索し終えたとしない)、T-034(決済導線を選ばない)、T-070(禁止要素を候補に入れない)
@@ -514,7 +512,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | 要素の範囲(送る一覧、画面の変化、画面の識別) | T-072、T-093〜T-096 |
 | 制限時間の実時間と時間窓の待ちとの関係 | T-075〜T-080 |
 | 中断時の記録の書き出しと終了コード | T-097〜T-102 |
-| 終了コード | T-101〜T-107、T-123 |
+| 終了コード | T-101〜T-107、T-123、T-124 |
 | 時間窓の実時間と数える単位 | T-035、T-036、T-053、T-054、T-071 |
 | 判断モデルの応答の多様さ | T-003、T-005〜T-007、T-056 |
 | 実行の結果の各分岐(変化なし・変化・ドメイン外) | T-003、T-025、T-026、T-027 |
@@ -529,7 +527,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 - [x] 用語定義表が埋まり、曖昧な語が残っていない(test-design のレビュー3回で指摘された語をすべて足した)
 - [x] 全 T-ID に種別ラベルが振られている(証跡は下の「機械確認」)
 - [x] 各 `event`/`state` 行に対応する `unwanted` 行が最低1つある(「対応する unwanted 行」の節)
-- [x] 全 T-ID の「設計済」が `[x]`(122 行。v5 の仕様で直し待ちの16行を `[x]` に戻した。証跡は下の「機械確認」)
+- [x] 全 T-ID の「設計済」が `[x]`(124 行。v5 の仕様で直し待ちの16行を `[x]` に戻した。証跡は下の「機械確認」)
 - [x] T-001 から連番に欠番なし(証跡は下の「機械確認」)
 - [x] 各 T-ID に手法が割り当たっている(台帳の各行の「手法」欄。割り当てた手法の技法スキルはすべて開いて参照した)
 - [x] 正常系だけでなく、境界と異常系が各機能(Rule)に最低1つあり、非機能は必要な箇所にある(証跡は下の「機械確認」の Rule 別集計)。正常系は event/state/ubiquitous/optional、境界は boundary、異常系は unwanted、非機能は nonfunctional と数える。非機能は計測の行(T-051)だけで、セキュリティ(機密情報、API キー、TLS)と負荷の要求は、拒否・抑止の振る舞いとして unwanted で立てた
@@ -540,21 +538,21 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 
 ```console
 $ python3 tasks/test-design/tools/check_ledger.py
-feature の sha256: 6f5f4d08bae91b7e1d015fd4c084b1275ec0e87078fdcb832e037204a9b5050e
-台帳の sha256:     6f5f4d08bae91b7e1d015fd4c084b1275ec0e87078fdcb832e037204a9b5050e
+feature の sha256: 2cd0758a7aee86278b5d051563ad0d04fe7f538830267ff6f73d2b7251db1f09
+台帳の sha256:     2cd0758a7aee86278b5d051563ad0d04fe7f538830267ff6f73d2b7251db1f09
 `- [ ]` の行: 0
-台帳の T-ID 行: 122(期待 122)
+台帳の T-ID 行: 124(期待 124)
 欠番: なし
-feature の Scenario: 122
+feature の Scenario: 124
 台帳から指されない Scenario: なし
 `[~]` の行: 0(なし)
 冒頭の直し待ちの一覧: 0
 仕様待ちの issue: なし
-マトリクスの行: 122
+マトリクスの行: 124
 Rule 別の種別の内訳:
   1ステップの問い合わせと実行: boundary 1、event 4、unwanted 2
   ガードレール: boundary 1、event 2、unwanted 9
-  終了の判定: boundary 6、event 5、state 9、unwanted 8
+  終了の判定: boundary 6、event 5、state 9、unwanted 9
   固まりとドメイン外からの復帰: boundary 3、state 3、unwanted 3
   探索の記憶と優先順位: boundary 1、event 3、state 4、ubiquitous 1、unwanted 7
   対象サーバへの負荷: boundary 1、state 1、unwanted 3
@@ -562,6 +560,6 @@ Rule 別の種別の内訳:
   設定と外部境界: boundary 1、event 1、nonfunctional 1、optional 2、ubiquitous 4、unwanted 9
   決め打ちシナリオの段階: boundary 2、event 3、state 3、unwanted 1
   利用者による中断: boundary 1、event 2、unwanted 3
-  終了コード: boundary 1、event 2、unwanted 2
+  終了コード: boundary 1、event 2、unwanted 3
 OK
 ```
