@@ -329,7 +329,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-122 WebExploratoryQA.feature:835(設定と外部境界) [unwanted] 「secret を false にした入力の値も、イベントログの操作の記録には書かない」
       → 手法: セキュリティテスト(nonfunctional-attributes) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::event` の `event_lines_match_documented_jsonl`(操作の記録の形に値の項目が無いこと) / issue: #76
 - [x] T-123 WebExploratoryQA.feature:1024(終了コード) [unwanted] 「ブラウザの操作に失敗したら、そこまでの記録を書いて終了コード3で終わる」
-      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run` の `browser_failure_writes_records_so_far`、単体 `webqa::run` の `browser_failure_records_written_in_order`、単体 `webqa::run` の `browser_failure_before_first_page_writes_no_memory`、単体 `webqa::run` の `store_failure_after_browser_failure_ends_failed`、単体 `webqa::exit` の `browser_failure_exits_three` / issue: #67
+      → 手法: ネガティブテスト(process-static)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::run::session` の `browser_failure_writes_records_so_far`、単体 `webqa::run::session` の `browser_failure_records_written_in_order`、単体 `webqa::run::session` の `browser_failure_before_first_page_writes_no_memory`、単体 `webqa::run::session` の `store_failure_after_browser_failure_ends_failed`、単体 `webqa::run::session` の `failure_in_a_replay_writes_no_memory`、単体 `webqa::run::session` の `second_interrupt_while_writing_after_failure_abandons`、単体 `webqa::exit` の `browser_failure_exits_three` / issue: #67
 
 ## トレーサビリティマトリクス(消し込み台帳)
 
@@ -461,7 +461,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-120 | ubiquitous | セキュリティテスト(nonfunctional-attributes)、同値分割(blackbox-partition) | `input_secret_defaults_to_true_and_reads_false`、`redactor_keeps_not_secret_values_and_hides_the_rest` | #76 | [x] | [ ] | 要 |
 | T-121 | unwanted | セキュリティテスト(nonfunctional-attributes)、ネガティブテスト(process-static) | `literal_api_key_rejected_without_value` | #76 | [x] | [ ] | 要 |
 | T-122 | unwanted | セキュリティテスト(nonfunctional-attributes) | `event_lines_match_documented_jsonl`(型に値の項目が無い。受け入れが確かめる) | #76 | [x] | [ ] | 要 |
-| T-123 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles) | `browser_failure_writes_records_so_far`、`browser_failure_records_written_in_order`、`browser_failure_before_first_page_writes_no_memory`、`store_failure_after_browser_failure_ends_failed`、`browser_failure_exits_three` | #67 | [x] | [ ] | 要 |
+| T-123 | unwanted | ネガティブテスト(process-static)、テストダブル(test-doubles) | `browser_failure_writes_records_so_far`、`browser_failure_records_written_in_order`、`browser_failure_before_first_page_writes_no_memory`、`store_failure_after_browser_failure_ends_failed`、`failure_in_a_replay_writes_no_memory`、`second_interrupt_while_writing_after_failure_abandons`、`browser_failure_exits_three` | #67 | [x] | [ ] | 要 |
 
 ## 対応する unwanted 行
 
