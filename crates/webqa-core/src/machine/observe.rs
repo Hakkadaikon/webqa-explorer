@@ -165,7 +165,7 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
 
 /// Whether the run is an interview. An interview does not count an element
 /// a scroll shows as progress: a persona that keeps scrolling is stuck.
-pub(super) fn interviewing(state: &State) -> bool {
+fn interviewing(state: &State) -> bool {
     state.rules.mode == Mode::Interview
 }
 
