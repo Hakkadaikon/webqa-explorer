@@ -66,7 +66,7 @@ webqa explore --config <設定> [--out <出力先>]
 | ゴール達成(`goal_achieved`) | 判断モデルに1回以上問い合わせたうえで、開始の画面から辿れる画面に未操作の要素が無くなった |
 | 行き詰まり(`stuck`) | 進展の無いステップが`limits.stuck_threshold`に達した。または判断モデルが`stuck`を選んだ |
 | 判断予算切れ(`budget_exceeded`) | 問い合わせの回数が`limits.max_decisions`に達した |
-| 時間切れ(`time_exceeded`) | 経過時間が`limits.max_duration_secs`に達した |
+| 時間切れ(`time_exceeded`) | 経過時間が`limits.max_duration_secs`に達した。時間窓が満杯で、次の窓が明けるのがそれと同時か後のときも含む |
 | 中断(`user_aborted`) | 利用者が止めた |
 
 開始の画面は、許可ドメインの中で最初に観測した画面である。

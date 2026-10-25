@@ -74,7 +74,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 | 未検証の終了 | 決め打ちシナリオで、判断モデルが done を返したが今の段階の done_when を満たしていない終了。ゴール達成とは別に記録する。探索モードでは done を選択肢に入れないので起きない | 自己申告だけの done、探索モードで返った done |
 | 段階 | 決め打ちシナリオを順に進める区切り。各段階は done_when を持つ。done_when の宣言(URL のパス、要素、テキスト)が複数あれば、すべて成り立ったときに満たしたとみなす。最後でない段階で満たしたら、判断モデルに問い合わせずに次の段階へ進み、固まりと行き詰まりの回数を0に戻す。最後の段階で満たしたらゴール達成。判断予算、時間窓、探索の記憶は実行全体で共有し、段階を進めても戻さない | 最後の段階と最後でない段階、宣言の一部だけが成り立つ、後の段階の done_when だけが成り立つ |
 | 探索モードのゴール | 探索モードで、開始の画面から探索の記憶のグラフで辿れるすべての画面について、禁止要素を除くすべての要素を探索し終えたこと。成り立てばゴール達成で終了する。探索モードでは判断モデルに done を選ばせない | 未操作の要素が禁止要素だけ、ほかの画面に未操作の要素が残る |
-| 時間切れ | 制限時間に達したときの終了理由。制限時間は探索モードの指定時間、または決め打ちシナリオの実行時間の上限で、実行の開始からの経過時間で測る。達したら(経過時間が制限時間以上なら)判断モデルに問い合わせずに終了する。判断予算切れと同じ段に置く。時間窓を待つのは、窓の始まりと制限時間の早いほうまで | 制限時間の手前、ちょうど、判断予算切れとの同時成立、時間窓の待ちの途中 |
+| 時間切れ | 制限時間に達したときの終了理由。制限時間は探索モードの指定時間、または決め打ちシナリオの実行時間の上限で、実行の開始からの経過時間で測る。達したら(経過時間が制限時間以上なら)判断モデルに問い合わせずに終了する。判断予算切れと同じ段に置く。時間窓を待つのは次の窓の始まりまでで、窓が明けるのが制限時間と同時か後なら待たずに時間切れにする | 制限時間の手前、ちょうど、判断予算切れとの同時成立、窓が明けるのと制限時間の前後 |
 | 利用者による中断 | 利用者がいつでも実行を中断できること。中断したら、今の待ちを打ち切り、探索の記憶・終了のイベント・実行結果を書いてから、終了理由を利用者による中断にして終わる。終了後は状態を変えない。書いている間に2回目の中断を受けたら、書き終わりを待たずに終わる | 待機中、操作の途中、終了後の中断、2回目の中断 |
 | 終了コード | 0 は終了理由を記録して終わり確定の問題を見つけなかった、1 は確定の問題を見つけた、2 は設定エラーで起動しなかった、3 は実行時エラー(記録の書き込み失敗、2回目の中断で記録を書き終えずに終わった)で止まった。確定の問題はエラー表示、読み上げ名、コンソールエラー、許可ドメインの外への遷移で、参考情報は数えない。中断で終わったときも問題の有無で0か1 | 参考情報だけ、中断、書き込みの失敗 |
 | 参考情報 | 判断モデルだけが根拠の検出。確定した不具合とは別の区分で記録する | わかりにくい表示などの意味判断 |
@@ -242,8 +242,8 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
       → 手法: デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `budget_and_timeout_yield_one_of_them`、全状態の探索 `webqa-core/tests/exhaustive.rs` の `budget_and_timeout_tie_yields_one_reason` / issue: #12
 - [x] T-079 WebExploratoryQA.feature:359(終了の判定) [state] 「時間切れとゴール達成や行き詰まりが重なったら、ゴール達成や行き詰まりを採る」(Examples の各行を1ケースとする)
       → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `goal_and_stuck_beat_timeout` / issue: #13
-- [x] T-080 WebExploratoryQA.feature:370(終了の判定) [unwanted] 「時間窓が明けるのを待っている間に制限時間に達したら、窓を待たずに時間切れで終了する」
-      → 手法: 時刻依存の封じ込め(flakiness-value)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `timeout_during_window_wait`、単体 `webqa::run` の `window_wait_sleeps_until_earlier_deadline` / issue: #12、#14
+- [x] T-080 WebExploratoryQA.feature:370(終了の判定) [unwanted] 「時間窓が明けるのが制限時間より後なら、窓を待たずにその場で時間切れで終了する」
+      → 手法: 時刻依存の封じ込め(flakiness-value)、境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::plan` の `a_window_opening_at_the_limit_or_later_ends_the_run_at_once` と `a_window_opening_before_the_limit_is_waited_for`、単体 `webqa::run` の `a_window_opening_after_the_deadline_ends_without_sleeping` / issue: #12、#14
 - [x] T-081 WebExploratoryQA.feature:378(終了の判定) [event] 「探索モードで禁止要素を除くすべての要素を探索し終えたら、ゴール達成で終了する」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::explore::graph` の `all_explored_except_forbidden_is_finished` / issue: #13
 - [x] T-082 WebExploratoryQA.feature:386(終了の判定) [boundary] 「探索モードで未操作の要素が禁止要素だけになったら、ゴール達成で終了する」
@@ -420,7 +420,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-077 | event | 同値分割(blackbox-partition)、時刻依存の封じ込め(flakiness-value) | `time_limit_applies_to_scenario_mode` | #12 | [x] | [ ] | 要 |
 | T-078 | state | デシジョンテーブル(blackbox-partition)、モデルベーステスト(oracle-model-based) | `budget_and_timeout_yield_one_of_them`、`budget_and_timeout_tie_yields_one_reason` | #12 | [x] | [ ] | 要 |
 | T-079 | state | デシジョンテーブル(blackbox-partition) | `goal_and_stuck_beat_timeout` | #13 | [x] | [ ] | 要 |
-| T-080 | unwanted | 時刻依存の封じ込め(flakiness-value)、境界値分析(blackbox-partition) | `timeout_during_window_wait`、`window_wait_sleeps_until_earlier_deadline` | #12、#14 | [x] | [ ] | 要 |
+| T-080 | unwanted | 時刻依存の封じ込め(flakiness-value)、境界値分析(blackbox-partition) | `a_window_opening_at_the_limit_or_later_ends_the_run_at_once`、`a_window_opening_before_the_limit_is_waited_for`、`a_window_opening_after_the_deadline_ends_without_sleeping` | #12、#14 | [x] | [ ] | 要 |
 | T-081 | event | 同値分割(blackbox-partition) | `all_explored_except_forbidden_is_finished` | #13 | [x] | [ ] | 要 |
 | T-082 | boundary | 境界値分析(blackbox-partition) | `only_forbidden_left_is_finished` | #13 | [x] | [ ] | 要 |
 | T-083 | unwanted | 同値分割(blackbox-partition) | `untouched_on_other_screen_blocks_finished` | #13 | [x] | [ ] | 要 |

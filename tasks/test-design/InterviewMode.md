@@ -170,9 +170,9 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 - [x] T-030 InterviewMode.feature:313(試行) [event] 「窓を待ってから始めた試行も、中核の時間窓の操作回数を0から数える」
       → 手法: 状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `core_window_count_starts_at_zero` / issue: #30、#33
 - [x] T-031 InterviewMode.feature:319(試行) [state] 「試行の間で窓を待っている間に中断したら、窓を待たずに、終えた試行までの結果で台帳を書いて終わる」
-      → 手法: 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `abort_while_waiting_writes_ledger`、性質 `webqa/tests/trials_props.rs` の `wait_ends_on_abort_or_deadline` / issue: #30、#33
-- [x] T-032 InterviewMode.feature:326(試行) [state] 「試行の間で窓を待っている間に制限時間に達したら、窓を待たずに時間切れで終わる」
-      → 手法: 時刻依存の封じ込め(flakiness-value)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `deadline_while_waiting_times_out`、性質 `webqa/tests/trials_props.rs` の `wait_ends_on_abort_or_deadline` / issue: #30、#33
+      → 手法: 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `abort_while_waiting_writes_ledger`、性質 `webqa/tests/trials_props.rs` の `wait_never_reaches_the_deadline` / issue: #30、#33
+- [x] T-032 InterviewMode.feature:326(試行) [state] 「試行の間で、次の窓が明けるのが制限時間より後なら、窓を待たずに時間切れで終わる」
+      → 手法: 時刻依存の封じ込め(flakiness-value)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `a_window_opening_after_the_deadline_times_out_at_once`、単体 `webqa-core::interview::schedule` の `stops_when_the_window_opens_at_the_limit_or_later`、性質 `webqa/tests/trials_props.rs` の `wait_never_reaches_the_deadline` / issue: #30、#33
 - [x] T-033 InterviewMode.feature:334(試行) [ubiquitous] 「制限時間は実行の開始から測り、試行をまたいで引き継ぐ」
       → 手法: 時刻依存の封じ込め(flakiness-value)、プロパティベーステスト(generative-property) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa::interview::trials` の `deadline_measured_from_run_start`、性質 `webqa/tests/trials_props.rs` の `nothing_starts_after_deadline` / issue: #30、#33
 - [x] T-034 InterviewMode.feature:342(試行) [state] 「初期化のコマンドの最中に期限が来たら、終わるのを待ってから、試行を始めずに打ち切る」
@@ -411,7 +411,7 @@ T-ID は一度振ったら変えない。T-124〜T-131 は、親が目的のず�
 | `every_run_window_stays_within_limit` | どの実行全体の窓でも、数えたアクセス(最初の表示を含み、初期化のコマンドの分を除く)は上限以下 | T-022〜T-025、T-027〜T-029 |
 | `nothing_starts_after_deadline` | 期限を過ぎた時刻に、初期化のコマンドもブラウザの起動も始まっていない | T-033〜T-035、T-037 |
 | `finished_plus_cut_equals_started` | 終えた試行と打ち切りの数の和は始めた試行の数に等しく、打ち切りは多くても1回 | T-038、T-040 |
-| `wait_ends_on_abort_or_deadline` | 試行の間で待っている間に中断か期限が来たら、次の窓を待たずに終える | T-031、T-032 |
+| `wait_never_reaches_the_deadline` | 試行の間の待ちは、中断で終わるか、期限より前に明ける窓までで、期限まで眠らない | T-031、T-032 |
 | `finished_trials_never_exceed_setting` | 終えた試行の数は設定の試行の回数以下 | T-040 |
 | `no_reset_while_waiting_for_window` | 窓が明けるのを待っている間に初期化のコマンドを始めない(判定は初期化のコマンドの前) | T-026 |
 
@@ -454,8 +454,8 @@ mutation 列は、設定エラー、試行と試行の外のループ、終わ�
 | T-028 | state | 状態遷移テスト(blackbox-state)、プロパティベーステスト(generative-property) | `core_limit_fixed_for_trial`、`every_run_window_stays_within_limit` | #30、#33 | [x] | [ ] | 要 |
 | T-029 | unwanted | 境界値分析(blackbox-partition)、プロパティベーステスト(generative-property) | `reduced_limit_blocks_core_until_window`、`every_run_window_stays_within_limit` | #30、#33 | [x] | [ ] | 要 |
 | T-030 | event | 状態遷移テスト(blackbox-state) | `core_window_count_starts_at_zero` | #30、#33 | [x] | [ ] | 要 |
-| T-031 | state | 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) | `abort_while_waiting_writes_ledger`、`wait_ends_on_abort_or_deadline` | #30、#33 | [x] | [ ] | 要 |
-| T-032 | state | 時刻依存の封じ込め(flakiness-value)、プロパティベーステスト(generative-property) | `deadline_while_waiting_times_out`、`wait_ends_on_abort_or_deadline` | #30、#33 | [x] | [ ] | 要 |
+| T-031 | state | 並行・競合の封じ込め(flakiness-concurrency)、プロパティベーステスト(generative-property) | `abort_while_waiting_writes_ledger`、`wait_never_reaches_the_deadline` | #30、#33 | [x] | [ ] | 要 |
+| T-032 | state | 時刻依存の封じ込め(flakiness-value)、プロパティベーステスト(generative-property) | `a_window_opening_after_the_deadline_times_out_at_once`、`stops_when_the_window_opens_at_the_limit_or_later`、`wait_never_reaches_the_deadline` | #30、#33 | [x] | [ ] | 要 |
 | T-033 | ubiquitous | 時刻依存の封じ込め(flakiness-value)、プロパティベーステスト(generative-property) | `deadline_measured_from_run_start`、`nothing_starts_after_deadline` | #30、#33 | [x] | [ ] | 要 |
 | T-034 | state | 時刻依存の封じ込め(flakiness-value)、状態遷移テスト(blackbox-state)、プロパティベーステスト(generative-property) | `deadline_during_reset_waits_then_cuts`、`nothing_starts_after_deadline` | #30、#33 | [x] | [ ] | 要 |
 | T-035 | unwanted | 時刻依存の封じ込め(flakiness-value)、デシジョンテーブル(blackbox-partition)、プロパティベーステスト(generative-property) | `reset_timeout_after_deadline_is_time_up`、`nothing_starts_after_deadline` | #30、#33 | [x] | [ ] | 要 |

@@ -101,7 +101,7 @@ scenario:
 | 判断モデルの宣言(`reported_done`) | 判断モデルが`done`を選んだ |
 | 行き詰まり(`stuck`) | 進展の無いステップが`limits.stuck_threshold`に達した。または判断モデルが`stuck`を選んだ |
 | 判断予算切れ(`budget_exceeded`) | 問い合わせの回数が`limits.max_decisions`に達した |
-| 時間切れ(`time_exceeded`) | 経過時間が`limits.max_duration_secs`に達した |
+| 時間切れ(`time_exceeded`) | 経過時間が`limits.max_duration_secs`に達した。時間窓が満杯で、次の窓が明けるのがそれと同時か後のときも含む |
 | 中断(`user_aborted`) | 利用者が止めた |
 
 進展の数え方は[core.md](core.md)に、判断予算と制限時間は[safety.md](safety.md)に書いた。

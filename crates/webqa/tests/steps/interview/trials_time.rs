@@ -16,6 +16,7 @@ const fn limit_set(world: &mut InterviewWorld, limit: u64) {
 }
 
 #[given(expr = "1回目の試行が終わり、2回目の試行を始めるために時間窓が明けるのを待っている")]
+#[given(expr = "1回目の試行が終わり、2回目の試行を始めるには時間窓が明けるのを待つ必要がある")]
 fn waiting_for_window(world: &mut InterviewWorld) {
     let scene = &mut world.scene;
     scene.requests_per_hour = 10;
@@ -47,10 +48,16 @@ async fn ledger_counts(world: &mut InterviewWorld, n: usize) {
     assert_eq!(finished, n, "the trials the ledger counts");
 }
 
-#[when(expr = "窓が明ける前に、実行の開始から {int} 分が経つ")]
 #[when(expr = "実行の開始から {int} 分が経つ")]
 async fn time_passes(world: &mut InterviewWorld, limit: u64) {
     assert_eq!(world.scene.max_duration, Some(minutes(limit)), "the limit");
+    world.run().await;
+}
+
+#[when(expr = "次の窓が明けるのは、実行の開始から {int} 分より後である")]
+async fn window_opens_after(world: &mut InterviewWorld, limit: u64) {
+    assert_eq!(world.scene.max_duration, Some(minutes(limit)), "the limit");
+    assert!(HOUR > minutes(limit), "the next window opens an hour in");
     world.run().await;
 }
 
@@ -59,10 +66,9 @@ async fn timed_out_before_window(world: &mut InterviewWorld) {
     world.run().await;
     let ran = world.ran();
     assert_eq!(ran.ending, Some(TIME_UP), "how the run ended");
-    // The limit comes before the end of the first window: it woke at the limit.
-    let limit = found(world.scene.max_duration, "the limit is set");
-    assert_eq!(ran.clock.sleeps, [(limit, 0)], "it woke at the limit");
-    assert_eq!(ran.clock.elapsed(), limit, "and the clock stopped there");
+    // The limit comes before the end of the first window: it never slept.
+    assert_eq!(ran.clock.sleeps, [], "it did not wait");
+    assert_eq!(ran.clock.elapsed(), Duration::ZERO, "the clock stayed");
 }
 
 #[when(expr = "2回目の試行を続ける")]

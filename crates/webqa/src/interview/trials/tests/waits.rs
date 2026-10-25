@@ -3,7 +3,7 @@
 use super::*;
 
 #[tokio::test]
-async fn deadline_while_waiting_times_out() {
+async fn a_window_opening_after_the_deadline_times_out_at_once() {
     let mut world = World::tight(2);
     world.plan.max_duration = Some(minutes(30));
     let ending = world.run().await;
@@ -14,8 +14,8 @@ async fn deadline_while_waiting_times_out() {
     let ledger = world.ledger().map(|ledger| ledger.head);
     assert_eq!(
         (ending, ledger, world.launch.launched, world.clock.now),
-        (timed_out, Some(head(1)), 1, minutes(30)),
-        "woke at the deadline, not at the next window, and started no more"
+        (timed_out, Some(head(1)), 1, Duration::ZERO),
+        "the next window opens after the deadline: no wait, no more trials"
     );
 }
 

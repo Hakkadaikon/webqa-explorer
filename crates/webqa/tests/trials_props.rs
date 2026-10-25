@@ -113,15 +113,18 @@ fn finished_plus_cut_equals_started() {
 }
 
 #[test]
-fn wait_ends_on_abort_or_deadline() {
+fn wait_never_reaches_the_deadline() {
     property(|case, trace| {
         let limit = limit(case);
         let late: Vec<_> = trace
             .sleeps
             .iter()
-            .filter(|sleep| limit.is_some_and(|l| sleep.at_ms > l))
+            .filter(|sleep| limit.is_some_and(|l| sleep.at_ms >= l))
             .collect();
-        prop_assert!(late.is_empty(), "slept past the deadline: {late:?}");
+        prop_assert!(
+            late.is_empty(),
+            "slept until the deadline or later: {late:?}"
+        );
         let stopped = Ending::Wrote {
             stopped: Stopped::Interrupted,
             confirmed: false,

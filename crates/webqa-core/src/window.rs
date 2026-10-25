@@ -96,10 +96,3 @@ impl RequestWindow {
         self.cap
     }
 }
-
-/// When to wake while waiting for a window: the earlier of `next_start`
-/// and the deadline, or `next_start` when there is no deadline.
-#[must_use]
-pub fn wake_at(next_start: Duration, deadline: Option<Duration>) -> Duration {
-    deadline.map_or(next_start, |limit| limit.min(next_start))
-}

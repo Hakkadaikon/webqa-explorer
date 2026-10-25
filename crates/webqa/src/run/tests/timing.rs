@@ -140,7 +140,7 @@ pub(super) fn crowded(fakes: &mut Fakes) -> Rules {
 }
 
 #[tokio::test]
-async fn window_wait_sleeps_until_earlier_deadline() {
+async fn a_window_opening_after_the_deadline_ends_without_sleeping() {
     let mut fakes = Fakes::new();
     let rules = crowded(&mut fakes);
     let mut clock = SleepyClock::default();
@@ -148,9 +148,11 @@ async fn window_wait_sleeps_until_earlier_deadline() {
     let (store, redactor) = (&mut fakes.store, &fakes.redactor);
     let (reason, _) = run_on(browser, judge, &mut clock, store, redactor, rules).await;
     assert_eq!(reason, Ok(ExitReason::TimeExceeded), "out of time");
-    let deadline = [Duration::from_secs(60)];
-    assert_eq!(clock.sleeps, deadline, "the deadline, not the next window");
+    assert_eq!(
+        clock.sleeps,
+        Vec::<Duration>::new(),
+        "no window past the deadline"
+    );
     assert_eq!(fakes.browser.touches.len(), 2, "two accesses in the window");
-    let waited = [(Some(2), Event::Waited { until_ms: 60_000 })];
-    assert_eq!(fakes.picked(&["waited"]), waited, "the wait is logged");
+    assert_eq!(fakes.picked(&["waited"]), Vec::new(), "no wait is logged");
 }

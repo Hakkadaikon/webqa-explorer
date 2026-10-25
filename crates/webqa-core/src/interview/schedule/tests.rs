@@ -2,6 +2,8 @@
 
 use super::*;
 
+mod waits;
+
 const fn cap(n: u32) -> NonZeroU32 {
     NonZeroU32::new(n).unwrap()
 }
@@ -87,39 +89,6 @@ fn starts_with_remaining_minus_one_at_half() {
     assert_eq!([first, earlier], want, "the first trial, an earlier window");
 }
 
-/// The cap, the accesses used, the time limit, and when to wake, in minutes.
-const WAITS: [(u32, u32, Option<u64>, u64); 8] = [
-    (10, 5, None, 60),
-    (10, 10, None, 60),
-    (10, 12, None, 60),
-    (9, 4, None, 60),
-    (1, 0, None, 60),
-    (10, 5, Some(55), 55),
-    (10, 5, Some(60), 60),
-    (10, 5, Some(70), 60),
-];
-
-#[test]
-fn waits_when_below_half() {
-    for (limit, u, max_duration, wake) in WAITS {
-        assert_eq!(
-            decide(limit, u, max_duration),
-            Next::Wait(mins(wake)),
-            "cap {limit}, used {u}, limit {max_duration:?}"
-        );
-    }
-
-    let later = judge(3, None, state(1, used(10, 5, mins(130))), 130);
-    let full = state(1, used(10, 10, mins(50)));
-    let got = [
-        later,
-        judge(3, None, full, 60),
-        judge(3, Some(55), full, 55),
-    ];
-    let want = [Next::Wait(mins(180)), Next::Start(cap(9)), TIME_UP];
-    assert_eq!(got, want, "a later window, then waking");
-}
-
 #[test]
 fn core_window_aligns_with_run_window() {
     let core = core_window(cap(5), mins(50));
@@ -154,7 +123,7 @@ const ORDER: [Order; 9] = [
     (false, Some(60), 60, 3, 3, 10, TIME_UP),
     (false, Some(60), 59, 3, 3, 10, COMPLETED),
     (false, Some(60), 59, 4, 3, 0, COMPLETED),
-    (false, Some(60), 50, 2, 3, 10, Next::Wait(mins(60))),
+    (false, Some(70), 50, 2, 3, 10, Next::Wait(mins(60))),
     (false, None, 60_000, 2, 3, 0, Next::Start(cap(9))),
     (true, None, 0, 0, 1, 0, INTERRUPTED),
     (false, Some(0), 0, 0, 1, 0, TIME_UP),

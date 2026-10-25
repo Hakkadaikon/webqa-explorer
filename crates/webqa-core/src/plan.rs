@@ -35,7 +35,8 @@ pub struct Limits {
     pub judge_down: bool,
     /// The decision budget is used up.
     pub out_of_budget: bool,
-    /// The time limit is reached.
+    /// The time limit is reached, or the window is full and opens only at
+    /// the limit or later.
     pub time_up: bool,
 }
 
@@ -83,7 +84,8 @@ pub enum Pick {
     JudgeDown,
     /// Finish: the decision budget is used up.
     OutOfBudget,
-    /// Finish: the time limit is reached.
+    /// Finish: the time limit is reached, or the window is full and opens
+    /// only at the limit or later.
     TimeUp,
     /// Wait until the time window opens.
     WaitWindow,

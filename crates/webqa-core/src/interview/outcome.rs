@@ -41,7 +41,8 @@ pub enum Stuck {
 /// as unreached.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Cut {
-    /// The run's time limit passed (`time_exceeded`).
+    /// The run's time limit passed, or the window opens only at the limit or
+    /// later (`time_exceeded`).
     TimeUp,
     /// The user interrupted the run (`user_aborted`).
     Interrupted,
