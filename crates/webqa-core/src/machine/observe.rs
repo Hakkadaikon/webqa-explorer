@@ -84,10 +84,12 @@ fn shown(state: &State, at: ScreenKey, id: &ElementId) -> bool {
 }
 
 /// Takes `seen` in after an effect. Landing outside the allowed origins
-/// records the issue, once for each arrival.
+/// records the issue, once for each arrival. The blank page is no place the
+/// site sent the run: a `back` with nothing before it lands there. The URL
+/// is the one the origin check reads.
 fn landed(state: State, seen: Seen) -> (State, Taken) {
     let (mut state, taken) = take(state, seen);
-    if state.outside {
+    if state.outside && state.last.material.paywall.url.as_str() != "about:blank" {
         let issue = left(&state.last);
         state = state.noted(issue);
     }

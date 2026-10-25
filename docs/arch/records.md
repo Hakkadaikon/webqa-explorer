@@ -38,7 +38,7 @@
 | `error_display` | 判断モデルが答えた、エラー表示のある確率が閾値以上 | 確定(`confirmed`) |
 | `accessible_name` | 要素の読み上げ名が、画像ファイル名や仮の値に一致する(中核が判定する) | 確定(`confirmed`) |
 | `console_error` | ブラウザのコンソールにエラーが出た | 確定(`confirmed`) |
-| `outside_domain` | 遷移したあとのURLが許可ドメインの外にある | 確定(`confirmed`) |
+| `outside_domain` | 遷移したあとのURLが許可ドメインの外にある。`about:blank`は除く | 確定(`confirmed`) |
 | `semantic` | 意味の判断が要る検出で、判断モデルだけが判定する | 参考情報(`reference`) |
 
 終了コードに数えるのは、確定の問題だけである([コマンド](cli.md))。

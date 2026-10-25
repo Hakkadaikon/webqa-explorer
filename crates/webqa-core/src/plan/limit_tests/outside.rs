@@ -70,6 +70,15 @@ fn outside_domain_returns_without_asking() {
     assert_eq!(pick, Pick::Return, "returns from outside");
 }
 
+#[test]
+fn the_blank_page_returns_without_an_issue() {
+    let returned = clicked_to(shows(&page("about:blank", &[])));
+    let back_home = touch("return", None, 1.0);
+    assert_eq!(returned.effect(), Some(&back_home), "goes back");
+    assert!(returned.state().outside(), "outside");
+    assert_eq!(returned.state().notes(), [], "the page sent nowhere");
+}
+
 /// The redacted page `shown` with the material collected on `collected`.
 fn masked(shown: &Screen, collected: &Screen) -> Seen {
     Seen {
