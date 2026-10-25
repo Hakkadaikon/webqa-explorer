@@ -51,7 +51,7 @@ pub(super) fn skipped(cause: &str) -> Event {
 }
 
 /// The run waits for the time window until `at`.
-pub(super) fn waited(at: Duration) -> Event {
+pub fn waited(at: Duration) -> Event {
     Event::Waited {
         until_ms: millis(at),
     }

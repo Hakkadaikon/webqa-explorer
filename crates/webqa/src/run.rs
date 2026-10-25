@@ -29,6 +29,7 @@ use crate::record::Record;
 
 pub use interviewing::{Interviewing, Taken};
 pub use journal::Journal;
+pub(crate) use log::waited;
 
 /// Why the run stopped before an outcome.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
