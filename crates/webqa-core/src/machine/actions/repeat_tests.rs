@@ -4,8 +4,8 @@
 use crate::effect::Effect;
 use crate::judge::Answers;
 use crate::machine::testing::{
-    answer, ask_top, asking, counters, id, inside, look, ranked, rules, secs, seen, showed, told,
-    top, touch, with,
+    answer, ask_top, asking, counters, id, inside, look, ranked, rules, secs, seen, showed,
+    started, told, top, touch, with,
 };
 use crate::machine::{Facts, State, Step, step};
 use crate::screen::{ElementId, Screen};
@@ -25,9 +25,20 @@ fn save_first() -> Answers {
 
 /// Clicks the element the answers point at, `element`, and observes `then`.
 fn clicked(state: &State, answers: Answers, element: &ElementId, then: &Screen) -> Step {
+    clicked_on(&top(), state, answers, element, then)
+}
+
+/// Clicks `element` on `page` as the answers point at it, and observes `then`.
+fn clicked_on(
+    page: &Screen,
+    state: &State,
+    answers: Answers,
+    element: &ElementId,
+    then: &Screen,
+) -> Step {
     let looked = told(state, answers);
     assert_eq!(looked.effect(), Some(&look(element.clone())), "looks it up");
-    let touched = showed(looked.state(), &top());
+    let touched = showed(looked.state(), page);
     let expected = touch("click", Some(element.clone()), 0.9);
     assert_eq!(touched.effect(), Some(&expected), "clicks it");
     showed(touched.state(), then)
@@ -108,8 +119,21 @@ fn aborted_look_up_forgets_the_unchanged_target() {
 #[test]
 fn unchanged_target_is_kept_until_the_screen_changes() {
     let unchanged = clicked(&ask_top(rules()), save_first(), &save(), &top());
-    assert_eq!(unchanged.state().unmoved(), Some(&save()), "kept");
+    assert_eq!(unchanged.state().unmoved(), [save()], "kept");
     let news = with(top(), inside("link", "新着"));
     let changed = clicked(&ask_top(rules()), save_first(), &save(), &news);
-    assert_eq!(changed.state().unmoved(), None, "the screen changed");
+    assert_eq!(changed.state().unmoved(), [], "the screen changed");
+}
+
+#[test]
+fn every_element_left_unmoved_is_passed_over_until_the_screen_changes() {
+    let page = with(top(), inside("link", "新着"));
+    let news = id("link", "新着", 0);
+    let three = || ranked("click", Some(0.9), &[("1", 0.8), ("2", 0.6), ("3", 0.4)]);
+    let asking = started(rules(), &page).state().clone();
+    let first = clicked_on(&page, &asking, three(), &save(), &page);
+    let second = clicked_on(&page, first.state(), three(), &help(), &page);
+    assert_eq!(second.state().unmoved(), [save(), help()], "both kept");
+    let third = next_look(second.state(), three());
+    assert_eq!(third, Some(look(news)), "passes over both");
 }

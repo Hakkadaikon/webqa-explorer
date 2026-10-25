@@ -1,8 +1,8 @@
 //! The judge's answers read into a proposal.
 //!
 //! The answers are checked against what the step offered, and the element
-//! is picked from the ranked numbers, passing over the element of the last
-//! operation when the screen did not change after it.
+//! is picked from the ranked numbers, passing over the elements operated
+//! since the screen last changed.
 
 use super::Seen;
 use super::note::Anomaly;
@@ -118,17 +118,16 @@ fn row_of(verdict: &Verdict, state: &State) -> Option<&'static OpRow> {
 
 /// The element picked from the ranked numbers.
 fn pointed(verdict: &Verdict, state: &State) -> Option<Numbered> {
-    pick_target(&verdict.targets, avoid(state))
+    pick_target(&verdict.targets, &avoid(state))
         .and_then(|number| numbered(&state.last).find(|e| e.number == number))
 }
 
-/// The number of the element of the last operation, when the screen did
-/// not change after it.
-fn avoid(state: &State) -> Option<usize> {
-    let unmoved = state.unmoved.as_ref()?;
+/// The numbers of the elements operated since the screen last changed.
+fn avoid(state: &State) -> Vec<usize> {
     numbered(&state.last)
-        .find(|e| e.element == *unmoved)
+        .filter(|e| state.unmoved.contains(&e.element))
         .map(|e| e.number)
+        .collect()
 }
 
 /// The elements inside the viewport, numbered as in the screen text.

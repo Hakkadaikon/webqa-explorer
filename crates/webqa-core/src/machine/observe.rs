@@ -1,6 +1,7 @@
 //! Taking an observation into the state, and the rows that take one.
 
 use std::collections::BTreeSet;
+use std::mem;
 use std::time::Duration;
 
 use super::Seen;
@@ -36,7 +37,7 @@ pub(super) fn take(mut state: State, seen: Seen) -> (State, Taken) {
     let forbidden = forbidden_indices(&state.rules, &seen);
     state.at = (!outside).then(|| state.memory.visit(&seen.screen, &forbidden));
     state.origin = state.origin.or(state.at);
-    state.unmoved = None;
+    state.unmoved = Vec::new();
     let revealed = remember(&mut state, &seen, &forbidden);
     let changed = outside || changed(&state.last.screen, &seen.screen, seen.viewport);
     state.last = Box::new(seen);
@@ -145,11 +146,12 @@ pub(super) fn arrived(state: State, seen: Seen, _: Duration) -> Next {
     idle(settled(state, seen))
 }
 
-/// Takes the page in after an operation and counts what came of it. The
-/// element operated is kept when the screen did not change, so that the
+/// Takes the page in after an operation and counts what came of it. While
+/// the screen does not change, the elements operated are kept, so that the
 /// next answer can move on to another one.
-pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
+pub(super) fn executed(mut state: State, seen: Seen, _: Duration) -> Next {
     let kind = recorded(&state);
+    let unmoved = mem::take(&mut state.unmoved);
     let (mut state, taken) = landed(state, seen);
     let explored = explored(&mut state, taken.from, kind);
     state.counters = state.counters.after_touch(Progress {
@@ -157,12 +159,19 @@ pub(super) fn executed(state: State, seen: Seen, _: Duration) -> Next {
         explored,
         revealed: taken.revealed && !interviewing(&state),
     });
-    state.unmoved = state
-        .proposal
-        .as_deref()
-        .and_then(|p| p.element.clone())
-        .filter(|_| !taken.changed);
+    let operated = state.proposal.as_deref().and_then(|p| p.element.clone());
+    state.unmoved = if taken.changed {
+        Vec::new()
+    } else {
+        kept(unmoved, operated)
+    };
     idle(state)
+}
+
+/// `unmoved` with `operated` added at the end, unless already there.
+fn kept(mut unmoved: Vec<ElementId>, operated: Option<ElementId>) -> Vec<ElementId> {
+    unmoved.extend(operated.filter(|e| !unmoved.contains(e)));
+    unmoved
 }
 
 /// Whether the run is an interview. An interview does not count an element

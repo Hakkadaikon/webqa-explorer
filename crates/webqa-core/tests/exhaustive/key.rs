@@ -48,7 +48,7 @@ pub fn key(
         candidates.page_of(state.last()),
         state.stage(),
         state.origin(),
-        state.unmoved().map(named),
+        state.unmoved().iter().map(named).collect::<Vec<_>>(),
         memory.screen_count(),
         memory.edge_count(),
         effect.and_then(target).map(named),

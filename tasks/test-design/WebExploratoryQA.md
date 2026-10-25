@@ -91,7 +91,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-003 WebExploratoryQA.feature:35(1ステップの問い合わせと実行) [event] 「ガードレールを通った操作はそのままブラウザで実行する」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `passed_proposal_becomes_touch`、契約 `webqa-browser/tests/contract.rs` の `performs_each_operation` / issue: #9、#12
 - [x] T-004 WebExploratoryQA.feature:51(1ステップの問い合わせと実行) [unwanted] 「画面が変わらないのに同じ要素を選んだら、次に確信度の高い候補へ切り替える」
-      → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `same_unchanged_target_switches_to_next` / issue: #7
+      → 手法: デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `same_unchanged_target_switches_to_next`、単体 `webqa-core::machine::actions` の `every_element_left_unmoved_is_passed_over_until_the_screen_changes` / issue: #7、#112
 - [x] T-005 WebExploratoryQA.feature:91(ガードレール) [boundary] 「確信度の低い「戻る」は実行しない」(Examples の各行を1ケースとする)
       → 手法: 境界値分析(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::guard::confidence` の `back_confidence_boundary` / issue: #4
 - [x] T-006 WebExploratoryQA.feature:105(ガードレール) [unwanted] 「確信度が欠けた応答の「戻る」は低確信度として扱い、実行しない」
@@ -344,7 +344,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-001 | event | 同値分割(blackbox-partition) | `screen_text_lists_role_name_value` | #6 | [x] | [ ] | — |
 | T-002 | event | テストダブル(test-doubles) | `step_asks_op_target_error_goal` | #7 | [x] | [ ] | — |
 | T-003 | event | 同値分割(blackbox-partition)、テストダブル(test-doubles)、コントラクトテスト(levels-service) | `passed_proposal_becomes_touch`、`performs_each_operation` | #9、#12 | [x] | [ ] | — |
-| T-004 | unwanted | デシジョンテーブル(blackbox-partition) | `same_unchanged_target_switches_to_next` | #7 | [x] | [ ] | — |
+| T-004 | unwanted | デシジョンテーブル(blackbox-partition) | `same_unchanged_target_switches_to_next`、`every_element_left_unmoved_is_passed_over_until_the_screen_changes` | #7、#112 | [x] | [ ] | — |
 | T-005 | boundary | 境界値分析(blackbox-partition) | `back_confidence_boundary` | #4 | [x] | [ ] | 要 |
 | T-006 | unwanted | 同値分割(blackbox-partition) | `back_without_probability_is_low` | #4 | [x] | [ ] | 要 |
 | T-007 | unwanted | ゴールデンテスト(oracle-past-output)、同値分割(blackbox-partition) | `forbidden_by_keyword`、`forbidden_fixtures` | #4 | [x] | [ ] | 要 |
