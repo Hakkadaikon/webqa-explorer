@@ -10,6 +10,7 @@ use super::offer::{offer, verdict};
 use super::ops::{OpRow, offered};
 use super::state::State;
 use crate::effect::Touch;
+use crate::explore::ElementOp;
 use crate::guard::identity::Target as Identity;
 use crate::judge::{Answers, JudgeError, Verdict, pick_target};
 use crate::screen::{ElementId, element_ids, in_viewport};
@@ -83,7 +84,7 @@ fn proposal(verdict: &Verdict, state: &State) -> Proposal {
     let row = row_of(verdict, state);
     let pointed = row
         .and_then(|row| row.element)
-        .and_then(|_| pointed(verdict, state));
+        .and_then(|kind| pointed(verdict, state, kind));
     let number = pointed.as_ref().map(|p| p.number);
     let (element, index, identity) = located(pointed, state);
     Proposal {
@@ -117,9 +118,34 @@ fn row_of(verdict: &Verdict, state: &State) -> Option<&'static OpRow> {
 }
 
 /// The element picked from the ranked numbers.
-fn pointed(verdict: &Verdict, state: &State) -> Option<Numbered> {
-    pick_target(&verdict.targets, &avoid(state))
+fn pointed(verdict: &Verdict, state: &State, kind: ElementOp) -> Option<Numbered> {
+    let ranked = typable_first(&verdict.targets, state, kind);
+    pick_target(&ranked, &avoid(state))
         .and_then(|number| numbered(&state.last).find(|e| e.number == number))
+}
+
+/// For `input`, the ranked elements that take a value, since the operation
+/// kind and the element are chosen apart. All of `ranked` for another kind,
+/// or when none takes a value.
+fn typable_first(ranked: &[usize], state: &State, kind: ElementOp) -> Vec<usize> {
+    let fields: Vec<usize> = ranked
+        .iter()
+        .copied()
+        .filter(|&number| kind == ElementOp::Input && takes_value(state, number))
+        .collect();
+    if fields.is_empty() {
+        ranked.to_vec()
+    } else {
+        fields
+    }
+}
+
+/// Whether the element `number` is a field with a value to type.
+fn takes_value(state: &State, number: usize) -> bool {
+    let screen = &state.last.screen;
+    numbered(&state.last)
+        .find(|e| e.number == number)
+        .is_some_and(|e| state.rules.input_skip(screen, Some(&e.element)).is_none())
 }
 
 /// The numbers of the elements operated since the screen last changed.
