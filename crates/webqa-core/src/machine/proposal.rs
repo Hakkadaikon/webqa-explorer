@@ -119,19 +119,28 @@ fn row_of(verdict: &Verdict, state: &State) -> Option<&'static OpRow> {
 
 /// The element picked from the ranked numbers.
 fn pointed(verdict: &Verdict, state: &State, kind: ElementOp) -> Option<Numbered> {
-    let ranked = typable_first(&verdict.targets, state, kind);
-    pick_target(&ranked, &avoid(state))
-        .and_then(|number| numbered(&state.last).find(|e| e.number == number))
+    let shown: Vec<Numbered> = numbered(&state.last).collect();
+    let ranked = fields_or_all(&verdict.targets, state, &shown, kind);
+    let number = pick_target(&ranked, &avoid(state))?;
+    shown.into_iter().find(|e| e.number == number)
 }
 
-/// For `input`, the ranked elements that take a value, since the operation
-/// kind and the element are chosen apart. All of `ranked` for another kind,
-/// or when none takes a value.
-fn typable_first(ranked: &[usize], state: &State, kind: ElementOp) -> Vec<usize> {
+/// For `input`, only the ranked elements that take a value, since the
+/// operation kind and the element are chosen apart. All of `ranked` for
+/// another kind, or when none takes a value.
+fn fields_or_all(
+    ranked: &[usize],
+    state: &State,
+    shown: &[Numbered],
+    kind: ElementOp,
+) -> Vec<usize> {
+    if kind != ElementOp::Input {
+        return ranked.to_vec();
+    }
     let fields: Vec<usize> = ranked
         .iter()
         .copied()
-        .filter(|&number| kind == ElementOp::Input && takes_value(state, number))
+        .filter(|&number| takes_value(state, shown, number))
         .collect();
     if fields.is_empty() {
         ranked.to_vec()
@@ -140,10 +149,11 @@ fn typable_first(ranked: &[usize], state: &State, kind: ElementOp) -> Vec<usize>
     }
 }
 
-/// Whether the element `number` is a field with a value to type.
-fn takes_value(state: &State, number: usize) -> bool {
+/// Whether the element `number` among `shown` is a field with a value to type.
+fn takes_value(state: &State, shown: &[Numbered], number: usize) -> bool {
     let screen = &state.last.screen;
-    numbered(&state.last)
+    shown
+        .iter()
         .find(|e| e.number == number)
         .is_some_and(|e| state.rules.input_skip(screen, Some(&e.element)).is_none())
 }
