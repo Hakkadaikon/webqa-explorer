@@ -10,6 +10,8 @@ use crate::machine::testing::{
 use crate::machine::{Facts, State, Step, step};
 use crate::screen::{ElementId, Screen};
 
+mod unmoved;
+
 fn save() -> ElementId {
     id("button", "保存", 0)
 }
@@ -25,9 +27,20 @@ fn save_first() -> Answers {
 
 /// Clicks the element the answers point at, `element`, and observes `then`.
 fn clicked(state: &State, answers: Answers, element: &ElementId, then: &Screen) -> Step {
+    clicked_on(&top(), state, answers, element, then)
+}
+
+/// Clicks `element` on `page` as the answers point at it, and observes `then`.
+fn clicked_on(
+    page: &Screen,
+    state: &State,
+    answers: Answers,
+    element: &ElementId,
+    then: &Screen,
+) -> Step {
     let looked = told(state, answers);
     assert_eq!(looked.effect(), Some(&look(element.clone())), "looks it up");
-    let touched = showed(looked.state(), &top());
+    let touched = showed(looked.state(), page);
     let expected = touch("click", Some(element.clone()), 0.9);
     assert_eq!(touched.effect(), Some(&expected), "clicks it");
     showed(touched.state(), then)
@@ -103,13 +116,4 @@ fn aborted_look_up_forgets_the_unchanged_target() {
     );
     let after = next_look(aborted.state(), save_first());
     assert_eq!(after, Some(look(save())), "the judge's first pick stands");
-}
-
-#[test]
-fn unchanged_target_is_kept_until_the_screen_changes() {
-    let unchanged = clicked(&ask_top(rules()), save_first(), &save(), &top());
-    assert_eq!(unchanged.state().unmoved(), Some(&save()), "kept");
-    let news = with(top(), inside("link", "新着"));
-    let changed = clicked(&ask_top(rules()), save_first(), &save(), &news);
-    assert_eq!(changed.state().unmoved(), None, "the screen changed");
 }

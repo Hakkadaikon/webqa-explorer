@@ -1,8 +1,8 @@
 //! The judge's answers read into a proposal.
 //!
 //! The answers are checked against what the step offered, and the element
-//! is picked from the ranked numbers, passing over the element of the last
-//! operation when the screen did not change after it.
+//! is picked from the ranked numbers, passing over the elements operated
+//! since the screen last changed.
 
 use super::Seen;
 use super::note::Anomaly;
@@ -10,6 +10,7 @@ use super::offer::{offer, verdict};
 use super::ops::{OpRow, offered};
 use super::state::State;
 use crate::effect::Touch;
+use crate::explore::ElementOp;
 use crate::guard::identity::Target as Identity;
 use crate::judge::{Answers, JudgeError, Verdict, pick_target};
 use crate::screen::{ElementId, element_ids, in_viewport};
@@ -83,7 +84,7 @@ fn proposal(verdict: &Verdict, state: &State) -> Proposal {
     let row = row_of(verdict, state);
     let pointed = row
         .and_then(|row| row.element)
-        .and_then(|_| pointed(verdict, state));
+        .and_then(|kind| pointed(verdict, state, kind));
     let number = pointed.as_ref().map(|p| p.number);
     let (element, index, identity) = located(pointed, state);
     Proposal {
@@ -117,18 +118,53 @@ fn row_of(verdict: &Verdict, state: &State) -> Option<&'static OpRow> {
 }
 
 /// The element picked from the ranked numbers.
-fn pointed(verdict: &Verdict, state: &State) -> Option<Numbered> {
-    pick_target(&verdict.targets, avoid(state))
-        .and_then(|number| numbered(&state.last).find(|e| e.number == number))
+fn pointed(verdict: &Verdict, state: &State, kind: ElementOp) -> Option<Numbered> {
+    let shown: Vec<Numbered> = numbered(&state.last).collect();
+    let ranked = fields_or_all(&verdict.targets, state, &shown, kind);
+    pick_target(&ranked, &avoid(state, &shown))
+        .and_then(|number| shown.into_iter().find(|e| e.number == number))
 }
 
-/// The number of the element of the last operation, when the screen did
-/// not change after it.
-fn avoid(state: &State) -> Option<usize> {
-    let unmoved = state.unmoved.as_ref()?;
-    numbered(&state.last)
-        .find(|e| e.element == *unmoved)
+/// For `input`, only the ranked elements that take a value, since the
+/// operation kind and the element are chosen apart. All of `ranked` for
+/// another kind, or when none takes a value.
+fn fields_or_all(
+    ranked: &[usize],
+    state: &State,
+    shown: &[Numbered],
+    kind: ElementOp,
+) -> Vec<usize> {
+    if kind != ElementOp::Input {
+        return ranked.to_vec();
+    }
+    let fields: Vec<usize> = ranked
+        .iter()
+        .copied()
+        .filter(|&number| takes_value(state, shown, number))
+        .collect();
+    if fields.is_empty() {
+        ranked.to_vec()
+    } else {
+        fields
+    }
+}
+
+/// Whether the element `number` among `shown` is a field with a value to type.
+fn takes_value(state: &State, shown: &[Numbered], number: usize) -> bool {
+    let screen = &state.last.screen;
+    shown
+        .iter()
+        .find(|e| e.number == number)
+        .is_some_and(|e| state.rules.input_skip(screen, Some(&e.element)).is_none())
+}
+
+/// The numbers of the elements operated since the screen last changed.
+fn avoid(state: &State, shown: &[Numbered]) -> Vec<usize> {
+    shown
+        .iter()
+        .filter(|e| state.unmoved.contains(&e.element))
         .map(|e| e.number)
+        .collect()
 }
 
 /// The elements inside the viewport, numbered as in the screen text.

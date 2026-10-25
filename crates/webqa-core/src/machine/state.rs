@@ -128,9 +128,9 @@ pub struct State {
     /// The start screen in the memory: the first one taken in inside the
     /// allowed origins.
     pub(super) origin: Option<ScreenKey>,
-    /// The element of the last operation, when the screen did not change
-    /// after it. Cleared by every observation taken in.
-    pub(super) unmoved: Option<ElementId>,
+    /// The elements operated since the screen last changed, in the order
+    /// operated. Cleared by every other observation taken in.
+    pub(super) unmoved: Vec<ElementId>,
     /// The judge's failures in a row: API errors, timeouts and bridge
     /// failures. Any other reply restarts it.
     pub(super) failing: u32,
@@ -156,7 +156,7 @@ impl State {
             notes: Vec::new(),
             stage: 0,
             origin: None,
-            unmoved: None,
+            unmoved: Vec::new(),
             failing: 0,
         };
         take(blank, seen).0
@@ -229,11 +229,10 @@ impl State {
         self.origin
     }
 
-    /// The element of the last operation, when the screen did not change
-    /// after it.
+    /// The elements operated since the screen last changed.
     #[must_use]
-    pub const fn unmoved(&self) -> Option<&ElementId> {
-        self.unmoved.as_ref()
+    pub fn unmoved(&self) -> &[ElementId] {
+        &self.unmoved
     }
 
     /// The judge's failures in a row.

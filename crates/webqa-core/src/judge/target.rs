@@ -1,16 +1,16 @@
 //! Choosing the element to operate on.
 
-/// The first of `ranked` that is not `avoid`, or the first of `ranked` when
-/// every one is `avoid`. `None` when `ranked` is empty.
+/// The first of `ranked` that is not in `avoid`, or the first of `ranked`
+/// when every one is. `None` when `ranked` is empty.
 ///
-/// `ranked` is [`super::Verdict::targets`]. The caller passes the element of
-/// the previous step as `avoid` only when the screen did not change after
-/// it, so the same number points at the same element.
+/// `ranked` is [`super::Verdict::targets`]. The caller passes as `avoid` the
+/// elements operated since the screen last changed, so the same number
+/// points at the same element.
 #[must_use]
-pub fn pick_target(ranked: &[usize], avoid: Option<usize>) -> Option<usize> {
+pub fn pick_target(ranked: &[usize], avoid: &[usize]) -> Option<usize> {
     ranked
         .iter()
-        .find(|&&n| Some(n) != avoid)
+        .find(|n| !avoid.contains(n))
         .or_else(|| ranked.first())
         .copied()
 }
@@ -27,17 +27,29 @@ mod tests {
 
     #[test]
     fn same_unchanged_target_switches_to_next() {
-        let cases: [(&[usize], _); 7] = [
-            (&[1, 2], Some(1)),
-            (&[1, 2], None),
-            (&[1, 2], Some(3)),
-            (&[2, 1, 3], Some(2)),
-            (&[1], Some(1)),
-            (&[], None),
-            (&[], Some(1)),
+        let cases: [(&[usize], &[usize]); 9] = [
+            (&[1, 2], &[1]),
+            (&[1, 2], &[]),
+            (&[1, 2], &[3]),
+            (&[2, 1, 3], &[2]),
+            (&[2, 1, 3], &[2, 1]),
+            (&[2, 1, 3], &[3, 2, 1]),
+            (&[1], &[1]),
+            (&[], &[]),
+            (&[], &[1]),
         ];
         let got = cases.map(|(ranked, avoid)| pick_target(ranked, avoid));
-        let want = [Some(2), Some(1), Some(1), Some(1), Some(1), None, None];
+        let want = [
+            Some(2),
+            Some(1),
+            Some(1),
+            Some(1),
+            Some(3),
+            Some(2),
+            Some(1),
+            None,
+            None,
+        ];
         assert_eq!(got, want, "{cases:?}");
         switches_from_the_judges_pick();
     }
@@ -62,6 +74,6 @@ mod tests {
             usage: Usage::default(),
         };
         let targets = read_answers(&answers, &ASK8).unwrap().targets;
-        assert_eq!(pick_target(&targets, Some(1)), Some(2), "the next element");
+        assert_eq!(pick_target(&targets, &[1]), Some(2), "the next element");
     }
 }

@@ -7,6 +7,8 @@ mod explore_tests;
 #[cfg(test)]
 mod failure_tests;
 #[cfg(test)]
+mod input_tests;
+#[cfg(test)]
 mod page_tests;
 #[cfg(test)]
 mod refuse_tests;

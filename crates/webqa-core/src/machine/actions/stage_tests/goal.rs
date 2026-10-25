@@ -2,7 +2,7 @@
 //! stage, and its answer not read.
 
 use super::{asks_for, begun, login_with};
-use crate::judge::{Question, QuestionId};
+use crate::judge::{Question, QuestionId, op_name};
 use crate::machine::testing::{
     ALL_OPS, EXPLORE_OPS_NO_INPUT, answer, ask_with, asked, asked_for, done_url, explore, rules,
     seen, showed, staged, told, top, touch,
@@ -52,4 +52,41 @@ fn goal_reached_answer_does_not_finish() {
     );
     let still = (again.state().stage(), again.reason());
     assert_eq!(still, (0, None), "still logging in");
+}
+
+#[test]
+fn the_operation_and_element_questions_lead_with_the_goal() {
+    let step = begun(staged(login_with(done_url("/home"))), seen(&top()));
+    let choice = |id, prompt: &str, options: Vec<String>| Question::Choice {
+        id,
+        prompt: prompt.to_owned(),
+        options,
+    };
+    let noul = |id, prompt: &str| Question::Noul {
+        id,
+        prompt: prompt.to_owned(),
+    };
+    let questions = vec![
+        choice(
+            QuestionId::operation(),
+            "目指すこと: ログインする\n\n次に行う操作の種別を選ぶ",
+            ALL_OPS.map(op_name).to_vec(),
+        ),
+        choice(
+            QuestionId::target(),
+            "目指すこと: ログインする\n\n操作する要素の番号を選ぶ",
+            vec!["1".to_owned(), "2".to_owned()],
+        ),
+        noul(QuestionId::error_shown(), "画面にエラーの表示があるか"),
+        noul(
+            QuestionId::goal_reached(),
+            "次のゴールを達成したか: ログインする",
+        ),
+    ];
+    let expected = ask_with(&top(), questions);
+    assert_eq!(
+        step.effect(),
+        Some(&expected),
+        "the goal leads two questions"
+    );
 }
