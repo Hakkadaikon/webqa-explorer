@@ -121,8 +121,8 @@ fn row_of(verdict: &Verdict, state: &State) -> Option<&'static OpRow> {
 fn pointed(verdict: &Verdict, state: &State, kind: ElementOp) -> Option<Numbered> {
     let shown: Vec<Numbered> = numbered(&state.last).collect();
     let ranked = fields_or_all(&verdict.targets, state, &shown, kind);
-    let number = pick_target(&ranked, &avoid(state, &shown))?;
-    shown.into_iter().find(|e| e.number == number)
+    pick_target(&ranked, &avoid(state, &shown))
+        .and_then(|number| shown.into_iter().find(|e| e.number == number))
 }
 
 /// For `input`, only the ranked elements that take a value, since the
