@@ -4,11 +4,13 @@
 use crate::effect::Effect;
 use crate::judge::Answers;
 use crate::machine::testing::{
-    answer, ask_top, asking, counters, id, inside, look, ranked, rules, secs, seen, showed,
-    started, told, top, touch, with,
+    answer, ask_top, asking, counters, id, inside, look, ranked, rules, secs, seen, showed, told,
+    top, touch, with,
 };
 use crate::machine::{Facts, State, Step, step};
 use crate::screen::{ElementId, Screen};
+
+mod unmoved;
 
 fn save() -> ElementId {
     id("button", "保存", 0)
@@ -114,30 +116,4 @@ fn aborted_look_up_forgets_the_unchanged_target() {
     );
     let after = next_look(aborted.state(), save_first());
     assert_eq!(after, Some(look(save())), "the judge's first pick stands");
-}
-
-#[test]
-fn unchanged_target_is_kept_until_the_screen_changes() {
-    let unchanged = clicked(&ask_top(rules()), save_first(), &save(), &top());
-    assert_eq!(unchanged.state().unmoved(), [save()], "kept");
-    let news = with(top(), inside("link", "新着"));
-    let changed = clicked(&ask_top(rules()), save_first(), &save(), &news);
-    assert_eq!(changed.state().unmoved(), [], "the screen changed");
-    let only = || ranked("click", Some(0.9), &[("1", 0.8)]);
-    let once = clicked(&ask_top(rules()), only(), &save(), &top());
-    let twice = clicked(once.state(), only(), &save(), &top());
-    assert_eq!(twice.state().unmoved(), [save()], "kept once");
-}
-
-#[test]
-fn every_element_left_unmoved_is_passed_over_until_the_screen_changes() {
-    let page = with(top(), inside("link", "新着"));
-    let news = id("link", "新着", 0);
-    let three = || ranked("click", Some(0.9), &[("1", 0.8), ("2", 0.6), ("3", 0.4)]);
-    let asking = started(rules(), &page).state().clone();
-    let first = clicked_on(&page, &asking, three(), &save(), &page);
-    let second = clicked_on(&page, first.state(), three(), &help(), &page);
-    assert_eq!(second.state().unmoved(), [save(), help()], "both kept");
-    let third = next_look(second.state(), three());
-    assert_eq!(third, Some(look(news)), "passes over both");
 }

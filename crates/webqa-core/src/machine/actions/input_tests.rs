@@ -71,8 +71,8 @@ fn input_goes_to_the_highest_ranked_element_that_takes_a_value() {
     assert_eq!(got, want, "a field with a value, else the judge's pick");
 }
 
-/// Types into the field `element` the answer points at, and the screen
-/// stays the same.
+/// Looks up the field `element` the answer points at, types into it, and
+/// sees the same screen after typing.
 fn typed_unchanged(state: &State, answers: Answers, element: ElementId) -> State {
     let looked = told(state, answers);
     assert_eq!(looked.effect(), Some(&look(element)), "looks the field up");
@@ -91,6 +91,7 @@ fn input_passes_over_a_field_left_unmoved_only_for_another_field() {
     let next = looked_up(&two, ranking("input", &order));
     assert_eq!(next, Some(look(note())), "the other field");
     let one = typed_unchanged(&asking(&["メール"]), ranking("input", &order), mail());
+    assert_eq!(one.unmoved(), [mail()], "the field is left unmoved");
     let again = looked_up(&one, ranking("input", &order));
     assert_eq!(again, Some(look(mail())), "the one field, not the button");
 }

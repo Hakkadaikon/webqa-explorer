@@ -121,7 +121,7 @@ fn row_of(verdict: &Verdict, state: &State) -> Option<&'static OpRow> {
 fn pointed(verdict: &Verdict, state: &State, kind: ElementOp) -> Option<Numbered> {
     let shown: Vec<Numbered> = numbered(&state.last).collect();
     let ranked = fields_or_all(&verdict.targets, state, &shown, kind);
-    let number = pick_target(&ranked, &avoid(state))?;
+    let number = pick_target(&ranked, &avoid(state, &shown))?;
     shown.into_iter().find(|e| e.number == number)
 }
 
@@ -159,8 +159,9 @@ fn takes_value(state: &State, shown: &[Numbered], number: usize) -> bool {
 }
 
 /// The numbers of the elements operated since the screen last changed.
-fn avoid(state: &State) -> Vec<usize> {
-    numbered(&state.last)
+fn avoid(state: &State, shown: &[Numbered]) -> Vec<usize> {
+    shown
+        .iter()
         .filter(|e| state.unmoved.contains(&e.element))
         .map(|e| e.number)
         .collect()
