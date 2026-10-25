@@ -102,28 +102,12 @@ fn spend_counts_from_zero_in_next_window() {
 }
 
 #[test]
-fn next_window_and_wake() {
+fn next_window() {
     let window = RequestWindow::new(cap(2));
     assert_eq!(window.next_start(secs(10)), secs(3600), "from window 0");
     assert_eq!(window.next_start(secs(3600)), secs(7200), "from window 1");
     assert_eq!(window.next_start(secs(7199)), secs(7200), "end of window 1");
 
-    assert_eq!(wake_at(secs(3600), None), secs(3600), "no deadline");
-    assert_eq!(
-        wake_at(secs(3600), Some(secs(60))),
-        secs(60),
-        "deadline first"
-    );
-    assert_eq!(
-        wake_at(secs(3600), Some(secs(3600))),
-        secs(3600),
-        "both at once"
-    );
-    assert_eq!(
-        wake_at(secs(3600), Some(secs(5000))),
-        secs(3600),
-        "window first"
-    );
     assert_eq!(WINDOW, secs(3600), "an hour");
 }
 

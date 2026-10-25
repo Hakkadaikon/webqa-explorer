@@ -3,7 +3,7 @@
 use super::{rules_with, sleep, waiting, wake};
 use crate::event::Mode;
 use crate::machine::testing::{asking, budget, next, nz, picked, rules, secs, top, window};
-use crate::machine::{ExitReason, Rules};
+use crate::machine::{ExitReason, Rules, State};
 use crate::plan::Pick;
 
 /// Rules of `mode` with a time limit of `limit` seconds.
@@ -68,16 +68,30 @@ fn budget_and_timeout_yield_one_of_them() {
     assert_eq!(step.state().budget().used(), 4, "no decision used");
 }
 
-#[test]
-fn timeout_during_window_wait() {
+/// Waiting at 10 seconds with a full window of 2 and a time limit of `limit` seconds.
+fn full_until(limit: u64) -> State {
     let rules = rules_with(|r| {
         r.requests_per_hour = nz(2);
-        r.max_duration = Some(secs(60));
+        r.max_duration = Some(secs(limit));
     });
-    let state = waiting(rules).with_window(window(2, 2, secs(10)));
+    waiting(rules).with_window(window(2, 2, secs(10)))
+}
+
+#[test]
+fn a_window_opening_at_the_limit_or_later_ends_the_run_at_once() {
+    for limit in [60, 3600] {
+        let step = next(full_until(limit), secs(10));
+        assert_eq!(step.reason(), Some(ExitReason::TimeExceeded), "{limit}s");
+        assert_eq!(step.effect(), None, "no wait for {limit}s");
+    }
+}
+
+#[test]
+fn a_window_opening_before_the_limit_is_waited_for() {
+    let state = full_until(3601);
     assert_eq!(picked(&state, secs(10)), Pick::WaitWindow, "waits");
     let step = next(state, secs(10));
-    assert_eq!(step.effect(), Some(&sleep(60)), "until the time limit");
-    let woke = wake(step.state().clone(), secs(60));
-    assert_eq!(woke.reason(), Some(ExitReason::TimeExceeded), "time is up");
+    assert_eq!(step.effect(), Some(&sleep(3600)), "until the window opens");
+    let woke = wake(step.state().clone(), secs(3600));
+    assert_eq!(woke.reason(), None, "goes on");
 }

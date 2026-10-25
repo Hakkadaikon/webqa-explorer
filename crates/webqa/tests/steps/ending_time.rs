@@ -19,7 +19,7 @@ pub const READY: &[&str] = &[
     "決め打ちシナリオでも、実行時間の上限に達したら時間切れで終了する",
     "判断予算切れと時間切れが重なったら、どちらか1つの終了理由で終了する",
     "時間切れとゴール達成や行き詰まりが重なったら、ゴール達成や行き詰まりを採る",
-    "時間窓が明けるのを待っている間に制限時間に達したら、窓を待たずに時間切れで終了する",
+    "時間窓が明けるのが制限時間より後なら、窓を待たずにその場で時間切れで終了する",
 ];
 
 #[given(expr = "探索モードを制限時間 {int} 秒で実行している")]
@@ -63,20 +63,21 @@ async fn ended_by_budget_or_time(world: &mut QaWorld) {
 #[given(expr = "時間窓が明けるのは、制限時間に達するより後である")]
 const fn window_opens_later(_world: &mut QaWorld) {}
 
-#[then(expr = "制限時間に達した時点で、実行は時間切れとして終了している")]
-async fn timed_out_at_the_limit(world: &mut QaWorld) {
+#[then(expr = "制限時間を待たずに、実行は時間切れとして終了している")]
+async fn timed_out_before_the_limit(world: &mut QaWorld) {
+    // Started at 0, the next window opens an hour in.
+    let limit = world.scene.max_duration;
+    let early = limit.is_some_and(|limit| limit < Duration::from_secs(3600));
+    let before = early && world.scene.clock_start.is_zero();
+    assert!(before, "the window opens after the limit");
     world.run().await;
     let ended = (world.reason(), world.ran().clock.elapsed());
-    let expected = (Some(ExitReason::TimeExceeded), Duration::from_secs(60));
-    assert_eq!(ended, expected, "it ended at the limit");
+    let expected = (Some(ExitReason::TimeExceeded), Duration::ZERO);
+    assert_eq!(ended, expected, "it ended at once");
 }
 
 #[then(expr = "時間窓が明けるまで待っていない")]
 async fn did_not_wait_for_the_window(world: &mut QaWorld) {
     world.run().await;
-    assert_eq!(
-        world.sleeps(),
-        [Duration::from_secs(60)],
-        "it slept to the limit only"
-    );
+    assert_eq!(world.sleeps(), Vec::<Duration>::new(), "it did not sleep");
 }

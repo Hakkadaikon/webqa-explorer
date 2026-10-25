@@ -1,8 +1,10 @@
 //! Tests of the run stopping at whichever record cannot be written.
 
+use std::time::Duration;
+
 use webqa_core::config::raw::Op;
 use webqa_core::judge::QuestionId;
-use webqa_core::machine::ExitReason;
+use webqa_core::machine::{ExitReason, StuckKind};
 use webqa_judge::scripted::Scripted;
 
 use super::super::fakes;
@@ -29,9 +31,11 @@ fn busy(fakes: &mut Fakes) {
     fakes.rules.stages = vec![login, stage("投稿", None, Some("投稿しました"))];
 }
 
-/// The window waits for the deadline, as in the timing tests.
+/// The window fills and opens before the deadline, so that the run waits
+/// for it and logs the wait.
 fn waiting(fakes: &mut Fakes) {
     fakes.rules = crowded(fakes);
+    fakes.rules.max_duration = Some(Duration::from_secs(3601));
 }
 
 /// The fakes set up by `setup`, the store taking `limit` writes.
@@ -82,5 +86,9 @@ async fn every_failed_write_stops_the_run() {
         "anomaly",
     ];
     assert_eq!(fakes.kinds(), kinds, "every kind of line is written");
-    stops_at_each_write(waiting, ExitReason::TimeExceeded).await;
+    let waited = stops_at_each_write(waiting, ExitReason::Stuck(StuckKind::NoProgress)).await;
+    assert!(
+        waited.kinds().contains(&"waited".to_owned()),
+        "the wait is one of the writes"
+    );
 }

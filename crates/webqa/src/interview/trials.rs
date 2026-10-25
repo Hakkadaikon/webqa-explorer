@@ -77,7 +77,7 @@ pub trait Launch: Send {
 pub enum Stopped {
     /// Every trial was started.
     Completed,
-    /// The time limit passed.
+    /// The time limit passed, or the window opens only at the limit or later.
     TimeUp,
     /// The user interrupted the run.
     Interrupted,

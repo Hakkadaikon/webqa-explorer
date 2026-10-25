@@ -1,6 +1,7 @@
 //! The rows taken while waiting, run through the state machine: the end of
 //! the run, the time window, the time limit and the page in trouble.
 
+mod blank;
 mod outside;
 mod time;
 mod window;

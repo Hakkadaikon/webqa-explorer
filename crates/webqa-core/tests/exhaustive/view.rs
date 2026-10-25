@@ -61,6 +61,15 @@ pub const fn sleeps(t: &Transition) -> bool {
     matches!(t.step.effect(), Some(Effect::Outside(Outside::Sleep(_))))
 }
 
+/// When the run wakes, if it sleeps.
+pub const fn wake(t: &Transition) -> Option<Duration> {
+    if let Some(Effect::Outside(Outside::Sleep(wake))) = t.step.effect() {
+        Some(wake.at)
+    } else {
+        None
+    }
+}
+
 /// Whether an element is looked up again.
 pub const fn looks(t: &Transition) -> bool {
     matches!(t.step.effect(), Some(Effect::Page(PageEffect::Look(_))))

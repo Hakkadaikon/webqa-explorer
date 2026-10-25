@@ -17,7 +17,7 @@ use super::write::{Closed, Closing, Failure, records};
 use super::{Ending, Launch, Plan, Stopped};
 use crate::interrupt::{Interrupt, guard};
 use crate::interview::reset::ResetError;
-use crate::run::{Kept, RunError};
+use crate::run::{Kept, RunError, waited};
 
 /// The ports of the loop, besides the interrupt.
 pub(super) struct Parts<'a> {
@@ -117,10 +117,7 @@ impl Course<'_> {
     async fn scheduled(&mut self) -> Result<Option<Stopped>, Halt> {
         match self.next() {
             Next::Stop(stop) => Ok(Some(stop.into())),
-            Next::Wait(at) => {
-                self.wait(at).await;
-                Ok(None)
-            }
+            Next::Wait(at) => self.wait(at).await,
             Next::Start(cap) => self.trial(cap).await.map(|()| None),
         }
     }
@@ -158,8 +155,10 @@ impl Course<'_> {
         next_trial(schedule, state, self.parts.clock.elapsed())
     }
 
-    /// Sleeps until `at`, or until the user interrupts.
-    async fn wait(&mut self, at: Duration) {
+    /// Logs the wait, then sleeps until `at`, or until the user interrupts.
+    /// Starts nothing, so the loop decides again.
+    async fn wait(&mut self, at: Duration) -> Result<Option<Stopped>, Halt> {
+        self.log(waited(at)).await?;
         let interrupt = &mut *self.interrupt;
         let clock = &mut *self.parts.clock;
         let interrupted = tokio::select! {
@@ -168,6 +167,7 @@ impl Course<'_> {
             () = clock.sleep_until(at) => false,
         };
         self.interrupted |= interrupted;
+        Ok(None)
     }
 
     /// Writes the records of the trials before `failed` stopped the loop.

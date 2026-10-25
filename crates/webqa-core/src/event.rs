@@ -190,7 +190,8 @@ pub enum TrialEnding {
     NoProgress,
     /// The decision budget was used up.
     BudgetSpent,
-    /// The time limit cut the trial.
+    /// The time limit cut the trial, or the window opens only at the limit
+    /// or later.
     TimeUp,
     /// The user's interruption cut the trial.
     Interrupted,

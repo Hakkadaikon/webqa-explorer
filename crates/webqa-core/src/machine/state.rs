@@ -45,7 +45,8 @@ pub enum ExitReason {
     Stuck(StuckKind),
     /// The decision budget is used up.
     BudgetExceeded,
-    /// The time limit is reached.
+    /// The time limit is reached, or the window is full and opens only at
+    /// the limit or later.
     TimeExceeded,
     /// The judge failed [`JUDGE_FAILURES`] times in a row.
     JudgeUnavailable,

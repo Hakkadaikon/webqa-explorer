@@ -6,7 +6,7 @@ mod tests;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
-use crate::window::{RequestWindow, wake_at};
+use crate::window::RequestWindow;
 
 /// What does not change during a run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -34,7 +34,8 @@ pub struct RunState {
 pub enum Stop {
     /// The user interrupted the run.
     Interrupted,
-    /// The time limit has passed.
+    /// The time limit has passed, or the window opens only at the limit or
+    /// later.
     TimeUp,
     /// All the trials have started.
     Completed,
@@ -65,13 +66,21 @@ pub const fn count_first_page(run: RequestWindow, now: Duration) -> RequestWindo
 pub fn next_trial(schedule: Schedule, state: RunState, now: Duration) -> Next {
     stop_reason(schedule, state, now).map_or_else(
         || {
-            core_cap(state.window, now).map_or_else(
-                || Next::Wait(wake_at(state.window.next_start(now), schedule.max_duration)),
-                Next::Start,
-            )
+            core_cap(state.window, now)
+                .map_or_else(|| wait(schedule, state.window.next_start(now)), Next::Start)
         },
         Next::Stop,
     )
+}
+
+/// Waits for the next window opening at `opens`, or stops when the time
+/// limit comes at or before it, since no trial could start before the limit.
+fn wait(schedule: Schedule, opens: Duration) -> Next {
+    if time_up(schedule.max_duration, opens) {
+        Next::Stop(Stop::TimeUp)
+    } else {
+        Next::Wait(opens)
+    }
 }
 
 /// The core's window for a trial started at `now` with `cap`.

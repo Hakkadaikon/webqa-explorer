@@ -6,15 +6,19 @@ use webqa_core::machine::{ExitReason, JUDGE_FAILURES, Phase, StuckKind};
 
 use super::candidates::{STOP, TWO};
 use super::rows::not_an_option;
-use super::view::{Property, Transition, all, implies};
+use super::view::{Property, Transition, all, any, implies, wake};
 
 const DECLARED: ExitReason = ExitReason::Stuck(StuckKind::Declared);
 const NO_PROGRESS: ExitReason = ExitReason::Stuck(StuckKind::NoProgress);
 
 /// Each reason is backed by the state or by the answer.
-pub static REASONS: [Property; 10] = [
+pub static REASONS: [Property; 11] = [
     BUDGET_BACKED,
     TIME_BACKED,
+    Property {
+        name: "a sleep wakes before the time limit",
+        holds: |t| wake(t).is_none_or(|at| at < STOP),
+    },
     Property {
         name: "stuck without progress only at the stuck threshold",
         holds: |t| {
@@ -114,9 +118,17 @@ const BUDGET_BACKED: Property = Property {
 };
 
 const TIME_BACKED: Property = Property {
-    name: "out of time only at the time limit",
-    holds: |t| implies(t.reason() == Some(ExitReason::TimeExceeded), t.at >= STOP),
+    name: "out of time only at the time limit, or with a full window opening at it or later",
+    holds: |t| implies(t.reason() == Some(ExitReason::TimeExceeded), out_of_time(t)),
 };
+
+/// The time limit has come, or the window is full and opens only at the
+/// limit or later.
+fn out_of_time(t: &Transition) -> bool {
+    let window = t.after().window();
+    let opens_late = all(&[window.full(t.at), window.next_start(t.at) >= STOP]);
+    any(&[t.at >= STOP, opens_late])
+}
 
 fn going_on(t: &Transition) -> bool {
     let phase = t.after().phase();

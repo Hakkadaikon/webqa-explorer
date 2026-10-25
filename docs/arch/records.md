@@ -38,7 +38,7 @@
 | `error_display` | 判断モデルが答えた、エラー表示のある確率が閾値以上 | 確定(`confirmed`) |
 | `accessible_name` | 要素の読み上げ名が、画像ファイル名や仮の値に一致する(中核が判定する) | 確定(`confirmed`) |
 | `console_error` | ブラウザのコンソールにエラーが出た | 確定(`confirmed`) |
-| `outside_domain` | 遷移したあとのURLが許可ドメインの外にある | 確定(`confirmed`) |
+| `outside_domain` | 遷移したあとのURLが許可ドメインの外にある。`about:blank`は除く | 確定(`confirmed`) |
 | `semantic` | 意味の判断が要る検出で、判断モデルだけが判定する | 参考情報(`reference`) |
 
 終了コードに数えるのは、確定の問題だけである([コマンド](cli.md))。
@@ -90,7 +90,7 @@
 | `reported_done` | 判断モデルが終わったと答えた。達成は確かめていない |
 | `stuck` | 行き詰まった。`stuck`は`declared`(判断モデルが答えた)か`no_progress`(進まない回数が閾値に達した) |
 | `budget_exceeded` | 判断のステップの数の上限に達した。インタビューのモードでは1ステップで最大2回呼ぶ |
-| `time_exceeded` | 実行の時間の上限に達した |
+| `time_exceeded` | 実行の時間の上限に達した。時間窓が満杯で、次の窓が明けるのが上限と同時か後のときも含む |
 | `user_aborted` | 利用者が中断した |
 | `error` | ブラウザの操作に失敗した。インタビューのモードでは、試行のブラウザを開けなかったときも含む |
 | `judge_unavailable` | 判断モデルへの問い(1ステップの答え)が3回続けて失敗した。APIのエラー、タイムアウト、橋渡しの失敗を数える |
@@ -221,7 +221,7 @@ CLIは1行書くたびにフラッシュする。
 | `issue` | 問題を見つけた。`issue`、`class`、`evidence`、`label`、`p`、`screenshot` |
 | `skipped` | ブラウザが何もしない操作だった。`cause`は`not_an_input`か`no_input_value` |
 | `stage_advanced` | 決め打ちシナリオが次の段階に進んだ。0から数える`stage`と、名前の`name` |
-| `waited` | 時間窓が空くまで待った。待ち終わる時刻の`until_ms` |
+| `waited` | 時間窓が空くまで待った。待ち終わる時刻の`until_ms`。インタビューでは試行の間の待ちも書く |
 | `trial_started` | インタビューの試行が始まった。1から数える`trial` |
 | `trial_finished` | インタビューの試行が終わった。`trial`と、終わり方の`ending` |
 | `run_finished` | 実行の終わり。`reason`と、行き詰まったときの`stuck` |

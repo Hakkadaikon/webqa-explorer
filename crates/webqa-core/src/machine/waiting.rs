@@ -12,7 +12,6 @@ use crate::effect::{Effect, Outside, Touch, Wake};
 use crate::event::Mode;
 use crate::plan::{Delays, Ends, Goal, Limits, Pick, Trouble, Waiting, choose, explore_goal};
 use crate::stage;
-use crate::window::wake_at;
 
 /// The waiting row of the table.
 pub(super) static ROWS: [Action; 1] = [Action {
@@ -29,7 +28,7 @@ pub(super) fn waiting(state: &State, now: Duration) -> Waiting {
             limits: Limits {
                 judge_down: state.failing >= JUDGE_FAILURES,
                 out_of_budget: state.budget.exhausted(),
-                time_up: state.rules.max_duration.is_some_and(|limit| now >= limit),
+                time_up: out_of_time(state, now),
             },
         },
         delays: Delays {
@@ -41,6 +40,21 @@ pub(super) fn waiting(state: &State, now: Duration) -> Waiting {
             },
         },
     }
+}
+
+/// Whether the time limit has come, or the full window opens only at the
+/// limit or later, so that waiting for it would do nothing but wait.
+fn out_of_time(state: &State, now: Duration) -> bool {
+    let window = state.window;
+    let ready_at = if window.full(now) {
+        window.next_start(now)
+    } else {
+        now
+    };
+    state
+        .rules
+        .max_duration
+        .is_some_and(|limit| ready_at >= limit)
 }
 
 /// The first tier, on the latest observation: the `done_when` of the
@@ -138,9 +152,9 @@ fn advance(mut state: State) -> Next {
     Next::Go(Box::new(state))
 }
 
-/// Sleeps until the next window, or until the time limit if earlier.
+/// Sleeps until the next window, which opens before the time limit.
 fn sleep(state: State, now: Duration) -> Next {
-    let at = wake_at(state.window.next_start(now), state.rules.max_duration);
+    let at = state.window.next_start(now);
     out(
         state,
         Phase::Sleeping,
