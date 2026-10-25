@@ -186,7 +186,8 @@ fn moves(ops: Vec<Op>) -> (Vec<Op>, Option<Vec<usize>>) {
 }
 
 /// The questions about the latest page. With a goal, the questions about
-/// the operation kind and the element lead with it.
+/// the operation kind and the element lead with it. An interview has a goal
+/// too, but asks its own questions in place of these.
 pub(super) fn questions(state: &State) -> Questions {
     let offer = offer(state);
     let mut questions = judge::questions(&offer.ask());

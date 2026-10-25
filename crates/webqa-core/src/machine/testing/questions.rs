@@ -45,8 +45,11 @@ pub fn asked_for(ops: &[Op], elements: usize, goal: Option<&str>) -> Vec<Questio
         elements,
         goal,
     });
+    let steps = [QuestionId::operation(), QuestionId::target()];
     for question in &mut asked {
-        if let (Some(goal), Question::Choice { prompt, .. }) = (goal, question) {
+        if let (Some(goal), Question::Choice { id, prompt, .. }) = (goal, question)
+            && steps.contains(id)
+        {
             *prompt = format!("目指すこと: {goal}\n\n{prompt}");
         }
     }

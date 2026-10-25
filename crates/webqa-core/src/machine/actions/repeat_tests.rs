@@ -123,6 +123,10 @@ fn unchanged_target_is_kept_until_the_screen_changes() {
     let news = with(top(), inside("link", "新着"));
     let changed = clicked(&ask_top(rules()), save_first(), &save(), &news);
     assert_eq!(changed.state().unmoved(), [], "the screen changed");
+    let only = || ranked("click", Some(0.9), &[("1", 0.8)]);
+    let once = clicked(&ask_top(rules()), only(), &save(), &top());
+    let twice = clicked(once.state(), only(), &save(), &top());
+    assert_eq!(twice.state().unmoved(), [save()], "kept once");
 }
 
 #[test]

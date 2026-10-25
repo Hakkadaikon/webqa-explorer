@@ -87,7 +87,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-001 WebExploratoryQA.feature:19(1ステップの問い合わせと実行) [event] 「判断モデルに送る画面状態はアクセシビリティ情報のテキストで、操作可能要素の一覧を含む」
       → 手法: 同値分割(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::screen` の `screen_text_lists_role_name_value` / issue: #6
 - [x] T-002 WebExploratoryQA.feature:25(1ステップの問い合わせと実行) [event] 「1ステップで操作種別・対象要素・エラー表示の有無・ゴール達成の有無を問い合わせる」
-      → 手法: テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `step_asks_op_target_error_goal` / issue: #7
+      → 手法: テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::judge` の `step_asks_op_target_error_goal`、単体 `webqa-core::machine::actions` の `the_operation_and_element_questions_lead_with_the_goal` / issue: #7、#110
 - [x] T-003 WebExploratoryQA.feature:35(1ステップの問い合わせと実行) [event] 「ガードレールを通った操作はそのままブラウザで実行する」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles)、コントラクトテスト(levels-service) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `passed_proposal_becomes_touch`、契約 `webqa-browser/tests/contract.rs` の `performs_each_operation` / issue: #9、#12
 - [x] T-004 WebExploratoryQA.feature:51(1ステップの問い合わせと実行) [unwanted] 「画面が変わらないのに同じ要素を選んだら、次に確信度の高い候補へ切り替える」
@@ -313,7 +313,7 @@ T-113 は、issue #4 で利用者が「許可リストは禁止より優先す�
 - [x] T-114 WebExploratoryQA.feature:673(探索の記憶と優先順位) [state] 「探索モードでは、値の設定された入力欄が候補にあるときだけ、操作種別の選択肢に input を含める」(Examples の各行を1ケースとする)
       → 手法: 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_offered_only_for_a_field_with_a_value`、単体 `webqa-core::machine::rules` の `input_does_nothing_without_a_field_or_a_value`、単体 `webqa-core::machine::actions` の `input_stays_when_the_rules_offer_nothing_else`、単体 `webqa-core::machine::actions` の `input_is_dropped_when_its_field_is_past_the_options` / issue: #62、#63
 - [x] T-115 WebExploratoryQA.feature:691(探索の記憶と優先順位) [unwanted] 「何も打ち込まなかった input は、skipped として記録し、探索済みの要素に数えない」(Examples の各行を1ケースとする)
-      → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_remembered_only_when_it_typed`、単体 `webqa::run` の `input_that_does_nothing_is_recorded_and_run_continues` / issue: #62、#64
+      → 手法: 同値分割(blackbox-partition)、テストダブル(test-doubles) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_remembered_only_when_it_typed`、単体 `webqa::run` の `input_that_does_nothing_is_recorded_and_run_continues`、単体 `webqa-core::machine::actions` の `input_goes_to_the_highest_ranked_element_that_takes_a_value` と `input_passes_over_a_field_left_unmoved_only_for_another_field` / issue: #62、#64、#111
 - [x] T-116 WebExploratoryQA.feature:704(探索の記憶と優先順位) [event] 「値の設定された入力欄に打てた input は、skipped を記録せず、探索済みの要素に数える」
       → 手法: 同値分割(blackbox-partition)、状態遷移テスト(blackbox-state) / テスト名: 受け入れ(同題の Scenario)、単体 `webqa-core::machine::actions` の `input_is_remembered_after_the_page_loses_the_field` / issue: #62、#64
 - [x] T-117 WebExploratoryQA.feature:685(探索の記憶と優先順位) [event] 「入力欄に打ったあと Enter を押すと、画面が変わり、変わった先の画面が探索の記憶に加わる」
@@ -342,7 +342,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | 振る舞い(T番号) | 種別 | 手法(reference) | テスト名 | issue | 設計済 | 緑確認済 | mutation(criticalのみ) |
 |------------------|------|------------------|----------|-------|--------|----------|------------------------|
 | T-001 | event | 同値分割(blackbox-partition) | `screen_text_lists_role_name_value` | #6 | [x] | [ ] | — |
-| T-002 | event | テストダブル(test-doubles) | `step_asks_op_target_error_goal` | #7 | [x] | [ ] | — |
+| T-002 | event | テストダブル(test-doubles) | `step_asks_op_target_error_goal`、`the_operation_and_element_questions_lead_with_the_goal` | #7、#110 | [x] | [ ] | — |
 | T-003 | event | 同値分割(blackbox-partition)、テストダブル(test-doubles)、コントラクトテスト(levels-service) | `passed_proposal_becomes_touch`、`performs_each_operation` | #9、#12 | [x] | [ ] | — |
 | T-004 | unwanted | デシジョンテーブル(blackbox-partition) | `same_unchanged_target_switches_to_next`、`every_element_left_unmoved_is_passed_over_until_the_screen_changes` | #7、#112 | [x] | [ ] | — |
 | T-005 | boundary | 境界値分析(blackbox-partition) | `back_confidence_boundary` | #4 | [x] | [ ] | 要 |
@@ -455,7 +455,7 @@ mutation 列は、ガードレール・終了・固まりとドメイン外・�
 | T-112 | unwanted | ネガティブテスト(process-static)、同値分割(blackbox-partition) | `explore_mode_needs_click_or_input`、`explore_without_click_or_input_exits_two` | #17、#14 | [x] | [ ] | 要 |
 | T-113 | event | ゴールデンテスト(oracle-past-output)、同値分割(blackbox-partition) | `allowed_list_wins_over_every_axis` | #4 | [x] | [ ] | 要 |
 | T-114 | state | 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) | `input_is_offered_only_for_a_field_with_a_value`、`input_does_nothing_without_a_field_or_a_value`、`input_stays_when_the_rules_offer_nothing_else`、`input_is_dropped_when_its_field_is_past_the_options` | #62、#63 | [x] | [ ] | 要 |
-| T-115 | unwanted | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `input_is_remembered_only_when_it_typed`、`input_that_does_nothing_is_recorded_and_run_continues` | #62、#64 | [x] | [ ] | 要 |
+| T-115 | unwanted | 同値分割(blackbox-partition)、テストダブル(test-doubles) | `input_is_remembered_only_when_it_typed`、`input_that_does_nothing_is_recorded_and_run_continues`、`input_goes_to_the_highest_ranked_element_that_takes_a_value`、`input_passes_over_a_field_left_unmoved_only_for_another_field` | #62、#64、#111 | [x] | [ ] | 要 |
 | T-116 | event | 同値分割(blackbox-partition)、状態遷移テスト(blackbox-state) | `input_is_remembered_after_the_page_loses_the_field` | #62、#64 | [x] | [ ] | 要 |
 | T-117 | event | 状態遷移テスト(blackbox-state)、同値分割(blackbox-partition)、コントラクトテスト(levels-service) | `enter_is_offered_only_with_a_field_that_takes_a_value`、`enter_stays_after_the_field_is_typed`、`enter_alone_does_not_narrow_to_the_moves`、`enter_needs_no_target`、`enter_presses_only_into_a_focused_input_field` | #70 | [x] | [ ] | 要 |
 | T-118 | unwanted | 同値分割(blackbox-partition)、デシジョンテーブル(blackbox-partition) | `enter_is_dropped_when_a_forbidden_element_is_on_the_page`、`enter_is_dropped_even_when_it_is_the_only_kind`、`scenario_mode_needs_a_kind_besides_enter` | #70 | [x] | [ ] | 要 |

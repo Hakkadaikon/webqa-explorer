@@ -151,6 +151,7 @@ pub(super) fn arrived(state: State, seen: Seen, _: Duration) -> Next {
 /// next answer can move on to another one.
 pub(super) fn executed(mut state: State, seen: Seen, _: Duration) -> Next {
     let kind = recorded(&state);
+    // Set aside before `landed`, which forgets them for every observation.
     let unmoved = mem::take(&mut state.unmoved);
     let (mut state, taken) = landed(state, seen);
     let explored = explored(&mut state, taken.from, kind);
