@@ -185,7 +185,8 @@ fn moves(ops: Vec<Op>) -> (Vec<Op>, Option<Vec<usize>>) {
     }
 }
 
-/// The questions about the latest page.
+/// The questions about the latest page. With a goal, the questions about
+/// the operation kind and the element lead with it.
 pub(super) fn questions(state: &State) -> Questions {
     let offer = offer(state);
     let mut questions = judge::questions(&offer.ask());
@@ -196,6 +197,12 @@ pub(super) fn questions(state: &State) -> Questions {
             .filter_map(target_options)
             .for_each(|options| options.clone_from(&names));
         questions.retain(judge::not_an_empty_target);
+    }
+    if let Some(goal) = &offer.goal {
+        questions
+            .iter_mut()
+            .filter_map(step_prompt)
+            .for_each(|prompt| *prompt = format!("目指すこと: {goal}\n\n{prompt}"));
     }
     let last = &state.last;
     Questions {
@@ -208,6 +215,17 @@ pub(super) fn questions(state: &State) -> Questions {
 fn target_options(question: &mut Question) -> Option<&mut Vec<String>> {
     match question {
         Question::Choice { id, options, .. } => (*id == QuestionId::target()).then_some(options),
+        Question::Noul { .. } | Question::Score { .. } | Question::Text { .. } => None,
+    }
+}
+
+/// The prompt of the question about the operation kind or the element,
+/// which the goal of the stage leads: the other questions do not choose.
+fn step_prompt(question: &mut Question) -> Option<&mut String> {
+    match question {
+        Question::Choice { id, prompt, .. } => {
+            (*id == QuestionId::operation() || *id == QuestionId::target()).then_some(prompt)
+        }
         Question::Noul { .. } | Question::Score { .. } | Question::Text { .. } => None,
     }
 }

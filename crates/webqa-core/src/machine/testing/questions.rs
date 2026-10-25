@@ -37,13 +37,20 @@ pub const EXPLORE_OPS_NO_INPUT: [Op; 6] = [
 pub const MOVES: [Op; 3] = [Op::ScrollDown, Op::ScrollUp, Op::Back];
 
 /// The questions about `elements` elements with the operation kinds `ops`
-/// and the goal `goal`.
+/// and the goal `goal`, which leads the questions about the operation kind
+/// and the element.
 pub fn asked_for(ops: &[Op], elements: usize, goal: Option<&str>) -> Vec<Question> {
-    questions(&Ask {
+    let mut asked = questions(&Ask {
         ops,
         elements,
         goal,
-    })
+    });
+    for question in &mut asked {
+        if let (Some(goal), Question::Choice { prompt, .. }) = (goal, question) {
+            *prompt = format!("目指すこと: {goal}\n\n{prompt}");
+        }
+    }
+    asked
 }
 
 /// The questions asked under `rules` about `elements` elements, with no goal.
